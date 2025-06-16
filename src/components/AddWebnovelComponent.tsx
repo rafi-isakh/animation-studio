@@ -207,7 +207,7 @@ const AddWebnovelComponent = () => {
         <>
             {!isLoggedInAndRegistered ? (
                 <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
-                      <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
+                      <p className='text-lg font-bold pt-10'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
                     <SignInComponent redirectTo="/new_webnovel" />
                 </div>
             ) : (

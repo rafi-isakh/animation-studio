@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton"
+import { motion } from "framer-motion"
+import gsap from "gsap"
 
 interface Book {
   id: string
@@ -29,6 +31,26 @@ interface TabData {
   label: string
   icon?: string
   books: Book[]
+}
+
+const scaleAnimation = {
+  initial: { scale: 0, x: "-50%", y: "-50%" },
+  enter: { scale: 1, x: "-50%", y: "-50%", transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] } },
+  closed: { scale: 0, x: "-50%", y: "-50%", transition: { duration: 0.4, ease: [0.32, 0, 0.67, 0] } }
+}
+
+export const slideLeft = {
+  initial: {
+    x: 0
+  },
+  animate: {
+    x: "-100%",
+    transition: {
+      duration: 10,
+      ease: "linear",
+      repeat: Infinity
+    }
+  }
 }
 
 export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
@@ -193,6 +215,62 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
     : [];
 
   const { language } = useLanguage();
+  const modalContainer = useRef<HTMLDivElement>(null);
+
+  const cursor = useRef<HTMLDivElement>(null);
+  const cursorLabel = useRef<HTMLDivElement>(null);
+  const [modal, setModal] = useState({ active: false, index: 0 })
+  const { active, index } = modal;
+
+  let xMoveContainer = useRef<((value: number) => void) | null>(null);
+  let yMoveContainer = useRef<((value: number) => void) | null>(null);
+  let xMoveCursor = useRef<((value: number) => void) | null>(null);
+  let yMoveCursor = useRef<((value: number) => void) | null>(null);
+  let xMoveCursorLabel = useRef<((value: number) => void) | null>(null);
+  let yMoveCursorLabel = useRef<((value: number) => void) | null>(null);
+
+  useEffect(() => {
+    //Move Container
+    xMoveContainer.current = gsap.quickTo(modalContainer.current, "left", { duration: 0.8, ease: "power3" })
+    yMoveContainer.current = gsap.quickTo(modalContainer.current, "top", { duration: 0.8, ease: "power3" })
+    //Move cursor
+    xMoveCursor.current = gsap.quickTo(cursor.current, "left", { duration: 0.5, ease: "power3" })
+    yMoveCursor.current = gsap.quickTo(cursor.current, "top", { duration: 0.5, ease: "power3" })
+    //Move cursor label
+    xMoveCursorLabel.current = gsap.quickTo(cursorLabel.current, "left", { duration: 0.45, ease: "power3" })
+    yMoveCursorLabel.current = gsap.quickTo(cursorLabel.current, "top", { duration: 0.45, ease: "power3" })
+  }, [])
+
+  const moveItems = (x: number, y: number) => {
+    if (modalContainer.current) {
+      const rect = modalContainer.current.getBoundingClientRect();
+      const relativeX = x - rect.left;
+      const relativeY = y - rect.top;
+      xMoveContainer.current?.(relativeX)
+      yMoveContainer.current?.(relativeY)
+      xMoveCursor.current?.(relativeX)
+      yMoveCursor.current?.(relativeY)
+      xMoveCursorLabel.current?.(relativeX)
+      yMoveCursorLabel.current?.(relativeY)
+    }
+  }
+
+  useEffect(() => {
+    if (modalContainer.current) {
+      const bounds = modalContainer.current.getBoundingClientRect();
+      if (bounds.top < 0) {
+        gsap.set(modalContainer.current, { x: "-100%" })
+        gsap.set(modalContainer.current, { x: "100%" })
+      }
+      else {
+        gsap.set(modalContainer.current, { x: "100%" })
+        gsap.set(modalContainer.current, { x: "-100%" })
+      }
+      gsap.to(modalContainer.current, { x: "0%", duration: 0.3 })
+    }
+  }, [])
+
+
 
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto">
@@ -227,6 +305,16 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
       </div>
 
       {/* Books Grid */}
+      <motion.div
+        ref={modalContainer}
+        initial="initial"
+        animate={active ? "enter" : "closed"}
+        onMouseMove={(e) => { moveItems(e.clientX, e.clientY) }}
+        className="flex items-center justify-center">
+         <motion.div
+          onMouseEnter={() => setModal(prev => ({ ...prev, active: true }))}
+          onMouseLeave={() => setModal(prev => ({ ...prev, active: false }))}
+          className="relative mx-auto md:w-screen w-full h-full overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {sortedBooks.map((book) => (
           <div key={book.id} className="relative flex flex-col">
@@ -282,6 +370,9 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
           </div>
         ))}
       </div>
+      </motion.div>
+      <motion.div ref={cursorLabel} className='bg-amber-400 text-white rounded-full px-3 py-4 absolute top-0 left-0 pointer-events-none z-50' variants={scaleAnimation} initial="initial" animate={active ? "enter" : "closed"}>View</motion.div>
+      </motion.div>
     </section>
   )
 }

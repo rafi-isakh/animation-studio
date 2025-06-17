@@ -335,10 +335,10 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                                 <Plus className="h-6 w-6" />
                                                             </div>
                                                             <h3 className="text-md font-medium text-center">
-                                                                {phrase(dictionary, "createNewSlideShow", language)}
+                                                                {phrase(dictionary, "createNewImage", language)}
                                                             </h3>
                                                             <p className="mb-4 text-center text-xs text-muted-foreground">
-                                                                {phrase(dictionary, "createNewSlideShowDescription", language)}
+                                                                {phrase(dictionary, "createNewImageDescription", language)}
                                                             </p>
                                                         </>
                                                     )}

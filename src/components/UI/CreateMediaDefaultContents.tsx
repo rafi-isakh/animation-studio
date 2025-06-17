@@ -53,9 +53,9 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
             })
             .then(data => {
                 let posts: ToonyzPost[] = data;
-                if (webnovelId) {
-                    posts = posts.filter(post => post.webnovel_id.toString() === webnovelId);
-                }
+                // if (webnovelId) {
+                //     posts = posts.filter(post => post.webnovel_id.toString() === webnovelId);
+                // }
                 const sorted = [...posts].sort((a, b) => b.upvotes - a.upvotes);
                 setUserRanking(sorted);
                 setInitialPosts(sorted.slice(0, 15));
@@ -197,22 +197,22 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                         {post.video && <video src={getVideoUrl(post.video)} autoPlay muted loop playsInline className="object-cover" />}
                                                     </div>
                                                 </Card> */}
-                                                   {post.image && <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
+                                                    <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
                                                         <div className="p-1">
                                                             <Card>
-                                                                <CardContent className="flex aspect-square items-center justify-center p-6">
-                                                                    {post.image && <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} className="object-cover" />}
-                                                                   
+                                                                <CardContent className="flex aspect-square items-center justify-center">
+                                                                    {post.image ? <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} className="object-cover" />
+                                                                        : <video src={getVideoUrl(post.video)} autoPlay muted loop playsInline className="object-cover" width={100} height={100} />}
+
                                                                 </CardContent>
                                                             </Card>
                                                         </div>
                                                     </CarouselItem>
-                                                    }
                                                 </motion.div>
                                             ))}
                                         </CarouselContent>
-                                        <CarouselPrevious className="absolute top-1/2 left-1 transform -translate-y-1/2" />
-                                        <CarouselNext className="absolute top-1/2 right-1 transform -translate-y-1/2" />
+                                        <CarouselPrevious disabled={initialPosts.length <= 1} className={"absolute top-1/2 left-1 transform -translate-y-1/2 " + (initialPosts.length <= 1 ? "opacity-10" : "opacity-100")} />
+                                        <CarouselNext disabled={initialPosts.length <= 1} className={"absolute top-1/2 right-1 transform -translate-y-1/2 " + (initialPosts.length <= 1 ? "opacity-10" : "opacity-100")} />
                                     </Carousel>
                                 </div>
 

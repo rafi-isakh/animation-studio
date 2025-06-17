@@ -82,9 +82,6 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                         <TabsTrigger value="posts" className="font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
                             {phrase(dictionary, 'toonyz_post_feed', language)}
                         </TabsTrigger>
-                        <TabsTrigger value="ranking" className="font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
-                            {phrase(dictionary, 'toonyz_post_ranking', language)}
-                        </TabsTrigger>
                     </TabsList>
                 </div>
                 <AnimatePresence mode="wait">
@@ -191,28 +188,61 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                         <CarouselContent>
                                             {initialPosts.map((post, index) => (
                                                 <motion.div key={index} className="flex-shrink-0" whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
-                                                    {/* <Card className="overflow-hidden rounded-3xl w-48">
-                                                    <div className="aspect-[4/3] overflow-hidden bg-muted relative">
-                                                        {post.image && <Image src={getImageUrl(post.image)} alt={post.title} fill className="object-cover" />}
-                                                        {post.video && <video src={getVideoUrl(post.video)} autoPlay muted loop playsInline className="object-cover" />}
-                                                    </div>
-                                                </Card> */}
                                                     <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
-                                                        <div className="p-1">
-                                                            <Card>
-                                                                <CardContent className="flex aspect-square items-center justify-center">
-                                                                    {post.image ? <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} className="object-cover" />
-                                                                        : <video src={getVideoUrl(post.video)} autoPlay muted loop playsInline className="object-cover" width={100} height={100} />}
+                                                        <div className="pt-4">
+                                                            <Link href={`/toonyz_posts/${post.id}`}>
+                                                                <Card className="w-full h-full">
+                                                                    <CardContent className="relative flex flex-col items-center justify-center p-0">
+                                                                        {post.image ?
+                                                                            <div className="w-[180px] flex items-center justify-center">
+                                                                                <Image
+                                                                                    src={getImageUrl(post.image)}
+                                                                                    alt={post.title}
+                                                                                    width={150}
+                                                                                    height={150}
+                                                                                    className="w-full h-full object-cover rounded-t-xl"
+                                                                                />
 
-                                                                </CardContent>
-                                                            </Card>
+                                                                            </div>
+                                                                            :
+                                                                            <div className="w-[180px] flex items-center justify-center">
+                                                                                <video
+                                                                                    src={getVideoUrl(post.video)}
+                                                                                    autoPlay
+                                                                                    muted
+                                                                                    loop
+                                                                                    playsInline
+                                                                                    width={150}
+                                                                                    height={150}
+                                                                                    className="w-full h-full object-cover rounded-t-xl"
+                                                                                />
+                                                                            </div>
+                                                                        }
+                                                                        <div className="flex flex-col items-center justify-center w-full">
+                                                                            <div className="text-sm text-gray-500 py-2 px-4 w-full">
+                                                                                {post.title}
+                                                                            </div>
+                                                                            <div className="flex items-center justify-between text-sm text-muted-foreground px-4 py-2 w-full">
+                                                                                <div className="flex items-center">
+                                                                                    <User className="mr-1 h-4 w-4" />
+                                                                                    {post.user.nickname}
+                                                                                </div>
+                                                                                <div className="flex items-center">
+                                                                                    <Heart className="mr-1 h-4 w-4 text-pink-500" />
+                                                                                    {post.upvotes}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </CardContent>
+                                                                </Card>
+                                                            </Link>
                                                         </div>
                                                     </CarouselItem>
                                                 </motion.div>
                                             ))}
                                         </CarouselContent>
-                                        <CarouselPrevious disabled={initialPosts.length <= 1} className={"absolute top-1/2 left-1 transform -translate-y-1/2 " + (initialPosts.length <= 1 ? "opacity-10" : "opacity-100")} />
-                                        <CarouselNext disabled={initialPosts.length <= 1} className={"absolute top-1/2 right-1 transform -translate-y-1/2 " + (initialPosts.length <= 1 ? "opacity-10" : "opacity-100")} />
+                                        <CarouselPrevious disabled={initialPosts.length <= 1} className={`absolute top-1/2 left-1 transform -translate-y-1/2 border-0 text-gray-200 ${initialPosts.length <= 1 ? "opacity-0" : "opacity-100"}`} />
+                                        <CarouselNext disabled={initialPosts.length <= 1} className={`absolute top-1/2 right-1 transform -translate-y-1/2 border-0 text-gray-200 ${initialPosts.length <= 1 ? "opacity-0" : "opacity-100"}`} />
                                     </Carousel>
                                 </div>
 
@@ -272,118 +302,53 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                             </Link>
                                         </motion.div>
                                     ))}
-                                    <motion.div whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
-                                        {source == 'webnovel' &&
-                                            <Button
-                                                variant="link"
-                                                className="!no-underline p-8 bg-muted/50 flex h-full flex-col items-center justify-center rounded-3xl border border-dashed hover:border-primary/50 transition-all duration-300"
-                                                disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
-                                                onClick={() => {
-                                                    if (tickets < 2) {
-                                                        setCreateMediaPrice(2)
-                                                        setShowNotEnoughTicketsModal(true);
-                                                        return;
-                                                    }
-                                                    if (chapterIds && chapterIds.length > 0) {
-                                                        setOpenDialog(true);
-                                                        generateTrailer(chapterIds);
-                                                    }
-                                                    else {
-                                                        toast({
-                                                            title: "Error",
-                                                            description: "No chapters available to generate trailer",
-                                                            variant: "destructive",
-                                                        });
-                                                    }
-                                                }}
-                                            >
-                                                {loadingVideoGeneration ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                ) : (
-                                                    <>
-                                                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
-                                                            <Plus className="h-6 w-6" />
-                                                        </div>
-                                                        <h3 className="text-lg font-medium text-center">
-                                                            {phrase(dictionary, "createNewSlideShow", language)}
-                                                        </h3>
-                                                        <p className="mb-4 text-center text-sm text-muted-foreground">
-                                                            {phrase(dictionary, "createNewSlideShowDescription", language)}
-                                                        </p>
-                                                    </>
-                                                )}
-                                            </Button>
-                                        }
-                                    </motion.div>
-                                </div>
-                            </section>
-
-                        </TabsContent>
-
-                        <TabsContent value="ranking" className="flex-shrink-0 space-y-8 mt-0">
-                            <section>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="overflow-hidden rounded-3xl bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 p-8 text-white"
-                                >
-                                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                        <div className="space-y-2">
-                                            <h2 className="text-3xl font-bold break-keep">{phrase(dictionary, "toonyzPostRanking", language)}</h2>
-                                            <p className="max-w-[600px] text-white/80 break-keep">
-                                                {phrase(dictionary, "toonyzPostRankingDescription", language)}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30">
-                                                <TrendingUp className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </section>
-
-                            <section className="space-y-4">
-                                <div className="rounded-xl border overflow-hidden">
-                                    <div className="bg-muted/50 p-4 font-medium">
-                                        {phrase(dictionary, "topVotedPosts", language)}
-                                    </div>
-                                    <div className="divide-y">
-                                        {userRanking.map((post, index) => (
-                                            <motion.div
-                                                key={post.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ duration: 0.3, delay: index * 0.05 }}
-                                                className="flex items-center justify-between"
-                                            >
-                                                <Link href={`/toonyz_posts/${post.id}`} className="w-full flex flex-row items-center justify-between p-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-lg font-bold w-10 text-center text-gray-400">{index + 1}</span>
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-                                                            <BookOpen className="h-5 w-5 text-gray-500" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium">{post.title}</p>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                by {post.user.nickname}
+                                        <motion.div className="col-span-1" whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
+                                            {source == 'webnovel' &&
+                                                <Button
+                                                    variant="link"
+                                                    className="!no-underline bg-muted/50 flex w-full h-full flex-col items-center justify-center rounded-3xl border border-dashed hover:border-primary/50 transition-all duration-300"
+                                                    disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
+                                                    onClick={() => {
+                                                        if (tickets < 2) {
+                                                            setCreateMediaPrice(2)
+                                                            setShowNotEnoughTicketsModal(true);
+                                                            return;
+                                                        }
+                                                        if (chapterIds && chapterIds.length > 0) {
+                                                            setOpenDialog(true);
+                                                            generateTrailer(chapterIds);
+                                                        }
+                                                        else {
+                                                            toast({
+                                                                title: "Error",
+                                                                description: "No chapters available to generate trailer",
+                                                                variant: "destructive",
+                                                            });
+                                                        }
+                                                    }}
+                                                >
+                                                    {loadingVideoGeneration ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                    ) : (
+                                                        <>
+                                                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
+                                                                <Plus className="h-6 w-6" />
+                                                            </div>
+                                                            <h3 className="text-md font-medium text-center">
+                                                                {phrase(dictionary, "createNewSlideShow", language)}
+                                                            </h3>
+                                                            <p className="mb-4 text-center text-xs text-muted-foreground">
+                                                                {phrase(dictionary, "createNewSlideShowDescription", language)}
                                                             </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                                        <Heart className="h-4 w-4 text-pink-500" />
-                                                        <span>{post.upvotes}</span>
-                                                    </div>
-                                                </Link>
-                                            </motion.div>
-                                        ))}
-                                    </div>
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            }
+                                        </motion.div>
                                 </div>
                             </section>
+
                         </TabsContent>
-
-
                     </motion.div>
                 </AnimatePresence>
             </Tabs>

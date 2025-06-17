@@ -15,6 +15,7 @@ import { Button } from "@/components/shadcnUI/Button";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { createEmailHash } from "@/utils/cryptography";
 import { Menubar } from "@/components/shadcnUI/Menubar";
 import TableOfContents from "@/components/UI/TableOfContents";
 import { useMediaQuery } from "@mui/material";
@@ -30,10 +31,12 @@ import {
 
 const ListOfChaptersComponent = ({
     webnovel,
-    onUpdate
+    onUpdate,
+    isAuthor
 }: {
     webnovel: Webnovel | undefined,
-    onUpdate?: (updatedContent: Webnovel) => void
+    onUpdate?: (updatedContent: Webnovel) => void,
+    isAuthor?: boolean
 }) => {
     const { dictionary, language } = useLanguage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);

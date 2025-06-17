@@ -6,13 +6,13 @@ import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List, Type } from 'lucide-react'
+import { Menubar, MenubarMenu } from "@/components/shadcnUI/Menubar";
+import { ChevronRight, ChevronLeft, MoveLeft, Trash2, Heart, Type, Pencil, MessageCircle } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -25,8 +25,9 @@ import { getImageUrl } from "@/utils/urls";
 import ProgressBar from '@/components/UI/ProgressBar';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
-import { cn } from "@/lib/utils";
 import dynamic from 'next/dynamic';
+import { createEmailHash } from '@/utils/cryptography';
+import DeleteChapterDialog from "@/components/UI/DeleteChapterDialog";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
@@ -37,13 +38,15 @@ import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
 import { useToast } from "@/hooks/use-toast";
 import TableOfContents from "@/components/UI/TableOfContents";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
+import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
 
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
-    const { email } = useUser();
+    const { email, email_hash } = useUser();
     const { isLoggedIn } = useAuth();
     const [isAuthor, setIsAuthor] = useState(false);
     const { dictionary, language } = useLanguage();
@@ -88,6 +91,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
     const { toast } = useToast();
+    const [showCommentsModal, setShowCommentsModal] = useState(false);
+    const commentsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -146,8 +151,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [checking]);
 
     useEffect(() => {
-        if (email) {
-            if (webnovel?.user.email === email) {
+        if (email && webnovel?.user?.email_hash) {
+            const userEmailHash = createEmailHash(email);
+            if (webnovel.user.email_hash === userEmailHash) {
                 setIsAuthor(true);
             }
         }
@@ -280,8 +286,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
         }
     }
 
-
-
+    const handleEditChapter = () => {
+        router.push(`/edit_chapter?id=${chapter_id}&novelLanguage=${webnovel?.language}`);
+    }
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -322,14 +329,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     {!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) && (
                                         <span className="mr-2">🔒</span>
                                     )}
-                                    <OtherTranslateComponent
-                                        element={nextChapter}
-                                        content={nextChapter.title}
-                                        elementId={nextChapter.id.toString()}
-                                        elementType='chapter'
-                                        elementSubtype="title"
-                                        classParams="text-md mt-1 mb-1"
-                                    />
+                                    {language == 'en' && <>Episode{' '}</>}
+                                    {webnovel.chapters.findIndex(ch => ch.id === nextChapter.id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === nextChapter.id) + 1 : ''}
+                                    {language == 'ko' && <>{' '}화</>}
                                 </div>
                             </div>
                         </div>
@@ -346,108 +348,171 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 {/* Top bar: */}
                 <header
-                    className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
+                    className="w-full h-16 fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
                     bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
-                    <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
-                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
-                            <div className="flex flex-row space-x-1 items-center">
-                                <ChevronLeft size={18} />
-                                {webnovel.other_translations?.find(
-                                    translation =>
-                                        translation.language === language &&
-                                        translation.element_type === 'webnovel' &&
-                                        translation.element_subtype === 'title' &&
-                                        translation.webnovel_id === webnovel.id.toString()
-                                )?.text ||
-                                    <OtherTranslateComponent
-                                        element={webnovel}
-                                        content={webnovel.title}
-                                        elementId={webnovel.id.toString()}
-                                        elementType='webnovel'
-                                        elementSubtype="title"
-                                    />
-                                }
-                            </div>
-                        </Button>
-
-                        <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
-                            <TableOfContents
-                                sortedChapters={sortedChapters || []}
-                                purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
-                                    .filter((purchase) => purchase[1] === language)
-                                    .map((purchase) => purchase[0])
-                                }
-                                language={language}
-                                chapter_id={chapter_id}
-                                setChapterToPurchase={setChapterToPurchase}
-                                setShowPurchaseModal={setShowPurchaseModal}
-                                webnovel={webnovel}
-                                isPurchasedChapter={(purchasedChapters, chapterId) =>
-                                    purchasedChapters.includes(chapterId)
-                                }
-                                phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
-                                dictionary={dictionary as Dictionary}
-                            />
-                            {/* viewer settings */}
-                            <MenubarMenu>
-                                <Button
-                                    variant="ghost"
-                                    className="rounded-sm"
-                                    size="icon"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleViewSettings();
-                                    }}>
-                                    <Type className="h-12 w-12" />
-                                </Button>
-                            </MenubarMenu>
-                            {/* like button */}
-                            <MenubarMenu>
-                                <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
-                                    {likeToggle ? (
-                                        <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
-                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            {/* heart icon */}
-                                            <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
-                                            </svg>
-                                        </Link>
-                                    ) : (
-                                        <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
-                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            <Heart className="h-6 w-6" />
-                                        </Link>
-                                    )
-                                    }
-                                    <p className='ml-1 self-center text-sm'>{upvotes}</p>
+                    <div className={`md:max-w-screen-md w-full mx-auto flex flex-row items-center justify-between select-none h-full`}>
+                        <div className="flex flex-row gap-0 items-center justify-center">
+                            <Button
+                                variant='link'
+                                className='!no-underline !p-0 flex'
+                                onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}
+                            >
+                                 <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                                <div className="flex flex-row space-x-1 items-center md:w-fit w-24 overflow-hidden">
+                                    <span className="truncate">
+                                        {webnovel.other_translations?.find(
+                                            translation =>
+                                                translation.language === language &&
+                                                translation.element_type === 'webnovel' &&
+                                                translation.element_subtype === 'title' &&
+                                                translation.webnovel_id === webnovel.id.toString()
+                                        )?.text ||
+                                            <OtherTranslateComponent
+                                                element={webnovel}
+                                                content={webnovel.title}
+                                                elementId={webnovel.id.toString()}
+                                                elementType='webnovel'
+                                                elementSubtype="title"
+                                                classParams="truncate"
+                                            />
+                                        }
+                                    </span>
                                 </div>
-                            </MenubarMenu>
-                            {/* Delete button */}
-                            {isAuthor && <Button
-                                color='gray'
-                                variant='ghost'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDeleteModal(true);
-                                    setDeleteChapterId(chapter.id);
-                                    //    handleChapterDelete(Number(id))
-                                }}>
-                                <Trash2 className="h-6 w-6 mr-2 text-gray-500" />
-                                <span className="text-sm self-center">
-                                    {phrase(dictionary, "delete", language)}
-                                </span>
                             </Button>
-                            }
-                        </Menubar>
+                        </div>
+                        <TooltipProvider delayDuration={0}>
+                            <Menubar className="flex flex-row gap-2 items-center list-none border-none shadow-none">
+                                <TableOfContents
+                                    sortedChapters={sortedChapters || []}
+                                    purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
+                                        .filter((purchase) => purchase[1] === language)
+                                        .map((purchase) => purchase[0])
+                                    }
+                                    language={language}
+                                    chapter_id={chapter_id}
+                                    setChapterToPurchase={setChapterToPurchase}
+                                    setShowPurchaseModal={setShowPurchaseModal}
+                                    webnovel={webnovel}
+                                    isPurchasedChapter={(purchasedChapters, chapterId) =>
+                                        purchasedChapters.includes(chapterId)
+                                    }
+                                    phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
+                                    dictionary={dictionary as Dictionary}
+                                />
+                                {/* viewer settings */}
+
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="link"
+                                                className="!no-underline !p-0 flex flex-col items-center justify-center "
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleViewSettings();
+                                                }}>
+                                                <Type className="h-5 w-5" />
+
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "chapter_view_viewer_settings", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+                                {/* comment button */}
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant='link'
+                                                className='!no-underline !p-0 flex flex-row gap-2 items-center justify-center'
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    commentsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                            >
+                                                <MessageCircle size={18} />
+                                                {chapter.comments.length}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "comments", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+                                {/* like button */}
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant='link'
+                                                className='!no-underline !p-0 flex flex-row gap-2 items-center justify-center'
+                                                onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                                {likeToggle ? (
+                                                    <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                                    </svg>
+                                                ) : (
+                                                    <Heart strokeWidth={2} size={18} />
+                                                )
+                                                }
+                                                <span className='text-center text-sm'>{upvotes}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "likes", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+
+                                {/* Delete chapter button */}
+                                {isAuthor && (
+                                    <div className="ml-2 flex flex-row gap-3 items-center">
+                                        <MenubarMenu>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant='link'
+                                                        className="p-0 !no-underline flex flex-col items-center justify-center"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowDeleteModal(true);
+                                                            setDeleteChapterId(chapter.id);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-5 w-5 text-black dark:text-white" />
+                                                    
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{phrase(dictionary, "delete", language)}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </MenubarMenu>
+                                        <MenubarMenu>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant='link'
+                                                        className="p-0 !no-underline flex flex-col items-center justify-center"
+                                                        onClick={handleEditChapter}
+                                                    >
+                                                        <Pencil className="h-5 w-5 text-black dark:text-white" />
+                                                    
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{phrase(dictionary, "edit", language)}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </MenubarMenu>
+                                    </div>
+                                )
+                                }
+                            </Menubar>
+                        </TooltipProvider>
                     </div>
                     {/* view settings modal */}
                     <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
@@ -458,15 +523,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
-                                <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent
-                                        element={chapter}
-                                        content={chapter.title}
-                                        elementId={chapter_id}
-                                        elementType='chapter'
-                                        elementSubtype="title"
-                                        classParams="text-2xl mt-2 mb-2" />
-                                </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} webnovel_id={webnovel.id.toString()} chapter_id={chapter_id}>
                                         <WebnovelTranslateComponent is_premium={webnovel.premium} availableLanguages={JSON.parse(webnovel.available_languages)} content={chapter.content} chapterId={chapter_id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
@@ -481,28 +537,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
-                    <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
-                        <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none text-md" showCloseButton={true}>
-                            <DialogHeader className="text-md p-4">
-                                <DialogTitle className='text-md text-center'>
-                                    <p className="text-md">{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                                </DialogTitle>
-                            </DialogHeader>
-                            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end text-md'>
-                                <Button
-                                    className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-                                    onClick={() => handleChapterDelete(deleteChapterId as number)}
-                                >
-                                    {phrase(dictionary, "yes", language)}
-                                </Button>
-                                <Button
-                                    className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
-                                    onClick={() => setShowDeleteModal(false)}
-                                >
-                                    {phrase(dictionary, "no", language)}</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    <DeleteChapterDialog language={language} dictionary={dictionary} showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal} deleteChapterId={deleteChapterId} handleChapterDelete={handleChapterDelete} />
                 </div>
                 <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 {/* hr divider */}
@@ -519,10 +554,22 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         />
                     </div>
                 </div>
-                <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                <div ref={commentsRef}>
+                    <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                </div>
                 <div className="md:h-[10vh] h-[10vh]"></div>
                 <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
                 <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
+                <Dialog open={showCommentsModal} onOpenChange={setShowCommentsModal}>
+                    <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full text-md' showCloseButton>
+                        <ScrollArea className="md:h-[80vh] h-full p-4">
+                            <DialogHeader className='pb-2'>
+                                <DialogTitle>Comments</DialogTitle>
+                            </DialogHeader>
+                            <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                        </ScrollArea>
+                    </DialogContent>
+                </Dialog>
             </div>
         )
     }

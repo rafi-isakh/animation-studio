@@ -50,14 +50,14 @@ const CompetitionPage = () => {
                                         {language === 'ko' ? '1. 공모전 기간' : '1. Contest Period:'}
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>{language === 'ko' ? '5월 30일(금) 09:00시 ~' : 'From: Friday June 13th, 9:00 (KST)'}</p>
-                                        <p>{language === 'ko' ? '7월 31일(목) 18:00시' : 'To: Thursday August 14st, 18:00 (KST)'}</p>
+                                        <p>{language === 'ko' ? '5월 30일(금) 09:00시 ~' : 'From: Fri, June 13th, 9:00 (KST)'}</p>
+                                        <p>{language === 'ko' ? '7월 31일(목) 18:00시' : 'To: Thurs, Aug 14th, 18:00 (KST)'}</p>
                                     </div>
                                     <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl`}>
                                         {language === 'ko' ? '2. 결과 발표' : '2. Result Announcement:'}
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>{language === 'ko' ? '8월 18일(월) 09:00시' : 'Monday, August 18, 09:00 (KST)'}</p>
+                                        <p>{language === 'ko' ? '8월 18일(월) 09:00시' : 'Fri, Aug 29th, 09:00 (KST)'}</p>
                                         <p>{language === 'ko' ? 'toonyz.com 홈페이지에서 확인' : 'Check toonyz.com for the results'}</p>
                                     </div>
                                     <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl`}>

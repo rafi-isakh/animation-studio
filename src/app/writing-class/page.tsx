@@ -168,7 +168,7 @@ export default function WritingClassPage() {
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
-      <WritingClassHeader />
+      <WritingClassHeader mode="writing-class" />
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0 order-1 md:order-1">
@@ -500,11 +500,6 @@ export default function WritingClassPage() {
             <Button disabled={true} className="w-[330px] mx-auto self-center">
               {language === "en" ? "Session Ended" : "종료된 세션입니다. 감사합니다."}
             </Button>
-            {/* <RoundedButton backgroundColor="#000000" className="w-[330px] mx-auto ">
-                <Link href="#">
-                  {language === "en" ? "Reserve Your Spot Now" : "지금 바로 예약하기"}
-                </Link>
-              </RoundedButton> */}
             <p className="text-center text-sm text-[#DE2B74] mt-3">
               {language === "en" ? "Only 20 writers will be accepted."
                 : "최대 20명의 예비 작가만 수용합니다."}

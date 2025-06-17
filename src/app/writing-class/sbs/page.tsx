@@ -14,6 +14,7 @@ import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHead
 import { Language } from '@/components/Types';
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { Button } from '@/components/shadcnUI/Button';
+import FaqSection from '@/components/UI/writingClass/ui/FaqSection';
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -22,6 +23,8 @@ const SBSPage = () => {
   const { language, setLanguageOverride } = useLanguage();
   const { isLoggedIn } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     const previousTheme = theme;
@@ -36,12 +39,31 @@ const SBSPage = () => {
     }
   }, [language]);
 
+  const handleShareClick = async () => {
+    if (isSharing) return; // Prevent multiple simultaneous share attempt
+    if (navigator.share) {
+      try {
+        setIsSharing(true);
+        await navigator.share({
+          title: "출퇴근 웹소설 연재 생존 전략",
+          text: "출퇴근 웹소설 연재 생존 전략 작법서를 공유하세요!",
+          url: `/writing-class/sbs`
+        });
+      } catch (error) {
+        console.log('Share failed:', error);
+      } finally {
+        setIsSharing(false);
+      }
+    } else {
+      setShowShareModal(true);
+    }
+  }
 
   const bookImages = Array.from({ length: 8 }, (_, i) => i + 1);
 
   return (
     <div className='flex flex-col min-h-screen !bg-white !dark:bg-white'>
-      <WritingClassHeader />
+      <WritingClassHeader mode="sbs" />
 
       <header className='w-full flex flex-col items-center justify-center py-10'
 
@@ -50,7 +72,7 @@ const SBSPage = () => {
           <Image src="/writing-class/images/SBSLogo.png" alt="SBS" width={200} height={30} />
         </div>
         <h1 className='text-4xl font-thin'>X</h1>
-        <div className='inline-flex items-center gap-2 md:text-2xl text-xl font-light'>
+        <div className='inline-flex items-center gap-2 md:text-2xl text-xl font-light text-gray-900'>
 
           {/* Stella& Inc.  */}
 
@@ -60,12 +82,12 @@ const SBSPage = () => {
           MOU 협약 체결 기념 이벤트
         </div>
 
-        <div className="flex flex-col justify-center items-center gap-4 pt-10">
-          <h1 className='md:text-5xl text-3xl font-bold text-center break-keep'>
+        <div className="flex flex-col justify-center items-center gap-4 pt-10 text-gray-900">
+          <h1 className='md:text-5xl text-3xl font-bold text-center break-keep '>
             여러분의 성공적인 웹소설 작가 데뷔를 기원합니다
           </h1>
 
-          <p className='font-light text-center pb-10 break-keep' >
+          <p className='font-light text-center pb-10 break-keep text-gray-900' >
             프로페셔널한 웹소설 작가 데뷔를 위한 무료 작법서와 팁들이 준비 되었습니다. <br />
             스텔라앤과 함께 글쓰기 실력을 키워보세요.
           </p>
@@ -170,29 +192,125 @@ const SBSPage = () => {
           <h1 className='text-center text-lg font-base pt-5'>
             주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 산학협력을 기원합니다.
           </h1>
-
           <p>
-
+            {/*  */}
           </p>
         </div>
       </section>
       <section className="py-12 bg-gradient-to-r from-orange-300 to-sky-400">
+
+
         <div className="relative container mx-auto px-4 text-center">
-          
-          <h2 className="text-3xl font-bold text-white mb-8">
-           무료로 작법서를 다운받을 수 있도록 공유하세요.
+          {/* <Image
+            src="/writing-class/images/logo_sticker.svg"
+            alt="toonyz logo"
+            width={100}
+            height={100}
+            className="absolute z-[5] top-2 left-1  animate-[spin_9s_linear_infinite] " /> */}
+
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden md:w-[650px] w-full mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-8 md:p-12">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">출퇴근 웹소설 연재 생존 전략</h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-4xl font-bold text-[#DE2B74]">FREE</span>
+                  <span className="ml-2 text-gray-500 line-through strike-through">Amazon $20</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <svg
+                      className="w-5 h-5 text-[#DE2B74] mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    1. 캐릭터 설정
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="w-5 h-5 text-[#DE2B74] mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    2. 줄거리 구성
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="w-5 h-5 text-[#DE2B74] mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    3. 마케팅 전략
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="w-5 h-5 text-[#DE2B74] mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    4. OSMU 확장
+                  </li>
+                </ul>
+                <Button size="lg" className="w-full bg-[#DE2B74] hover:text-[#DE2B74] text-white">
+                  무료로 다운받기
+                </Button>
+                <p className="text-sm text-gray-500 mt-4 text-center">가입후 무료로 다운 받을 수 있습니다.</p>
+              </div>
+              <div className="relative">
+                <Image
+                  src="/writing-class/images/bookcover/coverArt_example.webp"
+                  alt="Stelland 작법서 표지"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-white/10" />
+                {/* <div className="absolute top-4 right-4 bg-red-600 text-white font-bold py-2 px-4 rounded-full text-lg animate-pulse">
+                99%OFF
+                </div> */}
+              </div>
+            </div>
+          </div>
+
+
+          <h2 className="text-3xl font-bold text-white my-8">
+            무료로 작법서를 다운받을 수 있도록 공유하세요.
           </h2>
           <CountdownTimer targetDate="2025-06-30" className="text-white" />
           <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
-            스텔라앤 작법서 컨텐츠는 MOU 이벤트 기간 동안 무료로 다운 받을 수 있습니다.
+            스텔라앤 작법서 컨텐츠는 MOU 이벤트 기간 동안 무료로 다운 받을 수 있습니다. <br />
             지금 바로 다운받고 성공적인 웹소설 작가로 성장하세요.
           </p>
 
-          <Button variant="outline" className="bg-white text-black rounded-full text-xl px-12 py-6">
+          <Button
+            variant="outline"
+            className="bg-white text-black rounded-full text-xl px-12 py-6"
+            onClick={handleShareClick}
+          >
             공유하기
           </Button>
 
         </div>
+      </section>
+
+
+
+      <section className="container mx-auto px-4 py-16 md:py-24">
+        <FaqSection mode='sbs' />
       </section>
 
     </div >

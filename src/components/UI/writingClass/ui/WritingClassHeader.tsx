@@ -73,7 +73,7 @@ export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language:
 }
 
 
-const WritingClassHeader = ({ mode }: { mode?: "sbs" | "class" }) => {
+const WritingClassHeader = ({ mode = "writing-class" }: { mode?: "sbs" | "writing-class" }) => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
     const { nickname } = useUser();
@@ -144,13 +144,17 @@ const WritingClassHeader = ({ mode }: { mode?: "sbs" | "class" }) => {
                                 </Popover>
                             </div>
                         </div>}
-                        <Link
-                            href="#"
-                            onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
-                            className="flex items-center text-base cursor-pointer">
-                            <Globe className="h-4 w-4 mr-1" />
-                            <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
-                        </Link>
+
+                        
+                        {mode === "writing-class" && (
+                            <Link
+                                href="#"
+                                onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
+                                className="flex items-center text-base cursor-pointer">
+                                <Globe className="h-4 w-4 mr-1" />
+                                <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
+                            </Link>
+                        )}
 
                         <div className="md:inline-flex hidden">
                             {!isLoggedIn && <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>

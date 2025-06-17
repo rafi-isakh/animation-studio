@@ -1,6 +1,5 @@
 'use client';
 import Image from "next/image";
-import Link from "next/link";
 import { Check, Info } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";
@@ -11,8 +10,6 @@ import { BookListCarousel } from "@/components/UI/writingClass/ui/BookListCarous
 import LearningSection from "@/components/UI/writingClass/ui/LearningSection";
 import { BookTab } from "@/components/UI/writingClass/ui/BookTab";
 import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton";
-import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
-import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
@@ -20,8 +17,6 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
 import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader"
-import WritingClassFooter from "@/components/UI/writingClass/ui/WritingClassFooter"
-
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -173,6 +168,7 @@ export default function WritingClassPage() {
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
+      <WritingClassHeader />
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0 order-1 md:order-1">
@@ -517,23 +513,7 @@ export default function WritingClassPage() {
           </div>
         </div>
       </section>
-      {/* <section className="py-12 bg-[#DE2B74]">
-        <div className="relative container mx-auto px-4 text-center">
-          
-          <h2 className="text-3xl font-bold text-white mb-8">
-            {language === "en" ? "Limited Spots Available!"
-              : "얼마 남지 않은 기회입니다!"}
-          </h2>
-          <CountdownTimer targetDate="2025-05-30" className="text-white" />
-          <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
-            {language === "en" ? <>Those books are free now, but they will be converted to paid content soon.<br /></>
-              : <>이 작법서는 현재 무료이지만 유료 컨텐츠로 전환될 예정입니다 <br /></>}
-            {language === "en" ? "Download them today and start your journey to becoming a successful web novel writer."
-              : "지금 바로 다운받고 성공적인 웹소설 작가로 시작하세요."}
-          </p>
-
-        </div>
-      </section> */}
+     
       <section className="container mx-auto px-4 py-16 md:py-24">
         <FaqSection />
       </section>

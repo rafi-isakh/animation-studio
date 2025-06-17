@@ -152,3 +152,24 @@ export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string]
     if (purchased_webnovel_chapters.length === 0) return false;
     return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
 }
+
+export const getAuthorDisplayName = (content: { 
+    premium: boolean; 
+    author: { nickname: string }; 
+    user: { nickname: string }; 
+}, language: string): string => {
+     // if not premium, that is, if it is a community webnovel, 
+     // the user (who actually registered and logged in) is the one whose nickname is what we want to show.
+     // if premium, we want to return the author's nickname. 
+     // The author is created dynamically when a webnovel is added through add_webnovel_admin. 
+     // If language is Korean, return it right away; if it's English, convert it with a dictionary.
+    if (!content.premium) {
+        return content.user.nickname;
+    }
+    
+    if (language === 'ko') {
+        return content.author.nickname;
+    }
+    
+    return koreanToEnglishAuthorName[content.author.nickname] || content.author.nickname;
+}

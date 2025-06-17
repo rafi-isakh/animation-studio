@@ -5,7 +5,7 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { Button } from '@/components/shadcnUI/Button';
 import { Heart, Bookmark } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { koreanToEnglishAuthorName } from '@/utils/webnovelUtils';
+import { koreanToEnglishAuthorName, getAuthorDisplayName } from '@/utils/webnovelUtils';
 
 interface WebnovelsCardListProps {
     title: string;
@@ -31,15 +31,15 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
         <div className={`relative w-full mx-auto group overflow-hidden ${className}`}>
             <div>
                 {title && <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
-                             {title}
-                          </h1>}
+                    {title}
+                </h1>}
 
                 <div className="relative">
                     {/* Desktop layout with fixed 6 cards */}
                     <div
                         ref={scrollRef}
-                        className={`${title ? "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8" 
-                                            : "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 pb-8"}`}
+                        className={`${title ? "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8"
+                            : "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 pb-8"}`}
                     >
                         {webnovels.map((item, index) => (
                             <div
@@ -73,9 +73,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
                                                 <div className="flex gap-2">
                                                     <p className="text-xs text-gray-500 flex flex-col items-center gap-1">
                                                         {
-                                                            language === "ko" ?
-                                                                item.author.nickname :
-                                                                koreanToEnglishAuthorName[item.author.nickname]
+                                                           getAuthorDisplayName({premium: item.premium, author: item.author, user: item.user}, language)
                                                         }
                                                         <span className="text-xs text-gray-500 flex flex-row items-center gap-1">
                                                             <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">

@@ -9,7 +9,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import { Pause, Play, TrendingUp, Volume2, VolumeOff } from "lucide-react"
-import { koreanToEnglishAuthorName, videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { koreanToEnglishAuthorName, videoDisallowedForKorean, getAuthorDisplayName } from "@/utils/webnovelUtils";
 import MainPagePictureOrVideoComponent from "./MainPagePictureOrVideoComponent"
 
 const WebnovelPictureComponent = React.memo(
@@ -63,7 +63,12 @@ const WebnovelPictureComponent = React.memo(
                         {/* Author and Genre */}
                         <div className="text-xs line-clamp-2 w-full truncate text-gray-500 flex flex-col">
                             {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
-                            <span className="mr-1">{language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}</span>
+                            <span className="mr-1">
+
+                               {getAuthorDisplayName({premium: webnovel.premium, author: webnovel.author, user: webnovel.user}, language)}
+
+                                {/* {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname} */}
+                            </span>
                             <span className="flex flex-row items-center gap-1">
                                 {/* heart icon */}
                                 <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">

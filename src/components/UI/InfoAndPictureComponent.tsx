@@ -37,7 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
-import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { isPurchasedChapter, videoDisallowedForKorean, getAuthorDisplayName } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
@@ -88,7 +88,6 @@ export default function InfoAndPictureComponent({
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
-        console.log("is adult", content.is_adult_material)
         setImageSrc(imageSrc)
         if (language === "en") {
             if (content.en_cover_art) {
@@ -120,8 +119,9 @@ export default function InfoAndPictureComponent({
         }
     }, [videoSrc])
 
-    const view_profile_href = content.user.email_hash == content.author.email_hash ?
-        `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
+    const view_profile_href = content.premium
+        ? `/view_author/${content.author.id}`
+        : `/view_profile/${content.user.id}`;
 
     const handleMouseEnter = useCallback(() => {
         showPlayButtonRef.current = true;
@@ -358,15 +358,7 @@ export default function InfoAndPictureComponent({
                             {/* TEMPORARY FIX WHILE I PUT AUTHOR'S ENGLISH NAME IN THE DB IN A SANE WAY.*/}
                             <p className="text-center">
                                 <Link href={view_profile_href}>
-                                    {
-                                        content.author.nickname === 'Anonymous' ? '' :
-                                            language == 'ko' ?
-                                                content.author.nickname :
-                                                koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                    koreanToEnglishAuthorName[content.author.nickname as string]
-                                                    :
-                                                    content.author.nickname
-                                    }
+                                    {getAuthorDisplayName(content, language)}
                                 </Link>
                             </p>
 
@@ -451,7 +443,7 @@ export default function InfoAndPictureComponent({
                                             const firstChapter = sortedChapters[0];
 
                                             if (!firstChapter) return;
-                
+
                                             const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
                                             if (content.premium && !firstChapter.free && !hasPurchased) {
                                                 setShowPurchaseModal(true);
@@ -580,18 +572,10 @@ export default function InfoAndPictureComponent({
                                 <div className="flex flex-col gap-4 justify-center items-center w-full">
                                     <div className="flex flex-col gap-2 items-center justify-center w-full">
                                         {/* const view_profile_href = content.user.email_hash == content.author.email_hash ? */}
-                                        <ActiveUserAvatar user={content.user} author={content.author} language={language} webnovel={content} />
+                                        <ActiveUserAvatar user={content.user} author={content.premium ? content.author : content.user} language={language} webnovel={content} />
                                         <div className="flex flex-col gap-2 pb-4">
                                             <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
-                                                {
-                                                    content.author.nickname === 'Anonymous' ? '' :
-                                                        language == 'ko' ?
-                                                            content.author.nickname :
-                                                            koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                                koreanToEnglishAuthorName[content.author.nickname as string]
-                                                                :
-                                                                content.author.nickname
-                                                }
+                                                {getAuthorDisplayName(content, language)}
                                             </Link>
 
                                             <p className="text-sm text-gray-500 text-center">

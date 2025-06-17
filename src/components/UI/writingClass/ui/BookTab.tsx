@@ -54,7 +54,7 @@ export const slideLeft = {
   }
 }
 
-export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
+export function BookTab({ isLoggedIn, mode = 'writing-class' }: { isLoggedIn: boolean, mode?: 'writing-class' | 'sbs' }) {
 
   const tabs: TabData[] = [
     {
@@ -288,7 +288,7 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
         </p>
       </div>
       {/* Tabs */}
-      <div className="flex flex-wrap justify-center gap-2 mb-12">
+      {/* <div className="flex flex-wrap justify-center gap-2 mb-12">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -303,7 +303,7 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
             {tab.label}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* Books Grid */}
       <motion.div
@@ -312,67 +312,65 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
         animate={active ? "enter" : "closed"}
         onMouseMove={(e) => { moveItems(e.clientX, e.clientY) }}
         className="flex items-center justify-center">
-         <motion.div
+        <motion.div
           onMouseEnter={() => setModal(prev => ({ ...prev, active: true }))}
           onMouseLeave={() => setModal(prev => ({ ...prev, active: false }))}
           className="relative mx-auto md:w-screen w-full h-full overflow-hidden">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {sortedBooks.map((book) => (
-          <div key={book.id} className="relative flex flex-col">
-            {/* Book Cover */}
-            <div className={`${book.coverColor} p-8 rounded-lg mb-4 shadow-md relative`}>
-              <div className="bg-transparent aspect-[2/3] rounded transform rotate-0 transition-transform hover:rotate-3 duration-300">
-                <Image
-                  src={book.coverImage || "/coverArt_thumbnail.png"}
-                  alt={book.title}
-                  width={100}
-                  height={150}
-                  className="w-full object-cover"
-                />
-              </div>
-              {/* overlay */}
-              <div className="absolute inset-0 bg-white opacity-0 hover:opacity-90 transition-opacity duration-300 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4 text-center py-10">
-                  <h1 className="text-xl font-bold">{language === "en" ? book.subtitle_en : book.subtitle}</h1>
-                  <p className="text-lg whitespace-pre-line break-keep">{language === "en" ? book.description_en : book.description}</p>
-                  <div className="flex">
-                    <PDFviewButton
-                      mode="modal"
-                      language={language}
-                      title={language === "en" ? "Preview" : "미리보기"}
-                      file_url_en={book.file_url_en || ""}
-                      file_url_ko={book.file_url_ko || ""}
-                      isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+          <div className={`grid grid-cols-1 md:grid-cols-${mode === 'writing-class' ? '3' : '4'} lg:grid-cols-${mode === 'writing-class' ? '3' : '4'} gap-8`}>
+            {sortedBooks.map((book) => (
+              <div key={book.id} className="relative flex flex-col">
+                {/* Book Cover */}
+                <div className={`${book.coverColor} p-8 rounded-lg mb-4 shadow-md relative`}>
+                  <div className="bg-transparent aspect-[2/3] rounded transform rotate-0 transition-transform hover:rotate-3 duration-300">
+                    <Image
+                      src={book.coverImage || "/coverArt_thumbnail.png"}
+                      alt={book.title}
+                      width={60}
+                      height={100}
+                      className="w-full object-cover"
                     />
+                  </div>
+                  {/* overlay */}
+                  <div className="absolute inset-0 bg-white opacity-0 hover:opacity-90 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4 text-center py-10">
+                      <h1 className="text-xl font-bold ">{language === "en" ? book.subtitle_en : book.subtitle}</h1>
+                      <p className="text-sm whitespace-pre-line break-keep">{language === "en" ? book.description_en : book.description}</p>
+                      <div className="flex">
+                        <PDFviewButton
+                          mode="modal"
+                          language={language}
+                          title={language === "en" ? "Preview" : "미리보기"}
+                          file_url_en={book.file_url_en || ""}
+                          file_url_ko={book.file_url_ko || ""}
+                          isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Book Details */}
+                <div>
+                  <p className="text-blue-500 font-medium">{book.author}</p>
+                  <h3 className="text-lg font-bold text-gray-800 mt-1 mb-2">
+                    {language === "en" ? book.title_en : book.title}
+                  </h3>
+                  <p className="text-gray-600 mb-4 line-clamp-2 text-xs">
+                    {language === "en" ? book.subtitle_en : book.subtitle}
+                  </p>
+                  <div className="flex flex-col md:items-start md:justify-start items-center gap-2">
+                    <span className="text-gray-400 line-through text-xs">
+                      Amazon Kindle ${book.originalPrice}
+                    </span>
+                    <p className="font-bold text-gray-800 text-sm">
+                      {book.salePrice === 0 ? language === "en" ? <>Free</> : <>투니즈 회원 무료 다운로드</> : <>${book.salePrice}</>}
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-
-
-            {/* Book Details */}
-            <div>
-              <p className="text-blue-500 font-medium">{book.author}</p>
-              <h3 className="text-xl font-bold text-gray-800 mt-1 mb-2">
-                {language === "en" ? book.title_en : book.title}
-              </h3>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {language === "en" ? book.subtitle_en : book.subtitle}
-              </p>
-              <div className="flex flex-col md:items-start md:justify-start items-center gap-2">
-                <span className="text-gray-400 line-through text-xs">
-                  Amazon Kindle ${book.originalPrice}
-                </span> 
-                <p className="text-md font-bold text-gray-800">
-                  {book.salePrice === 0 ? language === "en" ? <>Free</> : <>투니즈 회원 무료 다운로드</> : <>${book.salePrice}</>}
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-      </motion.div>
-      <motion.div ref={cursorLabel} className='bg-amber-400 text-white rounded-full px-4 py-4 absolute top-0 left-0 pointer-events-none z-50' variants={scaleAnimation} initial="initial" animate={active ? "enter" : "closed"}><ArrowUpRight size={50} strokeWidth={1} /></motion.div>
+        </motion.div>
+        <motion.div ref={cursorLabel} className='bg-amber-400 text-white rounded-full px-4 py-4 absolute top-0 left-0 pointer-events-none z-50' variants={scaleAnimation} initial="initial" animate={active ? "enter" : "closed"}><ArrowUpRight size={50} strokeWidth={1} /></motion.div>
       </motion.div>
     </section>
   )

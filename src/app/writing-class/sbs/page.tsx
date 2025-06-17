@@ -12,10 +12,10 @@ import { useTheme } from '@/contexts/providers';
 import { BookTab } from '@/components/UI/writingClass/ui/BookTab';
 import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader"
 import { Language } from '@/components/Types';
-import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { Button } from '@/components/shadcnUI/Button';
 import FaqSection from '@/components/UI/writingClass/ui/FaqSection';
 import Link from 'next/link';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -26,6 +26,7 @@ const SBSPage = () => {
   const { theme, toggleTheme } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     const previousTheme = theme;
@@ -70,16 +71,12 @@ const SBSPage = () => {
 
       >
         <div className='flex justify-center items-center'>
-          <Image src="/writing-class/images/SBSLogo.png" alt="SBS" width={200} height={30} />
+          <Image src="/writing-class/images/SBSLogo.png" alt="SBS" width={300} height={120} />
         </div>
         <h1 className='text-4xl font-thin'>X</h1>
-        <div className='inline-flex items-center gap-2 md:text-2xl text-xl font-light text-gray-900'>
-
-          {/* Stella& Inc.  */}
-
-          <Image src='/writing-class/stelland_star_logo.svg' alt='SBS' width={20} height={20} />
-          <Image src='/writing-class/stelland_logo.svg' alt='SBS' width={100} height={20} />
-
+        <div className='inline-flex items-center gap-2 md:text-4xl text-lg font-light text-gray-900'>
+          <Image src='/writing-class/stelland_star_logo.svg' alt='SBS' width={isMobile ? 20 : 40} height={isMobile ? 20 : 40} />
+          <Image src='/writing-class/stelland_logo.svg' alt='SBS' width={isMobile ? 100 : 140} height={isMobile ? 20 : 50} />
           MOU 협약 체결 기념 이벤트
         </div>
 
@@ -108,34 +105,49 @@ const SBSPage = () => {
 
       {/* mid section */}
       <section className="relative w-full px-4 py-10 ">
-        <div className="flex flex-nowrap justify-center items-center gap-4">
-          {bookImages.map(i => (
-            <Image
-              key={i}
-              src={`/writing-class/images/bookcover/book${i}.svg`}
-              alt={`book cover ${i}`}
-              width={200}
-              height={250}
-              className='object-cover rounded-sm'
-            />
+        { !isMobile && <div className="flex flex-nowrap justify-center items-center gap-4 z-10">
+          {downloadFiles.map((file, index) => (
+            <div key={file.id} className='relative z-10 group'>
+              <Image
+                src={`/writing-class/images/bookcover/book${index + 1}.svg`}
+                alt={`book cover ${index + 1}`}
+                width={200}
+                height={250}
+                className='object-cover rounded-sm group-hover:scale-100 transition-transform duration-300 cursor-pointer relative z-10'
+              />
+              {!isMobile &&
+                <div className='absolute inset-0 z-10 bg-black/0 group-hover:bg-white/90 transition-all duration-300 p-2'>
+                  <span className='absolute text-center bottom-10 left-0 w-full z-10 text-gray-900 text-xs  font-medium group-hover:opacity-100 opacity-0 transition-all duration-300'>
+                    {file.title_ko}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    className="absolute bottom-0 left-0 w-full z-10 group-hover:opacity-100 opacity-0 bg-[#DE2B74] hover:bg-pink-300 text-white"
+                  >
+                    <Link href={`/writing-class/downloads`}>
+                      무료로 다운받기
+                    </Link>
+                  </Button>
+                </div>
+              }
+            </div>
           ))}
-        </div>
-        <div className="absolute top-0 left-0 w-full h-full">
+        </div>}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-50">
           <Tape />
         </div>
       </section>
 
 
       {/* book showcase section */}
-      <BookTab isLoggedIn={isLoggedIn ?? false} />
+      <BookTab isLoggedIn={isLoggedIn ?? false} mode='sbs' />
 
 
       {/* Testimonials Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            {language === "en" ? "What Our Writers Say"
-              : "수강생들의 이야기"}
+            작법서 독자들의 후기
           </h2>
           <span className='text-sm text-gray-500'>개인정보 보호를 위해 이름은 **으로 표기되었습니다.</span>
 
@@ -191,11 +203,9 @@ const SBSPage = () => {
           </div>
 
           <h1 className='text-center text-lg font-base pt-5 text-gray-900'>
-            주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 산학협력을 기원합니다.
+            주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 MOU 협약을 기원합니다.
           </h1>
-          <p>
-            {/*  */}
-          </p>
+
         </div>
       </section>
       <section className="py-12 bg-gradient-to-r from-orange-300 to-sky-400">

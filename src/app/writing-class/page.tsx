@@ -350,7 +350,7 @@ export default function WritingClassPage() {
       </section>
 
       {/* book showcase section */}
-      <BookTab isLoggedIn={isLoggedIn ?? false} />
+      <BookTab isLoggedIn={isLoggedIn ?? false} mode='writing-class' />
 
       {/* CTA Section */}
       <section className="py-16 bg-zinc-900 text-white">

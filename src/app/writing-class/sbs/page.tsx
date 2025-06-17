@@ -86,7 +86,7 @@ const SBSPage = () => {
           </h1>
 
           <p className='font-light text-center pb-10 break-keep text-gray-900' >
-            프로페셔널한 웹소설 작가 데뷔를 위한 무료 작법서와 팁들이 준비 되었습니다. <br />
+            프로페셔널한 웹소설 작가 데뷔를 위한 무료 작법서와 팁들이 준비되어 있습니다. <br />
             스텔라앤과 함께 글쓰기 실력을 키워보세요.
           </p>
           <PDFviewButton
@@ -98,7 +98,7 @@ const SBSPage = () => {
             isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
           />
           <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto">
-            투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.
+            투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운받으세요.
           </p>
         </div>
       </header >
@@ -203,7 +203,7 @@ const SBSPage = () => {
           </div>
 
           <h1 className='text-center text-lg font-base pt-5 text-gray-900'>
-            주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 MOU 협약을 기원합니다.
+            주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 MOU 협력을 기원합니다.
           </h1>
 
         </div>
@@ -305,7 +305,7 @@ const SBSPage = () => {
           </h2>
           {/* <CountdownTimer targetDate="2025-06-30" className="text-white" /> */}
           <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
-            스텔라앤 작법서 컨텐츠는 MOU 이벤트 기간 동안 무료로 다운 받을 수 있습니다. <br />
+            스텔라앤 작법서 컨텐츠는 MOU 이벤트 기간 동안 무료로 다운받을 수 있습니다. <br />
             지금 바로 다운받고 성공적인 웹소설 작가로 성장하세요.
           </p>
 

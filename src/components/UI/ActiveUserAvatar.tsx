@@ -10,7 +10,6 @@ import { getImageUrl } from "@/utils/urls"
 export default function ActiveUserAvatar({ user, author, language, webnovel }: { user: User, author: Author, language: string, webnovel?: Webnovel }) {
   const [imageError, setImageError] = useState(false)
   const [size, setSize] = useState(100)
-  const [isPremium, setIsPremium] = useState(webnovel?.premium || false)
   const [isViewed, setIsViewed] = useState(false)
   const isPublisher = !!webnovel?.publisher;
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`
@@ -85,7 +84,6 @@ export default function ActiveUserAvatar({ user, author, language, webnovel }: {
     )
   }
 
-  // 
   return (
     <div className="flex flex-col items-center space-y-2">
       <div

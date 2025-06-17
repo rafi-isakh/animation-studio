@@ -25,13 +25,6 @@ export default function WebnovelsByRank({ searchParams, sortBy, title, is_adult_
         let _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, null, genre, _version, is_adult_material)
         _webnovelsToShow = _webnovelsToShow.slice(0, 7)
 
-            // .filter(item => filter_by_genre(item, genre))
-            // .filter(item => filter_by_version(item, version))
-            // .filter(item => item.is_adult_material === is_adult_material)
-            // .filter(item => item.chapters_length > 0)
-            // .sort((a, b) => sortByFn(a, b, sortBy))
-            // .slice(0, 7)
-
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);
 

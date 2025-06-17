@@ -59,7 +59,7 @@ export default function FaqSection({ mode = 'writing-class' }: { mode?: "writing
     <div className="w-full max-w-3xl mx-auto break-keep py-24">
       <div className="flex flex-col">
         <div className="relative w-full flex md:flex-row flex-col gap-8 justify-center items-center ">
-          <h2 className="w-full text-3xl font-bold text-center break-keep  md:order-1 order-2 pb-2">
+          <h2 className="w-full text-3xl font-bold text-center break-keep  md:order-1 order-2 pb-2 text-gray-900">
             {language === "en" ? "Frequently Asked Questions" : "자주 묻는 질문"}
           </h2>
           {mode === "writing-class" && (

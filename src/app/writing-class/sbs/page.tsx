@@ -143,7 +143,7 @@ const SBSPage = () => {
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
-                  <h4 className="font-bold">박**</h4>
+                  <h4 className="font-bold text-gray-900">박**</h4>
                   <p className="text-sm text-gray-600">중부대학교 만화애니메이션학과</p>
                 </div>
               </div>
@@ -156,7 +156,7 @@ const SBSPage = () => {
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
-                  <h4 className="font-bold">김**</h4>
+                  <h4 className="font-bold text-gray-900">김**</h4>
                   <p className="text-sm text-gray-600">수성대 웹툰웹소설과</p>
                 </div>
               </div>
@@ -169,7 +169,7 @@ const SBSPage = () => {
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
-                  <h4 className="font-bold">이**</h4>
+                  <h4 className="font-bold text-gray-900">이**</h4>
                   <p className="text-sm text-gray-600">수성대 웹툰웹소설과</p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ const SBSPage = () => {
             <Image src='/writing-class/stella_ios_logo.svg' alt='stelland logo' width={100} height={100} className='rounded-3xl -rotate-12 hover:-rotate-45 transition-transform duration-300 shadow-md' />
           </div>
 
-          <h1 className='text-center text-lg font-base pt-5'>
+          <h1 className='text-center text-lg font-base pt-5 text-gray-900'>
             주식회사 스텔라앤은 SBS 아카데미학원과 성공적인 산학협력을 기원합니다.
           </h1>
           <p>
@@ -216,7 +216,7 @@ const SBSPage = () => {
                   <span className="text-4xl font-bold text-[#DE2B74]">FREE</span>
                   <span className="ml-2 text-gray-500 line-through strike-through">Amazon $20</span>
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 text-gray-900">
                   <li className="flex items-center">
                     <svg
                       className="w-5 h-5 text-[#DE2B74] mr-2"

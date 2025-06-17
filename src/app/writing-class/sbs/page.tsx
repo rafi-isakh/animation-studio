@@ -15,6 +15,7 @@ import { Language } from '@/components/Types';
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { Button } from '@/components/shadcnUI/Button';
 import FaqSection from '@/components/UI/writingClass/ui/FaqSection';
+import Link from 'next/link';
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -143,12 +144,12 @@ const SBSPage = () => {
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
-                  <h4 className="font-bold text-gray-900">박**</h4>
-                  <p className="text-sm text-gray-600">중부대학교 만화애니메이션학과</p>
+                  <h4 className="font-bold text-gray-900">Soj**</h4>
+                  <p className="text-sm text-gray-600">투니즈 재미동포 회원</p>
                 </div>
               </div>
-              <p className="text-gray-700">
-                작법서를 읽기 전에는 첫번째 장을 쓰기까지 너무 어려웠는데 작법서를 읽고 나서는 첫번째 장을 쓰는데 큰 도움이 되었습니다.
+              <p className="text-gray-700 break-keep">
+                작법서를 읽기 전에는 첫번째 장을 쓰기까지 너무 어려웠는데, 8강까지 완독하고 나서 글을 쓰는데 큰 도움이 되었습니다.
               </p>
             </div>
 
@@ -160,7 +161,7 @@ const SBSPage = () => {
                   <p className="text-sm text-gray-600">수성대 웹툰웹소설과</p>
                 </div>
               </div>
-              <p className="text-gray-700">
+              <p className="text-gray-700 break-keep">
                 스토리텔링 및 구성법이 전략적으로 적혀 있었고 너무 유용했습니다. 스스로 공부하는데 도움이 너무 많이 되었습니다. 감사합니다!
               </p>
             </div>
@@ -169,12 +170,12 @@ const SBSPage = () => {
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
-                  <h4 className="font-bold text-gray-900">이**</h4>
-                  <p className="text-sm text-gray-600">수성대 웹툰웹소설과</p>
+                  <h4 className="font-bold text-gray-900">심**</h4>
+                  <p className="text-sm text-gray-600">직장인</p>
                 </div>
               </div>
-              <p className="text-gray-700">
-                작법서를 읽고나서 탄탄한 줄거리 흐름은 물론 생생한 캐릭터를 만들어 낼 수 있었어요. 너무 유용한 책이라고 생각합니다. 감사합니다!
+              <p className="text-gray-700 break-keep">
+                작법서를 읽고나서 직장에 다니면서도 탄탄한 줄거리 흐름은 물론 생생한 캐릭터를 만들어 낼 수 있었어요. 너무 유용한 책이라고 생각합니다. 감사합니다!
               </p>
             </div>
           </div>
@@ -267,7 +268,9 @@ const SBSPage = () => {
                   </li>
                 </ul>
                 <Button size="lg" className="w-full bg-[#DE2B74] hover:text-[#DE2B74] text-white">
-                  무료로 다운받기
+                  <Link href='/writing-class/downloads'>
+                    무료로 다운받기
+                  </Link>
                 </Button>
                 <p className="text-sm text-gray-500 mt-4 text-center">가입후 무료로 다운 받을 수 있습니다.</p>
               </div>
@@ -290,7 +293,7 @@ const SBSPage = () => {
           <h2 className="text-3xl font-bold text-white my-8">
             무료로 작법서를 다운받을 수 있도록 공유하세요.
           </h2>
-          <CountdownTimer targetDate="2025-06-30" className="text-white" />
+          {/* <CountdownTimer targetDate="2025-06-30" className="text-white" /> */}
           <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
             스텔라앤 작법서 컨텐츠는 MOU 이벤트 기간 동안 무료로 다운 받을 수 있습니다. <br />
             지금 바로 다운받고 성공적인 웹소설 작가로 성장하세요.

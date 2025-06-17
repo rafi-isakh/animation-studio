@@ -116,7 +116,7 @@ const WritingClassHeader = ({ mode = "writing-class" }: { mode?: "sbs" | "writin
                                     <Button
                                         variant="link"
                                         onClick={() => setMobilePopoverOpen(true)}
-                                        className="!no-underline flex items-center gap-1 cursor-pointer"
+                                        className="!no-underline flex items-center gap-1 cursor-pointer text-gray-900"
                                     >
                                         <Menu className="h-5 w-5" />
                                         <span>All</span>
@@ -145,7 +145,7 @@ const WritingClassHeader = ({ mode = "writing-class" }: { mode?: "sbs" | "writin
                             </div>
                         </div>}
 
-                        
+
                         {mode === "writing-class" && (
                             <Link
                                 href="#"
@@ -165,7 +165,7 @@ const WritingClassHeader = ({ mode = "writing-class" }: { mode?: "sbs" | "writin
                                 </DialogTrigger>
                                 <LoginDialog />
                             </Dialog>}
-                            {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
+                            {isLoggedIn && mode === "writing-class" && <Link href="#" onClick={handleSignOut} className="flex items-center">
                                 <span className="font-bold cursor-pointer">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
                             </Link>}
                         </div>

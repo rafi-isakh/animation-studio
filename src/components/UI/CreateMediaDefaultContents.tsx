@@ -15,18 +15,25 @@ import { ToastAction } from "@/components/shadcnUI/Toast";
 import NotEnoughTicketsDialog from "@/components/UI/NotEnoughTicketsDialog";
 import { useUser } from "@/contexts/UserContext";
 import { BsFillTicketPerforatedFill } from "react-icons/bs"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/shadcnUI/Tabs"
-import { Badge } from "@/components/shadcnUI/Badge"
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/shadcnUI/Card"
-import { Download, Star, Users, Share2, MessageSquare, Heart, FileText, Clock, Eye, Plus, Trash, Search, BookOpen, Lightbulb, Play, Crown, TrendingUp, Bookmark, Award, Cloud, Loader2, ArrowRight, User } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/shadcnUI/Tabs";
+import { Badge } from "@/components/shadcnUI/Badge";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/shadcnUI/Card";
+import { Heart, Plus, BookOpen, TrendingUp, Loader2, User, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/shadcnUI/Carousel";
 
 export default function CreateMediaDefaultContents({ source, webnovelId, chapterIds }: { source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
-    const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
+    const { setOpenDialog, loadingVideoGeneration, generateTrailer, isLoading } = useCreateMedia();
     const { toast } = useToast();
     const [showNotEnoughTicketsModal, setShowNotEnoughTicketsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
@@ -69,49 +76,15 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
             <Tabs defaultValue="home" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-2">
                     <TabsList className="flex flex-row gap-2 bg-transparent">
-                        <TabsTrigger value="home" className="font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
-                            Home
+                        <TabsTrigger value="home" className="px-4 py-1 font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
+                            {phrase(dictionary, 'toonyz_post_home', language)}
                         </TabsTrigger>
                         <TabsTrigger value="posts" className="font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
-                            Posts
+                            {phrase(dictionary, 'toonyz_post_feed', language)}
                         </TabsTrigger>
                         <TabsTrigger value="ranking" className="font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
-                            Ranking
+                            {phrase(dictionary, 'toonyz_post_ranking', language)}
                         </TabsTrigger>
-                        <div className="flex gap-2">
-                            {
-                                source == 'webnovel' &&
-                                <Button
-                                    variant="outline"
-                                    className="rounded-full bg-white text-black hover:bg-gray-200 font-medium text-base"
-                                    disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
-                                    onClick={() => {
-                                        if (tickets < 2) {
-                                            setCreateMediaPrice(2)
-                                            setShowNotEnoughTicketsModal(true);
-                                            return;
-                                        }
-                                        if (chapterIds && chapterIds.length > 0) {
-                                            setOpenDialog(true);
-                                            generateTrailer(chapterIds);
-                                        }
-                                        else {
-                                            toast({
-                                                title: "Error",
-                                                description: "No chapters available to generate trailer",
-                                                variant: "destructive",
-                                            });
-                                        }
-                                    }}
-                                >
-                                    {loadingVideoGeneration ?
-                                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
-                                        null
-                                    }
-                                    {phrase(dictionary, "generateButton", language)} <BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />2
-                                </Button>
-                            }
-                        </div>
                     </TabsList>
                 </div>
                 <AnimatePresence mode="wait">
@@ -144,15 +117,40 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                 }
                                             </p>
                                             <div className="flex flex-wrap gap-3">
-                                                <Button className="rounded-2xl bg-white text-indigo-700 hover:bg-white/90">
-                                                    Explore Plans
-                                                </Button>
-                                                {/* <Button
-                                                    variant="outline"
-                                                    className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
-                                                >
-                                                    Take a Tour
-                                                </Button> */}
+                                                <div className="flex gap-2">
+                                                    {
+                                                        source == 'webnovel' &&
+                                                        <Button
+                                                            variant="outline"
+                                                            className="rounded-full bg-white text-black hover:bg-gray-200 font-medium text-base"
+                                                            disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
+                                                            onClick={() => {
+                                                                if (tickets < 2) {
+                                                                    setCreateMediaPrice(2)
+                                                                    setShowNotEnoughTicketsModal(true);
+                                                                    return;
+                                                                }
+                                                                if (chapterIds && chapterIds.length > 0) {
+                                                                    setOpenDialog(true);
+                                                                    generateTrailer(chapterIds);
+                                                                }
+                                                                else {
+                                                                    toast({
+                                                                        title: "Error",
+                                                                        description: "No chapters available to generate trailer",
+                                                                        variant: "destructive",
+                                                                    });
+                                                                }
+                                                            }}
+                                                        >
+                                                            {loadingVideoGeneration ?
+                                                                <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
+                                                                null
+                                                            }
+                                                            {phrase(dictionary, "generateButton", language)} <BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />2
+                                                        </Button>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="hidden lg:block">
@@ -164,6 +162,7 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                 <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-md" />
                                                 <div className="absolute inset-4 rounded-full bg-white/20" />
                                                 <div className="absolute inset-8 rounded-full bg-white/30" />
+                                                <Image src='/images/N_logo.svg' alt='toonyz ai logo' width={20} height={20} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover z-50" />
                                                 <div className="absolute inset-12 rounded-full bg-white/40" />
                                                 <div className="absolute inset-16 rounded-full bg-white/50" />
                                             </motion.div>
@@ -176,25 +175,47 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                 <div className="px-4 flex items-center justify-between">
                                     <h2 className="text-2xl font-semibold">{phrase(dictionary, "communityHighlights", language)}</h2>
                                     <Button variant="ghost" className="rounded-2xl">
-                                        <Link href="/feed">
-                                            {phrase(dictionary, "toonyz_explore", language)}
+                                        <Link href="/feed" className="flex items-center gap-2">
+                                            {phrase(dictionary, "toonyz_explore", language)} <ArrowRight className="w-4 h-4" />
                                         </Link>
                                     </Button>
                                 </div>
-                                <div className="relative w-[400px] overflow-x-auto">
-                                    <div className="flex flex-nowrap gap-4">
-                                        {initialPosts.map((post, index) => (
-                                            <motion.div key={index} className="flex-shrink-0" whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
-                                                <Card className="overflow-hidden rounded-3xl w-48">
+
+                                <div className="flex justify-center">
+                                    <Carousel
+                                        opts={{
+                                            align: "start",
+                                        }}
+                                        className="md:w-[400px] w-full "
+                                    >
+                                        <CarouselContent>
+                                            {initialPosts.map((post, index) => (
+                                                <motion.div key={index} className="flex-shrink-0" whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
+                                                    {/* <Card className="overflow-hidden rounded-3xl w-48">
                                                     <div className="aspect-[4/3] overflow-hidden bg-muted relative">
                                                         {post.image && <Image src={getImageUrl(post.image)} alt={post.title} fill className="object-cover" />}
                                                         {post.video && <video src={getVideoUrl(post.video)} autoPlay muted loop playsInline className="object-cover" />}
                                                     </div>
-                                                </Card>
-                                            </motion.div>
-                                        ))}
-                                    </div>
+                                                </Card> */}
+                                                   {post.image && <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
+                                                        <div className="p-1">
+                                                            <Card>
+                                                                <CardContent className="flex aspect-square items-center justify-center p-6">
+                                                                    {post.image && <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} className="object-cover" />}
+                                                                   
+                                                                </CardContent>
+                                                            </Card>
+                                                        </div>
+                                                    </CarouselItem>
+                                                    }
+                                                </motion.div>
+                                            ))}
+                                        </CarouselContent>
+                                        <CarouselPrevious className="absolute top-1/2 left-1 transform -translate-y-1/2" />
+                                        <CarouselNext className="absolute top-1/2 right-1 transform -translate-y-1/2" />
+                                    </Carousel>
                                 </div>
+
                             </section>
                         </TabsContent>
 
@@ -214,10 +235,6 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                 {phrase(dictionary, "recentToonyzPostsDescription", language)}
                                             </p>
                                         </div>
-                                        {/* <Button className="w-fit rounded-2xl bg-white text-red-700 hover:bg-white/90">
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Install App
-                                        </Button> */}
                                     </div>
                                 </motion.div>
                             </section>
@@ -256,17 +273,47 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                         </motion.div>
                                     ))}
                                     <motion.div whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
-                                        <Button variant="link" className="!no-underline p-8 bg-muted/50 flex h-full flex-col items-center justify-center rounded-3xl border border-dashed hover:border-primary/50 transition-all duration-300">
-                                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
-                                                <Plus className="h-6 w-6" />
-                                            </div>
-                                            <h3 className="text-lg font-medium text-center">
-                                                {phrase(dictionary, "createNewSlideShow", language)}
-                                            </h3>
-                                            <p className="mb-4 text-center text-sm text-muted-foreground">
-                                                {phrase(dictionary, "createNewSlideShowDescription", language)}
-                                            </p>
-                                        </Button>
+                                        {source == 'webnovel' &&
+                                            <Button
+                                                variant="link"
+                                                className="!no-underline p-8 bg-muted/50 flex h-full flex-col items-center justify-center rounded-3xl border border-dashed hover:border-primary/50 transition-all duration-300"
+                                                disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
+                                                onClick={() => {
+                                                    if (tickets < 2) {
+                                                        setCreateMediaPrice(2)
+                                                        setShowNotEnoughTicketsModal(true);
+                                                        return;
+                                                    }
+                                                    if (chapterIds && chapterIds.length > 0) {
+                                                        setOpenDialog(true);
+                                                        generateTrailer(chapterIds);
+                                                    }
+                                                    else {
+                                                        toast({
+                                                            title: "Error",
+                                                            description: "No chapters available to generate trailer",
+                                                            variant: "destructive",
+                                                        });
+                                                    }
+                                                }}
+                                            >
+                                                {loadingVideoGeneration ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                ) : (
+                                                    <>
+                                                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
+                                                            <Plus className="h-6 w-6" />
+                                                        </div>
+                                                        <h3 className="text-lg font-medium text-center">
+                                                            {phrase(dictionary, "createNewSlideShow", language)}
+                                                        </h3>
+                                                        <p className="mb-4 text-center text-sm text-muted-foreground">
+                                                            {phrase(dictionary, "createNewSlideShowDescription", language)}
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </Button>
+                                        }
                                     </motion.div>
                                 </div>
                             </section>

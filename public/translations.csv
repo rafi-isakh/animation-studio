@@ -571,8 +571,11 @@ createNewSlideShow,새로운 슬라이드쇼 만들기,,Create New Slide Show
 createNewSlideShowDescription,투니즈 AI를 이용해서 새로운 슬라이드쇼를 만들어 보세요!,,Create a new slide show!
 toonyzPostRanking,투니즈 포스트 랭킹,,Toonyz Post Ranking
 toonyzPostRankingDescription,투니즈 포스트 랭킹을 확인해 보세요!,,Check out the most popular rankers from the community.
-recentToonyzPosts,최신 투니즈 포스트,,The Trending Toonyz Posts
+recentToonyzPosts,최신 투니즈 포스트,,Trending Toonyz Posts
 recentToonyzPostsDescription,투니즈 AI로 만든 투니즈 포스트들을 만나보세요,,Meet the latest Toonyz Posts!
 topVotedPosts,가장 인기있는 투니즈 포스트,,The Top Voted Toonyz Posts
 chapter_view_viewer_settings,설정,,Settings
 chapter_view_tableOfContents,목차,,List
+toonyz_post_home,메인,,Home
+toonyz_post_feed,최신 피드,,Feed
+toonyz_post_ranking,순위,,Ranking

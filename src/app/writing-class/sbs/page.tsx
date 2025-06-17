@@ -36,15 +36,23 @@ const SBSPage = () => {
         <div className='flex justify-center items-center'>
           <Image src="/writing-class/images/SBSLogo.png" alt="SBS" width={200} height={30} />
         </div>
-        <h1 className='text-4xl font-light'>X</h1>
-        <h1 className='md:text-2xl text-xl font-light'>Stella& Inc. MOU 협약 체결 기념 이벤트</h1>
+        <h1 className='text-4xl font-thin'>X</h1>
+        <div className='inline-flex items-center gap-2 md:text-2xl text-xl font-light'>
+          
+          {/* Stella& Inc.  */}
+
+          <Image src='/writing-class/stelland_star_logo.svg' alt='SBS' width={20} height={20} />
+          <Image src='/writing-class/stelland_logo.svg' alt='SBS' width={100} height={20} />
+
+          MOU 협약 체결 기념 이벤트
+        </div>
 
         <div className="flex flex-col justify-center items-center gap-4 pt-10">
-          <h1 className='md:text-5xl text-3xl font-bold text-center'>
+          <h1 className='md:text-5xl text-3xl font-bold text-center break-keep'>
             여러분의 성공적인 웹소설 작가 데뷔를 기원합니다
           </h1>
 
-          <p className='font-light text-center pb-10' >
+          <p className='font-light text-center pb-10 break-keep' >
             프로페셔널한 웹소설 작가 데뷔를 위한 무료 작법서와 팁들이 준비 되었습니다. <br />
             스텔라앤과 함께 글쓰기 실력을 키워보세요.
           </p>

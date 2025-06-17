@@ -19,6 +19,8 @@ import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
+import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader"
+import WritingClassFooter from "@/components/UI/writingClass/ui/WritingClassFooter"
 
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
@@ -515,61 +517,6 @@ export default function WritingClassPage() {
           </div>
         </div>
       </section>
-
-      {/* Testimonials Section */}
-      {/* <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            {language === "en" ? "What Our Writers Say"
-              : "수강생 작가들의 이야기"}
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
-                <div>
-                  <h4 className="font-bold">Sarah J.</h4>
-                  <p className="text-sm text-gray-600">Romance Writer</p>
-                </div>
-              </div>
-              <p className="text-gray-700">
-                Before Toonyz, I struggled to get readers past my first chapter. Now my retention rate is over 85% and
-                I&apos;ve built a loyal following!
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
-                <div>
-                  <h4 className="font-bold">Michael T.</h4>
-                  <p className="text-sm text-gray-600">Fantasy Author</p>
-                </div>
-              </div>
-              <p className="text-gray-700">
-                The structured approach to episodic storytelling completely changed how I write. My latest series has
-                over 500,000 reads on Webnovel!
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
-                <div>
-                  <h4 className="font-bold">Jessica L.</h4>
-                  <p className="text-sm text-gray-600">Sci-Fi Writer</p>
-                </div>
-              </div>
-              <p className="text-gray-700">
-                The feedback from professional editors was invaluable. I&apos;ve now signed a contract with a publisher who
-                discovered my work on Webnovel.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
       {/* <section className="py-12 bg-[#DE2B74]">
         <div className="relative container mx-auto px-4 text-center">
           
@@ -587,7 +534,6 @@ export default function WritingClassPage() {
 
         </div>
       </section> */}
-
       <section className="container mx-auto px-4 py-16 md:py-24">
         <FaqSection />
       </section>

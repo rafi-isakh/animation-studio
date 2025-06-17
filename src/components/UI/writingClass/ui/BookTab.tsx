@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton"
 import { motion } from "framer-motion"
 import gsap from "gsap"
+import { ArrowUpRight } from "lucide-react"
 
 interface Book {
   id: string
@@ -371,7 +372,7 @@ export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
         ))}
       </div>
       </motion.div>
-      <motion.div ref={cursorLabel} className='bg-amber-400 text-white rounded-full px-3 py-4 absolute top-0 left-0 pointer-events-none z-50' variants={scaleAnimation} initial="initial" animate={active ? "enter" : "closed"}>View</motion.div>
+      <motion.div ref={cursorLabel} className='bg-amber-400 text-white rounded-full px-4 py-4 absolute top-0 left-0 pointer-events-none z-50' variants={scaleAnimation} initial="initial" animate={active ? "enter" : "closed"}><ArrowUpRight size={50} strokeWidth={1} /></motion.div>
       </motion.div>
     </section>
   )

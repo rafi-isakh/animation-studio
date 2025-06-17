@@ -1,8 +1,7 @@
 import FAQ from "@/components/UI/FAQ";
 import Link from "next/link";
-import { ReactNode } from "react";
 import { FaqItem } from "@/components/Types";
-
+import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader"
 
 const faqItems: FaqItem[] = [
     {
@@ -48,7 +47,8 @@ const faqItems: FaqItem[] = [
 
 const FAQPage = () => {
     return (
-        <div className="mx-auto">
+        <div className="flex flex-col min-h-screen !bg-white !dark:bg-white">
+            <WritingClassHeader />
             <FAQ faqItems={faqItems} />
             <div className="h-[10vh]"></div>
         </div>

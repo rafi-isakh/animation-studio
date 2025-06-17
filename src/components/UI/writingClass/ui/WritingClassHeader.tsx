@@ -73,7 +73,7 @@ export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language:
 }
 
 
-const WritingClassHeader = () => {
+const WritingClassHeader = ({ mode = "writing-class" }: { mode?: "sbs" | "writing-class" }) => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
     const { nickname } = useUser();
@@ -116,7 +116,7 @@ const WritingClassHeader = () => {
                                     <Button
                                         variant="link"
                                         onClick={() => setMobilePopoverOpen(true)}
-                                        className="!no-underline flex items-center gap-1 cursor-pointer"
+                                        className="!no-underline flex items-center gap-1 cursor-pointer text-gray-900"
                                     >
                                         <Menu className="h-5 w-5" />
                                         <span>All</span>
@@ -144,13 +144,17 @@ const WritingClassHeader = () => {
                                 </Popover>
                             </div>
                         </div>}
-                        <Link
-                            href="#"
-                            onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
-                            className="flex items-center text-base cursor-pointer">
-                            <Globe className="h-4 w-4 mr-1" />
-                            <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
-                        </Link>
+
+
+                        {mode === "writing-class" && (
+                            <Link
+                                href="#"
+                                onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
+                                className="flex items-center text-base cursor-pointer">
+                                <Globe className="h-4 w-4 mr-1" />
+                                <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
+                            </Link>
+                        )}
 
                         <div className="md:inline-flex hidden">
                             {!isLoggedIn && <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
@@ -161,7 +165,7 @@ const WritingClassHeader = () => {
                                 </DialogTrigger>
                                 <LoginDialog />
                             </Dialog>}
-                            {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
+                            {isLoggedIn && mode === "writing-class" && <Link href="#" onClick={handleSignOut} className="flex items-center">
                                 <span className="font-bold cursor-pointer">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
                             </Link>}
                         </div>

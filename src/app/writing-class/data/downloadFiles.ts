@@ -3,6 +3,7 @@ export const downloadFiles = [
     {
       id: 1,
       name: "Toonyz_Writing_Guide_1.pdf",
+      title_ko: "1강 웹소설의 세계로",
       modified: "May 07, 2025",
       size: "428 KB",
       author: "Toonyz Content Team",
@@ -13,6 +14,7 @@ export const downloadFiles = [
     {
       id: 2,
       name: "Toonyz_Writing_Guide_2.pdf",
+      title_ko: "2강 나만의 이야기 씨앗 심기",
       modified: "May 07, 2025",
       size: "544 KB",
       author: "Toonyz Content Team",
@@ -23,6 +25,7 @@ export const downloadFiles = [
     {
       id: 3,
       name: "Toonyz_Writing_Guide_3.pdf",
+      title_ko: "3강 독자를 사로잡는 스토리텔링의 기술",
       modified: "May 07, 2025",
       size: "440 KB",
       author: "Toonyz Content Team",
@@ -33,6 +36,7 @@ export const downloadFiles = [
     {
       id: 4,
       name: "Toonyz_Writing_Guide_4.pdf",
+      title_ko: "4강 생생한 캐릭터 창조하기",
       modified: "May 07, 2025",
       size: "409 KB",
       author: "Toonyz Content Team",
@@ -43,6 +47,7 @@ export const downloadFiles = [
     {
       id: 5,
       name: "Toonyz_Writing_Guide_5.pdf",
+      title_ko: "5강 첫 문장에서 마지막 문장까지",
       modified: "April 23, 2025",
       size: "499 KB",
       author: "Toonyz Content Team",
@@ -53,6 +58,7 @@ export const downloadFiles = [
     {
       id: 6,
       name: "Toonyz_Writing_Guide_6.pdf",
+      title_ko: "6강 완성도를 높이는 수정과 편집의 예술",
       modified: "May 07, 2025",
       size: "440 KB",
       author: "Toonyz Content Team",
@@ -63,6 +69,7 @@ export const downloadFiles = [
     {
       id: 7,
       name: "Toonyz_Writing_Guide_7.pdf",
+      title_ko: "7강 작가로서의 길",
       modified: "May 07, 2025",
       size: "439 KB",
       author: "Toonyz Content Team",
@@ -73,6 +80,7 @@ export const downloadFiles = [
     {
       id: 8,
       name: "Toonyz_Writing_Guide_8.pdf",
+      title_ko: "8강 웹소설의 OSMU 확장 비법",
       modified: "May 07, 2025",
       size: "455 KB",
       author: "Toonyz Content Team",

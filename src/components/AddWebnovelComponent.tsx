@@ -28,7 +28,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Language } from '@/components/Types';
-
+import SignInComponent from '@/components/SignInComponent';
 
 export const WarningModal = ({ mode, open, onOpenChange, dictionary, language }: { mode: 'addWebnovel' | 'agreeToTerms', open: boolean, onOpenChange: (open: boolean) => void, dictionary: any, language: Language }) => {
     return (
@@ -193,18 +193,22 @@ const AddWebnovelComponent = () => {
     }));
 
 
+    useEffect(() => {
+        if (!isLoggedInAndRegistered) {
+            toast({
+                title: phrase(dictionary, "pleaseLoginFirst", language),
+                description: phrase(dictionary, "pleaseLoginFirstDescription", language),
+                variant: "destructive",
+            })
+        }
+    }, [isLoggedInAndRegistered])
 
     return (
         <>
             {!isLoggedInAndRegistered ? (
                 <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
-                    <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
-                    <Link
-                        href="/signin"
-                        className='px-4 py-2 bg-pink-200 hover:bg-[#DB2777] hover:text-white rounded-md transition-all duration-300 dark:bg-gray-800 dark:hover:bg-gray-700'
-                    >
-                        {phrase(dictionary, "login", language)}
-                    </Link>
+                      <p className='text-lg font-bold pt-10'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
+                    <SignInComponent redirectTo="/new_webnovel" />
                 </div>
             ) : (
                 <div className='md:max-w-screen-md p-6 w-full flex md:flex-row flex-col justify-center mx-auto'>

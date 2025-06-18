@@ -11,8 +11,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/shadcnUI/Avatar";
-import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
+import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion, Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import moment from "moment";
 import { CommentList } from "@/components/CommentList";
@@ -29,6 +28,7 @@ import MyLibraryToonyzPostCard from "@/components/UI/MyLibraryToonyzPostCard";
 import AskAuthorPageWrapper from "./AskAuthorPageWrapper";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import ActiveUserAvatar from "./ActiveUserAvatar";
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 interface ContentChapterListComponentProps {
     content: Webnovel;
@@ -51,15 +51,47 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [isAuthor, setIsAuthor] = useState(false);
     const { id, email, nickname } = useUser();
+    const tabsListRef = useRef<HTMLDivElement>(null);
 
     const formattedDate = content?.created_at
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
 
-
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        savedPrompt,
+        prompts,
+        pictures,
+        openDialog,
+        setOpenDialog,
+        setSelection,
+        promotionBannerRef,
+        draggableNodeRef,
+        chapter_id,
+        setWebnovelId,
+    } = useCreateMedia();
+
+
+    const handleOpenToonyzAI = () => {
+        setOpenDialog((prevState: boolean) => !prevState);
+    }
+
+    const scrollLeft = () => {
+        if (tabsListRef.current) {
+            tabsListRef.current.scrollBy({ left: -500, behavior: 'smooth' });
+        }
+    };
+
+    const scrollRight = () => {
+        if (tabsListRef.current) {
+            tabsListRef.current.scrollBy({ left: 500, behavior: 'smooth' });
+        }
+    };
 
     // const isAuthor = (): boolean => {
     //     return id === content.user.id.toString()
@@ -83,28 +115,49 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     return (
         <div className="flex flex-col w-full ">
             <Tabs value={tabValue} defaultValue="1" className="w-full" onValueChange={(value) => { setTabValue(value) }}>
-                <TabsList className='bg-white dark:bg-black md:pt-4 pt-0 md:p-0 p-4 gap-4'>
-                    <TabsTrigger value="1" onClick={() => { setTabValue('1') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
-                        <span className="flex flex-row items-center gap-1 text-sm">
-                            <AlignLeft size={16} />
-                            {phrase(dictionary, "episodes", language)}{' '}
-                            {chapterCount}
-                        </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="2" onClick={() => { setTabValue('2') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
-                        <span className="flex flex-row items-center gap-1 text-sm">
-                            <MessageCircle size={16} />
-                            {phrase(dictionary, "post", language)}{' '}
-                            {postCount}
-                        </span>
-                    </TabsTrigger>
-                    {/* <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
-                        <span className="flex flex-row items-center gap-1 text-sm">
-                            <MailQuestion size={16} />
-                            {phrase(dictionary, "askToAuthor", language)}{''}
-                        </span>
-                    </TabsTrigger> */}
-                </TabsList>
+                <div className="relative w-full md:px-0 md:py-5 py-1 px-4">
+                    <TabsList 
+                        ref={tabsListRef}
+                        className={`bg-transparent gap-4 w-full md:py-0 py-8
+                            flex flex-row items-center justify-start
+                            ${isMobile ? 'overflow-x-auto overflow-y-hidden  no-scrollbar' : ''
+                        }`}
+                    >
+                        <TabsTrigger
+                            value="1"
+                            onClick={() => { setTabValue('1') }}
+                            className="rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-2 flex-shrink-0 flex-grow-0">
+                            <span className="flex flex-row items-center gap-1 text-sm">
+                                <AlignLeft size={16} />
+                                {phrase(dictionary, "episodes", language)}{' '}
+                                {chapterCount}
+                            </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="2"
+                            onClick={() => { setTabValue('2') }}
+                            className="rounded-full  data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-2 flex-shrink-0 flex-grow-0" >
+                            <span className="flex flex-row items-center gap-1 text-sm">
+                                <MessageCircle size={16} />
+                                {phrase(dictionary, "post", language)}{' '}
+                                {postCount}
+                            </span>
+                        </TabsTrigger>
+                        <div className="relative flex-shrink-0">
+                            <Button
+                                onClick={() => handleOpenToonyzAI()}
+                                className="transtion group flex h-10 w-32 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30">
+                                <div className="flex h-full w-full items-center justify-center gap-1 rounded-full bg-white dark:bg-black transition duration-300 ease-in-out group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-black group-hover:to-purple-50 group-hover:transition group-hover:duration-300 group-hover:ease-in-out">
+                                    <Sparkles className="w-4 h-4" />
+                                    {phrase(dictionary, "toonyzAI", language)}
+                                </div>
+                            </Button>
+                            <span className="absolute -top-2 -right-2 bg-[#DB2777] text-white text-xs px-2 py-0 rounded-full">
+                                New
+                            </span>
+                        </div>
+                    </TabsList>
+                </div>
                 <TabsContent value="1">
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
@@ -118,7 +171,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                     onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
                                                 />
                                             </div>
-                                        </div>                                      
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex justify-center items-center w-full min-h-72 gap-2">
@@ -210,11 +263,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                         )}
                     </div>
                 </TabsContent>
-                {/* <TabsContent value="3">
-                    <div className="flex flex-col self-start justify-start gap-4 space-y-4 h-[20vh]">
-                        <AskAuthorPageWrapper author={content.user} content={content} />
-                    </div>
-                </TabsContent> */}
             </Tabs>
         </div>
     );

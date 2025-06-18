@@ -18,7 +18,7 @@ export default function MarketingConsentPage() {
     const { language, dictionary } = useLanguage();
     const { toast } = useToast();
     const router = useRouter();
-    const {bio, nickname} = useUser();
+    const {bio, nickname, genres} = useUser();
     const {isLoggedIn} = useAuth();
 
     const handleAgree = async () => {
@@ -33,6 +33,7 @@ export default function MarketingConsentPage() {
             formData.append('marketing', 'true');
             formData.append('bio', bio);
             formData.append('nickname', nickname);
+            formData.append('genres', JSON.stringify(genres));
 
             const response = await fetch('/api/update_user', {
                 method: 'POST',

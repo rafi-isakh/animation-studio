@@ -290,7 +290,7 @@ const WebnovelTranslateComponent = (
                                 wordBreak: 'keep-all',
                             }}
                             onContextMenu={(e) => e.preventDefault()}
-                        // className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
+                        
                         >
                         </div>
                     }

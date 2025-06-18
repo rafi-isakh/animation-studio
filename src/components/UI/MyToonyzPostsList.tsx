@@ -100,9 +100,10 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
         <div className={cn("w-full scrollbar-none flex flex-col gap-3", className)}>
             <div className="flex flex-col gap-3 min-w-full p-1 md:p-0">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-1">
+                    <div className="flex flex-col items-start justify-start h-full gap-1">
                         <Skeleton className="w-full h-[300px]" />
                         <Skeleton className="w-full h-[20px]" />
+                        <Skeleton className="w-[250px] h-[20px]" />
                     </div>
                 ) : posts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full">
@@ -140,7 +141,7 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                                             ref={videoRef}
                                             src={getVideoUrl(item.video)}
                                             className="rounded-lg object-cover w-full h-full"
-                                            controls
+                                            controls={false}
                                             autoPlay={true}
                                             playsInline={true}
                                             muted={true}
@@ -176,9 +177,6 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                                     post={item}
                                 />
                             </div>
-                            {/* <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                                <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${item.id}`} description={`Share this post with your friends and family.`} />
-                            </Dialog> */}
                         </div>
                     ))
                 )}

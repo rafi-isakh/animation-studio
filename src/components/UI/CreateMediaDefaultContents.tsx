@@ -26,6 +26,7 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
+    CarouselApi,
 } from "@/components/shadcnUI/Carousel";
 
 export default function CreateMediaDefaultContents({ source, webnovelId, chapterIds }: { source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
@@ -40,6 +41,16 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
     const { tickets } = useUser();
     const [activeTab, setActiveTab] = useState('home');
     const [userRanking, setUserRanking] = useState<ToonyzPost[]>([]);
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+
+    useEffect(() => {
+        if (!api) return;
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap());
+        });
+    }, [api]);
 
     useEffect(() => {
         // TODO: refactor the backend to use webnovel_id
@@ -184,6 +195,7 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                             align: "start",
                                         }}
                                         className="md:w-[400px] w-full "
+                                        setApi={setApi}
                                     >
                                         <CarouselContent>
                                             {initialPosts.map((post, index) => (
@@ -241,8 +253,8 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                                 </motion.div>
                                             ))}
                                         </CarouselContent>
-                                        <CarouselPrevious disabled={initialPosts.length <= 1} className={`absolute top-1/2 left-1 transform -translate-y-1/2 border-0 text-gray-200 ${initialPosts.length <= 1 ? "opacity-0" : "opacity-100"}`} />
-                                        <CarouselNext disabled={initialPosts.length <= 1} className={`absolute top-1/2 right-1 transform -translate-y-1/2 border-0 text-gray-200 ${initialPosts.length <= 1 ? "opacity-0" : "opacity-100"}`} />
+                                        <CarouselPrevious disabled={current === 0} className={`absolute top-1/2 left-1 transform -translate-y-1/2 border-0 bg-white/80  text-gray-900 ${current === 0 ? "opacity-0" : "opacity-100"}`} />
+                                        <CarouselNext disabled={current === initialPosts.length - 1} className={`absolute top-1/2 right-1 transform -translate-y-1/2 border-0 bg-white/80 text-gray-900 ${current === initialPosts.length - 1 ? "opacity-0" : "opacity-100"}`} />
                                     </Carousel>
                                 </div>
 

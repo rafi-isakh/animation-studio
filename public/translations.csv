@@ -314,7 +314,6 @@ country,국가,,Country
 toonyzCut_which_type_of_project,어떤 프로젝트를 개발하고 싶으세요?,,Which Type of Project Would You Like to Develop?
 full_description,프로젝트 대한 자세한 설명을 적어주세요,,Please enter a detailed description of your project.
 reply,답글,,Reply
-preparing,준비중입니다,,Preparing..
 confirm,확인,,Confirm
 close,닫기,,Close
 learnMore,더 알아보기,,Learn More
@@ -579,3 +578,4 @@ chapter_view_tableOfContents,목차,,List
 toonyz_post_home,메인,,Home
 toonyz_post_feed,최신 피드,,Feed
 toonyz_post_ranking,순위,,Ranking
+toonyz_post_service_preparing,이 서비스는 준비중 입니다.,,This feature is currently in development.

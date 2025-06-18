@@ -132,7 +132,7 @@ export default function CreateMediaArea({
                                                                 setOpenHistory(false);
                                                             }}>
                                                             <House className="h-5 w-5" />
-                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "home", language)}</span>
+                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "toonyz_post_home", language)}</span>
                                                         </Button>
                                                         <Button
                                                             variant="ghost"

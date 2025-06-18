@@ -6,7 +6,6 @@ import { Button } from "@/components/shadcnUI/Button"
 import { ToonyzPost, Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
-import PhotoCards from "@/components/UI/PhotoCards";
 import { MdStars } from "react-icons/md";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -18,12 +17,6 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext"
 import MyToonyzPostsList from "@/components/UI/MyToonyzPostsList";
-import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
-import Masonry from "react-masonry-css"
-import { Pin } from "@/components/UI/Pin";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Textarea } from "@/components/shadcnUI/Textarea";
-import GeneratedPicture from "@/components/GeneratedPicture";
 
 
 export default function CreateMediaHistoryContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
@@ -195,105 +188,20 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                                 </p>
                             </div>
                         }
-
                     </TabsContent>
                     <TabsContent value="all_media">
                         {isLoggedIn ? <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-                            <p className="text-center text-black dark:text-white">{phrase(dictionary, "preparing", language)}</p>
-                         {/*                             
-                            <Masonry
-                                breakpointCols={breakpointCols}
-                                className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                                columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                            >
-                                {initialPosts.map((post, index) => (
-                                    <div key={post.id} className="mb-4 relative">
-                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl group">
-                                            <Link href={`/toonyz_posts/${post.id}`}>
-                                                <Image
-                                                    src={post.image}
-                                                    alt={post.title}
-                                                    className="rounded-lg object-cover"
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                />
-                                            </Link>
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                            <div className="absolute inset-0 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                <TooltipProvider delayDuration={0}>
-                                                    {buttonList.map((button, index) => (
-                                                        <Tooltip key={button.id}>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    onClick={() => button.id === 'edit' ? button.onClick(post.id) : button.onClick()}
-                                                                    variant="outline"
-                                                                    className={`rounded-full text-white border-0 
-                                                                            ${button.className} ${index > 0 ? 'ml-2' : ''}`}
-                                                                >
-                                                                    {button.icon}
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                {button.tooltipText}
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    ))}
-                                                </TooltipProvider>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400 py-2 text-center">
+                                {phrase(dictionary, "toonyz_post_service_preparing", language)}
+                            </p>
 
-                                            </div>
-                                        </div>
-                                        {editingPostId === post.id && (
-                                            <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
-                                                <div className="flex flex-col gap-1">
-                                                    <Textarea
-                                                        value={post.quote}
-                                                        placeholder={post.quote}
-                                                        rows={4}
-                                                        onChange={(e) => (e.target.value)}
-                                                        className="w-full"
-                                                    />
-                                                    <div className="flex flex-row gap-2 justify-end">
-                                                        <Button variant="outline" color="gray" onClick={() => setEditingPostId(null)}>
-                                                            {phrase(dictionary, "cancel", language)}
-                                                        </Button>
-                                                        <Button variant="outline" color="gray" >
-                                                            Edit
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </Masonry> */}
                         </div> : <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
                             <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg">
-                                <p className="text-center text-black dark:text-white flex items-center justify-center">
-                                    {phrase(dictionary, "pleaseLogin_all_contents", language)}
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400 py-2 text-center">
+                                    {phrase(dictionary, "toonyz_post_service_preparing", language)}
                                 </p>
                             </div>
-                            <Masonry
-                                breakpointCols={breakpointCols}
-                                className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                                columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                            >
-                                {initialPosts.map((post, index) => (
-                                    <div key={post.id} className="mb-4">
-                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
-                                            <Link href={`/toonyz_posts/${post.id}`}>
-                                                <Image
-                                                    src={post.image}
-                                                    alt={post.title}
-                                                    className="rounded-lg object-cover"
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                />
-                                            </Link>
-                                        </div>
 
-                                    </div>
-                                ))}
-                            </Masonry>
                         </div>}
                     </TabsContent>
                 </Tabs>

@@ -31,7 +31,7 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
                 setVideoSrc(videoSrc)
             }
         }
-    }, [language])
+    }, [language, webnovel])
 
     useEffect(() => {
         if (videoSrc) {

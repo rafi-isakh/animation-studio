@@ -12,17 +12,14 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 export const premium = [23, 19, 21, 22, 20, 24];
 export const free = [29, 28, 25];
 
-export default function WebnovelsByRank({ searchParams, sortBy, title, is_adult_material }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string, is_adult_material: boolean | null }) {
-    const genre = searchParams.genre as string | undefined;
-    const version = searchParams.version as string | undefined;
+export default function WebnovelsByRank({ searchParams, genre, sortBy, version='premium', title, is_adult_material }: { searchParams: { [key: string]: string | string[] | undefined }, genre: string | undefined, sortBy: SortBy, version?: string, title: string, is_adult_material: boolean | null }) {
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const { webnovels } = useWebnovels();
     
 
     useEffect(() => {
-        const _version = version || searchParams.version as string | undefined;
-        let _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, null, genre, _version, is_adult_material)
+        let _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, null, genre, version, is_adult_material)
         _webnovelsToShow = _webnovelsToShow.slice(0, 7)
 
         setWebnovelsToShow(_webnovelsToShow);

@@ -96,7 +96,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" is_adult_material={effectiveAdultFilter} />
                             <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" mode="main_page" is_adult_material={effectiveAdultFilter} />
                             <LargeGap /> 
-                            <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" is_adult_material={effectiveAdultFilter}  />
+                            <WebnovelsByRank searchParams={searchParams} genre="all" sortBy='views' title="TOP_SEVEN_WEBNOVELS" is_adult_material={effectiveAdultFilter}  />
                             <SmallGap />
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" is_adult_material={effectiveAdultFilter} />
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" is_adult_material={effectiveAdultFilter} />

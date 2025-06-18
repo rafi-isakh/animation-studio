@@ -27,7 +27,6 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
     const [current, setCurrent] = useState(0)
     const [count, setCount] = useState(0)
     const isDesktop = useMediaQuery("(min-width: 768px)")
-
     const plugin = useRef(
         Autoplay({
             delay: 4000,
@@ -74,8 +73,6 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
         return ""
     }
 
-    
-
     return (
         <div className="max-w-screen-xl mx-auto w-full relative">
 
@@ -98,7 +95,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
                                     <div className="p-1">
                                         <Card>
-                                             <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
+                                            <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
                                                 <Link href={item.webnovel_id ? getHref(item.webnovel_id) : item.link}>
                                                     <Image
                                                         className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"

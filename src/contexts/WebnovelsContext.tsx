@@ -27,7 +27,6 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
     const { language } = useLanguage();
     const [restricted, setRestricted] = useState(false);
 
-    
     const fetchWebnovelsMetadata = async (language: Language) => {
         const response = await fetch(`/api/get_webnovels_metadata`,
             {
@@ -51,7 +50,6 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
         const filteredData = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
                                                         && novel.available_languages.includes(language));
         setWebnovels(filteredData);
-
     }, [language, allWebnovels]);
 
     const getWebnovelMetadataById = async (id: string) => {

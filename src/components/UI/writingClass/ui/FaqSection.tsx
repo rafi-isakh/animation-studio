@@ -12,7 +12,7 @@ interface FaqItem {
   answer_en: string | ReactNode
 }
 
-export default function FaqSection() {
+export default function FaqSection({ mode = 'writing-class' }: { mode?: "writing-class" | "sbs" }) {
   const { language } = useLanguage();
   const faqItems: FaqItem[] = [
     {
@@ -59,15 +59,17 @@ export default function FaqSection() {
     <div className="w-full max-w-3xl mx-auto break-keep py-24">
       <div className="flex flex-col">
         <div className="relative w-full flex md:flex-row flex-col gap-8 justify-center items-center ">
-          <h2 className="w-full text-3xl font-bold text-center break-keep  md:order-1 order-2 pb-2">
+          <h2 className="w-full text-3xl font-bold text-center break-keep  md:order-1 order-2 pb-2 text-gray-900">
             {language === "en" ? "Frequently Asked Questions" : "자주 묻는 질문"}
           </h2>
-          <Image
-          src="/writing-class/images/logo_sticker.svg"
-          alt="toonyz logo"
-          width={100}
-          height={100}
-          className="absolute z-[5] animate-[spin_9s_linear_infinite] md:bottom-4 bottom-12 md:-right-8 md:order-2 order-1" />
+          {mode === "writing-class" && (
+            <Image
+              src="/writing-class/images/logo_sticker.svg"
+              alt="toonyz logo"
+              width={100}
+              height={100}
+              className="absolute z-[5] animate-[spin_9s_linear_infinite] md:bottom-4 bottom-12 md:-right-8 md:order-2 order-1" />
+          )}
         </div>
       </div>
 

@@ -143,6 +143,7 @@ export default function PurchaseStarsKGInicisComponent() {
                 <h1 className="text-md font-base py-3 px-2 text-left">
                     {/* Regular Bundles   */}
                     {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
+                    <p className="text-sm text-gray-500 text-left">한국어 웹소설을 볼 수 있는 별입니다.</p>
                 </h1>
 
                 {starsOptions.map((stars, index) => (
@@ -186,6 +187,7 @@ export default function PurchaseStarsKGInicisComponent() {
                 <h1 className="text-md font-base py-3 px-2 text-left">
                     {/* Regular Bundles   */}
                     {language === 'ko' ? '티켓 딜' : 'Ticket Deal for You'}
+                    <p className="text-sm text-gray-500 text-left">이미지와 비디오를 생성할 수 있는 티켓입니다.</p>
                 </h1>
 
                 {ticketsOptions.map((tickets, index) => (

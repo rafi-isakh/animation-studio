@@ -8,6 +8,7 @@ import { DownloadIcon, EyeIcon, FileIcon, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter } from "@/components/shadcnUI/Dialog"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip"
 
 const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
@@ -299,11 +300,11 @@ export function FileDownloadList({ language, downloadFiles, isLoggedIn }: { lang
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead className="hidden md:table-cell">Modified</TableHead>
-                            <TableHead className="hidden md:table-cell">Size</TableHead>
-                            <TableHead className="hidden md:table-cell">Author</TableHead>
-                            <TableHead className="w-24">Actions</TableHead>
+                            <TableHead>{language === 'en' ? 'Name' : '이름'}</TableHead>
+                            <TableHead className="hidden md:table-cell">{language === 'en' ? 'Modified' : '수정일'}</TableHead>
+                            <TableHead className="hidden md:table-cell">{language === 'en' ? 'Size' : '크기'}</TableHead>
+                            <TableHead className="hidden md:table-cell">{language === 'en' ? 'Author' : '작가'}</TableHead>
+                            <TableHead className="w-24">{language === 'en' ? 'Actions' : '작업'}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -322,30 +323,46 @@ export function FileDownloadList({ language, downloadFiles, isLoggedIn }: { lang
                                         <TableCell className="hidden md:table-cell">{file.author}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        const fileKey = language === "ko" ? file.file_url_ko : file.file_url_en || file.file_url_ko;
-                                                        console.log(`Download clicked: ${fileKey} (${language})`);
-                                                        downloadFile(fileKey);
-                                                    }}
-                                                    title="Download"
-                                                >
-                                                    <DownloadIcon className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        const fileKey = language === "ko" ? file.file_url_ko : file.file_url_en || file.file_url_ko;
-                                                        viewFile(fileKey);
-                                                    }}
-                                                    title="View"
-                                                    disabled={!file.file_url_ko && !file.file_url_en}
-                                                >
-                                                    <EyeIcon className="h-4 w-4" />
-                                                </Button>
+                                                <TooltipProvider delayDuration={0}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => {
+                                                                    const fileKey = language === "ko" ? file.file_url_ko : file.file_url_en || file.file_url_ko;
+                                                                    console.log(`Download clicked: ${fileKey} (${language})`);
+                                                                    downloadFile(fileKey);
+                                                                }}
+                                                                title="Download"
+                                                            >
+                                                                <DownloadIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {language === 'en' ? 'Download' : '다운로드'}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => {
+                                                                    const fileKey = language === "ko" ? file.file_url_ko : file.file_url_en || file.file_url_ko;
+                                                                    viewFile(fileKey);
+                                                                }}
+                                                                title="View"
+                                                                disabled={!file.file_url_ko && !file.file_url_en}
+                                                            >
+                                                                <EyeIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {language === 'en' ? 'View' : '미리보기'}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -411,8 +428,8 @@ export function FileDownloadList({ language, downloadFiles, isLoggedIn }: { lang
                         </div>
                         <DialogFooter className="flex flex-col gap-2 justify-center items-center">
                             <p className="text-sm text-gray-500">
-                                {language === 'en' ? 'Chrome and Safari browser is recommended for preview.' 
-                                                   : 'PC에서 미리보기 하는 것을 권장합니다.'}
+                                {language === 'en' ? 'Chrome and Safari browser is recommended for preview.'
+                                    : 'PC에서 미리보기 하는 것을 권장합니다.'}
                             </p>
                             <Button variant="outline" onClick={() => setShowPreview(false)}>
                                 {language === 'en' ? 'Close' : '닫기'}

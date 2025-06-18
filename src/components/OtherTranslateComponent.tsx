@@ -49,15 +49,15 @@ const OtherTranslateComponent = ({
         // if the translation was already returned in the element, use it
         const translation = element.other_translations?.find(
             (translation: OtherTranslation) =>
-                translation.language === language
-                && translation.element_type === elementType
-                && translation.element_subtype === elementSubtype
-                && (translation.webnovel_id === elementId
-                    || translation.chapter_id === elementId
-                    || translation.user_id === elementId
-                    || translation.comment_id === elementId
-                    || translation.carousel_item_id === elementId
-                    || translation.post_id === elementId));
+                translation.language == language
+                && translation.element_type == elementType
+                && translation.element_subtype == elementSubtype
+                && (translation.webnovel_id == elementId
+                    || translation.chapter_id == elementId
+                    || translation.user_id == elementId
+                    || translation.comment_id == elementId
+                    || translation.carousel_item_id == elementId
+                    || translation.post_id == elementId));
 
         if (translation) {
             setText(translation.text);

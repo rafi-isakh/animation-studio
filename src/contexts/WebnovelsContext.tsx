@@ -15,8 +15,6 @@ interface WebnovelsContextState {
     getWebnovelMetadataById: (id: string) => Promise<Webnovel | undefined>;
     restricted: boolean | null;
     setRestricted: (restricted: boolean) => void;
-    isEnCarouselItems: boolean;
-    setIsEnCarouselItems: (isEnCarouselItems: boolean) => void;
 }
 
 // Create the context with a default value
@@ -28,7 +26,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
     const { language } = useLanguage();
     const [restricted, setRestricted] = useState(false);
-    const [isEnCarouselItems, setIsEnCarouselItems] = useState(false);
+
     
     const fetchWebnovelsMetadata = async (language: Language) => {
         const response = await fetch(`/api/get_webnovels_metadata`,
@@ -53,7 +51,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
         const filteredData = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
                                                         && novel.available_languages.includes(language));
         setWebnovels(filteredData);
-        setIsEnCarouselItems(prev => !prev);
+
     }, [language, allWebnovels]);
 
     const getWebnovelMetadataById = async (id: string) => {
@@ -144,9 +142,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
             chaptersLikelyNeededWebnovel, 
             getWebnovelMetadataById, 
             restricted, 
-            setRestricted,
-            isEnCarouselItems,
-            setIsEnCarouselItems 
+            setRestricted
         }}>
             {children}
         </WebnovelsContext.Provider>

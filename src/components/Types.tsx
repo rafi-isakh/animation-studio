@@ -101,6 +101,7 @@ export interface SlickCarouselItem {
   other_translations: OtherTranslation[];
   link: string;
   genre: string;
+  is_en: boolean;
 }
 
 export interface Webnovel {

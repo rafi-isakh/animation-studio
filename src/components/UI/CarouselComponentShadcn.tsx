@@ -75,6 +75,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
 
     return (
         <div className="max-w-screen-xl mx-auto w-full relative">
+
             <Carousel
                 plugins={[plugin.current]}
                 setApi={setApi}
@@ -87,12 +88,9 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                 }}
             >
                 <CarouselContent className="-ml-4">
-                    {items.map((item, index) => {
-                        if ((language === "en" && index === 2) || (language === "ko" && index === 0)) { // hide english contest banner or korean banner accordingly
-                            return (
-                                null
-                            )
-                        } else {
+                    {items
+                        .filter(item => language === "en" ? item.is_en : !item.is_en)
+                        .map((item, index) => {
                             return (
                                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
                                     <div className="p-1">
@@ -162,8 +160,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                                     </div>
                                 </CarouselItem>
                             )
-                        }
-                    })}
+                        })}
                 </CarouselContent>
                 {isDesktop && (
                     <>

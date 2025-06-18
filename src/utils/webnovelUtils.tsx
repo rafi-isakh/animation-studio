@@ -62,7 +62,7 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [ke
         const getScore = (webnovel: Webnovel) => {
             const days = daysSinceCreation(new Date(webnovel.created_at));
             const decayFactor = 1 / (1 + days/30); // 30 days = 1 month
-            return webnovel.views * decayFactor;
+            return webnovel.upvotes * decayFactor;
         };
 
         return getScore(b) - getScore(a);

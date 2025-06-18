@@ -109,16 +109,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                                                     {/* Overlay */}
                                                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-md overflow-hidden">
                                                         <div className="flex flex-col justify-end">
-                                                            <OtherTranslateComponent
-                                                                element={item}
-                                                                key={`title-${index}-${language}`}
-                                                                content={item.title}
-                                                                elementId={item.id.toString()}
-                                                                classParams={`${breakKeepOrNot()} text-lg md:text-xl lg:text-2xl font-extrabold`}
-                                                                elementType={"carouselItem"}
-                                                                elementSubtype="title"
-                                                                showLoading={false}
-                                                            />
+                                                            <p className="text-lg md:text-xl lg:text-2xl font-extrabold">{item.title}</p>
 
                                                             <div className="flex flex-wrap gap-2 mt-1">
                                                                 {getGenre(index)?.map((el: string, idx: number) => (
@@ -139,18 +130,8 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                                                                     )
                                                                 ))}
                                                             </div>
-
                                                             <div className="text-sm md:text-base line-clamp-2 mt-2">
-                                                                <OtherTranslateComponent
-                                                                    element={item}
-                                                                    key={`hook-${index}-${language}`}
-                                                                    content={item.hook}
-                                                                    elementId={item.id.toString()}
-                                                                    classParams={`${breakKeepOrNot()}`}
-                                                                    elementType={"carouselItem"}
-                                                                    elementSubtype="hook"
-                                                                    showLoading={false}
-                                                                />
+                                                                <p>{item.hook}</p>
                                                             </div>
                                                         </div>
                                                     </div>

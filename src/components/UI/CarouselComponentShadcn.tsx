@@ -22,10 +22,11 @@ interface CarouselProps {
 const CarouselComponentShadcn = ({ items }: CarouselProps) => {
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { language, dictionary } = useLanguage()
-    const { webnovels } = useWebnovels()
+    const { webnovels, isEnCarouselItems, setIsEnCarouselItems } = useWebnovels()
     const [api, setApi] = useState<any>(null)
     const [current, setCurrent] = useState(0)
     const [count, setCount] = useState(0)
+    const [showEnglish, setShowEnglish] = useState(true)
     const isDesktop = useMediaQuery("(min-width: 768px)")
     const plugin = useRef(
         Autoplay({
@@ -75,6 +76,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
 
     return (
         <div className="max-w-screen-xl mx-auto w-full relative">
+
             <Carousel
                 plugins={[plugin.current]}
                 setApi={setApi}
@@ -87,17 +89,14 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                 }}
             >
                 <CarouselContent className="-ml-4">
-                    {items.map((item, index) => {
-                        if ((language === "en" && index === 2) || (language === "ko" && index === 0)) { // hide english contest banner or korean banner accordingly
-                            return (
-                                null
-                            )
-                        } else {
+                    {items
+                        .filter(item => isEnCarouselItems ? item.is_en : !item.is_en)
+                        .map((item, index) => {
                             return (
                                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
                                     <div className="p-1">
                                         <Card>
-                                            <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
+                                             <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
                                                 <Link href={item.webnovel_id ? getHref(item.webnovel_id) : item.link}>
                                                     <Image
                                                         className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
@@ -162,8 +161,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                                     </div>
                                 </CarouselItem>
                             )
-                        }
-                    })}
+                        })}
                 </CarouselContent>
                 {isDesktop && (
                     <>

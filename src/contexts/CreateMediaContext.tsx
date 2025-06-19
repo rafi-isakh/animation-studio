@@ -88,13 +88,13 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const { tickets, setInvokeCheckUser } = useUser();
     const { dictionary, language } = useLanguage();
     const [picture, setPicture] = useState<string>("");
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelMetadataById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [openHistory, setOpenHistory] = useState(false);
 
     useEffect(() => {
         if (webnovel_id) {
-            getWebnovelById(webnovel_id).then(w => setWebnovel(w));
+            getWebnovelMetadataById(webnovel_id).then(w => setWebnovel(w));
         }
     }, [webnovel_id]);
 

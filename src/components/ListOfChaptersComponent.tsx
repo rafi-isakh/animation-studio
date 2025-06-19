@@ -1,7 +1,7 @@
 import { Chapter, Dictionary, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import moment from 'moment';
 import { ChevronDownIcon, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog";
@@ -28,6 +28,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/shadcnUI/Pagination"
+import { useWebnovels } from "@/contexts/WebnovelsContext";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -56,17 +57,21 @@ const ListOfChaptersComponent = ({
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [sortToggle, setSortToggle] = useState(false);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const { getChaptersMetadataByWebnovelId } = useWebnovels();
 
     const sortedChapters = sortToggle
         ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
         : [...(webnovel?.chapters || [])].sort((a, b) => a.id - b.id);
 
-    const displayedChapters = sortedChapters?.slice(
-        (currentPage - 1) * CHAPTERS_PER_PAGE,
-        currentPage * CHAPTERS_PER_PAGE
-    ) || [];
+    const displayedChapters = useMemo(() => {
+        return (webnovel?.chapters || []).sort((a, b) => {
+            return sortToggle
+            ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
+        }, [webnovel?.chapters, sortToggle]);
 
-    const totalPages = Math.ceil((sortedChapters?.length || 0) / CHAPTERS_PER_PAGE);
+    const totalPages = Math.ceil((webnovel?.chapters_length || 0) / CHAPTERS_PER_PAGE);
 
     const handleSortToggle = () => {
         setSortToggle(prev => !prev);
@@ -99,6 +104,22 @@ const ListOfChaptersComponent = ({
             setSavedValueOfVisibleChapters(tempVisibleChapters);
         }
     }, [language])
+
+    useEffect(() => {
+        const fetchChapters = async () => {
+            if (!webnovel?.id) return;
+
+            const offset = (currentPage - 1) * CHAPTERS_PER_PAGE;
+            const chapters = await getChaptersMetadataByWebnovelId(webnovel.id.toString(), CHAPTERS_PER_PAGE, offset);
+
+            if (chapters && onUpdate && webnovel) {
+                onUpdate({ ...webnovel, chapters }); 
+            }
+        };
+
+        fetchChapters();
+        console.log(currentPage)
+    }, [currentPage]);
 
     const handleChapterDelete = async (id: number) => {
         try {

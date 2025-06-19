@@ -68,18 +68,36 @@ export default function CreateMediaArea({
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations, openHistory, setOpenHistory } = useCreateMedia();
-    const { getWebnovelIdWithChapterMetadata } = useWebnovels();
+    const { getWebnovelIdWithChapterMetadata, getWebnovelMetadataById, getChaptersMetadataByWebnovelId } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const { tickets, stars } = useUser();
 
     useEffect(() => {
-        if (webnovel_id) {
-            getWebnovelIdWithChapterMetadata(webnovel_id).then((webnovel) => {
-                setWebnovel(webnovel);
-            });
-        }
+        if (!webnovel_id) return;
+
+        const fetchMetadata = async () => {
+            const webnovelMetadata = await getWebnovelMetadataById(webnovel_id);
+            if (webnovelMetadata) {
+                // Set webnovel immediately without chapters
+                setWebnovel(webnovelMetadata);
+
+                // Then load chapters in the background
+                getChaptersMetadataByWebnovelId(webnovel_id, 100, 0)
+                    .then(chapters => {
+                        if (chapters) {
+                            setWebnovel(prev => prev ? { ...prev, chapters } : prev);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Failed to load chapters:", err);
+                    });
+            }
+        };
+
+        fetchMetadata();
     }, [webnovel_id]);
+
 
     const handleClickHistory = () => {
         setOpenHistory(true);
@@ -167,7 +185,7 @@ export default function CreateMediaArea({
                 </div>
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar z-[500]'>
                     {openHistory ? (
-                        <CreateMediaHistoryContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                        <CreateMediaHistoryContents stars={stars} source={source} chapterIds={webnovel?.chapters?.map((chapter) => chapter.id)} />
                     ) : (
                         <div className='relative w-full p-1'>
                             {isLoading ? (
@@ -352,7 +370,7 @@ export default function CreateMediaArea({
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center h-full">
-                                    <CreateMediaDefaultContents source={source} webnovelId={webnovel_id} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                                    <CreateMediaDefaultContents source={source} webnovelId={webnovel_id} chapterIds={webnovel?.chapters?.map((chapter) => chapter.id)} />
                                 </div>
                             )}
                         </div>

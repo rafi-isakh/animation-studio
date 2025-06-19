@@ -74,13 +74,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
-    const { getWebnovelById, restricted } = useWebnovels();
+    const { getWebnovelMetadataById, restricted } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
         if (pathname.startsWith("/view_webnovels")) {
             const id = pathname.split("/")[2]; // /view_webnovels/1/chapter_view/1
-            getWebnovelById(id).then(setWebnovel);
+            getWebnovelMetadataById(id).then(setWebnovel);
         }
     }, [pathname]);
 

@@ -33,7 +33,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const titleRef = useRef<ReactQuill>(null);
     const contentRef = useRef<ReactQuill>(null);
     const [openPreviewDialog, setOpenPreviewDialog] = useState(false);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelMetadataById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const clicked = useRef(false);
     const [plainTitleText, setPlainTitleText] = useState('');
@@ -42,7 +42,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
 
     useEffect(() => {
         const fetchWebnovel = async () => {
-            const webnovel = await getWebnovelById(webnovelId);
+            const webnovel = await getWebnovelMetadataById(webnovelId);
             setWebnovel(webnovel);
         }
         fetchWebnovel();

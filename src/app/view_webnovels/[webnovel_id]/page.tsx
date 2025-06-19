@@ -92,7 +92,7 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
     }
 
     return (
-        <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
+        <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} setWebnovel={setWebnovel} />
     )
 }
 

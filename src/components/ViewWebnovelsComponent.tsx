@@ -17,12 +17,13 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 
-const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
+const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts, setWebnovel }: {
     webnovel_id: string,
     webnovel: Webnovel | null,
     userWebnovels: Webnovel[] | null,
     loadingUsersOtherWebnovels: boolean,
-    posts: ToonyzPost[]
+    posts: ToonyzPost[],
+    setWebnovel: (webnovel: Webnovel) => void,
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -30,14 +31,14 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
-    const nickname = webnovel?.author.nickname;
+    const nickname = webnovel?.author?.nickname;
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [content, setContent] = useState<Webnovel | null>(null);
+    // const [content, setContent] = useState<Webnovel | null>(null);
     const webnovelLoadingRef = useRef(webnovel ? false : true);
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
-        setContent(updatedContent);
+        setWebnovel(updatedContent);
     };
 
     useEffect(() => {

@@ -53,7 +53,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "provider": session.provider,
         "marketing": marketing as string
     }
-
     let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`
     if (promoCode && promoCode !== 'null') {
         fetchstr = `${fetchstr}?promo_code=${promoCode}`

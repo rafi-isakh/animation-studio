@@ -18,8 +18,11 @@ import { useReader } from '@/contexts/ReaderContext';
 import {
     ChevronLeft,
     ChevronRight,
+    Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BlobButton from '@/components/UI/BlobButton';
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
     { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
@@ -37,6 +40,27 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     const [openMenu, setOpenMenu] = useState(false)
     const [allowClose, setAllowClose] = useState(false);
     const [scrollPercent, setScrollPercent] = useState(0);
+
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        savedPrompt,
+        prompts,
+        pictures,
+        openDialog,
+        setOpenDialog,
+        setSelection,
+        promotionBannerRef,
+        draggableNodeRef,
+        chapter_id,
+        // setWebnovelId,
+    } = useCreateMedia();
+
+    const handleToggleMenu = () => {
+        setOpenDialog((prevState: boolean) => !prevState);
+    }
+
 
     useEffect(() => {
         if (scrollType === 'horizontal') {
@@ -144,24 +168,10 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         }
     }
 
-
-    const handleToggleMenu = () => {
-        setOpenMenu(prevState => !prevState);
-        setAllowClose(!openMenu);
-    }
-
-    // Function to close the menu
-    const handleCloseMenu = () => {
-        setAllowClose(true);
-        setOpenMenu(false);
-    }
-
-
     return (
         <>
-            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-1 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
-                <div className="md:w-[350px]  flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
-                    {/* bg-background/90 backdrop-blur-md */}
+            <div className={`${isVisible ? 'z-[480] fixed left-0 !bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
+                <div className="md:w-[350px] flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
                     <div>
                         <Link href={prevChapterLink} onClick={handlePrevChapter} >
                             <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
@@ -170,6 +180,24 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
+                    <div className="relative inline-flex group flex-shrink-0">
+                        <Button
+                            variant='link'
+                            onClick={handleToggleMenu}
+                            //  className="transtion group flex h-10 w-32 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30">
+                            className='group h-10 w-32 !no-underline bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30 rounded-full'
+                        >
+
+                            <div className="flex h-full w-full items-center justify-center gap-1 rounded-full bg-white dark:bg-black transition duration-300 ease-in-out group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-black group-hover:to-purple-50 group-hover:transition group-hover:duration-300 group-hover:ease-in-out">
+                                <Sparkles className="w-4 h-4" />
+                                {phrase(dictionary, "toonyzAI", language)}
+                            </div>
+                        </Button>
+                        <span className="absolute -top-2 -right-2 bg-[#DB2777] text-white text-xs px-2 py-0 rounded-full">
+                            New
+                        </span>
+                    </div>
+
                     {/* view next and prev btn */}
                     <div>
                         <Link href={nextChapterLink} onClick={handleNextChapter}>
@@ -179,12 +207,10 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
-
                 </div >
-
-            </div>
+            </div >
             {/* Dialogs for last and first chapter */}
-            <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
+            < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent
                     className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none text-md'
                     showCloseButton={true}
@@ -204,7 +230,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                         <Button
                             onClick={() => setShowIsLastChapterModal(false)}
                             className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-
                         >
                             {phrase(dictionary, "ok", language)}
                         </Button>

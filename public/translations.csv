@@ -314,7 +314,6 @@ country,국가,,Country
 toonyzCut_which_type_of_project,어떤 프로젝트를 개발하고 싶으세요?,,Which Type of Project Would You Like to Develop?
 full_description,프로젝트 대한 자세한 설명을 적어주세요,,Please enter a detailed description of your project.
 reply,답글,,Reply
-preparing,준비중입니다,,Preparing..
 confirm,확인,,Confirm
 close,닫기,,Close
 learnMore,더 알아보기,,Learn More
@@ -498,6 +497,7 @@ ToonyzPlatformGuideTitle,투니즈 플랫폼 가이드,,Toonyz Platform Guide,,
 ToonyzAIGenerateImageGuideTitle,투니즈 AI 이미지 생성 가이드,,Toonyz AI Image Generation Guide,,
 HelpGuideLink_ImageGenerationTutorial,🎥 이미지 생성 강의/매뉴얼,,🎥 Image Generation Tutorial,,
 HelpGuideLink_CustomerSupport,💬 고객 지원 & FAQ,,💬 Help Center & FAQ,,
+toonyzAI,투니즈 AI,,Toonyz AI,,
 sidebar_home,홈,,Home
 sidebar_feed,피드,,Feed
 sidebar_create,작품 업로드,,Create
@@ -562,5 +562,20 @@ marketing_sign_me_up,네\, 가입할게요!,,Yes\, Sign Me Up!
 marketing_processing,처리 중...,,Processing...
 marketing_skip_for_now,거절,,I Do Not Consent
 redeem_now,쿠폰 등록하러 가기,,Redeem Now
+welcomeToToonyzAI,투니즈 AI를 소개합니다,,Welcome to Toonyz AI
+recentPosts,최근 투니즈 포스트,,Recent Toonyz Posts
+communityHighlights,인기있는 투니즈 포스트,,Community Highlights
+toonyz_explore,더보기,,Explore
+createNewImage,새로운 이미지 만들기,,Create New Image
+createNewImageDescription,새로운 이미지를 만들어 보세요!,,Create a new image!
+toonyzPostRanking,투니즈 포스트 랭킹,,Toonyz Post Ranking
+toonyzPostRankingDescription,투니즈 포스트 랭킹을 확인해 보세요!,,Check out the most popular rankers from the community.
+recentToonyzPosts,최신 투니즈 포스트,,Trending Toonyz Posts
+recentToonyzPostsDescription,투니즈 AI로 만든 투니즈 포스트들을 만나보세요,,Meet the latest Toonyz Posts!
+topVotedPosts,가장 인기있는 투니즈 포스트,,The Top Voted Toonyz Posts
 chapter_view_viewer_settings,설정,,Settings
 chapter_view_tableOfContents,목차,,List
+toonyz_post_home,메인,,Home
+toonyz_post_feed,최신 피드,,Feed
+toonyz_post_ranking,순위,,Ranking
+toonyz_post_service_preparing,이 서비스는 준비중 입니다.,,This feature is currently in development.

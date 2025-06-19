@@ -193,7 +193,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                     })
                     throw new Error('Failed to upload picture to s3');
                 }
-                return pictureFilename;
+                return pictureFilename.replace(".png", ".webp"); // upload_picture_to_s3 converts to webp in backend
             });
 
             const filenames = await Promise.all(uploadPromises);

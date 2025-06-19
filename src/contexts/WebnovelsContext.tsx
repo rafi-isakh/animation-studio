@@ -27,7 +27,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
     const { language } = useLanguage();
     const [restricted, setRestricted] = useState(false);
-    
+
     const fetchWebnovelsMetadata = async (language: Language) => {
         const response = await fetch(`/api/get_webnovels_metadata`,
             {
@@ -142,7 +142,18 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, getWebnovelMetadataById, getChaptersMetadataByWebnovelId, restricted, setRestricted }}>
+        <WebnovelsContext.Provider value={{ 
+            webnovels, 
+            getWebnovelById, 
+            getWebnovelIdWithChapterMetadata, 
+            getWebnovelsMetadataByUserId, 
+            getWebnovelsMetadataByAuthorId, 
+            chaptersLikelyNeededWebnovel, 
+            getWebnovelMetadataById, 
+            getChaptersMetadataByWebnovelId, 
+            restricted, 
+            setRestricted 
+        }}>
             {children}
         </WebnovelsContext.Provider>
     );

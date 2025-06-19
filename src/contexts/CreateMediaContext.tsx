@@ -256,7 +256,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                 })
                 throw new Error('Failed to upload picture to s3');
             }
-            const image_url = getImageUrl(`${pictureFilename}.png`);
+            const image_url = getImageUrl(`${pictureFilename}.webp`); // upload_picture_to_s3 converts to webp in backend
             const response = await fetch('/api/generate_video', {
                 method: 'POST',
                 body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),

@@ -85,7 +85,7 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
     return (
         <main className="flex-1">
             <Tabs defaultValue="home" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-2">
+                <div className="flex flex-row justify-start gap-4 py-2">
                     <TabsList className="flex flex-row gap-2 bg-transparent">
                         <TabsTrigger value="home" className="px-4 py-1 font-medium text-base border border-gray-200 rounded-full data-[state=active]:bg-[#DE2979] data-[state=active]:text-white bg-white text-black hover:bg-gray-200">
                             {phrase(dictionary, 'toonyz_post_home', language)}
@@ -189,12 +189,12 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                     </Button>
                                 </div>
 
-                                <div className="flex justify-center">
+                                <div className="relative w-full min-w-[360px] max-w-[380px] flex justify-center mx-auto">
                                     <Carousel
                                         opts={{
-                                            align: "start",
+                                            align: "center",
                                         }}
-                                        className="md:w-[400px] w-full "
+                                        className="w-full "
                                         setApi={setApi}
                                     >
                                         <CarouselContent>

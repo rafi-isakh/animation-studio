@@ -532,7 +532,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         </div>
                         {/* Viewer footer */}
                         <div className="relative" ref={containerRef}>
-                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedTextRef={selectedTextRef} page={page} maxPage={maxPage} posts={posts} />
+                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedTextRef={selectedTextRef} page={page} maxPage={maxPage} posts={posts} handleChapterPurchase={handleChapterPurchase}/>
                         </div>
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

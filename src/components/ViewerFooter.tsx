@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Chapter, Webnovel, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
 import {
@@ -21,11 +21,15 @@ import {
     Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import BlobButton from '@/components/UI/BlobButton';
 import { useCreateMedia } from '@/contexts/CreateMediaContext';
+import { isPurchasedChapter } from '@/utils/webnovelUtils';
+import { useRouter } from 'next/navigation'; 
+import { useUser } from '@/contexts/UserContext';
+import ChapterPurchaseDialog from '@/components/UI/ChapterPurchaseDialog';
+import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog';
 
-const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
-    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts, handleChapterPurchase }:
+    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[], handleChapterPurchase: (chapter: Chapter) => void }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -40,7 +44,11 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     const [openMenu, setOpenMenu] = useState(false)
     const [allowClose, setAllowClose] = useState(false);
     const [scrollPercent, setScrollPercent] = useState(0);
-
+    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser } = useUser();
+    const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const router = useRouter();
     const {
         isLoading,
         setIsLoading,
@@ -56,6 +64,21 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         chapter_id,
         // setWebnovelId,
     } = useCreateMedia();
+
+    // Memoize chapter calculations to avoid recalculating on every render
+    const { currentIndex, nextChapter, prevChapter } = useMemo(() => {
+        const index = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
+        const next = index > -1 && index < webnovel.chapters_length - 1
+            ? webnovel.chapters[index + 1]
+            : null;
+        const prev = index > 0 ? webnovel.chapters[index - 1] : null;
+        
+        return {
+            currentIndex: index,
+            nextChapter: next,
+            prevChapter: prev
+        };
+    }, [webnovel.chapters, chapter.id, webnovel.chapters_length]);
 
     const handleToggleMenu = () => {
         setOpenDialog((prevState: boolean) => !prevState);
@@ -156,15 +179,44 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         return prevChapter ? prevChapter.id : currentChapterId;
     }
 
-    const handleNextChapter = () => {
+
+    const handleNextChapter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+
         if (chapterId === webnovel.chapters[webnovel.chapters_length - 1].id) {
             setShowIsLastChapterModal(true);
+            return;
+        }
+
+        if (!nextChapter) {
+            return;
+        }
+
+        // Check if next chapter is paid and not purchased
+        if (!nextChapter?.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language)) {
+            setChapterToPurchase(nextChapter);
+            setShowPurchaseModal(true);
+        } else {
+            // Navigate to the next chapter
+            router.push(`/view_webnovels/${nextChapter.webnovel_id}/chapter_view/${nextChapter.id}`);
         }
     }
 
-    const handlePrevChapter = () => {
+    const handlePrevChapter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
         if (chapterId === webnovel.chapters[0].id) {
             setShowIsFirstChapterModal(true);
+        }
+
+        if (!prevChapter) {
+            return;
+        }
+
+        if (!prevChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, prevChapter.id, language)) {
+            setChapterToPurchase(prevChapter);
+            setShowPurchaseModal(true);
+        } else {
+            router.push(`/view_webnovels/${prevChapter.webnovel_id}/chapter_view/${prevChapter.id}`);
         }
     }
 
@@ -262,6 +314,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
         </>
     );
 };

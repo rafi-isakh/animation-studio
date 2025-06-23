@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Chapter, Webnovel, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
 import {
@@ -64,6 +64,21 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         chapter_id,
         // setWebnovelId,
     } = useCreateMedia();
+
+    // Memoize chapter calculations to avoid recalculating on every render
+    const { currentIndex, nextChapter, prevChapter } = useMemo(() => {
+        const index = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
+        const next = index > -1 && index < webnovel.chapters_length - 1
+            ? webnovel.chapters[index + 1]
+            : null;
+        const prev = index > 0 ? webnovel.chapters[index - 1] : null;
+        
+        return {
+            currentIndex: index,
+            nextChapter: next,
+            prevChapter: prev
+        };
+    }, [webnovel.chapters, chapter.id, webnovel.chapters_length]);
 
     const handleToggleMenu = () => {
         setOpenDialog((prevState: boolean) => !prevState);
@@ -164,13 +179,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         return prevChapter ? prevChapter.id : currentChapterId;
     }
 
-
-    const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
-    const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters_length - 1
-        ? webnovel.chapters[currentIndex + 1]
-        : null;
-
-    const prevChapter = currentIndex > 0 ? webnovel.chapters[currentIndex - 1] : null;
 
     const handleNextChapter = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();

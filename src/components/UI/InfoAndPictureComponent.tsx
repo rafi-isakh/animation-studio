@@ -50,6 +50,7 @@ interface InfoAndPictureProps {
     onNewChapter?: () => void;
     onDelete?: () => void;
     relatedContent?: Webnovel[];
+    loadingDelete: boolean;
 }
 
 export default function InfoAndPictureComponent({
@@ -57,7 +58,8 @@ export default function InfoAndPictureComponent({
     coverArt,
     onNewChapter,
     onDelete,
-    relatedContent
+    relatedContent,
+    loadingDelete
 }: InfoAndPictureProps) {
     const { language, dictionary } = useLanguage();
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
@@ -84,7 +86,6 @@ export default function InfoAndPictureComponent({
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { nickname } = useUser();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -550,9 +551,10 @@ export default function InfoAndPictureComponent({
                                                 <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end text-md'>
                                                     <Button
                                                         onClick={onDelete}
+                                                        disabled={loadingDelete}
                                                         className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                                                     >
-                                                        {phrase(dictionary, "yes", language)}
+                                                        {loadingDelete ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "yes", language)}
                                                     </Button>
                                                     <Button
                                                         onClick={() => setShowDeleteModal(false)}

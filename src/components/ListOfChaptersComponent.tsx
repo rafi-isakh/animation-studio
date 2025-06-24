@@ -58,6 +58,8 @@ const ListOfChaptersComponent = ({
     const [sortToggle, setSortToggle] = useState(false);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const { getChaptersMetadataByWebnovelId } = useWebnovels();
+    const [loading, setLoading] = useState(false);
+
 
     const sortedChapters = sortToggle
         ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
@@ -109,17 +111,23 @@ const ListOfChaptersComponent = ({
         const fetchChapters = async () => {
             if (!webnovel?.id) return;
 
+            setLoading(true); 
             const offset = (currentPage - 1) * CHAPTERS_PER_PAGE;
-            const chapters = await getChaptersMetadataByWebnovelId(webnovel.id.toString(), CHAPTERS_PER_PAGE, offset);
+            const chapters = await getChaptersMetadataByWebnovelId(
+                webnovel.id.toString(),
+                CHAPTERS_PER_PAGE,
+                offset,
+                sortToggle
+            );
 
             if (chapters && onUpdate && webnovel) {
-                onUpdate({ ...webnovel, chapters }); 
+                onUpdate({ ...webnovel, chapters });
             }
+            setLoading(false); 
         };
 
         fetchChapters();
-        console.log(currentPage)
-    }, [currentPage]);
+    }, [currentPage, sortToggle]);
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -279,51 +287,61 @@ const ListOfChaptersComponent = ({
                                     </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row w-full items-start">
-                                            {
-                                                language == 'en'
-                                                    ? (
-                                                        <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
-                                                            Episode {sortToggle
-                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
-                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
-                                                            }
-                                                        </p>
-                                                    )
-                                                    : language == 'ja'
-                                                        ? (
-                                                            <p className="text-md text-left  truncate whitespace-nowrap text-black dark:text-white">
-                                                                第{sortToggle
-                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
-                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
-                                                                }話
-                                                            </p>
-                                                        )
-                                                        : (
-                                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
-                                                                {sortToggle
-                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
-                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
-                                                                }화
-                                                            </p>
-                                                        )
-                                            }
+                                            {loading ? (
+                                            <span className="inline-block h-4 w-24 rounded bg-gray-300 dark:bg-gray-700 animate-pulse" />
+                                            ) : language === 'en' ? (
+                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                Episode {sortToggle
+                                                ? (webnovel?.chapters_length || 0) - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1}
+                                            </p>
+                                            ) : language === 'ja' ? (
+                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                第{sortToggle
+                                                ? (webnovel?.chapters_length || 0) - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1}話
+                                            </p>
+                                            ) : (
+                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                {sortToggle
+                                                ? (webnovel?.chapters_length || 0) - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1}화
+                                            </p>
+                                            )}
                                         </div>
-                                        <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
-                                        <div className="flex flex-row space-x-2 text-sm">
-                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
 
-                                                {/* heart icon */}
+                                        {loading ? (
+                                            <span className="inline-block h-3 w-16 mt-1 rounded bg-gray-300 dark:bg-gray-700 animate-pulse" />
+                                        ) : (
+                                            <p className="text-[11px] self-start text-gray-500">
+                                            {moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}
+                                            </p>
+                                        )}
+
+                                        <div className="flex flex-row space-x-2 text-sm mt-1">
+                                            {loading ? (
+                                            <div className="flex flex-row gap-2">
+                                                <span className="inline-block h-3 w-10 rounded bg-gray-300 dark:bg-gray-700 animate-pulse" />
+                                                <span className="inline-block h-3 w-10 rounded bg-gray-300 dark:bg-gray-700 animate-pulse" />
+                                            </div>
+                                            ) : (
+                                            <>
+                                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white'>
                                                 <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
                                                     <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
-                                                        fill="#DE2B74" />
+                                                    fill="#DE2B74" />
                                                 </svg>
                                                 {chapter.upvotes}
-                                            </div>
-                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
+                                                </div>
+
+                                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white'>
                                                 <MessageCircle size={11} /> {chapter.comments.length}
-                                            </div>
+                                                </div>
+                                            </>
+                                            )}
                                         </div>
-                                    </div>
+                                        </div>
+
                                 </div>
                                 <div className="flex flex-row gap-2 items-center">
                                     <div className="text-gray-600 text-[10px] bg-transparent rounded-md px-1">

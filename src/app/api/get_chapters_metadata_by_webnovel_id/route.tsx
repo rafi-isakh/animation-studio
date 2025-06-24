@@ -5,8 +5,13 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
+    const latest = searchParams.get('latest');
 
-    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapters_metadata_by_webnovel_id?id=${id}&limit=${limit}&offset=${offset}`;
+    let backendUrl = `${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapters_metadata_by_webnovel_id?id=${id}&limit=${limit}&offset=${offset}`;
+    
+    if (latest !== null) {
+        backendUrl += `&latest=${latest}`;
+    }
 
     const response = await fetch(backendUrl);
     const data = await response.json();

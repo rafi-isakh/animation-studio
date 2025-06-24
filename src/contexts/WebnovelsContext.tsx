@@ -13,7 +13,7 @@ interface WebnovelsContextState {
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
     getWebnovelMetadataById: (id: string) => Promise<Webnovel | undefined>;
-    getChaptersMetadataByWebnovelId: (id: string, limit: number, offset: number) => Promise<Chapter[] | undefined>;
+    getChaptersMetadataByWebnovelId: (id: string, limit: number, offset: number, latest?: boolean) => Promise<Chapter[] | undefined>;
     restricted: boolean | null;
     setRestricted: (restricted: boolean) => void;
 }
@@ -84,8 +84,13 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
         }
     };
 
-    const getChaptersMetadataByWebnovelId = async (id: string, limit: number, offset: number) => {
-        const response = await fetch(`/api/get_chapters_metadata_by_webnovel_id?id=${id}&limit=${limit}&offset=${offset}`);
+    const getChaptersMetadataByWebnovelId = async (id: string, limit: number, offset: number, latest?: boolean) => {
+        let url = `/api/get_chapters_metadata_by_webnovel_id?id=${id}&limit=${limit}&offset=${offset}`;
+            if (latest !== undefined) {
+                url += `&latest=${latest}`;
+            }
+
+            const response = await fetch(url);
         if (!response.ok) {
             console.error("Failed to fetch chapters metadata by webnovel id", response.status);
             return undefined;

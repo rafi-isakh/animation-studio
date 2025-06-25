@@ -79,16 +79,11 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                     console.log('Fetching webnovels for user ID:', webnovel.user.id);
                     const webnovels = await getWebnovelsMetadataByUserId(webnovel.user.id.toString());
                     console.log('Received webnovels for user:', webnovels);
-                    const filtered = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id);
-                    console.log('Filtered webnovels (excluding current):', filtered);
-                    setRelatedContent(filtered);
+                    setRelatedContent(webnovels);
                 } else if (webnovel?.premium && webnovel?.author?.id) {
-                    console.log('Fetching webnovels for author ID:', webnovel.author.id);
                     const webnovels = await getWebnovelsMetadataByAuthorId(webnovel.author.id.toString());
-                    console.log('Received webnovels for author:', webnovels);
                     setRelatedContent(webnovels);
                 } else {
-                    console.log('No valid user/author ID found, setting empty array');
                     setRelatedContent([]);
                 }
             } catch (error) {

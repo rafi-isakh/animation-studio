@@ -36,6 +36,8 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [content, setContent] = useState<Webnovel | null>(null);
     const webnovelLoadingRef = useRef(webnovel ? false : true);
     const [loadingDelete, setLoadingDelete] = useState(false);
+    const [relatedContent, setRelatedContent] = useState<Webnovel[]>([]);
+    const { getWebnovelsMetadataByAuthorId, getWebnovelsMetadataByUserId } = useWebnovels();
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
@@ -68,13 +70,21 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
         webnovelLoadingRef.current = false;
     }, [webnovel, userWebnovels, deletedWebnovelId]);
 
-    useEffect(() => {
-        console.log("atLeastOneWebnovel", atLeastOneWebnovel);
-    }, [atLeastOneWebnovel])
 
     useEffect(() => {
-        console.log("webnovelLoading", webnovelLoading);
-    }, [webnovelLoading])
+        const fetchRelatedContent = async () => {
+            // webnovel.premium is false when the webnovel is a community webnovel
+            if (!webnovel?.premium) {
+                const webnovels = await getWebnovelsMetadataByUserId(webnovel?.user.id.toString() || '');
+                setRelatedContent(webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id));
+            } else {
+                const webnovels = await getWebnovelsMetadataByAuthorId(webnovel?.author.id.toString() || '');
+                setRelatedContent(webnovels);
+            }
+        }
+        fetchRelatedContent();
+    }, [webnovel?.author.id]);
+
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${webnovel_id}&novelLanguage=${webnovel?.language}`);
@@ -161,7 +171,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                         <div className='flex-1 w-full md:w-2/3'>
                             <ContentChapterListComponent
                                 content={webnovel as Webnovel}
-                                relatedContent={webnovels}
+                                relatedContent={relatedContent}
                                 onContentUpdate={handleContentUpdate}
                                 posts={posts}
                                 onNewChapter={handleNewChapter}

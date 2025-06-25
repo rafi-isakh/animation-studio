@@ -76,9 +76,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             try {
                 // webnovel.premium is false when the webnovel is a community webnovel
                 if (!webnovel?.premium && webnovel?.user?.id) {
-                    console.log('Fetching webnovels for user ID:', webnovel.user.id);
                     const webnovels = await getWebnovelsMetadataByUserId(webnovel.user.id.toString());
-                    console.log('Received webnovels for user:', webnovels);
                     setRelatedContent(webnovels);
                 } else if (webnovel?.premium && webnovel?.author?.id) {
                     const webnovels = await getWebnovelsMetadataByAuthorId(webnovel.author.id.toString());

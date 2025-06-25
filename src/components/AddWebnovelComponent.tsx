@@ -133,6 +133,7 @@ const AddWebnovelComponent = () => {
                     variant: "destructive",
                     description: "Please try again",
                 })
+                console.error("Add webnovel failed", res);
                 throw new Error("Add webnovel failed");
             }
             toast({

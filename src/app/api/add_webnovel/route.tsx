@@ -70,16 +70,19 @@ export async function POST(req: NextRequest, res: NextResponse) {
         body: JSON.stringify(data),
     });
 
-
-    const r = await response.json();
-
     if (!response.ok) {
+        const error = await response.text();
+        console.error('Error adding webnovel:', error);
+        console.error("Payload: ", data);
         return NextResponse.json({
-            message: "Add webnovel failed",
+            message: "Add webnovel failed: " + error,
         }, {
             status: response.status
         });
     }
+
+
+    const r = await response.json();
 
     try {
         // notify staff that new webnovel has been uploaded

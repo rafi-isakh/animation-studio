@@ -28,6 +28,7 @@ const OtherTranslateComponent = ({
     incomingText?: string
 }) => {
     const [text, setText] = useState(incomingText);
+    const [processedText, setProcessedText] = useState<string>(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
     const [loading, setLoading] = useState(false)
@@ -43,6 +44,20 @@ const OtherTranslateComponent = ({
             setSkeletonWidth(contentRef.current.offsetWidth);
         }
     }, [content, classParams]);
+
+    useEffect(() => {
+        const capitalizeEachWord = (str: string) => {
+            return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        if (elementType == "webnovel" && elementSubtype == "title") {
+            let processedText = text.replaceAll(".", ""); // titles can sometimes look like "The title."; change these to "The Title"
+            processedText = capitalizeEachWord(processedText);
+            setProcessedText(processedText);
+        }
+        else {
+            setProcessedText(text);
+        }
+    }, [text, language]);
 
 
     useEffect(() => {
@@ -189,6 +204,7 @@ const OtherTranslateComponent = ({
     };
 
     const startTranslation = async (textId: string) => {
+        // do special handling in backend for webnovel title
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
         const data = await response.json();
         setText(data.translation);
@@ -207,7 +223,7 @@ const OtherTranslateComponent = ({
                 loading && showLoading ?
                     (
                         <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(processedText).replaceAll("\n", "<br/>") }} />
             }
         </div>
     );

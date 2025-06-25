@@ -34,22 +34,6 @@ const WebnovelPictureComponent = React.memo(
                                     {webnovel.title}
                                 </p>
                             ) : (
-                                webnovel.other_translations?.find(
-                                    translation => translation.language === language
-                                        && translation.element_type === "webnovel"
-                                        && translation.element_subtype === "title"
-                                        && translation.webnovel_id == webnovel.id.toString()
-                                )?.text && (
-                                    <p className="text-sm md:text-base font-medium break-keep overflow-hidden whitespace-nowrap text-ellipsis">
-                                        {webnovel.other_translations.find(
-                                            translation => translation.language === language
-                                                && translation.element_type === "webnovel"
-                                                && translation.element_subtype === "title"
-                                                && translation.webnovel_id == webnovel.id.toString()
-                                        )?.text}
-                                    </p>
-                                )
-                                ||
                                 <OtherTranslateComponent
                                     element={webnovel}
                                     content={webnovel.title}

@@ -73,17 +73,33 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
 
     useEffect(() => {
         const fetchRelatedContent = async () => {
-            // webnovel.premium is false when the webnovel is a community webnovel
-            if (!webnovel?.premium && webnovel?.user?.id) {
-                const webnovels = await getWebnovelsMetadataByUserId(webnovel.user.id.toString());
-                setRelatedContent(webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id));
-            } else if (webnovel?.premium && webnovel?.author?.id) {
-                const webnovels = await getWebnovelsMetadataByAuthorId(webnovel.author.id.toString());
-                setRelatedContent(webnovels);
+            try {
+                // webnovel.premium is false when the webnovel is a community webnovel
+                if (!webnovel?.premium && webnovel?.user?.id) {
+                    console.log('Fetching webnovels for user ID:', webnovel.user.id);
+                    const webnovels = await getWebnovelsMetadataByUserId(webnovel.user.id.toString());
+                    console.log('Received webnovels for user:', webnovels);
+                    const filtered = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id);
+                    console.log('Filtered webnovels (excluding current):', filtered);
+                    setRelatedContent(filtered);
+                } else if (webnovel?.premium && webnovel?.author?.id) {
+                    console.log('Fetching webnovels for author ID:', webnovel.author.id);
+                    const webnovels = await getWebnovelsMetadataByAuthorId(webnovel.author.id.toString());
+                    console.log('Received webnovels for author:', webnovels);
+                    setRelatedContent(webnovels);
+                } else {
+                    console.log('No valid user/author ID found, setting empty array');
+                    setRelatedContent([]);
+                }
+            } catch (error) {
+                console.error('Error fetching related content:', error);
+                setRelatedContent([]);
             }
         }
-        fetchRelatedContent();
-    }, [webnovel?.author.id]);
+        if (webnovel) {
+            fetchRelatedContent();
+        }
+    }, [webnovel?.author.id, webnovel?.user.id, webnovel?.premium, webnovel_id]);
 
 
     const handleNewChapter = () => {

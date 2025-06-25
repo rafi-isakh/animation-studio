@@ -27,12 +27,12 @@ export default function ContentCard({ webnovel }: ContentCardProps) {
         className={`overflow-hidden rounded-md transition-all duration-300 ${isHovered ? "scale-110 shadow-xl" : ""}`}
       >
         {/* Card Image */}
-        <Image src={getImageUrl(webnovel.cover_art) || "/placeholder.svg"} alt={webnovel.title} className="h-full w-full object-cover" />
+        <Image src={getImageUrl(webnovel.cover_art) || "/coverArt_thumbnail.png"} alt={webnovel.title} className="h-full w-full object-cover" />
 
         {/* Hover Content */}
         {isHovered && (
           <div className="absolute inset-0 flex flex-col bg-zinc-900">
-            <Image src={getImageUrl(webnovel.cover_art) || "/placeholder.svg"} alt={webnovel.title} className="h-[150px] w-full object-cover" />
+            <Image src={getImageUrl(webnovel.cover_art) || "/coverArt_thumbnail.png"} alt={webnovel.title} className="h-[150px] w-full object-cover" />
 
             <div className="flex flex-1 flex-col p-3">
               <div className="mb-2 flex items-center justify-between">

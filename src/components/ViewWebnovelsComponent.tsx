@@ -35,6 +35,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);
     const webnovelLoadingRef = useRef(webnovel ? false : true);
+    const [loadingDelete, setLoadingDelete] = useState(false);
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
@@ -81,26 +82,29 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
 
     const handleDelete = async () => {
         try {
+            setLoadingDelete(true);
             const response = await fetch(`/api/delete_webnovel?id=${webnovel_id}`);
             if (!response.ok) {
                 console.error("Delete webnovel failed");
+                setLoadingDelete(false);
                 return;
             }
             // Filter out the deleted webnovel
-            const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id)
-            setWebnovels(webnovels_after_deletion)
+            const webnovelsAfterDeletion = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id)
+            setWebnovels(webnovelsAfterDeletion)
             setDeletedWebnovelId(webnovel_id);
             setShowDeleteModal(false);
 
             // Navigate to appropriate page
-            if (webnovels_after_deletion.length > 0) {
-                const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
+            if (webnovelsAfterDeletion.length > 0) {
+                const ids = webnovelsAfterDeletion.map((w: Webnovel) => w.id);
                 const first = Math.min(...ids);
-                await router.push(`/view_webnovels/${first.toString()}`);
+                router.push(`/view_webnovels/${first.toString()}`);
             } else {
-                await router.push('/view_webnovels');
+                router.push('/view_webnovels');
                 router.refresh();
             }
+            setLoadingDelete(false);
         } catch (error) {
             console.error(`Couldn't delete webnovel ${webnovel_id}`, error)
         }
@@ -149,6 +153,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                                     coverArt={webnovel?.cover_art || ""}
                                     onNewChapter={handleNewChapter}
                                     onDelete={handleDelete}
+                                    loadingDelete={loadingDelete}
                                 />
 
                             </div>

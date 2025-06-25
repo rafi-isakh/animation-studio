@@ -74,11 +74,11 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     useEffect(() => {
         const fetchRelatedContent = async () => {
             // webnovel.premium is false when the webnovel is a community webnovel
-            if (!webnovel?.premium) {
-                const webnovels = await getWebnovelsMetadataByUserId(webnovel?.user.id.toString() || '');
+            if (!webnovel?.premium && webnovel?.user?.id) {
+                const webnovels = await getWebnovelsMetadataByUserId(webnovel.user.id.toString());
                 setRelatedContent(webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id));
-            } else {
-                const webnovels = await getWebnovelsMetadataByAuthorId(webnovel?.author.id.toString() || '');
+            } else if (webnovel?.premium && webnovel?.author?.id) {
+                const webnovels = await getWebnovelsMetadataByAuthorId(webnovel.author.id.toString());
                 setRelatedContent(webnovels);
             }
         }

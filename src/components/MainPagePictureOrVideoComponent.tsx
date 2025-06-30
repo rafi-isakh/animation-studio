@@ -95,7 +95,7 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
                     (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
                     <>   
                     <Image
-                            src={imageSrc || "/placeholder.svg"}
+                            src={imageSrc || "/coverArt_thumbnail.png"}
                             alt={webnovel.title}
                             fill
                             sizes="(max-width: 768px) 100vw, 300px"

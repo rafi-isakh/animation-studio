@@ -432,7 +432,7 @@ export default function InfoAndPictureComponent({
                                         variant="default"
                                         className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                         onClick={() => {
-                                            if (!content.chapters || content.chapters.length === 0) {
+                                            if (!content.chapters || content.chapters_length === 0) {
                                                 return;
                                             }
                                             // 2. Create a sorted copy of the chapters array.
@@ -628,7 +628,7 @@ export default function InfoAndPictureComponent({
                                                         </Link>
                                                     </Button>
                                                 ) : (
-                                                    content.chapters.length >= 1 && id === content.user.id.toString() ? (
+                                                    content.chapters_length >= 1 && id === content.user.id.toString() ? (
                                                         <Button
                                                             variant='outline'
                                                             onClick={onNewChapter}

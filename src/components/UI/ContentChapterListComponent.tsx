@@ -57,7 +57,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
 
-    const chapterCount = content?.chapters?.length || 0;
+
+    const chapterCount = content?.chapters_length || 0;
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
     const {
@@ -227,7 +228,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 )}
                             </div>
 
-                            {content && content.chapters_length > 0 ? (
+                            {content && content.chapters && content.chapters_length > 0 ? (
                                 <CommentList
                                     content={content}
                                     chapter={content.chapters[0] as Chapter}

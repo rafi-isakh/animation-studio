@@ -13,6 +13,7 @@ interface WebnovelsContextState {
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
     getWebnovelMetadataById: (id: string) => Promise<Webnovel | undefined>;
+    getChaptersMetadataByWebnovelId: (id: string, limit: number, offset: number, latest?: boolean) => Promise<Chapter[] | undefined>;
     restricted: boolean | null;
     setRestricted: (restricted: boolean) => void;
 }
@@ -73,7 +74,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
         if (webnovel) {
             return Promise.resolve(webnovel);
         } else {
-            const response = await fetch(`/api/get_webnovel_with_chapter_metadata_by_id?id=${id}`);
+            const response = await fetch(`/api/get_webnovel_metadata_by_id?id=${id}`);
             if (!response.ok) {
                 console.error("Failed to fetch webnovel by id", response.status);
                 return undefined;
@@ -81,6 +82,21 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
             const data = await response.json();
             return data;
         }
+    };
+
+    const getChaptersMetadataByWebnovelId = async (id: string, limit: number, offset: number, latest?: boolean) => {
+        let url = `/api/get_chapters_metadata_by_webnovel_id?id=${id}&limit=${limit}&offset=${offset}`;
+            if (latest !== undefined) {
+                url += `&latest=${latest}`;
+            }
+
+            const response = await fetch(url);
+        if (!response.ok) {
+            console.error("Failed to fetch chapters metadata by webnovel id", response.status);
+            return undefined;
+        }
+        const data = await response.json();
+        return data as Chapter[];
     };
 
     // explicitly with chapter metadata
@@ -139,8 +155,9 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
             getWebnovelsMetadataByAuthorId, 
             chaptersLikelyNeededWebnovel, 
             getWebnovelMetadataById, 
+            getChaptersMetadataByWebnovelId, 
             restricted, 
-            setRestricted
+            setRestricted 
         }}>
             {children}
         </WebnovelsContext.Provider>

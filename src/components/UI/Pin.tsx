@@ -13,7 +13,7 @@ import { phrase } from "@/utils/phrases";
 import { Skeleton } from "@/components/shadcnUI/Skeleton";
 
 export function Pin({ post, language, dictionary }: { post: ToonyzPost, language: Language, dictionary: Dictionary }) {
-  const { getWebnovelById } = useWebnovels()
+  const { getWebnovelMetadataById } = useWebnovels()
   const videoRef = useRef<HTMLVideoElement>(null);
   const [webnovelTitle, setWebnovelTitle] = useState<string>('');
   const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
@@ -27,7 +27,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
       setIsLoading(true);
       setIsImageLoaded(false);
       try {
-        const webnovelData = await getWebnovelById(post.webnovel_id);
+        const webnovelData = await getWebnovelMetadataById(post.webnovel_id);
         setWebnovel(webnovelData || null);
         setWebnovelTitle(webnovelData?.title || '');
       } catch (error) {
@@ -37,7 +37,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
       }
     };
     fetchWebnovelData();
-  }, [post.webnovel_id, getWebnovelById]);
+  }, [post.webnovel_id, getWebnovelMetadataById]);
 
   const handleMouseEnter = () => {
     if (videoRef.current) {

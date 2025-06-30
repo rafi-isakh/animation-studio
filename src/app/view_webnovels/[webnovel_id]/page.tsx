@@ -1,5 +1,5 @@
 "use client"
-import { Webnovel, ToonyzPost } from "@/components/Types";
+import { Webnovel, ToonyzPost, Chapter } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
@@ -19,42 +19,56 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByAuthorId } = useWebnovels();
+    const { getWebnovelMetadataById, getWebnovelsMetadataByAuthorId, getChaptersMetadataByWebnovelId } = useWebnovels();
     const searchParams = useSearchParams();
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
     const { data, error, isLoading } = useSWR('/api/get_toonyz_posts', fetcher);
 
     useEffect(() => {
         const setData = async () => {
-            const webnovel = await getWebnovelIdWithChapterMetadata(webnovel_id);
-            let author_id = "";
-            if (webnovel) {
-                setWebnovel(webnovel);
-                author_id = webnovel.author.id.toString();
-            }
-            if (author_id) {
-                const userWebnovels = await getWebnovelsMetadataByAuthorId(author_id);
-                setUserWebnovels(userWebnovels);
-                setLoadingUsersOtherWebnovels(false);
-            }
+            const webnovel = await getWebnovelMetadataById(webnovel_id);
+            if (!webnovel) return;
 
-            const response = await fetch('/api/get_toonyz_posts');
-            if (!response.ok) {
-                throw new Error('Failed to fetch posts');
-            }
+            setWebnovel(webnovel); // Set basic metadata immediately
 
-            const data = await response.json();
-            const filteredPosts = data.filter((post: any) =>
-                post.webnovel_id === webnovel?.id
-            );
+            const author_id = webnovel.author.id.toString();
+            getChaptersMetadataByWebnovelId(webnovel_id, 10, 0)
+                .then(chapters => {
+                    if (chapters) {
+                        setWebnovel(prev => prev ? { ...prev, chapters } : prev);
+                    }
+                })
+                .catch(err => console.error("Error loading chapters:", err));
 
-            setPosts(filteredPosts);
+            getWebnovelsMetadataByAuthorId(author_id)
+                .then(userWebnovels => {
+                    setUserWebnovels(userWebnovels);
+                    setLoadingUsersOtherWebnovels(false);
+                })
+                .catch(err => console.error("Error loading author webnovels:", err));
+
+            fetch('/api/get_toonyz_posts')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch posts');
+                    return response.json();
+                })
+                .then(data => {
+                    const filteredPosts = data.filter((post: any) =>
+                        post.webnovel_id === webnovel.id
+                    );
+                    setPosts(filteredPosts);
+                })
+                .catch(err => console.error("Error fetching posts:", err));
+
             if (isLoggedIn) {
                 fetch(`/api/add_to_library?webnovel_id=${webnovel_id}`)
+                    .catch(err => console.error("Error adding to library:", err));
             }
-        }
+        };
+
         setData();
-    }, [searchParams])
+    }, [searchParams]);
+
 
     if (isLoading) {
         return (
@@ -78,7 +92,7 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
     }
 
     return (
-        <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
+        <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} setWebnovel={setWebnovel} />
     )
 }
 

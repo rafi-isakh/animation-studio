@@ -9,7 +9,6 @@ import { useCopyToClipboard } from "@/utils/copyToClipboard"
 import { useTheme } from '@/contexts/providers'
 
 export function ShareToSocialMediaCard({ post }: { post?: ToonyzPost }) {
-    const { getWebnovelById } = useWebnovels()
     const copyToClipboard = useCopyToClipboard()
     const { theme } = useTheme()
     const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/toonyz_posts/${post?.id}`

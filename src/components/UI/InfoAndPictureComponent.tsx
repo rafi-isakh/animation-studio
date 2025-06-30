@@ -215,7 +215,7 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        setChapterId(content.chapters[0]?.id.toString());
+        if(content.chapters) setChapterId(content.chapters[0]?.id.toString());
     }, []);
 
     useEffect(() => {
@@ -656,14 +656,14 @@ export default function InfoAndPictureComponent({
                             </div>
 
                             {/* Purchase Modal */}
-                            <ChapterPurchaseDialog
+                            {content.chapters && <ChapterPurchaseDialog
                                 showPurchaseModal={showPurchaseModal}
                                 setShowPurchaseModal={setShowPurchaseModal}
                                 handleChapterPurchase={handleChapterPurchase}
                                 content={content}
                                 stars={stars}
                                 chapter={content.chapters[0]}
-                            />
+                            />}
                             {/* Not Enough Stars Modal */}
                             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
                         </div>

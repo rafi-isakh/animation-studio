@@ -42,6 +42,7 @@ import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
 import ActiveUserAvatar from "@/components/UI/ActiveUserAvatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -289,28 +290,46 @@ export default function InfoAndPictureComponent({
                                 {coverArt ?
                                     !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
                                         <>
-                                            <Image
-                                                src={imageSrc || ""}
-                                                alt={content.title}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 300px"
-                                                className="object-cover rounded-xl"
-                                                placeholder="blur"
-                                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                            />
-                                            {content.is_adult_material && (
-                                                <>
-                                                    {language === "ko" ? (
-                                                        <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
-                                                            19
-                                                        </span>
-                                                    ) : (
-                                                        <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
-                                                            Mature
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant='link' className="!no-underline cursor-zoom-in">
+                                                        <Image
+                                                            src={imageSrc || ""}
+                                                            alt={content.title}
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, 300px"
+                                                            className="object-cover rounded-xl"
+                                                            placeholder="blur"
+                                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                                        />
+                                                        {content.is_adult_material && (
+                                                            <>
+                                                                {language === "ko" ? (
+                                                                    <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
+                                                                        19
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
+                                                                        Mature
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="border-none shadow-none z-[9999] w-full md:h-auto h-full flex items-center justify-center" showCloseButton={true}>
+                                                    <div className="relative w-full max-w-[400px] max-h-[80vh] aspect-[2/3]">
+                                                        <Image
+                                                            src={imageSrc || ""}
+                                                            alt={content.title}
+                                                            fill
+                                                            className="object-cover rounded-xl"
+                                                            placeholder="blur"
+                                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                                        />
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
                                         </>
                                         :
                                         <div>

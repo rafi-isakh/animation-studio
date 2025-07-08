@@ -14,6 +14,7 @@ import {
   Home,
   TvMinimalPlay,
   PencilLine,
+  SquareLibrary,
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
@@ -80,7 +81,14 @@ export function GlobalSidebar() {
         href="/stars"
         type="link"
       />
-     
+      <SidebarItem
+        icon={<SquareLibrary />}
+        text={phrase(dictionary, "myLibrary", language)}
+        active={pathname.startsWith('/my_library')}
+        alert={false}
+        href="/my_library"
+        type="link"
+      />
     </Sidebar>
   )
 }

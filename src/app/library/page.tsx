@@ -5,12 +5,13 @@ import { useUser } from "@/contexts/UserContext";
 import { phrase } from "@/utils/phrases";
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic'
+import LibraryComponent from "@/components/LibraryComponent";
 
-// Dynamically import the LibraryComponent with SSR disabled
-const LibraryComponent = dynamic(
-  () => import('@/components/LibraryComponent'),
-  { ssr: false } // This ensures the component only loads on the client side
-)
+// // Dynamically import the LibraryComponent with SSR disabled
+// const LibraryComponent = dynamic(
+//   () => import('@/components/LibraryComponent'),
+//   { ssr: false } // This ensures the component only loads on the client side
+// )
 
 const Library = () => {
     const {email, nickname} = useUser();

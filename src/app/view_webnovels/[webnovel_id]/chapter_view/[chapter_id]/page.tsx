@@ -548,7 +548,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 {/* hr divider */}
                 <div className='flex flex-col items-center justify-center w-full mb-4'>
                     <hr className='w-screen border-t border-gray-300 my-4' />
-                    <div className='bg-white dark:bg-black px-4 absolute'>
+                    <div className='px-4 absolute' style={{ background: "var(--background)" }}>
                         <Image
                             src="/images/N_logo.svg"
                             alt="logo"

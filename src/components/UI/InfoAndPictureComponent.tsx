@@ -292,12 +292,7 @@ export default function InfoAndPictureComponent({
                                         <>
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <Button
-                                                        onClick={() => {
-                                                            // TODO: Preview dialog
-                                                            //
-                                                        }}
-                                                        variant='link' className="!no-underline cursor-zoom-in">
+                                                    <Button variant='link' className="!no-underline cursor-zoom-in">
                                                         <Image
                                                             src={imageSrc || ""}
                                                             alt={content.title}
@@ -327,7 +322,7 @@ export default function InfoAndPictureComponent({
                                                         src={imageSrc || ""}
                                                         alt={content.title}
                                                         fill
-                                                        sizes="(max-width: 768px) 100vw, 300px"
+                                                        sizes="(max-width: 768px) 100vw"
                                                         className="object-cover rounded-xl"
                                                         placeholder="blur"
                                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="

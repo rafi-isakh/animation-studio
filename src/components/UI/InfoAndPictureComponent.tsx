@@ -317,16 +317,17 @@ export default function InfoAndPictureComponent({
                                                         )}
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent className="z-[9999] w-full md:h-[80vh] h-full" showCloseButton={true}>
-                                                    <Image
-                                                        src={imageSrc || ""}
-                                                        alt={content.title}
-                                                        fill
-                                                        sizes="(max-width: 768px) 100vw"
-                                                        className="object-cover rounded-xl"
-                                                        placeholder="blur"
-                                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                                    />
+                                                <DialogContent className="border-none shadow-none z-[9999] w-full md:h-auto h-full flex items-center justify-center" showCloseButton={true}>
+                                                    <div className="relative w-full max-w-[400px] max-h-[80vh] aspect-[2/3]">
+                                                        <Image
+                                                            src={imageSrc || ""}
+                                                            alt={content.title}
+                                                            fill
+                                                            className="object-cover rounded-xl"
+                                                            placeholder="blur"
+                                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                                        />
+                                                    </div>
                                                 </DialogContent>
                                             </Dialog>
                                         </>

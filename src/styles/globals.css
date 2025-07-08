@@ -64,6 +64,7 @@ del { text-decoration: none; }
     --destructive-foreground: 210 40% 98%;
     --ring: 216 34% 17%;
   }
+
 }
  
 @layer base {
@@ -111,9 +112,26 @@ del { text-decoration: none; }
   --foreground: #000;
   --background: #fff;
 }
+
 .dark {
   --foreground: #fff;
   --background: #000;
+}
+
+.green {
+  --background: #EDFDEE;
+  --text-color: #000;
+}
+
+.blue {
+  --background: #E3EFEE;
+  --text-color: #000;
+}
+
+.cream {
+  --foreground: #633112;
+  --background: #FEECDC;
+  --text-color: #633112;
 }
 
 body {

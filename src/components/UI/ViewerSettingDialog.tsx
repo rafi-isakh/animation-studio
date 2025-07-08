@@ -58,20 +58,26 @@ export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
                             </Link>
                         </div>
                     </div>
-                    <div className='text-sm flex justify-between'>
+                    <div className='text-sm flex justify-between items-center'>
                         {/* 테마  */}
                         {phrase(dictionary, "theme", language)}
                         <div className="flex flex-row items-center justify-between gap-x-3">
-                            <div className="flex items-center gap-1">
-                                {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                                <Label htmlFor="dark-mode">Dark Mode</Label>
-                            </div>
-                            <Switch
-                                id="dark-mode"
-                                checked={theme === 'dark'}
-                                onCheckedChange={() => toggleTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className="data-[state=checked]:bg-pink-800 data-[state=unchecked]:bg-gray-200"
-                            />
+                     
+                            <Button size="icon" onClick={() => toggleTheme('light')} className={`rounded-full bg-gray-100 text-black`}>
+                                <span className="text-xs">Aa</span>
+                            </Button>
+                            <Button size="icon" onClick={() => toggleTheme('dark')} className={`rounded-full bg-black text-white `}>
+                                <span className="text-xs">Aa</span>
+                            </Button>
+                            <Button size="icon" onClick={() => toggleTheme('green')} className={`rounded-full bg-green-500 text-black hover:bg-green-600`}>
+                                <span className="text-xs">Aa</span>
+                            </Button>
+                            <Button size="icon" onClick={() => toggleTheme('blue')} className={`rounded-full bg-blue-300 text-black hover:bg-blue-400`}>
+                                <span className="text-xs">Aa</span>
+                            </Button>
+                            <Button size="icon" onClick={() => toggleTheme('cream')} className={`rounded-full bg-orange-100 text-yellow-900 hover:bg-orange-200`}>
+                                <span className="text-xs">Aa</span>
+                            </Button>
                         </div>
                     </div>
 

@@ -1,7 +1,8 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation';
 
-export type Theme = 'dark' | 'light' | 'sepia' | 'system'
+export type Theme = 'dark' | 'light' | 'green' | 'blue' | 'cream' | 'system'
 
 type ThemeContextType = {
   theme: Theme
@@ -22,6 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('system' as Theme)
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme);
   const [hasMounted, setHasMounted] = useState(false);
+  const pathname = usePathname();
   
   // Calculate the effective theme (what should actually be displayed)
   const effectiveTheme = theme === 'system' ? systemTheme : theme;
@@ -32,7 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Check local storage or system preference on mount
     const savedTheme = localStorage.getItem('theme') as Theme
     const systemTheme = getSystemTheme()
-    if (savedTheme && ['light', 'dark', 'sepia', 'system'].includes(savedTheme)) {
+    if (savedTheme && ['light', 'dark', 'green', 'blue', 'cream', 'system'].includes(savedTheme)) {
       setTheme(savedTheme);
     } else {
       setTheme('system');
@@ -41,6 +43,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setHasMounted(true);
     setSystemTheme(systemTheme);
   }, []);
+
+  useEffect(() => {
+    // http://localhost:3000/view_webnovels/144/chapter_view/5041
+    if (theme === 'green' || theme === 'blue' || theme === 'cream') {
+      // If the current route does not include '/chapter_view/', reset theme to 'system'
+      if (!pathname?.includes('/chapter_view/')) {
+        setTheme('system');
+        localStorage.setItem('theme', 'system');
+      }
+    }
+  }, [theme, pathname]);
+
 
   useEffect(() => {
     if (!hasMounted) return;
@@ -61,7 +75,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Only run on the client side
     if (typeof document === 'undefined') return;
     
-    document.body.classList.remove('light', 'dark', 'sepia');
+    document.body.classList.remove('light', 'dark', 'green', 'blue', 'cream');
     // Add the effective theme class (which is always light, dark, or sepia at this point)
     document.body.classList.add(effectiveTheme);
   }, [effectiveTheme, hasMounted]);
@@ -78,6 +92,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Render nothing or a fallback loader on the server/during initial client render
     return null;
   }
+
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode }}>

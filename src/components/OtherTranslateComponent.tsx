@@ -27,12 +27,8 @@ const OtherTranslateComponent = ({
     showLoading?: boolean,
     incomingText?: string
 }) => {
-<<<<<<< Updated upstream
-    const [text, setText] = useState(incomingText);
-    const [processedText, setProcessedText] = useState<string>(incomingText);
-=======
     const [text, setText] = useState(content);
->>>>>>> Stashed changes
+    const [processedText, setProcessedText] = useState<string>(content);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
     const [loading, setLoading] = useState(false)

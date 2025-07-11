@@ -11,6 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { starsOptionsUSD, calculateOrderAmount, starsString, starsPriceWithCurrencyString, nominalDiscountFactorsUSD, ticketsOptions, ticketsString, ticketsPriceWithCurrencyString } from "@/utils/stars";
 import { useLanguage } from "@/contexts/LanguageContext";
+import * as PortOne from "@portone/browser-sdk/v2";
+
+
 export default function PurchaseStarsStripeComponent() {
     const router = useRouter();
     const { isLoggedIn, loading } = useAuth();
@@ -18,7 +21,35 @@ export default function PurchaseStarsStripeComponent() {
     const [isPaying, setIsPaying] = useState<boolean>(false);
     const [starsToBuy, setStarsToBuy] = useState<number>(0);
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const [result, setResult] = useState<any>(null);
     const { language } = useLanguage();
+
+    const requestData = {
+        uiType: "PAYPAL_SPB" as const,
+        storeId: "store-7e83ff7e-e9d8-41a0-b271-0fd1bcf3c01c",
+        channelKey: "channel-key-be98f4ae-7b70-4390-9657-a17bfe022070",
+        paymentId: `payment-${crypto.randomUUID()}`,
+        orderName: "나이키 와플 트레이너 2 SD",
+        totalAmount: 1000,
+        currency: "CURRENCY_USD" as const,
+    };
+
+    useEffect(() => {
+        const renderPaymentUI = async () => {
+            console.log("renderPaymentUI");
+            const response = await PortOne.loadPaymentUI(requestData, {
+                onPaymentSuccess: (response) => {
+                    setResult(response);
+                    console.log(response);
+                },
+                onPaymentFail: (error) => {
+                    alert(error)
+                    console.log(error);
+                },
+            });
+        }
+        renderPaymentUI();
+    }, []);
 
     useEffect(() => {
         if (!isLoggedIn && !loading) {
@@ -141,6 +172,8 @@ export default function PurchaseStarsStripeComponent() {
     return (
         <div className="relative flex flex-col max-w-screen-md w-full space-y-4 items-center justify-center m-auto">
             {/*  tall:h-[calc(100vh-16rem)]  */}
+            <div className="portone-ui-container">
+            </div>
             <div className="flex flex-col w-full items-center justify-center">
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
                 {/* <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1> */}

@@ -27,8 +27,12 @@ const OtherTranslateComponent = ({
     showLoading?: boolean,
     incomingText?: string
 }) => {
+<<<<<<< Updated upstream
     const [text, setText] = useState(incomingText);
     const [processedText, setProcessedText] = useState<string>(incomingText);
+=======
+    const [text, setText] = useState(content);
+>>>>>>> Stashed changes
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
     const [loading, setLoading] = useState(false)
@@ -61,6 +65,28 @@ const OtherTranslateComponent = ({
 
 
     useEffect(() => {
+        const detectLanguage = () => {
+            // Check if content is Korean or Japanese by looking for Korean/Japanese characters
+            const koreanRegex = /[\u3131-\u314E\u314F-\u3163\uAC00-\uD7A3]/;
+            const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+            const isKorean = koreanRegex.test(content);
+            const isJapanese = japaneseRegex.test(content);
+            // Check if content is English by looking for non-English characters
+            const nonEnglishRegex = /[^\x00-\x7F]/;
+            const isEnglish = !nonEnglishRegex.test(content);
+            if (isEnglish && language === 'en'
+                || isKorean && language === 'ko'
+                || isJapanese && language === 'ja'
+            ) {
+                return true;
+            }
+            return false;
+        }
+        const originalAndTargetLangSame = detectLanguage();
+        if (originalAndTargetLangSame) {
+            setText(content);
+            return
+        }
         // if the translation was already returned in the element, use it
         const translation = element.other_translations?.find(
             (translation: OtherTranslation) =>
@@ -80,30 +106,8 @@ const OtherTranslateComponent = ({
         }
         const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
         languageChangedRef.current = true;
-        const detectLanguage = () => {
-            // Check if content is Korean or Japanese by looking for Korean/Japanese characters
-            const koreanRegex = /[\u3131-\u314E\u314F-\u3163\uAC00-\uD7A3]/;
-            const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-            const isKorean = koreanRegex.test(content);
-            const isJapanese = japaneseRegex.test(content);
-            // Check if content is English by looking for non-English characters
-            const nonEnglishRegex = /[^\x00-\x7F]/;
-            const isEnglish = !nonEnglishRegex.test(content);
-            if (isEnglish && language === 'en'
-                || isKorean && language === 'ko'
-                || isJapanese && language === 'ja'
-            ) {
-                return true;
-            }
-            return false;
-        }
 
         const handleTranslate = async () => {
-            const originalAndTargetLangSame = detectLanguage();
-            if (originalAndTargetLangSame) {
-                setText(content);
-                return
-            }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {

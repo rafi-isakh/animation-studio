@@ -87,6 +87,7 @@ export default function InfoAndPictureComponent({
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { nickname } = useUser();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [isCoverArtDialogOpen, setIsCoverArtDialogOpen] = useState(false);
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -290,9 +291,9 @@ export default function InfoAndPictureComponent({
                                 {coverArt ?
                                     !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
                                         <>
-                                            <Dialog>
+                                            <Dialog open={isCoverArtDialogOpen} onOpenChange={setIsCoverArtDialogOpen}>
                                                 <DialogTrigger asChild>
-                                                    <Button variant='link' className="!no-underline cursor-zoom-in">
+                                                    <Button variant='link' className="!no-underline cursor-zoom-in" onClick={() => setIsCoverArtDialogOpen(true)}>
                                                         <Image
                                                             src={imageSrc || ""}
                                                             alt={content.title}
@@ -317,7 +318,7 @@ export default function InfoAndPictureComponent({
                                                         )}
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent className="border-none shadow-none z-[9999] w-full md:h-auto h-full flex items-center justify-center" showCloseButton={true}>
+                                                <DialogContent className="border-none shadow-none z-[9999] w-full md:h-auto h-full flex items-center justify-center" showCloseButton={true} closeOnOutsideClick={true}>
                                                     <div className="relative w-full max-w-[400px] max-h-[80vh] aspect-[2/3]">
                                                         <Image
                                                             src={imageSrc || ""}

@@ -9,7 +9,7 @@ import { Webnovel } from "@/components/Types";
 import { cn } from "@/lib/utils";
 
 {/* Not Enough Stars Modal */ }
-const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsModal, stars, content, createMediaPrice }: { showNotEnoughStarsModal: boolean, setShowNotEnoughStarsModal: (showNotEnoughStarsModal: boolean) => void, stars: number, content?: Webnovel, createMediaPrice?: number }) => {
+const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsModal, stars, english_stars, content, createMediaPrice }: { showNotEnoughStarsModal: boolean, setShowNotEnoughStarsModal: (showNotEnoughStarsModal: boolean) => void, stars: number, english_stars: number, content?: Webnovel, createMediaPrice?: number }) => {
     const router = useRouter();
     const { dictionary, language } = useLanguage();
 
@@ -28,8 +28,8 @@ const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsMo
                         <p className='text-md text-gray-500 py-2 break-keep'>{phrase(dictionary, "notEnoughStarsDescription", language)}</p>
                         <div className="flex flex-col items-center gap-2 mt-2">
                             <p>{language === "ko"
-                             ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span>
-                             : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                             ? <span className="text-black dark:text-white inline-flex gap-1">보유한 한국어 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span>
+                             : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {english_stars} English stars </span>}</p>
                             {(() => {
                                 if (createMediaPrice) {
                                     return (

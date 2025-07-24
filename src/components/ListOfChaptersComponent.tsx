@@ -42,24 +42,19 @@ const ListOfChaptersComponent = ({
     const { dictionary, language } = useLanguage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
-    const [showMoreChapters, setShowMoreChapters] = useState(false);
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
-    const date = new Date();
     const router = useRouter();
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars, english_stars } = useUser();
     const { isLoggedIn } = useAuth();
-    const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
     const [currentPage, setCurrentPage] = useState(1);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
-    const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [sortToggle, setSortToggle] = useState(false);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const { getChaptersMetadataByWebnovelId } = useWebnovels();
     const [loading, setLoading] = useState(false);
-
 
     const sortedChapters = sortToggle
         ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
@@ -89,34 +84,22 @@ const ListOfChaptersComponent = ({
         }
     }, [webnovel, language]);
 
-    const loadMoreChapters = () => {
-        if (language == 'en') {
-            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
-        } else {
-            setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
-        }
-    };
-
-    useEffect(() => {
-        if (language == 'en') {
-            setSavedValueOfVisibleChapters(visibleChapters);
-            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, prev));
-        } else {
-            const tempVisibleChapters = visibleChapters;
-            setVisibleChapters(savedValueOfVisibleChapters);
-            setSavedValueOfVisibleChapters(tempVisibleChapters);
-        }
-    }, [language])
-
     useEffect(() => {
         const fetchChapters = async () => {
             if (!webnovel?.id) return;
 
             setLoading(true); 
             const offset = (currentPage - 1) * CHAPTERS_PER_PAGE;
+            let limit = CHAPTERS_PER_PAGE;
+            if (language === "en") {
+                limit = Math.min(CHAPTERS_PER_PAGE, webnovel?.en_published_up_to_chapter - offset);
+            } else if (language === "ko") {
+                // Change this chapters_length to ko_published_up_to_chapter after adding that field
+                limit = Math.min(CHAPTERS_PER_PAGE, webnovel?.chapters_length - offset);
+            }
             const chapters = await getChaptersMetadataByWebnovelId(
                 webnovel.id.toString(),
-                CHAPTERS_PER_PAGE,
+                limit,
                 offset,
                 sortToggle
             );

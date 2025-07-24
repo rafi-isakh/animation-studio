@@ -47,7 +47,7 @@ const ListOfChaptersComponent = ({
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
     const date = new Date();
     const router = useRouter();
-    const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
+    const { purchased_webnovel_chapters, setInvokeCheckUser, stars, english_stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
@@ -73,7 +73,8 @@ const ListOfChaptersComponent = ({
         });
         }, [webnovel?.chapters, sortToggle]);
 
-    const totalPages = Math.ceil((webnovel?.chapters_length || 0) / CHAPTERS_PER_PAGE);
+    // for English, we only show the chapters that have been translated
+    const totalPages = language === "ko" ? Math.ceil((webnovel?.chapters_length || 0) / CHAPTERS_PER_PAGE) : Math.ceil((webnovel?.en_published_up_to_chapter || 0) / CHAPTERS_PER_PAGE);
 
     const handleSortToggle = () => {
         setSortToggle(prev => !prev);
@@ -170,7 +171,7 @@ const ListOfChaptersComponent = ({
         else {
             setShowPurchaseModal(false);
             const price = language === "ko" ? webnovel?.price_korean : webnovel?.price_english;
-            if (stars < price!) {
+            if ((language === "ko" && stars < price!) || (language === "en" && english_stars < price!)) {
                 setShowNotEnoughStarsModal(true);
                 return;
             }
@@ -428,7 +429,7 @@ const ListOfChaptersComponent = ({
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}
-            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={webnovel} />
         </>
     )
 };

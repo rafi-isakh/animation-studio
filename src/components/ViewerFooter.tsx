@@ -44,7 +44,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     const [openMenu, setOpenMenu] = useState(false)
     const [allowClose, setAllowClose] = useState(false);
     const [scrollPercent, setScrollPercent] = useState(0);
-    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser } = useUser();
+    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser, english_stars } = useUser();
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
@@ -314,8 +314,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
-            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
+            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} english_stars={english_stars} chapter={chapterToPurchase!} />
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={webnovel} />
         </>
     );
 };

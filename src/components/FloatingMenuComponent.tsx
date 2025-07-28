@@ -39,7 +39,6 @@ import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
 import { useUser } from '@/contexts/UserContext';
 import WatermarkedImage from '@/utils/watermark';
 import { getImageUrl } from '@/utils/urls';
-import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog'
 import ShareDialog from "@/components/UI/ShareDialog";
 import NotEnoughTicketsDialog from './UI/NotEnoughTicketsDialog';
 

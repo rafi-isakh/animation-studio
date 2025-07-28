@@ -67,7 +67,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
+    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters, english_stars } = useUser();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
@@ -681,10 +681,11 @@ export default function InfoAndPictureComponent({
                                 handleChapterPurchase={handleChapterPurchase}
                                 content={content}
                                 stars={stars}
+                                english_stars={english_stars}
                                 chapter={content.chapters[0]}
                             />}
                             {/* Not Enough Stars Modal */}
-                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
+                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={content} createMediaPrice={createMediaPrice} />
                         </div>
                     </div>
                 </div>

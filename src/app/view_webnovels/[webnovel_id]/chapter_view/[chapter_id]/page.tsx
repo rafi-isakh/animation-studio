@@ -68,7 +68,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser } = useUser();
+    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser, english_stars } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const { chaptersLikelyNeededWebnovel } = useWebnovels();
     const readerStyle = {
@@ -563,8 +563,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                     <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 </div>
                 <div className="md:h-[10vh] h-[10vh]"></div>
-                <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
-                <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
+                <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} english_stars={english_stars} chapter={chapterToPurchase!} />
+                <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={webnovel} />
                 <Dialog open={showCommentsModal} onOpenChange={setShowCommentsModal}>
                     <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full text-md' showCloseButton>
                         <ScrollArea className="md:h-[80vh] h-full p-4">

@@ -127,7 +127,8 @@ export function AppleSignIn({ redirectPath }: SignInProps) {
                     width: '100%',
                 }}
                 variant='text'
-                onClick={() => login('apple', true, new_user_path)}
+                // onClick={() => login('apple', true, new_user_path)}
+                onClick={() => login('apple', false)}
                 className='flex-shrink-1 w-full relative inline-flex items-center justify-center px-6 py-3 md:text-base text-md font-medium text-black transition-all duration-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900'
                 type="submit">
                 <div className="rounded-full p-1 flex items-center justify-center">

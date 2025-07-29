@@ -240,7 +240,6 @@ const ListOfChaptersComponent = ({
                 <div className="flex flex-row gap-2 items-center">
                     <Menubar>
                         <TableOfContents
-                            sortedChapters={sortedChapters || []}
                             purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
                                 .filter((purchase) => purchase[1] === language)
                                 .map((purchase) => purchase[0])

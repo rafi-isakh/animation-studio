@@ -69,7 +69,9 @@ const ListOfChaptersComponent = ({
         }, [webnovel?.chapters, sortToggle]);
 
     // for English, we only show the chapters that have been translated
-    const totalPages = language === "ko" ? Math.ceil((webnovel?.chapters_length || 0) / CHAPTERS_PER_PAGE) : Math.ceil((webnovel?.en_published_up_to_chapter || 0) / CHAPTERS_PER_PAGE);
+    const totalPages = language === "ko" 
+        ? Math.ceil((webnovel?.ko_published_up_to_chapter || 0) / CHAPTERS_PER_PAGE) 
+        : Math.ceil((webnovel?.en_published_up_to_chapter || 0) / CHAPTERS_PER_PAGE);
 
     const handleSortToggle = () => {
         setSortToggle(prev => !prev);
@@ -95,7 +97,7 @@ const ListOfChaptersComponent = ({
                 limit = Math.min(CHAPTERS_PER_PAGE, webnovel?.en_published_up_to_chapter - offset);
             } else if (language === "ko") {
                 // Change this chapters_length to ko_published_up_to_chapter after adding that field
-                limit = Math.min(CHAPTERS_PER_PAGE, webnovel?.chapters_length - offset);
+                limit = Math.min(CHAPTERS_PER_PAGE, webnovel?.ko_published_up_to_chapter - offset);
             }
             const chapters = await getChaptersMetadataByWebnovelId(
                 webnovel.id.toString(),

@@ -89,6 +89,7 @@ export default function InfoAndPictureComponent({
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { nickname } = useUser();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [showNotEnoughTicketsModal, setShowNotEnoughTicketsModal] = useState(false);
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists

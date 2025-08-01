@@ -42,7 +42,9 @@ import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
 import ActiveUserAvatar from "@/components/UI/ActiveUserAvatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/shadcnUI/Dialog";
+import { Textarea } from "../shadcnUI/Textarea";
+import NotEnoughTicketsDialog from "./NotEnoughTicketsDialog";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -256,7 +258,7 @@ export default function InfoAndPictureComponent({
     const handleGenerateTrailer = () => {
         if (tickets < 2) {
             setCreateMediaPrice(2)
-            setShowNotEnoughStarsModal(true);
+            setShowNotEnoughTicketsModal(true);
             return;
         }
         setOpenDialog(true);
@@ -686,6 +688,7 @@ export default function InfoAndPictureComponent({
                             />}
                             {/* Not Enough Stars Modal */}
                             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={content} createMediaPrice={createMediaPrice} />
+                            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} tickets={tickets} content={content} createMediaPrice={createMediaPrice} />
                         </div>
                     </div>
                 </div>

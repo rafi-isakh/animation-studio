@@ -9,7 +9,7 @@ import { Webnovel } from "@/components/Types";
 import { cn } from "@/lib/utils";
 
 {/* Not Enough Tickets Modal */ }
-const NotEnoughTicketsDialog = ({ showNotEnoughTicketsModal, setShowNotEnoughTicketsModal, Tickets, content, createMediaPrice }: { showNotEnoughTicketsModal: boolean, setShowNotEnoughTicketsModal: (showNotEnoughTicketsModal: boolean) => void, Tickets: number, content?: Webnovel, createMediaPrice?: number }) => {
+const NotEnoughTicketsDialog = ({ showNotEnoughTicketsModal, setShowNotEnoughTicketsModal, tickets, content, createMediaPrice }: { showNotEnoughTicketsModal: boolean, setShowNotEnoughTicketsModal: (showNotEnoughTicketsModal: boolean) => void, tickets: number, content?: Webnovel, createMediaPrice?: number }) => {
     const router = useRouter();
     const { dictionary, language } = useLanguage();
 
@@ -28,8 +28,8 @@ const NotEnoughTicketsDialog = ({ showNotEnoughTicketsModal, setShowNotEnoughTic
                         <p className='text-md text-gray-500 py-2 break-keep'>{phrase(dictionary, "notEnoughTicketsDescription", language)}</p>
                         <div className="flex flex-col items-center gap-2 mt-2">
                             <p>{language === "ko"
-                             ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" /> {Tickets} </span>
-                             : <span className="text-black dark:text-white inline-flex gap-1">You have <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" /> {Tickets} </span>}</p>
+                             ? <span className="text-black dark:text-white inline-flex gap-1">보유한 티켓 <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" /> {tickets} </span>
+                             : <span className="text-black dark:text-white inline-flex gap-1">You have <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" /> {tickets} </span>}</p>
                             {(() => {
                                 if (createMediaPrice) {
                                     return (

@@ -364,7 +364,7 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                     </motion.div>
                 </AnimatePresence>
             </Tabs>
-            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} Tickets={tickets} createMediaPrice={createMediaPrice} />
+            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} tickets={tickets} createMediaPrice={createMediaPrice} />
         </main >
     )
 }

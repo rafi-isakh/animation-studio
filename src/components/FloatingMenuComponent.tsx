@@ -466,7 +466,7 @@ const FloatingMenu: React.FC<{
                 </DialogContent>
             </Dialog>
             {/* not enough stars modal */}
-            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} Tickets={tickets} createMediaPrice={createMediaPrice} />
+            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} tickets={tickets} createMediaPrice={createMediaPrice} />
         </div >
     );
 }

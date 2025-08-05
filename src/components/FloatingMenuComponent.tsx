@@ -39,7 +39,6 @@ import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
 import { useUser } from '@/contexts/UserContext';
 import WatermarkedImage from '@/utils/watermark';
 import { getImageUrl } from '@/utils/urls';
-import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog'
 import ShareDialog from "@/components/UI/ShareDialog";
 import NotEnoughTicketsDialog from './UI/NotEnoughTicketsDialog';
 
@@ -467,7 +466,7 @@ const FloatingMenu: React.FC<{
                 </DialogContent>
             </Dialog>
             {/* not enough stars modal */}
-            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} Tickets={tickets} createMediaPrice={createMediaPrice} />
+            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} tickets={tickets} createMediaPrice={createMediaPrice} />
         </div >
     );
 }

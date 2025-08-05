@@ -85,6 +85,7 @@ export default function ShareAsToonyzPostModal({
                     }),
                     fetch('/api/create_toonyz_post', {
                         method: 'POST',
+                        // type should exist in ToonyzPostCreate and ToonyzPost model
                         body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id: chapter_id ?? "1" }),
                     }),
                 ]);

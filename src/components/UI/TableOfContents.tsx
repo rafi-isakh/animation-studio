@@ -1,13 +1,19 @@
+'use client'
+import { useEffect } from "react";
 import { Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, MenubarSeparator, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { List } from "lucide-react";
+import { List, Loader2 } from "lucide-react";
 import { Chapter, Dictionary, Webnovel } from "@/components/Types";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 
-const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language, chapter_id, setChapterToPurchase, setShowPurchaseModal, webnovel, isPurchasedChapter, phrase, dictionary, sortToggle }: { sortedChapters: Chapter[], purchased_webnovel_chapters: number[], language: string, chapter_id: string, setChapterToPurchase: (chapter: Chapter) => void, setShowPurchaseModal: (show: boolean) => void, webnovel: Webnovel, isPurchasedChapter: (purchased_webnovel_chapters: number[], chapter_id: number, language: string) => boolean, phrase: (dictionary: Dictionary, key: string, language: string) => string, dictionary: Dictionary, sortToggle?: boolean }) => {
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const TableOfContents = ({ purchased_webnovel_chapters, language, chapter_id, setChapterToPurchase, setShowPurchaseModal, webnovel, isPurchasedChapter, phrase, dictionary, sortToggle }: { purchased_webnovel_chapters: number[], language: string, chapter_id: string, setChapterToPurchase: (chapter: Chapter) => void, setShowPurchaseModal: (show: boolean) => void, webnovel: Webnovel, isPurchasedChapter: (purchased_webnovel_chapters: number[], chapter_id: number, language: string) => boolean, phrase: (dictionary: Dictionary, key: string, language: string) => string, dictionary: Dictionary, sortToggle?: boolean }) => {
     const { toast } = useToast();
     const router = useRouter();
+    const { data: chapterList, isLoading: isLoadingChapterList } = useSWR(`/api/get_chapter_list_by_webnovel_id?webnovel_id=${webnovel.id}`, fetcher);
 
     const handleChapterClick = (chapter: Chapter) => {
         if (!webnovel?.available_languages.includes(language)) {
@@ -30,6 +36,9 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
         }
     }
 
+    if (isLoadingChapterList) {
+        return <div className="flex flex-row items-center justify-center h-full w-full"><Loader2 className="animate-spin" /></div>;
+    }
 
     return (
         <MenubarMenu >
@@ -42,7 +51,7 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
                     {phrase(dictionary, "tableOfContents", language)}
                 </MenubarItem>
                 <MenubarSeparator />
-                {sortedChapters?.map((chapter, index) => (
+                {chapterList?.map((chapter: Chapter, index: number) => (
                     <MenubarItem
                         key={chapter.id}
                         onClick={() => {
@@ -57,7 +66,7 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
                     // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                     >
 
-                        {language === 'en' && 'Episode'} { sortToggle ? sortedChapters.length - index : index + 1 } {language === 'ko' && '화'}{language === 'ja' && '話'}
+                        {language === 'en' && 'Episode'} {index + 1} {language === 'ko' && '화'}{language === 'ja' && '話'}
                         <MenubarShortcut className="flex flex-row items-center justify-start">
                             {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
                                 <span className="ml-2">🔒</span>

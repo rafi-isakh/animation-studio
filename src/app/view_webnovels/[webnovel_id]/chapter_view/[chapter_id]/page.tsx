@@ -74,8 +74,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -93,6 +93,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const { toast } = useToast();
     const [showCommentsModal, setShowCommentsModal] = useState(false);
     const commentsRef = useRef<HTMLDivElement>(null);
+   
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -389,7 +390,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         <TooltipProvider delayDuration={0}>
                             <Menubar className="flex flex-row gap-2 items-center list-none border-none shadow-none">
                                 <TableOfContents
-                                    sortedChapters={sortedChapters || []}
+                                    
                                     purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
                                         .filter((purchase) => purchase[1] === language)
                                         .map((purchase) => purchase[0])

@@ -15,7 +15,14 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter }) => {
     const [sortedChapters, setSortedChapters] = useState<Chapter[]>([]);
     // Sort chapters by creation date if needed
     useEffect(() => {
-        const _sortedChapters = [...(content?.chapters || [])].sort((a, b) =>
+        let chapters: Chapter[] = []
+        if (!content.chapters || !Array.isArray(content.chapters)) {
+            chapters = [] as Chapter[]
+        }
+        else {
+            chapters = content.chapters;
+        }
+        const _sortedChapters = [...chapters].sort((a, b) =>
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
         setSortedChapters(_sortedChapters as Chapter[]);

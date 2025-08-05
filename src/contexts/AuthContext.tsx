@@ -5,7 +5,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 interface AuthContextProps {
     isLoggedIn: boolean;
     loading: boolean;
-    login: (provider: string, redirect: boolean, callbackUrl: string) => void;
+    login: (provider: string, redirect: boolean, callbackUrl?: string) => void;
     logout: (redirect: boolean, callbackUrl: string) => void;
     email: string | null;
     session: any;
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loading = status === 'loading';
     const email = session?.user?.email || null;
 
-    async function login(provider: string, redirect: boolean, callbackUrl: string) {
+    async function login(provider: string, redirect: boolean, callbackUrl?: string) {
         try {
             await signIn(provider, { 
                 redirect: redirect, 

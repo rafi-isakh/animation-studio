@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Box, Skeleton } from '@mui/material';
 import { marked } from 'marked';
 import { useTheme } from '@/contexts/providers';
+import { removeLeadingSpaces } from '@/utils/font';
 
 interface WordToken {
     word: string;
@@ -74,7 +75,7 @@ const WebnovelTranslateComponent = (
             }
         }
         const setContentMarked = async () => {
-            setText(await marked(content));
+            setText(await marked(removeLeadingSpaces(content)));
             setFinished(true);
         }
 

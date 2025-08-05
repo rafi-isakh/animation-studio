@@ -22,6 +22,7 @@ import MyToonyzPostsList from "@/components/UI/MyToonyzPostsList";
 export default function CreateMediaHistoryContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     // const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
+    const { english_stars } = useUser();
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
     const { setOpenDialog, loadingVideoGeneration, generateTrailer, setShareType, setShowShareAsPostModal, setPicture } = useCreateMedia();
@@ -207,7 +208,7 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                 </Tabs>
                 <div className='h-[10vh]' />
             </div>
-            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} createMediaPrice={createMediaPrice} />
         </div>
     )
 }

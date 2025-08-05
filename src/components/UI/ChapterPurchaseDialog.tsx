@@ -12,6 +12,7 @@ const ChapterPurchaseDialog = ({
     handleChapterPurchase,
     content,
     stars,
+    english_stars,
     chapter
 }: {
     showPurchaseModal: boolean,
@@ -19,6 +20,7 @@ const ChapterPurchaseDialog = ({
     handleChapterPurchase: (chapter: Chapter) => void,
     content: any,
     stars: number,
+    english_stars: number,
     chapter: Chapter
 }) => {
     const { dictionary, language } = useLanguage();
@@ -33,8 +35,8 @@ const ChapterPurchaseDialog = ({
                     <DialogDescription className="flex flex-col justify-center items-center p-4 text-md">
                         <p className='text-md text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
                         <p>{language === "ko" 
-                                ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> 
-                                : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}
+                                ? <span className="text-black dark:text-white inline-flex gap-1">보유한 한국어 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> 
+                                : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {english_stars} English stars </span>}
                         </p>
                     </DialogDescription>
                 </DialogHeader>

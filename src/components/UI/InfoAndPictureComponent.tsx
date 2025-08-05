@@ -42,7 +42,9 @@ import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
 import ActiveUserAvatar from "@/components/UI/ActiveUserAvatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/shadcnUI/Dialog";
+import { Textarea } from "../shadcnUI/Textarea";
+import NotEnoughTicketsDialog from "./NotEnoughTicketsDialog";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -67,7 +69,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
+    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters, english_stars } = useUser();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
@@ -88,6 +90,7 @@ export default function InfoAndPictureComponent({
     const { nickname } = useUser();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isCoverArtDialogOpen, setIsCoverArtDialogOpen] = useState(false);
+    const [showNotEnoughTicketsModal, setShowNotEnoughTicketsModal] = useState(false);
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -257,7 +260,7 @@ export default function InfoAndPictureComponent({
     const handleGenerateTrailer = () => {
         if (tickets < 2) {
             setCreateMediaPrice(2)
-            setShowNotEnoughStarsModal(true);
+            setShowNotEnoughTicketsModal(true);
             return;
         }
         setOpenDialog(true);
@@ -682,10 +685,12 @@ export default function InfoAndPictureComponent({
                                 handleChapterPurchase={handleChapterPurchase}
                                 content={content}
                                 stars={stars}
+                                english_stars={english_stars}
                                 chapter={content.chapters[0]}
                             />}
                             {/* Not Enough Stars Modal */}
-                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
+                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} english_stars={english_stars} content={content} createMediaPrice={createMediaPrice} />
+                            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} tickets={tickets} content={content} createMediaPrice={createMediaPrice} />
                         </div>
                     </div>
                 </div>

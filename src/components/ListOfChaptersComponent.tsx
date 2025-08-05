@@ -56,12 +56,19 @@ const ListOfChaptersComponent = ({
     const { getChaptersMetadataByWebnovelId } = useWebnovels();
     const [loading, setLoading] = useState(false);
 
-    const sortedChapters = sortToggle
-        ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
-        : [...(webnovel?.chapters || [])].sort((a, b) => a.id - b.id);
+    const sortedChapters = useMemo(() => {
+        if (!webnovel || !Array.isArray(webnovel.chapters)) return [];
+        return webnovel.chapters.sort((a, b) => {
+            return sortToggle
+            ? b.id - a.id
+            : a.id - b.id;
+        });
+    }, [webnovel?.chapters, sortToggle]);
 
     const displayedChapters = useMemo(() => {
-        return (webnovel?.chapters || []).sort((a, b) => {
+        if (!webnovel || !Array.isArray(webnovel.chapters)) return [];
+
+        return webnovel.chapters.sort((a, b) => {
             return sortToggle
             ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();

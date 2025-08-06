@@ -53,6 +53,8 @@ interface CreateMediaContextType {
     setPicture: Dispatch<SetStateAction<string>>;
     openHistory: boolean;
     setOpenHistory: Dispatch<SetStateAction<boolean>>;
+    chosenPictures: string[];
+    setChosenPictures: Dispatch<SetStateAction<string[]>>;
 }
 
 // Create context with default values
@@ -91,6 +93,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const { getWebnovelMetadataById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [openHistory, setOpenHistory] = useState(false);
+    const [chosenPictures, setChosenPictures] = useState<string[]>([]);
 
     useEffect(() => {
         if (webnovel_id) {
@@ -126,12 +129,12 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             })
             return;
         }
-        if (tickets < 20) {
+        if (tickets < 2) {
             toast({
                 title: "Error",
-                description: phrase(dictionary, "notEnoughStars", language),
+                description: phrase(dictionary, "notEnoughTickets", language),
                 variant: "destructive",
-                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
+                action: <ToastAction altText='Buy Tickets'>Buy Tickets</ToastAction>
             })
             return;
         }
@@ -153,6 +156,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             }
             const data = await response.json();
             setPictures(data.images);
+            setChosenPictures(data.images);
             setPrompts(data.prompts);
             setNarrations(data.narrations);
         } catch (error) {
@@ -179,7 +183,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         try {
             setLoadingVideoGeneration(true);
             const pictureFilenames = [];
-            const uploadPromises = pictures.map(async (picture) => {
+            const uploadPromises = chosenPictures.map(async (picture) => {
                 const pictureFilename = uuidv4() + ".png";
                 const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
                     method: 'POST',
@@ -231,7 +235,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     }
 
     const makeVideo = async () => {
-        if (tickets < make_video_price * pictures.length) {
+        if (tickets < make_video_price * chosenPictures.length) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughTickets", language),
@@ -242,7 +246,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         }
         setLoadingVideoGeneration(true);
         const videoUrls: string[] = [];
-        const processPromises = pictures.map(async (picture, i) => {
+        const processPromises = chosenPictures.map(async (picture, i) => {
             const pictureFilename = uuidv4();
             const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
                 method: 'POST',
@@ -342,6 +346,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         setPicture,
         openHistory,
         setOpenHistory,
+        chosenPictures,
+        setChosenPictures,
     };
 
     return <CreateMediaContext.Provider value={value}>{children}</CreateMediaContext.Provider>;

@@ -67,7 +67,7 @@ export default function CreateMediaArea({
         initialNarrations: string[],
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations, openHistory, setOpenHistory } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations, openHistory, setOpenHistory, chosenPictures } = useCreateMedia();
     const { getWebnovelIdWithChapterMetadata, getWebnovelMetadataById, getChaptersMetadataByWebnovelId } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -275,7 +275,7 @@ export default function CreateMediaArea({
                                                     }}
                                                 >
                                                     {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
-                                                    {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
+                                                    {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />{chosenPictures.length * make_video_price}</p>
                                                 </Button>
                                                 <div className='relative'>
                                                     <Link href="#"
@@ -350,7 +350,10 @@ export default function CreateMediaArea({
                                             </div>
                                         </div>
                                     )}
-                                    <div className="grid grid-cols-2 gap-1">
+                                    <div className="grid grid-cols-2 gap-1" aria-label="Choose pictures to generate a video">
+                                        <span className="col-span-2 text-xs text-gray-500 px-2 py-1">
+                                            {phrase(dictionary, "choose_pictures", language)}
+                                        </span>
                                         {pictures.map((picture, index) => {
                                             return (
                                                 <div
@@ -368,7 +371,6 @@ export default function CreateMediaArea({
                                                         webnovel_id={webnovel_id}
                                                         chapter_id={chapter_id}
                                                         quote={savedPrompt}
-
                                                     />
                                                 </div>
                                             )

@@ -96,6 +96,7 @@ const FloatingMenu: React.FC<{
         setNarrations,
         openHistory,
         setOpenHistory,
+        setChosenPictures,
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
@@ -351,6 +352,7 @@ const FloatingMenu: React.FC<{
                 throw new Error('Invalid response format from server');
             }
             setPictures(data.images);
+            setChosenPictures(data.images);
             setPrompts(data.prompts);
             setNarrations(data.narrations);
             handlePicturesGenerated(data.images);

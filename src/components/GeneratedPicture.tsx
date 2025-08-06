@@ -32,14 +32,30 @@ export default function GeneratedPicture({
 }) {
     const [showImageModal, setShowImageModal] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
-    const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
+    const { setChapterId, setShowShareAsPostModal, setShareType, setPicture, setChosenPictures } = useCreateMedia();
     const [isEditing, setIsEditing] = useState(false);
     const { dictionary, language } = useLanguage();
     const [showShareDialog, setShowShareDialog] = useState(false);
+    const [chosen, setChosen] = useState(true);
 
     useEffect(() => {
         setChapterId(chapter_id);
     }, [chapter_id]);
+
+    useEffect(() => {
+        // Ensure image is in pictures only if chosen is true
+        setChosenPictures(prevPictures => {
+            // Remove this image from the array if it exists
+            const filtered = prevPictures.filter(pic => pic !== image);
+            if (chosen) {
+                // If chosen is true, add it back (at the end)
+                return [...filtered, image];
+            } else {
+                // If chosen is false, just return the filtered array
+                return filtered;
+            }
+        });
+    }, [chosen]);
 
     const buttonList = [
         {
@@ -64,8 +80,31 @@ export default function GeneratedPicture({
         }
     ]
 
+
     return (
-        <div key={key} className="relative">
+        <div key={key} className="relative" onClick={() => setChosen(prev => !prev)}>
+            {/* Checkbox in top left corner */}
+            <div className="absolute top-2 left-2 z-[101]">
+                <button
+                    type="button"
+                    aria-label={chosen ? "Deselect image" : "Select image"}
+                    className="flex items-center justify-center w-6 h-6 rounded bg-white/80 dark:bg-black/80 border border-gray-300 dark:border-gray-700 shadow"
+                    tabIndex={0}
+                >
+                    {chosen ? (
+                        // Checked box (SVG)
+                        <svg className="w-4 h-4 text-[#DE2B74]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" className="text-[#DE2B74] opacity-10"/>
+                            <path d="M7 13l3 3 7-7" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    ) : (
+                        // Unchecked box (SVG)
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" strokeWidth={2} fill="none"/>
+                        </svg>
+                    )}
+                </button>
+            </div>
             <TooltipProvider delayDuration={0}>
                 <div className="relative group border-0 flex items-center justify-center ">
                     <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
@@ -145,11 +184,11 @@ export default function GeneratedPicture({
                                     <TooltipTrigger asChild>
                                         <Button variant="outline"
                                             onClick={() => setIsEditing(false)}
-                                className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
-                            >
-                                <Sparkles size={10} />
-                                {phrase(dictionary, "edit", language)}
-                                 </Button>
+                                            className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+                                        >
+                                            <Sparkles size={10} />
+                                            {phrase(dictionary, "edit", language)}
+                                        </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         {phrase(dictionary, "preparing", language)}

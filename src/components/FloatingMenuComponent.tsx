@@ -275,6 +275,14 @@ const FloatingMenu: React.FC<{
             setShowNotEnoughTicketsModal(true);
             return;
         }
+        if (!webnovel.okay_to_create_videos) {
+            toast({
+                title: "Error",
+                description: phrase(dictionary, "cantCreateVideosForThisOne", language),
+                variant: "destructive"
+            })
+            return;
+        }
 
         const initialPrompt = selectedTextRef.current;
         setSavedPrompt(initialPrompt);

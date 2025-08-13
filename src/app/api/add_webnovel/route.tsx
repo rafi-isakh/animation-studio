@@ -57,8 +57,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         genre: genre,
         language: language,
         available_languages: JSON.stringify([language]),
-        is_adult_material: isAdultMaterial,
-        okay_to_create_videos: true // default to true for community webnovels, which is this path
+        is_adult_material: isAdultMaterial
     };
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel`, {

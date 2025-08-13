@@ -19,6 +19,7 @@ import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import { cn } from '@/lib/utils';
+import { htmlToPlainText } from '@/utils/htmlToPlainText';
 
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
@@ -49,13 +50,15 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     }, [webnovelId])
 
     useEffect(() => {
-        setCurrText(content.length);
-        if (content.length > maxText) {
-            setMaxExceeded(true);
-        } else {
-            setMaxExceeded(false);
-        }
-    }, [content])
+        const plainText = htmlToPlainText(content);
+        setCurrText(plainText.length);
+
+        console.log("HTML content:", content);
+        console.log("Plain text:", plainText);
+
+        setMaxExceeded(plainText.length > maxText);
+    }, [content]);
+
 
     useEffect(() => {
         if (contentRef.current) {

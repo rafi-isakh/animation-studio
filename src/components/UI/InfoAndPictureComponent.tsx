@@ -530,7 +530,7 @@ export default function InfoAndPictureComponent({
                                     </div>
                                 </div>
                                 {content.okay_to_create_videos &&
-                                content.author.id == Number(id) && // only author of the webnovel can create videos
+                                content.user.id == Number(id) && // only author of the webnovel can create videos. it's user, not author (author is for premium)
                                     <div className="pb-5 w-full">
                                         <Button
                                             variant="default"

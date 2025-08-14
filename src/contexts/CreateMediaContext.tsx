@@ -94,6 +94,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [openHistory, setOpenHistory] = useState(false);
     const [chosenPictures, setChosenPictures] = useState<string[]>([]);
+    const { id } = useUser();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -241,6 +242,14 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                 description: phrase(dictionary, "notEnoughTickets", language),
                 variant: "destructive",
                 action: <ToastAction altText='Buy Tickets'>Buy Tickets</ToastAction>
+            })
+            return;
+        }
+        if (webnovel && (!webnovel.okay_to_create_videos || webnovel.user.id !== Number(id))) {
+            toast({
+                title: "Error",
+                description: phrase(dictionary, "cantCreateVideosForThisOne", language),
+                variant: "destructive"
             })
             return;
         }

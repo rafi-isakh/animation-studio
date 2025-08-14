@@ -71,6 +71,7 @@ const FloatingMenu: React.FC<{
     const [authFailed, setAuthFailed] = useState(false);
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
+    const { id } = useUser();
     const {
         isLoading,
         setIsLoading,

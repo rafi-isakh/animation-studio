@@ -24,33 +24,6 @@ export default function PurchaseStarsStripeComponent() {
     const [result, setResult] = useState<any>(null);
     const { language } = useLanguage();
 
-    const requestData = {
-        uiType: "PAYPAL_SPB" as const,
-        storeId: "store-7e83ff7e-e9d8-41a0-b271-0fd1bcf3c01c",
-        channelKey: "channel-key-be98f4ae-7b70-4390-9657-a17bfe022070",
-        paymentId: `payment-${crypto.randomUUID()}`,
-        orderName: "나이키 와플 트레이너 2 SD",
-        totalAmount: 1000,
-        currency: "CURRENCY_USD" as const,
-    };
-
-    useEffect(() => {
-        const renderPaymentUI = async () => {
-            console.log("renderPaymentUI");
-            const response = await PortOne.loadPaymentUI(requestData, {
-                onPaymentSuccess: (response) => {
-                    setResult(response);
-                    console.log(response);
-                },
-                onPaymentFail: (error) => {
-                    alert(error)
-                    console.log(error);
-                },
-            });
-        }
-        renderPaymentUI();
-    }, []);
-
     useEffect(() => {
         if (!isLoggedIn && !loading) {
             router.push("/signin");

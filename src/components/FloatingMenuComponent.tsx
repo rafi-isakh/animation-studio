@@ -71,6 +71,7 @@ const FloatingMenu: React.FC<{
     const [authFailed, setAuthFailed] = useState(false);
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
+    const { id } = useUser();
     const {
         isLoading,
         setIsLoading,
@@ -275,7 +276,7 @@ const FloatingMenu: React.FC<{
             setShowNotEnoughTicketsModal(true);
             return;
         }
-        if (!webnovel.okay_to_create_videos) {
+        if (!webnovel.okay_to_create_videos || webnovel.user.id !== Number(id)) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "cantCreateVideosForThisOne", language),

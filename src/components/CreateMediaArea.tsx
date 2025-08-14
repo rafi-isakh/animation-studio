@@ -193,6 +193,9 @@ export default function CreateMediaArea({
                 </div>
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar z-[500]'>
                     {openHistory ? (
+                        // this is buggy because when you open the history and then back to home,
+                        // the contents (generated images) in the home is lost. change it to use
+                        // block/hidden on the css instead of using this ? <> : <> ternary structure.
                         <CreateMediaHistoryContents stars={stars} source={source} chapterIds={webnovel?.chapters?.map((chapter) => chapter.id)} />
                     ) : (
                         <div className='relative w-full p-1'>

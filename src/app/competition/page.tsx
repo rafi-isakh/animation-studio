@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 
+import bannerImage from "../../assets/EventBannerOld.png";
 import image1 from "../../assets/1.png";
 import image2_1 from "../../assets/2-1.png";
 import image2_2 from "../../assets/2-2.png";
@@ -26,7 +27,23 @@ const links = [
 
 export default function CompetitionPage() {
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", background: "white", }}>
+      {/* Banner Image */}
+      <div
+        style={{
+          width: "80%",
+          position: "relative",
+          margin: "0 auto",
+        }}
+      >
+        <Image
+          src={bannerImage}
+          alt="Event Banner"
+          style={{ width: "100%", height: "auto", display: "block" }}
+          priority
+        />
+      </div>
+
       {/* First Component */}
       <section
         style={{
@@ -37,7 +54,7 @@ export default function CompetitionPage() {
           padding: "48px 0",
         }}
       >
-        <div style={{ position: "relative", width: "100%", maxWidth: 800}}>
+        <div style={{ position: "relative", width: "100%", maxWidth: 800 }}>
           <a href={links[0]} target="_blank" rel="noopener noreferrer">
             <Image
               src={images[0]}

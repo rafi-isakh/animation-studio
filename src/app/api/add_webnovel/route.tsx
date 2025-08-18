@@ -28,6 +28,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const fileType = coverArt.type;
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
+    // TODO: don't do this. just use a UUID. this is a terrible idea.
     const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
     const fileName = await fileNameResponse.json() + ".webp";
 

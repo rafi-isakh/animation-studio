@@ -4,11 +4,11 @@ import Link from "next/link";
 
 const eventTeaserPage = () => {
     return (
-        <div className="pt-1 bg-black dark:bg-black">
+        <div className="pt-10 bg-black dark:bg-black">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
                 <Link href="#" className="mx-auto">
                     <Image
-                        src="/images/event_teaser/layer_1.webp"
+                        src="/images/event_teaser/surveyEvent_01.webp"
                         alt="Toonyz Event Teaser"
                         width={700}
                         height={1996}
@@ -32,7 +32,7 @@ const eventTeaserPage = () => {
                     />
                 </div>
                 <Image
-                    src="/images/event_teaser/layer_2.webp"
+                    src="/images/event_teaser/surveyEvent_02.webp"
                     alt="Toonyz Event Teaser"
                     width={700}
                     height={1680}
@@ -47,7 +47,7 @@ const eventTeaserPage = () => {
                     }}
                 />
                 <Image
-                    src="/images/event_teaser/layer_3.webp"
+                    src="/images/event_teaser/surveyEvent_03.webp"
                     alt="Toonyz Event Teaser"
                     width={700}
                     height={1680}
@@ -62,7 +62,7 @@ const eventTeaserPage = () => {
                     }}
                 />
                 <Image
-                    src="/images/event_teaser/layer_4.webp"
+                    src="/images/event_teaser/surveyEvent_04.webp"
                     alt="Toonyz Event Teaser"
                     width={700}
                     height={550}
@@ -77,7 +77,7 @@ const eventTeaserPage = () => {
                     }}
                 />
                 <Image
-                    src="/images/event_teaser/layer_5.webp"
+                    src="/images/event_teaser/surveyEvent_05.webp"
                     alt="Toonyz Event Teaser"
                     width={700}
                     height={550}
@@ -91,12 +91,57 @@ const eventTeaserPage = () => {
                         objectFit: 'contain'
                     }}
                 />
-                <div className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-[#1D1D1D] pb-36 text-center">
+                <Image
+                    src="/images/event_teaser/surveyEvent_06.webp"
+                    alt="Toonyz Event Teaser"
+                    width={700}
+                    height={550}
+                    className=""
+                    priority
+                    quality={100}
+                    unoptimized={true}
+                    style={{
+                        maxWidth: '100%',
+                        height: 'auto',
+                        objectFit: 'contain'
+                    }}
+                />
+                <Image
+                    src="/images/event_teaser/surveyEvent_07.webp"
+                    alt="Toonyz Event Teaser"
+                    width={700}
+                    height={550}
+                    className=""
+                    priority
+                    quality={100}
+                    unoptimized={true}
+                    style={{
+                        maxWidth: '100%',
+                        height: 'auto',
+                        objectFit: 'contain'
+                    }}
+                />
+                <Image
+                    src="/images/event_teaser/surveyEvent_08.webp"
+                    alt="Toonyz Event Teaser"
+                    width={700}
+                    height={550}
+                    className=""
+                    priority
+                    quality={100}
+                    unoptimized={true}
+                    style={{
+                        maxWidth: '100%',
+                        height: 'auto',
+                        objectFit: 'contain'
+                    }}
+                />
+                <div className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
                     <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=header" target="_blank" className="mx-auto">
                         <Image
-                            src="/images/event_teaser/event_btn.webp"
+                            src="/images/event_teaser/surveyEvent_09.webp"
                             alt="Toonyz Event Teaser"
-                            width={300}
+                            width={500}
                             height={100}
                             className=""
                             priority

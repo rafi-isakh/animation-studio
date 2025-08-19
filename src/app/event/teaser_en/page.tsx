@@ -6,7 +6,7 @@ const eventTeaserPage = () => {
     return (
         <div className="pt-1 bg-black dark:bg-black">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
-                <Link href="/event/teaser" className="mx-auto">
+                <Link href="#" className="mx-auto">
                     <Image
                         src="/images/event_teaser/layer_1.webp"
                         alt="Toonyz Event Teaser"

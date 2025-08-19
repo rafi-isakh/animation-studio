@@ -265,6 +265,15 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
+        // change to okay_to_create_pictures
+        if (!webnovel.okay_to_create_videos) {
+            toast({
+                title: "Error",
+                description: "You cannot create pictures for this webnovel",
+                variant: "destructive"
+            })
+            return;
+        }
         setShowConfirmDialog(true);
     };
 

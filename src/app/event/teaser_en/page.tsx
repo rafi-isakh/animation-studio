@@ -24,7 +24,13 @@ const eventTeaserPage = () => {
                     />
                 </Link>
                 {/* https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/Event_video_teaser_0819.mp4 */}
-                <video src={getImageUrl("Event_video_teaser_0819.mp4")} autoPlay muted loop className="w-full h-full object-cover" />
+                <div className="bg-black flex justify-center items-center w-[700px] h-full">
+                    <video
+                        src={getImageUrl("Event_video_teaser_0819.mp4")}
+                        autoPlay muted loop playsInline
+                        className="w-full h-full object-cover"
+                    />
+                </div>
                 <Image
                     src="/images/event_teaser/layer_2.webp"
                     alt="Toonyz Event Teaser"
@@ -85,8 +91,8 @@ const eventTeaserPage = () => {
                         objectFit: 'contain'
                     }}
                 />
-                <div className="w-[700px] flex flex-col items-center justify-center mx-auto bg-[#1D1D1D] pb-36">
-                    <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=header" target="_blank" className="mx-auto self-center">
+                <div className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-[#1D1D1D] pb-36 text-center">
+                    <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=header" target="_blank" className="mx-auto">
                         <Image
                             src="/images/event_teaser/event_btn.webp"
                             alt="Toonyz Event Teaser"

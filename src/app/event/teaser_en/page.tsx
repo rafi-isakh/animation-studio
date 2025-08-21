@@ -137,7 +137,7 @@ const eventTeaserPage = () => {
                     }}
                 />
                 <div className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
-                    <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=header" target="_blank" className="mx-auto">
+                    <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=sharing&ouid=108692304471813504958" target="_blank" className="mx-auto">
                         <Image
                             src="/images/event_teaser/surveyEvent_09.webp"
                             alt="Toonyz Event Teaser"

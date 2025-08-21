@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         const { Body, ContentType } = await s3Client.send(command);
         const arrayBuffer = await Body?.transformToByteArray();
         
-        return new NextResponse(arrayBuffer, {
+        return new NextResponse(arrayBuffer ? new Uint8Array(arrayBuffer) : null, {
             headers: {
                 "Content-Type": ContentType || "application/octet-stream",
                 "Content-Disposition": `inline; filename="${file.split('/').pop()}"`,

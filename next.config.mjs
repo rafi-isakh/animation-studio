@@ -61,4 +61,5 @@ const pwaConfig = withPWA({
 export default {
     ...pwaConfig,
     ...nextConfig,
+    staticPageGenerationTimeout: 180,
 };

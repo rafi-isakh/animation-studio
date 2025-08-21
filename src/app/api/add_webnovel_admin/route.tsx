@@ -102,6 +102,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
 
     revalidateTag("webnovels");
+    await fetch(`${process.env.EDITOR_TOONYZ}/api/revalidate?tag=webnovels`);
 
     const data = await response.json();
     return NextResponse.json({

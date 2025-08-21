@@ -24,7 +24,7 @@ const eventTeaserPage = () => {
                     />
                 </Link>
                 {/* https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/Event_video_teaser_0819.mp4 */}
-                <div className="bg-black flex justify-center items-center w-[700px] h-full">
+                <div className="bg-black flex justify-center items-center md:w-[700px] w-full h-full">
                     <video
                         src={getImageUrl("Event_video_teaser_0819.mp4")}
                         autoPlay muted loop playsInline

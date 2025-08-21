@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async function login(provider: string, redirect: boolean, callbackUrl?: string) {
         try {
             await signIn(provider, { 
-                redirect: redirect, 
+                redirect: redirect as true, 
                 redirect_uri: callbackUrl, 
                 callbackUrl: callbackUrl, 
                 redirectTo: callbackUrl 
@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async function logout(redirect: boolean, callbackUrl: string) {
         try {
             await signOut({ 
-                redirect: redirect, 
+                redirect: redirect as true, 
                 callbackUrl: callbackUrl 
             });
         } catch (error) {

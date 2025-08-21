@@ -87,7 +87,7 @@ const eventTeaserPage = () => {
                     if (index === 7) {
                         return (
                             <div key={7} className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
-                                <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdHqHP8HwrJEzkXuQqK9NWJDjB_gZraCsaTKtGukx7G2XhjGw/viewform?usp=header" target="_blank" className="mx-auto">
+                                <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfafqfxSnpg4sBlZwvKTKCHs2jQybtl09ZZGOQ6q6U6FeLSxg/viewform?usp=header" target="_blank" className="mx-auto">
                                     <Image
                                         src="/images/event_teaser/08_ko.webp"
                                         alt="Toonyz Event Teaser Submit Button"

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const eventTeaserPage = () => {
     return (
-        <div className="pt-30 bg-black dark:bg-black">
+        <div className="pt-28 bg-black dark:bg-black">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
                 <Link href="#" className="mx-auto">
                     <Image

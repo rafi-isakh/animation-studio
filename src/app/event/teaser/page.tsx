@@ -5,12 +5,6 @@ import Link from "next/link";
 
 const images = [
     {
-        src: "/images/event_teaser/01_ko.webp",
-        alt: "Toonyz Event Teaser 01",
-        width: 700,
-        height: 1996
-    },
-    {
         src: "/images/event_teaser/02_ko.webp",
         alt: "Toonyz Event Teaser 02",
         width: 700,
@@ -84,9 +78,9 @@ const eventTeaserPage = () => {
                     />
                 </div>
                 {images.map((image, index) => {
-                    if (index === 7) {
+                    if (index === 6) {
                         return (
-                            <div key={7} className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
+                            <div key={6} className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
                                 <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfafqfxSnpg4sBlZwvKTKCHs2jQybtl09ZZGOQ6q6U6FeLSxg/viewform?usp=sharing&ouid=108692304471813504958" target="_blank" className="mx-auto">
                                     <Image
                                         src="/images/event_teaser/08_ko.webp"

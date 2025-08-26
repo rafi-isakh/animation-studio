@@ -40,7 +40,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [email, setEmail] = useState<string>(userFromServer?.email || "");
     const [nickname, setNickname] = useState<string>(userFromServer?.nickname || "");
     const [bio, setBio] = useState<string>(userFromServer?.bio || "");
-    const [stars, setStars] = useState<number>(userFromServer ? userFromServer.stars + userFromServer.free_stars : 0);
     const [picture, setPicture] = useState<string>(userFromServer?.picture || "");
     const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<[number, string][]>(
         userFromServer ? JSON.parse(userFromServer.purchased_webnovel_chapters) : []
@@ -54,7 +53,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
-    const [english_stars, setEnglishStars] = useState<number>(userFromServer?.english_stars || 0);
+    const [stars, setStars] = useState<number>(userFromServer ? userFromServer.stars + userFromServer.free_stars : 0);
+    const [english_stars, setEnglishStars] = useState<number>(userFromServer ? userFromServer.english_stars + userFromServer.free_english_stars : 0);
     const [free_english_stars, setFreeEnglishStars] = useState<number>(userFromServer?.free_english_stars || 0);
     const [tickets, setTickets] = useState<number>(userFromServer?.tickets || 0);
     const {loading} = useAuth();
@@ -83,7 +83,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 setGenres(JSON.parse(data.genres));
                 setIsAdult(data.is_adult);
                 setLoggedIn(data.loggedIn);
-                setEnglishStars(data.english_stars);
+                setEnglishStars(data.english_stars + data.free_english_stars);
                 setFreeEnglishStars(data.free_english_stars);
                 setTickets(data.tickets);
                 setChecking(false);

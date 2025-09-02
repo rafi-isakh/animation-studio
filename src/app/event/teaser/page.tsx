@@ -50,7 +50,7 @@ const images = [
 
 const eventTeaserPage = () => {
     return (
-        <div className="bg-black dark:bg-black">
+        <div className="bg-black dark:bg-black pb-36">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
                 <Link href="#" className="mx-auto">
                     <Image
@@ -80,22 +80,28 @@ const eventTeaserPage = () => {
                 {images.map((image, index) => {
                     if (index === 6) {
                         return (
-                            <div key={6} className="md:w-[700px] w-full flex flex-col items-center justify-center mx-auto bg-black pb-36 text-center">
-                                <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfafqfxSnpg4sBlZwvKTKCHs2jQybtl09ZZGOQ6q6U6FeLSxg/viewform?usp=sharing&ouid=108692304471813504958" target="_blank" className="mx-auto">
+                            <div key={6} className="fixed bottom-6 left-0 w-full flex flex-col items-center justify-center z-50"> {/* moved slightly higher with bottom-6 */}
+                                <Link
+                                    href="https://docs.google.com/forms/d/e/1FAIpQLSf4BOIGXC2Xu3T3WSOhEXpOoFuAY3L1SUQXBCAgyLDAlcCWxw/viewform?usp=sharing&ouid=116407487776789966088"
+                                    target="_blank"
+                                    className="relative mx-auto"
+                                >
+                                    {/* Radial shadow behind the image */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-[400px] h-[24px] rounded-full blur-2xl opacity-100
+                                            bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500">
+                                        </div>
+                                    </div>
+
                                     <Image
-                                        src="/images/event_teaser/08_ko.webp"
-                                        alt="Toonyz Event Teaser Submit Button"
-                                        width={500}
-                                        height={100}
-                                        className=""
+                                        src="/images/event_teaser/floatingBtn.webp"
+                                        alt="Toonyz Event Teaser"
+                                        width={300}
+                                        height={50}
                                         priority
                                         quality={100}
-                                        unoptimized={true}
-                                        style={{
-                                            maxWidth: '100%',
-                                            height: 'auto',
-                                            objectFit: 'contain'
-                                        }}
+                                        unoptimized
+                                        className="w-[220px] md:w-[260px] h-auto object-contain relative" 
                                     />
                                 </Link>
                             </div>

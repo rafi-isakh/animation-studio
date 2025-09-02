@@ -80,7 +80,7 @@ const eventTeaserPage = () => {
                 {images.map((image, index) => {
                     if (index === 6) {
                         return (
-                            <div key={6} className="fixed bottom-6 left-0 w-full flex flex-col items-center justify-center z-50"> {/* moved slightly higher with bottom-6 */}
+                            <div key={6}   className="fixed left-0 w-full flex flex-col items-center justify-center z-50 bottom-20 md:bottom-6"> 
                                 <Link
                                     href="https://docs.google.com/forms/d/e/1FAIpQLSf4BOIGXC2Xu3T3WSOhEXpOoFuAY3L1SUQXBCAgyLDAlcCWxw/viewform?usp=sharing&ouid=116407487776789966088"
                                     target="_blank"

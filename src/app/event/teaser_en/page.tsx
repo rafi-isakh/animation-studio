@@ -136,7 +136,7 @@ const eventTeaserPage = () => {
                         objectFit: 'contain'
                     }}
                 />
-                <div className="fixed bottom-6 left-0 w-full flex flex-col items-center justify-center z-50"> {/* moved slightly higher with bottom-6 */}
+                <div className="fixed left-0 w-full flex flex-col items-center justify-center z-50 bottom-20 md:bottom-6"> 
                     <Link
                         href="https://docs.google.com/forms/d/e/1FAIpQLSe71b2kc_GVF3HEmQpchndbr7M5BkKAD2Ye1wsA_8ns0OErXg/viewform?usp=dialog"
                         target="_blank"

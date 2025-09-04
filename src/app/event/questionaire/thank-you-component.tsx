@@ -1,21 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import animationData from "@/assets/N_logo_with_heart.json";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
+import animationData from "@/assets/N_logo_with_heart.json";
 
-export default function ThankYouPage() {
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), { ssr: false });
+
+export default function ThankYouComponent() {
   const { email } = useUser();
   const { language } = useLanguage();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +42,7 @@ export default function ThankYouPage() {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          console.log("Event answers submitted:", data);
           localStorage.removeItem("event_answers");
-        } else {
-          console.error("Failed to submit answers:", data.message);
         }
       } catch (err) {
         console.error("Error submitting answers:", err);
@@ -61,11 +54,8 @@ export default function ThankYouPage() {
     submitSavedAnswers();
   }, [email]);
 
-  if (loading) {
-    return <LottieLoader width="w-40" animationData={animationData} />;
-  }
+  if (loading) return <LottieLoader width="w-40" animationData={animationData} />;
 
-  // Text depending on language
   const texts =
     language === "ko"
       ? [
@@ -82,7 +72,7 @@ export default function ThankYouPage() {
         ];
 
   return (
-    <div className="flex flex-col items-center text-center min-h-screen justify-center px-6 gap-6">
+    <div className="flex flex-col items-center text-center min-h-screen justify-center px-6 gap-6 bg-black">
       <p className="text-[#DB2879] text-[24px] font-bold">{texts[0]}</p>
       <p className="text-white text-[20px]">{texts[1]}</p>
       <p className="text-white text-[20px]">{texts[2]}</p>
@@ -95,7 +85,7 @@ export default function ThankYouPage() {
 
       <button
         className="mt-6 px-6 py-3 rounded-lg bg-[#DB2879] text-white font-medium text-lg"
-        onClick={() => router.push("/")}
+        onClick={() => window.location.href = "/"}
       >
         {texts[3]}
       </button>

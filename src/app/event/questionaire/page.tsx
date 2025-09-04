@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import SignInComponent from "@/components/SignInComponent";
+import ThankYouComponent from "./thank-you-component";
 
 export default function EventPage() {
   const router = useRouter();
@@ -118,10 +119,11 @@ export default function EventPage() {
     }
   };
 
+  if (hasAnsweredEvent) return <ThankYouComponent />;
 
   return (
     
-    <div className="flex flex-col min-h-screen items-center justify-between p-6 relative">
+    <div className="flex flex-col min-h-screen items-center justify-between p-6 relative bg-black">
       <div className="flex flex-col items-center">
         {(step < 3) &&
         <>

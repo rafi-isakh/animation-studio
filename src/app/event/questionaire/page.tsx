@@ -169,7 +169,7 @@ export default function EventPage() {
         )}
 
         {step === 3 && (
-          <SignInComponent redirectTo="/event/thank-you" />
+          <SignInComponent redirectTo="/event/questionaire" />
         )}
 
         <div className="absolute bottom-6 left-0 w-full flex justify-center px-6 pb-12">

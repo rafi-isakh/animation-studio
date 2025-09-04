@@ -1,60 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import dynamic from "next/dynamic";
 
-import animationData from "@/assets/N_logo_with_heart.json";
+interface ThankYouComponentProps {
+  onExplore?: () => void;
+}
 
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), { ssr: false });
-
-export default function ThankYouComponent() {
-  const { email } = useUser();
+export default function ThankYouComponent({ onExplore }: ThankYouComponentProps) {
   const { language } = useLanguage();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const submitSavedAnswers = async () => {
-      const stored = localStorage.getItem("event_answers");
-      if (!stored || !email) {
-        setLoading(false);
-        return;
-      }
-
-      const answers = JSON.parse(stored);
-      if (!answers[1] && !answers[2]) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const payload = {
-          is_helpful: answers[1] === "yes",
-          is_want: answers[2] === "yes",
-        };
-
-        const res = await fetch("/api/add_event_answer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          localStorage.removeItem("event_answers");
-        }
-      } catch (err) {
-        console.error("Error submitting answers:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    submitSavedAnswers();
-  }, [email]);
-
-  if (loading) return <LottieLoader width="w-40" animationData={animationData} />;
 
   const texts =
     language === "ko"
@@ -85,7 +38,7 @@ export default function ThankYouComponent() {
 
       <button
         className="mt-6 px-6 py-3 rounded-lg bg-[#DB2879] text-white font-medium text-lg"
-        onClick={() => window.location.href = "/"}
+        onClick={onExplore ?? (() => window.location.href = "/")}
       >
         {texts[3]}
       </button>

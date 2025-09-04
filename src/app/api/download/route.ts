@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { auth } from "@/auth";
@@ -45,4 +47,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
-} 
+}

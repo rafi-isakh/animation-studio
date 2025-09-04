@@ -1,4 +1,6 @@
 // app/api/verify-receipt/route.ts
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';

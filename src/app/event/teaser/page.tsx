@@ -1,7 +1,8 @@
+"use client";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 
 const images = [
     {
@@ -48,7 +49,8 @@ const images = [
     }
 ]
 
-const eventTeaserPage = () => {
+const EventTeaserPage = () => {
+    const router = useRouter();
     return (
         <div className="bg-black dark:bg-black pb-36">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
@@ -81,11 +83,7 @@ const eventTeaserPage = () => {
                     if (index === 6) {
                         return (
                             <div key={6}   className="fixed left-0 w-full flex flex-col items-center justify-center z-50 bottom-20 md:bottom-6"> 
-                                <Link
-                                    href="https://docs.google.com/forms/d/e/1FAIpQLSf4BOIGXC2Xu3T3WSOhEXpOoFuAY3L1SUQXBCAgyLDAlcCWxw/viewform?usp=sharing&ouid=116407487776789966088"
-                                    target="_blank"
-                                    className="relative mx-auto"
-                                >
+                                <button onClick={() => router.push("/event/questionaire")} >
                                     {/* Radial shadow behind the image */}
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="w-[400px] h-[24px] rounded-full blur-2xl opacity-100
@@ -103,7 +101,7 @@ const eventTeaserPage = () => {
                                         unoptimized
                                         className="w-[220px] md:w-[260px] h-auto object-contain relative" 
                                     />
-                                </Link>
+                                </button>
                             </div>
                         )
                     }
@@ -131,4 +129,4 @@ const eventTeaserPage = () => {
     )
 }
 
-export default eventTeaserPage;
+export default EventTeaserPage;

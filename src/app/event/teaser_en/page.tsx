@@ -1,8 +1,11 @@
+"use client";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const eventTeaserPage = () => {
+const EventTeaserPage = () => {
+    const router = useRouter();
     return (
         <div className="pt-28 bg-black dark:bg-black pb-36">
             <div className="flex flex-col items-center justify-center w-full h-full mx-auto">
@@ -137,11 +140,8 @@ const eventTeaserPage = () => {
                     }}
                 />
                 <div className="fixed left-0 w-full flex flex-col items-center justify-center z-50 bottom-20 md:bottom-6"> 
-                    <Link
-                        href="https://docs.google.com/forms/d/e/1FAIpQLSe71b2kc_GVF3HEmQpchndbr7M5BkKAD2Ye1wsA_8ns0OErXg/viewform?usp=dialog"
-                        target="_blank"
-                        className="relative mx-auto"
-                    >
+                    <button onClick={() => router.push("/event/questionaire")} >
+                        
                         {/* Radial shadow behind the image */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-[400px] h-[24px] rounded-full blur-2xl opacity-100
@@ -159,11 +159,11 @@ const eventTeaserPage = () => {
                             unoptimized
                             className="w-[220px] md:w-[260px] h-auto object-contain relative" 
                         />
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>
     )
 }
 
-export default eventTeaserPage;
+export default EventTeaserPage;

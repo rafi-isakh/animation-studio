@@ -16,6 +16,13 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
     const { dictionary, language } = useLanguage();
     const { webnovels, restricted } = useWebnovels();
     const effectiveAdultFilter = restricted ? null : false;
+
+    useEffect(() => {
+    const savedAnswers = localStorage.getItem("event_answers");
+    if (savedAnswers) {
+        console.log(savedAnswers)
+    }
+    }, []);
     
     // State to force re-render when needed
     const [forceUpdateKey, setForceUpdateKey] = useState(0);

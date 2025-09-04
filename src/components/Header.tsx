@@ -292,6 +292,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/event/teaser_en')) {
             return "hidden"
         }
+        if (pathname.startsWith('/event/questionaire')) {
+            return "hidden"
+        }
+        if (pathname.startsWith('/event/thank-you')) {
+            return "hidden"
+        }
         return ""
     }
 

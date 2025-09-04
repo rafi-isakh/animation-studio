@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import LottieLoader from "@/components/LottieLoader";
 import animationData from "@/assets/N_logo_with_heart.json";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
 
 export default function ThankYouPage() {
   const { email } = useUser();

@@ -26,6 +26,7 @@ import { headers } from 'next/headers';
 import UserProviderServer from "@/contexts/UserProviderServer";
 import WebnovelsProviderServer from "@/contexts/WebnovelsProviderServer";
 import { SessionProvider } from 'next-auth/react';
+import Script from "next/script";
 
 interface RootLayoutProps {
     children: ReactNode;
@@ -124,6 +125,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
                 />
+                <Script
+                    id="hubspot-script"
+                    src="//js-na2.hs-scripts.com/243784961.js"
+                    strategy="afterInteractive"
+                    />
             </head>
             <body className={`antialiased dark`}>
                 <GoogleAnalytics />

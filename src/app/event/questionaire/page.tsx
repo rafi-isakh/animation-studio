@@ -21,6 +21,8 @@ export default function EventPage() {
   const [loading, setLoading] = useState(true); // <--- loading state for thank you submission
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState<{ [key: number]: string | null }>({ 1: null, 2: null });
+  // console.log(answers)
+  console.log(JSON.parse(localStorage.getItem("event_answers") || "{}"))
 
   const images = [
     { src: "/images/event_teaser/QKR_1.webp", alt: "Section 1 KO" },
@@ -59,7 +61,10 @@ export default function EventPage() {
   useEffect(() => {
     const submitSavedAnswers = async () => {
       const stored = localStorage.getItem("event_answers");
-      if (!stored || !email) return;
+      if (!stored || !email) {
+        console.log("No stored answers or user not logged in");
+        return
+      };
 
       const parsed = JSON.parse(stored);
       if (!parsed[1] && !parsed[2]) return;
@@ -77,13 +82,13 @@ export default function EventPage() {
         });
 
         const data = await res.json();
-        if (res.ok && data.success) localStorage.removeItem("event_answers");
+        if (res.ok && data.success) {localStorage.removeItem("event_answers"); setHasAnsweredEvent(true);};
       } catch (err) {
         console.error(err);
       }
     };
 
-    if (hasAnsweredEvent) submitSavedAnswers();
+    if (!hasAnsweredEvent) submitSavedAnswers();
   }, [hasAnsweredEvent, email]);
 
   // --------------------

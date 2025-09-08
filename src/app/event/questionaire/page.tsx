@@ -21,8 +21,6 @@ export default function EventPage() {
   const [loading, setLoading] = useState(true); // <--- loading state for thank you submission
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState<{ [key: number]: string | null }>({ 1: null, 2: null });
-  // console.log(answers)
-  console.log(JSON.parse(localStorage.getItem("event_answers") || "{}"))
 
   const images = [
     { src: "/images/event_teaser/QKR_1.webp", alt: "Section 1 KO" },

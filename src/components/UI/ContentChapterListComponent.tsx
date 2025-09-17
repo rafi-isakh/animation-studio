@@ -218,7 +218,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             )}
 
                             <div className="flex flex-col w-full gap-2 overflow-y-auto md:p-0 p-4 md:pt-10 pt-0">
-                                {posts && posts.length > 0 && (
+                                {posts && posts.length > 0 && content.okay_to_create_videos && (
                                     <>
                                         <h2 className="text-base font-bold text-left mb-1">
                                             {phrase(dictionary, "relatedToonyzPosts", language)}

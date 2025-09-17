@@ -8,6 +8,12 @@ import Image from "next/image";
 import { MASTER_PROMPT_BY_GENRE } from "@/constants/masterprompt";
 import { eventPrompts } from "@/constants/eventprompts";
 import { useToast } from "@/hooks/use-toast";
+import dynamic from "next/dynamic";
+import animationData from '@/assets/N_logo_with_heart.json';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+  ssr: false,
+});
 
 export default function EventLandingPage() {
   const router = useRouter();
@@ -355,25 +361,35 @@ export default function EventLandingPage() {
                 />
               </div>
 
-              <button
-                className="relative w-[60%] aspect-square"
-                style={{ marginBottom: 20 }}
-                onClick={() => {
-                  if (styleText && genreText && file) {
-                    handleUploadClick("gemini");
-                  }
-                }}
-              >
-                <Image
-                  src="/images/event_landing/page4_button_2.png"
-                  alt="Header text 2"
-                  fill
-                  className="object-contain cursor-pointer"
-                  style={{
-                    opacity: (overlayImageStyle !== (-1) && overlayImageGenre !== (-1) && file) ? 1 : 0.5,
+              {uploading ? (
+                // 🔄 Show loader instead of upload button
+                <div className="relative w-[60%] aspect-square flex items-center justify-center" style={{ marginBottom: 20 }}>
+                  <LottieLoader animationData={animationData} />
+                </div>
+              ) : (
+                <button
+                  className="relative w-[60%] aspect-square"
+                  style={{ marginBottom: 20 }}
+                  onClick={() => {
+                    if (styleText && genreText && file) {
+                      handleUploadClick("gemini");
+                    }
                   }}
-                />
-              </button>
+                >
+                  <Image
+                    src="/images/event_landing/page4_button_2.png"
+                    alt="Header text 2"
+                    fill
+                    className="object-contain cursor-pointer"
+                    style={{
+                      opacity:
+                        overlayImageStyle !== -1 && overlayImageGenre !== -1 && file
+                          ? 1
+                          : 0.5,
+                    }}
+                  />
+                </button>
+              )}
             </div>
           )}
 

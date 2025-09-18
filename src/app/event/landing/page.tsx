@@ -372,7 +372,7 @@ export default function EventLandingPage() {
                   style={{ marginBottom: 20 }}
                   onClick={() => {
                     if (styleText && genreText && file) {
-                      handleUploadClick("gemini");
+                      handleUploadClick("imagen3");
                     }
                   }}
                 >

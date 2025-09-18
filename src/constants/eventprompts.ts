@@ -20,39 +20,6 @@ export const eventPrompts = {
 
   genres: [
     {
-      label: "Contemporary Fantasy",
-      prompt:
-        `"contemporary_fantasy": "If {style} is Illustration Art:  
-Vertical composition, ultra-detailed close-up portrait (~90–95% of frame).  
-Young {gender} in plain modern hunter attire — if male: crisp fitted shirt in {DOMINANT_COLOR}; if female: blouse in {DOMINANT_COLOR}.
-Absolutely no jewelry, no gemstones, no crowns, no tiaras, no head accessories, no hair accessories, no earrings, no necklaces, no brooches, no metallic trims, no decorative patterns, no embroidery, and no glowing ornaments anywhere on the clothing or body.  
-Expression follows the selfie — calm, focused. Gaze forward; pupils aligned.  
-Background: close city buildings at night — glass facades glowing with window lights and neon reflections. Billboards and neon signs must appear blurred or abstract, with no visible text, logos, or legible characters. Faint dungeon rift shimmer in the distance.  
-Aura: hunter energy in {DOMINANT_COLOR}, circling the character at a distance and surrounding them from all sides. Powerful arcs and streaks form a loose perimeter, enclosing the figure within a luminous storm. Some arcs sweep high above, others slash across the ground plane, creating the impression of a barrier of energy closing in around the protagonist. Countless glowing fragments scatter outward, layering the space between the character and the city night.  
-Lighting: cinematic high contrast with {DOMINANT_COLOR} rim light tracing the silhouette, accented by neutral whites. No golden tones or lens flares. Highlights sparkle across hair strands and fabric folds; deep shadows intensify drama.  
-Mood: radiant, commanding, unstoppable — the hunter as the still center of the scene, framed by an enclosing storm of energy radiating in every direction.
-
-Else:  
-Modern urban fantasy action illustration featuring exactly one young {gender} as the central figure.  
-Character fills 90% of the frame, waist-up or three-quarter view, slightly leaning forward as if unleashing power.  Outfit: if {gender} is male — crisp fitted shirt in {DOMINANT_COLOR}; if {gender} is female — blouse in {DOMINANT_COLOR}. 
-The subject’s facial features, ethnicity, and skin tone must exactly match the input selfie with no reinterpretation.  
-Do not alter facial proportions, eye shape, nose shape, mouth shape, or jawline in any way.  
-Do not whiten, westernize, or modify skin tone — skin tone must remain identical to the selfie.  
-Hair color must remain exactly as in the selfie, but ethnicity and facial structure must not be altered or reinterpreted based on hair color.  
-Do not reinterpret blonde or light hair as implying Western ethnicity.  
- Design must be clean and functional, with no jewelry, no gemstones, no metallic accessories, no decorative patterns, embroidery, or glowing ornaments.  
-Aura: all-encompassing and outward-radiating in {DOMINANT_COLOR}, surrounding the character in every direction like a storm.  
-- Energy arcs coil around the torso, arms, and shoulders, then whip outward to form a glowing perimeter.  
-- Wide circular streaks sweep above and along the ground, enclosing the figure in a storm-like barrier.  
-- Trails overlap and cross, some lashing diagonally while others wrap around, giving the sense of a luminous net closing in.  
-- Countless glowing fragments scatter off these arcs, filling the air near and far, adding layered depth.  
-- Aura density peaks near the character, then expands outward until it engulfs the ruined skyline.  
-
-Background: a half-ruined cityscape, skyscrapers cracked and partially collapsed. Shattered windows, leaning towers, and broken neon signs glow faintly in the chaos. The structures remain recognizable but scarred by destruction. Faint fires and smoke rise in the distance, reinforcing the apocalyptic mood.  
-Lighting: intense and cinematic — rim light and electric highlights strictly in {DOMINANT_COLOR} trace the figure’s silhouette, with deepened shadows across the ruins. Bright energy reflections glint on broken glass, wet asphalt, and metal debris.  
-Mood: destructive, unstoppable, cinematic — the protagonist stands as the epicenter of an overwhelming surge of {DOMINANT_COLOR} energy, engulfing a ruined city night in radiant chaos."`,
-    },
-    {
       label: "Romance Fantasy",
       prompt:
         `    "romance_fantasy": "If {style} is Illustration Art:  
@@ -77,41 +44,6 @@ Colors: luminous pastel palette with gold, ivory, and jewel-tone accents.
 Lighting: dramatic yet soft — warm golden sunlight or moonlight mixed with subtle rim light, highlights on hair and fabric folds.  
 Mood: ethereal, romantic, and intimate — capturing the moment of fateful revelation or tender emotion, like a webnovel cover that draws the reader into a love story.  
 Face is clear, smooth, and naturally beautiful, with no additional markings or unnatural effects.",`,
-    },
-    {
-      label: "Wuxia",
-      prompt:
-        `"martial_arts_wuxia":  "If {style} is Illustration Art:  
-Composition: ultra-detailed **upper body portrait (~80–85% of frame)**. Character shown from chest to head, centered clearly, with no cropping of the face. no tatoo on face.
-
-Background: symbolic full moon motif — a vast luminous circle glowing softly behind the character, rendered as an abstract emblem rather than realistic astronomy. The moon radiates misty light into drifting haze, reinforcing a mystical nocturnal mood without overpowering the figure.  
-
-Qi aura: overwhelming and dynamic in **{DOMINANT_COLOR} only**. Energy radiates outward in arcs, streaks, and blade-like currents that whip through the air, circling the character and slicing into the surrounding mist. Trails overlap and spiral, dense near the body and fading outward into haze. The aura must feel storm-like and radiant, but always positioned **behind or around the figure**, never covering or obscuring the face.  
-
-Outfit: Chinese hanfu-based martial robe in {DOMINANT_COLOR}, with one subtle **monotone accent** at the collar edge (lingbian) or sleeve cuffs (xiukou).  
-The accent must be a near-tone variation of {DOMINANT_COLOR} — slightly lighter or darker in value, but never contrasting.  
-Wide flowing sleeves. Strictly no jewelry, no gemstones, no crowns, no tiaras, no metallic trims, no embroidery, no decorative patterns, and no modern undershirts.  Fabric folds emphasized with shading and natural texture.
-Face: smooth, clear, and natural — **no markings, no runes, no tattoos, no symbols, and no glowing effects** on the face or skin. Expression follows the selfie: determined, serene, or slightly challenging.  
-
-Lighting: high-contrast chiaroscuro — the moon and qi aura illuminate the silhouette. Strong rim light in {DOMINANT_COLOR} traces hair strands and robe folds, while deep shadows heighten intensity.  
-
-Mood: transcendent, fierce, majestic — the martial cultivator appears as if fused with the moon itself, their aura a storm of {DOMINANT_COLOR} power tearing through the night mist with disciplined force.  
-
-Else:  
-Vertical composition, dramatic wuxia atmosphere and strong protagonist presence.  
-Character is a young {gender} filling 80–85% of the frame, waist-up or three-quarter portrait, positioned slightly higher in the frame so the bottom third remains clean for title placement.  
-
-Outfit: traditional wuxia robes in layered {DOMINANT_COLOR}, wide flowing sleeves, and a neatly tied sash. Robes move naturally with a slight breeze, showing vitality and readiness.  
-Pose: hands and body follow the selfie naturally — near the chest, face, or side — conveying calm confidence without holding a weapon.  
-Facial expression follows the selfie: determined, serene, or slightly challenging.  
-
-Background: **character seated on the tiled rooftop of a martial sect building**, roof tiles slanting beneath them. Wooden beams, lanterns, and partial eaves frame the upper edge. In the distance, sect halls and mountains fade into glowing haze, with pine silhouettes catching the light.  
-
-Lighting: **dramatic and cinematic chiaroscuro** — strong directional sunlight from the horizon strikes the character from one side, leaving the opposite side in deep shadow. Golden-orange rays illuminate the edges of the robes, hair strands, and roof tiles with fiery brilliance, while the face is partially lit, creating a striking balance of light and shadow. Subtle rim light separates the silhouette from the background, and soft secondary bounce light adds faint cool tones in shadowed areas for depth.  
-
-Atmosphere: drifting dust motes and glowing light fragments carried by the breeze, catching the sunbeam; faint qi shimmer enhancing the mystical feel. Light should carve the figure out of the scene, highlighting the character as the luminous center amid the encroaching shadow.  
-
-Composition: cinematic and painterly, optimized for mobile covers — character as the central focal point with light and shadow leading the viewer’s eye, and clear negative space at the bottom reserved for title typography."`,
     },
     {
       label: "Fantasy Fusion",
@@ -167,6 +99,74 @@ Randomized outcomes:
 - Mood: commanding, untouchable, defiant.  
 
 Both outcomes emphasize bold anime-style contrast, luminous highlights, cold pale skin tones, and cinematic depth. no text.",`,
+    },
+    {
+      label: "Wuxia",
+      prompt:
+        `"martial_arts_wuxia":  "If {style} is Illustration Art:  
+Composition: ultra-detailed **upper body portrait (~80–85% of frame)**. Character shown from chest to head, centered clearly, with no cropping of the face. no tatoo on face.
+
+Background: symbolic full moon motif — a vast luminous circle glowing softly behind the character, rendered as an abstract emblem rather than realistic astronomy. The moon radiates misty light into drifting haze, reinforcing a mystical nocturnal mood without overpowering the figure.  
+
+Qi aura: overwhelming and dynamic in **{DOMINANT_COLOR} only**. Energy radiates outward in arcs, streaks, and blade-like currents that whip through the air, circling the character and slicing into the surrounding mist. Trails overlap and spiral, dense near the body and fading outward into haze. The aura must feel storm-like and radiant, but always positioned **behind or around the figure**, never covering or obscuring the face.  
+
+Outfit: Chinese hanfu-based martial robe in {DOMINANT_COLOR}, with one subtle **monotone accent** at the collar edge (lingbian) or sleeve cuffs (xiukou).  
+The accent must be a near-tone variation of {DOMINANT_COLOR} — slightly lighter or darker in value, but never contrasting.  
+Wide flowing sleeves. Strictly no jewelry, no gemstones, no crowns, no tiaras, no metallic trims, no embroidery, no decorative patterns, and no modern undershirts.  Fabric folds emphasized with shading and natural texture.
+Face: smooth, clear, and natural — **no markings, no runes, no tattoos, no symbols, and no glowing effects** on the face or skin. Expression follows the selfie: determined, serene, or slightly challenging.  
+
+Lighting: high-contrast chiaroscuro — the moon and qi aura illuminate the silhouette. Strong rim light in {DOMINANT_COLOR} traces hair strands and robe folds, while deep shadows heighten intensity.  
+
+Mood: transcendent, fierce, majestic — the martial cultivator appears as if fused with the moon itself, their aura a storm of {DOMINANT_COLOR} power tearing through the night mist with disciplined force.  
+
+Else:  
+Vertical composition, dramatic wuxia atmosphere and strong protagonist presence.  
+Character is a young {gender} filling 80–85% of the frame, waist-up or three-quarter portrait, positioned slightly higher in the frame so the bottom third remains clean for title placement.  
+
+Outfit: traditional wuxia robes in layered {DOMINANT_COLOR}, wide flowing sleeves, and a neatly tied sash. Robes move naturally with a slight breeze, showing vitality and readiness.  
+Pose: hands and body follow the selfie naturally — near the chest, face, or side — conveying calm confidence without holding a weapon.  
+Facial expression follows the selfie: determined, serene, or slightly challenging.  
+
+Background: **character seated on the tiled rooftop of a martial sect building**, roof tiles slanting beneath them. Wooden beams, lanterns, and partial eaves frame the upper edge. In the distance, sect halls and mountains fade into glowing haze, with pine silhouettes catching the light.  
+
+Lighting: **dramatic and cinematic chiaroscuro** — strong directional sunlight from the horizon strikes the character from one side, leaving the opposite side in deep shadow. Golden-orange rays illuminate the edges of the robes, hair strands, and roof tiles with fiery brilliance, while the face is partially lit, creating a striking balance of light and shadow. Subtle rim light separates the silhouette from the background, and soft secondary bounce light adds faint cool tones in shadowed areas for depth.  
+
+Atmosphere: drifting dust motes and glowing light fragments carried by the breeze, catching the sunbeam; faint qi shimmer enhancing the mystical feel. Light should carve the figure out of the scene, highlighting the character as the luminous center amid the encroaching shadow.  
+
+Composition: cinematic and painterly, optimized for mobile covers — character as the central focal point with light and shadow leading the viewer’s eye, and clear negative space at the bottom reserved for title typography."`,
+    },
+    {
+      label: "Contemporary Fantasy",
+      prompt:
+        `"contemporary_fantasy": "If {style} is Illustration Art:  
+Vertical composition, ultra-detailed close-up portrait (~90–95% of frame).  
+Young {gender} in plain modern hunter attire — if male: crisp fitted shirt in {DOMINANT_COLOR}; if female: blouse in {DOMINANT_COLOR}.
+Absolutely no jewelry, no gemstones, no crowns, no tiaras, no head accessories, no hair accessories, no earrings, no necklaces, no brooches, no metallic trims, no decorative patterns, no embroidery, and no glowing ornaments anywhere on the clothing or body.  
+Expression follows the selfie — calm, focused. Gaze forward; pupils aligned.  
+Background: close city buildings at night — glass facades glowing with window lights and neon reflections. Billboards and neon signs must appear blurred or abstract, with no visible text, logos, or legible characters. Faint dungeon rift shimmer in the distance.  
+Aura: hunter energy in {DOMINANT_COLOR}, circling the character at a distance and surrounding them from all sides. Powerful arcs and streaks form a loose perimeter, enclosing the figure within a luminous storm. Some arcs sweep high above, others slash across the ground plane, creating the impression of a barrier of energy closing in around the protagonist. Countless glowing fragments scatter outward, layering the space between the character and the city night.  
+Lighting: cinematic high contrast with {DOMINANT_COLOR} rim light tracing the silhouette, accented by neutral whites. No golden tones or lens flares. Highlights sparkle across hair strands and fabric folds; deep shadows intensify drama.  
+Mood: radiant, commanding, unstoppable — the hunter as the still center of the scene, framed by an enclosing storm of energy radiating in every direction.
+
+Else:  
+Modern urban fantasy action illustration featuring exactly one young {gender} as the central figure.  
+Character fills 90% of the frame, waist-up or three-quarter view, slightly leaning forward as if unleashing power.  Outfit: if {gender} is male — crisp fitted shirt in {DOMINANT_COLOR}; if {gender} is female — blouse in {DOMINANT_COLOR}. 
+The subject’s facial features, ethnicity, and skin tone must exactly match the input selfie with no reinterpretation.  
+Do not alter facial proportions, eye shape, nose shape, mouth shape, or jawline in any way.  
+Do not whiten, westernize, or modify skin tone — skin tone must remain identical to the selfie.  
+Hair color must remain exactly as in the selfie, but ethnicity and facial structure must not be altered or reinterpreted based on hair color.  
+Do not reinterpret blonde or light hair as implying Western ethnicity.  
+ Design must be clean and functional, with no jewelry, no gemstones, no metallic accessories, no decorative patterns, embroidery, or glowing ornaments.  
+Aura: all-encompassing and outward-radiating in {DOMINANT_COLOR}, surrounding the character in every direction like a storm.  
+- Energy arcs coil around the torso, arms, and shoulders, then whip outward to form a glowing perimeter.  
+- Wide circular streaks sweep above and along the ground, enclosing the figure in a storm-like barrier.  
+- Trails overlap and cross, some lashing diagonally while others wrap around, giving the sense of a luminous net closing in.  
+- Countless glowing fragments scatter off these arcs, filling the air near and far, adding layered depth.  
+- Aura density peaks near the character, then expands outward until it engulfs the ruined skyline.  
+
+Background: a half-ruined cityscape, skyscrapers cracked and partially collapsed. Shattered windows, leaning towers, and broken neon signs glow faintly in the chaos. The structures remain recognizable but scarred by destruction. Faint fires and smoke rise in the distance, reinforcing the apocalyptic mood.  
+Lighting: intense and cinematic — rim light and electric highlights strictly in {DOMINANT_COLOR} trace the figure’s silhouette, with deepened shadows across the ruins. Bright energy reflections glint on broken glass, wet asphalt, and metal debris.  
+Mood: destructive, unstoppable, cinematic — the protagonist stands as the epicenter of an overwhelming surge of {DOMINANT_COLOR} energy, engulfing a ruined city night in radiant chaos."`,
     },
   ],
 };

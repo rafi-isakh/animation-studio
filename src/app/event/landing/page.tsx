@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import animationData from '@/assets/N_logo_with_heart.json';
 import { mergeWithOverlayAndCrop } from "./mergeWithOverlay";
+import { v4 as uuidv4 } from 'uuid';
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
   ssr: false,
@@ -139,15 +140,53 @@ export default function EventLandingPage() {
 
   useEffect(() => {
     if (image && currentGenre?.label) {
+      setUploading(true);
       mergeWithOverlayAndCrop(image, currentGenre.label)
-        .then((merged) => {
+        .then(async (merged) => {
           setMergedImage(merged);
-          setStep(3);
+
+          const formData = new FormData();
+          // Convert merged base64 to File
+          const res = await fetch(merged);
+          const blob = await res.blob();
+          formData.append("file", new File([blob], `${uuidv4()}.png`, { type: "image/png" }));
+
+          const response = await fetch(`/api/add_fair_image`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            console.error("Failed to add fair image:", await response.text());
+          } else {
+            setStep(3);
+          }
+          setUploading(false);
         })
-        .catch(err => console.error("Error merging overlay:", err));
+        .catch((err) => console.error("Error merging overlay:", err));
     }
   }, [image, currentGenre?.label]);
-  
+
+  function preloadImages(urls: string[]) {
+    urls.forEach((url) => {
+      const img = new window.Image(); // <-- force the DOM Image constructor
+      img.src = url;
+    });
+  }
+
+  useEffect(() => {
+    // Preload style overlays
+    const styleUrls = [1, 2, 3].map(
+      (idx) => `/images/event_landing/page2_image${idx + 1}.png`
+    );
+
+    // Preload genre overlays
+    const genreUrls = [1, 2, 3, 4].map(
+      (idx) => `/images/event_landing/page3_image${idx}.png`
+    );
+
+    preloadImages([...styleUrls, ...genreUrls]);
+  }, []);
 
   return (
     <div style={{width: '100vw', display: 'flex', justifyContent: 'center', backgroundColor: 'black'}}>

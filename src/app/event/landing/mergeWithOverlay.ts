@@ -10,19 +10,12 @@ export async function mergeWithOverlayAndCrop(
     canvas.height = height;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return reject("No canvas context");
+    if (!ctx) return reject("No canvas context available");
 
     const background = new Image();
     const overlay = new Image();
 
-    background.crossOrigin = "anonymous";
-    overlay.crossOrigin = "anonymous";
-
-    // Choose a random overlay number (1, 2, or 3)
-    const randomNum = Math.floor(Math.random() * 3) + 1;
-    const overlayPath = `/images/event_landing/${currentGenreLabel}${randomNum}.png`;
-    console.log(`Overlay path: ${overlayPath}`);
-
+    // Base64 image is already same-origin; crossOrigin not needed
     background.onload = () => {
       // --- Compute crop to maintain target aspect ratio ---
       const targetRatio = width / height;
@@ -46,18 +39,29 @@ export async function mergeWithOverlayAndCrop(
       // Draw the cropped background
       ctx.drawImage(background, sx, sy, sw, sh, 0, 0, width, height);
 
-      // Load and draw overlay
+      // --- Load overlay ---
+      const randomNum = Math.floor(Math.random() * 3) + 1;
+      const overlayPath = `/images/event_landing/${currentGenreLabel}${randomNum}.png`;
+
       overlay.onload = () => {
         const scale = Math.min(width / overlay.width, height / overlay.height);
         const overlayWidth = overlay.width * scale;
         const overlayHeight = overlay.height * scale;
-
         const x = (width - overlayWidth) / 2;
         const y = (height - overlayHeight) / 2;
 
         ctx.drawImage(overlay, x, y, overlayWidth, overlayHeight);
 
-        resolve(canvas.toDataURL("image/png"));
+        // ✅ Mobile-safe: return Blob URL instead of base64
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject("Failed to convert canvas to blob");
+            const url = URL.createObjectURL(blob);
+            resolve(url);
+          },
+          "image/png",
+          0.95
+        );
       };
 
       overlay.onerror = (err) => reject(`Overlay failed to load: ${err}`);

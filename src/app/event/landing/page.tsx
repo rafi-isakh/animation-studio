@@ -99,6 +99,11 @@ export default function EventLandingPage() {
 
       const characterData = await promptResponse.json();
 
+      toast({
+        title: "Prompt generated",
+        description: characterData.prompt,
+      });
+
       // toast({
       //   title: "Prompt generated",
       //   description: characterData.prompt,
@@ -121,6 +126,11 @@ export default function EventLandingPage() {
 
       const imageData = await imageResponse.json();
       if (imageData.image) setImage(imageData.image);
+
+      toast({
+        title: "Image generated",
+        description: "Your character image has been received from the backend!",
+      });
     } catch (err: any) {
       console.error(err);
       toast({
@@ -145,6 +155,13 @@ export default function EventLandingPage() {
         .then(async (merged) => {
           setMergedImage(merged);
 
+          toast({
+            title: "Merge complete",
+            description:  merged,
+          });
+
+          console.log("Merged Image URL:", merged);
+
           const formData = new FormData();
           // Convert merged base64 to File
           const res = await fetch(merged);
@@ -158,12 +175,28 @@ export default function EventLandingPage() {
 
           if (!response.ok) {
             console.error("Failed to add fair image:", await response.text());
+            toast({
+              title: "Upload failure",
+              description: "The image was not uploaded to the database.",
+            });
           } else {
             setStep(3);
+
+            toast({
+              title: "Upload successful",
+              description: "Your image has been successfully uploaded to the database!",
+            });
           }
           setUploading(false);
         })
-        .catch((err) => console.error("Error merging overlay:", err));
+        .catch((err) => {
+          console.error("Error merging overlay:", err);
+          toast({
+            title: "Error",
+            description: "Failed to merge overlay image.",
+            variant: "destructive",
+          });
+        });
     }
   }, [image, currentGenre?.label]);
 

@@ -16,30 +16,7 @@ export const eventPrompts = {
     },
   ],
   genres: [
-    {
-      key: "contemporary_fantasy",
-      label: "Contemporary Fantasy",
-      prompts: {
-        illustrationArt: `
-Vertical composition, ultra-detailed close-up portrait (~90–95% of frame).
-Young {gender} in plain modern hunter attire — if male: crisp fitted shirt in {DOMINANT_COLOR}; if female: blouse in {DOMINANT_COLOR}.
-Absolutely no jewelry, no gemstones, no crowns, no tiaras, no head accessories, no hair accessories, no earrings, no necklaces, no brooches, no metallic trims, no decorative patterns, no embroidery, and no glowing ornaments.
-Expression follows the selfie — calm, focused. Gaze forward; pupils aligned.
-Background: close city buildings at night — glass facades glowing with window lights and neon reflections. Billboards and neon signs blurred/abstract (no readable text). Faint dungeon rift shimmer.
-Aura: hunter energy in {DOMINANT_COLOR}, forming a luminous perimeter like a storm around the figure.
-Lighting: cinematic high contrast with {DOMINANT_COLOR} rim light; no golden tones or lens flares.
-Mood: radiant, commanding, unstoppable.
-`,
-        default: `
-Modern urban fantasy action illustration; one young {gender}, waist-up or three-quarter, ~90% frame.
-Outfit in {DOMINANT_COLOR}. Keep selfie-faithful facial features/ethnicity/skin tone; no westernization.
-Aura: outward-radiating storm in {DOMINANT_COLOR} with arcs, circular streaks, and fragments.
-Background: half-ruined cityscape with cracked skyscrapers and faint fires/smoke.
-Lighting: intense rim light in {DOMINANT_COLOR}; deep shadows; reflections on glass/asphalt/metal.
-Mood: destructive, unstoppable, cinematic.
-`
-      }
-    },
+    
     {
       key: "romance_fantasy",
       label: "Romance Fantasy",
@@ -62,31 +39,6 @@ Atmosphere: floating petals, glowing bokeh, soft aura. Colors: luminous pastel +
 Lighting: warm sunlight or moonlight with subtle rim light.
 Mood: ethereal, romantic, intimate.
 Face: clear, smooth, no unnatural effects.
-`
-      }
-    },
-    {
-      key: "martial_arts_wuxia",
-      label: "Wuxia",
-      prompts: {
-        illustrationArt: `
-Upper-body portrait (~80–85%), centered; no face crop; no tattoo on face.
-Background: symbolic full-moon emblem glowing into misty haze.
-Qi aura: dynamic, {DOMINANT_COLOR}-only arcs/blades around/behind the figure (never covering the face).
-Outfit: hanfu-based martial robe in {DOMINANT_COLOR} with subtle monotone accent (slightly lighter/darker).
-No jewelry/gemstones/crowns/metal trims/embroidery/patterns/modern undershirts. Emphasize folds/texture.
-Face: smooth/clear/natural — no markings, runes, tattoos, symbols, glowing effects.
-Lighting: high-contrast chiaroscuro; moon/qi as key/rim.
-Mood: transcendent, fierce, majestic.
-`,
-        default: `
-Vertical, dramatic wuxia. Young {gender} fills 80–85% (waist-up or three-quarter), slightly higher for title space.
-Outfit: layered {DOMINANT_COLOR} robes, wide sleeves, neat sash; natural breeze motion.
-Pose/expression follow selfie (calm confidence; no weapon).
-Background: seated on tiled rooftop; beams/lanterns/eaves; distant sect halls and mountains in haze.
-Lighting: cinematic chiaroscuro; golden-orange horizon rays; deep shadows; subtle cool bounce in shadow.
-Atmosphere: dust motes, light fragments, faint qi shimmer.
-Composition: painterly mobile cover; clear bottom negative space.
 `
       }
     },
@@ -120,6 +72,55 @@ Option B — Sky island with sword
 - Lighting: dramatic rim (silver/golden); long stone shadows.
 - Mood: commanding, untouchable, defiant.
 Both emphasize bold anime contrast, luminous highlights, cold pale skin tones, cinematic depth. No text.
+`
+      }
+    },
+    {
+      key: "martial_arts_wuxia",
+      label: "Wuxia",
+      prompts: {
+        illustrationArt: `
+Upper-body portrait (~80–85%), centered; no face crop; no tattoo on face.
+Background: symbolic full-moon emblem glowing into misty haze.
+Qi aura: dynamic, {DOMINANT_COLOR}-only arcs/blades around/behind the figure (never covering the face).
+Outfit: hanfu-based martial robe in {DOMINANT_COLOR} with subtle monotone accent (slightly lighter/darker).
+No jewelry/gemstones/crowns/metal trims/embroidery/patterns/modern undershirts. Emphasize folds/texture.
+Face: smooth/clear/natural — no markings, runes, tattoos, symbols, glowing effects.
+Lighting: high-contrast chiaroscuro; moon/qi as key/rim.
+Mood: transcendent, fierce, majestic.
+`,
+        default: `
+Vertical, dramatic wuxia. Young {gender} fills 80–85% (waist-up or three-quarter), slightly higher for title space.
+Outfit: layered {DOMINANT_COLOR} robes, wide sleeves, neat sash; natural breeze motion.
+Pose/expression follow selfie (calm confidence; no weapon).
+Background: seated on tiled rooftop; beams/lanterns/eaves; distant sect halls and mountains in haze.
+Lighting: cinematic chiaroscuro; golden-orange horizon rays; deep shadows; subtle cool bounce in shadow.
+Atmosphere: dust motes, light fragments, faint qi shimmer.
+Composition: painterly mobile cover; clear bottom negative space.
+`
+      }
+    },
+    {
+      key: "contemporary_fantasy",
+      label: "Contemporary Fantasy",
+      prompts: {
+        illustrationArt: `
+Vertical composition, ultra-detailed close-up portrait (~90–95% of frame).
+Young {gender} in plain modern hunter attire — if male: crisp fitted shirt in {DOMINANT_COLOR}; if female: blouse in {DOMINANT_COLOR}.
+Absolutely no jewelry, no gemstones, no crowns, no tiaras, no head accessories, no hair accessories, no earrings, no necklaces, no brooches, no metallic trims, no decorative patterns, no embroidery, and no glowing ornaments.
+Expression follows the selfie — calm, focused. Gaze forward; pupils aligned.
+Background: close city buildings at night — glass facades glowing with window lights and neon reflections. Billboards and neon signs blurred/abstract (no readable text). Faint dungeon rift shimmer.
+Aura: hunter energy in {DOMINANT_COLOR}, forming a luminous perimeter like a storm around the figure.
+Lighting: cinematic high contrast with {DOMINANT_COLOR} rim light; no golden tones or lens flares.
+Mood: radiant, commanding, unstoppable.
+`,
+        default: `
+Modern urban fantasy action illustration; one young {gender}, waist-up or three-quarter, ~90% frame.
+Outfit in {DOMINANT_COLOR}. Keep selfie-faithful facial features/ethnicity/skin tone; no westernization.
+Aura: outward-radiating storm in {DOMINANT_COLOR} with arcs, circular streaks, and fragments.
+Background: half-ruined cityscape with cracked skyscrapers and faint fires/smoke.
+Lighting: intense rim light in {DOMINANT_COLOR}; deep shadows; reflections on glass/asphalt/metal.
+Mood: destructive, unstoppable, cinematic.
 `
       }
     },

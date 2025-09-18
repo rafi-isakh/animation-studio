@@ -1,8 +1,8 @@
 export async function mergeWithOverlayAndCrop(
   base64Image: string,
   currentGenreLabel: string, // pass the genre label here
-  width = 1205,
-  height = 1795
+  width = 600,
+  height = 900
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement("canvas");

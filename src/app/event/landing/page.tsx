@@ -147,7 +147,27 @@ export default function EventLandingPage() {
         .catch(err => console.error("Error merging overlay:", err));
     }
   }, [image, currentGenre?.label]);
-  
+
+  function preloadImages(urls: string[]) {
+    urls.forEach((url) => {
+      const img = new window.Image(); // <-- force the DOM Image constructor
+      img.src = url;
+    });
+  }
+
+  useEffect(() => {
+    // Preload style overlays
+    const styleUrls = [1, 2, 3].map(
+      (idx) => `/images/event_landing/page2_image${idx + 1}.png`
+    );
+
+    // Preload genre overlays
+    const genreUrls = [1, 2, 3, 4].map(
+      (idx) => `/images/event_landing/page3_image${idx}.png`
+    );
+
+    preloadImages([...styleUrls, ...genreUrls]);
+  }, []);
 
   return (
     <div style={{width: '100vw', display: 'flex', justifyContent: 'center', backgroundColor: 'black'}}>

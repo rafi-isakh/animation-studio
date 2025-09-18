@@ -561,26 +561,32 @@ export default function EventLandingPage() {
                 {/* Share Button */}
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
-                  onClick={() => {
-                    if (!mergedImage ) return;
-                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, ""); // strip prefix
-                    const byteCharacters = atob(base64Data);
-                    const byteNumbers = new Array(byteCharacters.length)
-                      .fill(0)
-                      .map((_, i) => byteCharacters.charCodeAt(i));
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: "image/png" });
+                  onClick={async () => {
+                    if (!mergedImage) return;
 
-                    const file = new File([blob], "generated.png", { type: "image/png" });
+                    try {
+                      // Strip prefix if exists
+                      const base64Data = mergedImage.replace(/^data:image\/png;base64,/, "");
+                      const byteCharacters = atob(base64Data);
+                      const byteNumbers = new Array(byteCharacters.length)
+                        .fill(0)
+                        .map((_, i) => byteCharacters.charCodeAt(i));
+                      const byteArray = new Uint8Array(byteNumbers);
+                      const blob = new Blob([byteArray], { type: "image/png" });
 
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                      navigator.share({
-                        files: [file],
-                        title: "Check this out",
-                        text: "Generated with my app!",
-                      }).catch((err) => console.error("Share failed:", err));
-                    } else {
-                      alert("Sharing not supported on this browser/device");
+                      const file = new File([blob], "generated.png", { type: "image/png" });
+
+                      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                          files: [file],
+                          title: "Check this out",
+                          text: "Generated with my app!",
+                        });
+                      } else {
+                        alert("Sharing not supported on this browser/device");
+                      }
+                    } catch (err) {
+                      console.error("Error sharing:", err);
                     }
                   }}
                 >
@@ -589,34 +595,6 @@ export default function EventLandingPage() {
                     alt="Share Button"
                     fill
                     className="object-contain"
-                    onClick={async () => {
-                      if (!image) return;
-
-                      try {
-                        // Convert base64 to a Blob
-                        const byteCharacters = atob(image);
-                        const byteNumbers = new Array(byteCharacters.length)
-                          .fill(0)
-                          .map((_, i) => byteCharacters.charCodeAt(i));
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], { type: "image/png" });
-
-                        const file = new File([blob], "generated.png", { type: "image/png" });
-
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                          await navigator.share({
-                            files: [file],
-                            title: "Check this out",
-                            text: "Generated with my app!",
-                          });
-                        } else {
-                          alert("Sharing not supported on this browser/device");
-                        }
-                      } catch (err) {
-                        console.error("Error sharing:", err);
-                      }
-                    }}
-
                   />
                 </div>
               </div>

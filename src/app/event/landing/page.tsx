@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import SignInComponent from "@/components/SignInComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,6 +11,7 @@ import { eventPrompts } from "@/constants/eventprompts";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import animationData from '@/assets/N_logo_with_heart.json';
+import { mergeWithOverlayAndCrop } from "./mergeWithOverlay";
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
   ssr: false,
@@ -44,6 +46,7 @@ export default function EventLandingPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [mergedImage, setMergedImage] = useState<string | null>(null);
 
   const currentStyle = eventPrompts.styles[selectedStyleIndex];
   const currentGenre = eventPrompts.genres[selectedGenreIndex];
@@ -52,10 +55,9 @@ export default function EventLandingPage() {
   const [genreText, setGenreText] = useState("");
 
   useEffect(() => setStyleText(currentStyle?.prompt || ""), [currentStyle]);
-  useEffect(() => setGenreText(currentGenre?.prompt || ""), [currentGenre]);
+  useEffect(() => setGenreText((currentStyle?.label === "Illustration Art" ? currentGenre?.prompts?.illustrationArt : currentGenre?.prompts?.default) || ""), [currentGenre, currentStyle?.label]);
 
   const [finalPrompt, setFinalPrompt] = useState("");
-
   // --- File handling ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -96,10 +98,10 @@ export default function EventLandingPage() {
 
       const characterData = await promptResponse.json();
 
-      toast({
-        title: "Prompt generated",
-        description: characterData.prompt,
-      });
+      // toast({
+      //   title: "Prompt generated",
+      //   description: characterData.prompt,
+      // });
 
       const imagePrompt = MASTER_PROMPT_BY_GENRE(
         styleText,
@@ -136,13 +138,19 @@ export default function EventLandingPage() {
   };
 
   useEffect(() => {
-    if (image) {
-      setStep(3);
+    if (image && currentGenre?.label) {
+      mergeWithOverlayAndCrop(image, currentGenre.label)
+        .then((merged) => {
+          setMergedImage(merged);
+          setStep(3);
+        })
+        .catch(err => console.error("Error merging overlay:", err));
     }
-  }, [image]);
+  }, [image, currentGenre?.label]);
+  
 
   return (
-    <>
+    <div style={{width: '100vw', display: 'flex', justifyContent: 'center', backgroundColor: 'black'}}>
       {!email && (
         <div className="flex flex-col min-h-screen items-center justify-between p-6 relative bg-black">
           <SignInComponent redirectTo="/event/landing" />
@@ -158,6 +166,7 @@ export default function EventLandingPage() {
             backgroundRepeat: "repeat-y",
             backgroundPosition: "center top",
             padding: 12,
+            maxWidth: 600,
           }}
         >
           {step === 1 && (
@@ -187,7 +196,7 @@ export default function EventLandingPage() {
                 />
               </div>
               <button
-                className="relative w-[75%] aspect-[2/1]"
+                className="relative w-[75%] aspect-[2/1] mb-20"
                 onClick={() => setStep(2)}
               >
                 <Image
@@ -201,7 +210,7 @@ export default function EventLandingPage() {
           )}
 
           {step === 2 && (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full max-w-[600px flex flex-col items-center">
               {/* ... Page 2 style/genre selectors unchanged ... */}
               <div className="relative w-[60%] aspect-square">
                 <Image
@@ -369,10 +378,10 @@ export default function EventLandingPage() {
               ) : (
                 <button
                   className="relative w-[60%] aspect-square"
-                  style={{ marginBottom: 20 }}
+                  style={{ marginBottom: 20}}
                   onClick={() => {
                     if (styleText && genreText && file) {
-                      handleUploadClick("gemini");
+                      handleUploadClick("imagen3");
                     }
                   }}
                 >
@@ -394,7 +403,7 @@ export default function EventLandingPage() {
           )}
 
           {step === 3 && (
-            <div className="w-full flex flex-col items-center pb-40">
+            <div className="w-full max-w-[600px flex flex-col items-center pb-40">
               <div className="relative w-[50%] aspect-[2/1]">
                 <Image
                   src="/images/event_landing/page5_logo.png"
@@ -404,9 +413,9 @@ export default function EventLandingPage() {
                 />
               </div>
 
-              {image && (
+              {mergedImage  && (
                 <img
-                  src={`data:image/png;base64,${image}`}
+                  src={mergedImage}
                   alt="Generated"
                   style={{
                     marginTop: 24,
@@ -435,11 +444,25 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
-                    if (!image) return;
+                    if (!mergedImage) return;
+
+                    // Strip the prefix if it exists
+                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, "");
+
+                    const byteCharacters = atob(base64Data); // decode base64
+                    const byteNumbers = new Array(byteCharacters.length)
+                      .fill(0)
+                      .map((_, i) => byteCharacters.charCodeAt(i));
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: "image/png" });
+
                     const link = document.createElement("a");
-                    link.href = `data:image/png;base64,${image}`;
+                    link.href = URL.createObjectURL(blob);
                     link.download = "generated.png";
+                    document.body.appendChild(link);
                     link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
                   }}
                 >
                   <Image
@@ -454,26 +477,26 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
-                    if (!image) return;
-                    const blob = fetch(`data:image/png;base64,${image}`)
-                      .then((res) => res.blob())
-                      .then((blob) => {
-                        const file = new File([blob], "generated.png", {
-                          type: "image/png",
-                        });
+                    if (!mergedImage ) return;
+                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, ""); // strip prefix
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length)
+                      .fill(0)
+                      .map((_, i) => byteCharacters.charCodeAt(i));
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: "image/png" });
 
-                        if (navigator.share) {
-                          navigator
-                            .share({
-                              title: "Check out my generated character!",
-                              text: "Made with the Event Generator ✨",
-                              files: [file],
-                            })
-                            .catch((err) => console.error("Share failed:", err));
-                        } else {
-                          window.open("https://www.instagram.com/", "_blank");
-                        }
-                      });
+                    const file = new File([blob], "generated.png", { type: "image/png" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                      navigator.share({
+                        files: [file],
+                        title: "Check this out",
+                        text: "Generated with my app!",
+                      }).catch((err) => console.error("Share failed:", err));
+                    } else {
+                      alert("Sharing not supported on this browser/device");
+                    }
                   }}
                 >
                   <Image
@@ -481,14 +504,41 @@ export default function EventLandingPage() {
                     alt="Share Button"
                     fill
                     className="object-contain"
+                    onClick={async () => {
+                      if (!image) return;
+
+                      try {
+                        // Convert base64 to a Blob
+                        const byteCharacters = atob(image);
+                        const byteNumbers = new Array(byteCharacters.length)
+                          .fill(0)
+                          .map((_, i) => byteCharacters.charCodeAt(i));
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: "image/png" });
+
+                        const file = new File([blob], "generated.png", { type: "image/png" });
+
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                          await navigator.share({
+                            files: [file],
+                            title: "Check this out",
+                            text: "Generated with my app!",
+                          });
+                        } else {
+                          alert("Sharing not supported on this browser/device");
+                        }
+                      } catch (err) {
+                        console.error("Error sharing:", err);
+                      }
+                    }}
+
                   />
                 </div>
               </div>
             </div>
           )}
-
         </div>
       )}
-    </>
+    </div>
   );
 }

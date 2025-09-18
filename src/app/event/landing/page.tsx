@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import SignInComponent from "@/components/SignInComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -96,10 +97,10 @@ export default function EventLandingPage() {
 
       const characterData = await promptResponse.json();
 
-      toast({
-        title: "Prompt generated",
-        description: characterData.prompt,
-      });
+      // toast({
+      //   title: "Prompt generated",
+      //   description: characterData.prompt,
+      // });
 
       const imagePrompt = MASTER_PROMPT_BY_GENRE(
         styleText,
@@ -142,7 +143,7 @@ export default function EventLandingPage() {
   }, [image]);
 
   return (
-    <>
+    <div style={{width: '100vw', display: 'flex', justifyContent: 'center', backgroundColor: 'black'}}>
       {!email && (
         <div className="flex flex-col min-h-screen items-center justify-between p-6 relative bg-black">
           <SignInComponent redirectTo="/event/landing" />
@@ -158,6 +159,7 @@ export default function EventLandingPage() {
             backgroundRepeat: "repeat-y",
             backgroundPosition: "center top",
             padding: 12,
+            maxWidth: 600,
           }}
         >
           {step === 1 && (
@@ -187,7 +189,7 @@ export default function EventLandingPage() {
                 />
               </div>
               <button
-                className="relative w-[75%] aspect-[2/1]"
+                className="relative w-[75%] aspect-[2/1] mb-20"
                 onClick={() => setStep(2)}
               >
                 <Image
@@ -201,7 +203,7 @@ export default function EventLandingPage() {
           )}
 
           {step === 2 && (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full max-w-[600px flex flex-col items-center">
               {/* ... Page 2 style/genre selectors unchanged ... */}
               <div className="relative w-[60%] aspect-square">
                 <Image
@@ -369,7 +371,7 @@ export default function EventLandingPage() {
               ) : (
                 <button
                   className="relative w-[60%] aspect-square"
-                  style={{ marginBottom: 20 }}
+                  style={{ marginBottom: 20}}
                   onClick={() => {
                     if (styleText && genreText && file) {
                       handleUploadClick("gemini");
@@ -394,7 +396,7 @@ export default function EventLandingPage() {
           )}
 
           {step === 3 && (
-            <div className="w-full flex flex-col items-center pb-40">
+            <div className="w-full max-w-[600px flex flex-col items-center pb-40">
               <div className="relative w-[50%] aspect-[2/1]">
                 <Image
                   src="/images/event_landing/page5_logo.png"
@@ -436,10 +438,20 @@ export default function EventLandingPage() {
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
                     if (!image) return;
+                    const byteCharacters = atob(image); // decode base64
+                    const byteNumbers = new Array(byteCharacters.length)
+                      .fill(0)
+                      .map((_, i) => byteCharacters.charCodeAt(i));
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: "image/png" });
+
                     const link = document.createElement("a");
-                    link.href = `data:image/png;base64,${image}`;
+                    link.href = URL.createObjectURL(blob);
                     link.download = "generated.png";
+                    document.body.appendChild(link);
                     link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
                   }}
                 >
                   <Image
@@ -486,9 +498,8 @@ export default function EventLandingPage() {
               </div>
             </div>
           )}
-
         </div>
       )}
-    </>
+    </div>
   );
 }

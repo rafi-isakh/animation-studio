@@ -58,7 +58,6 @@ export default function EventLandingPage() {
   useEffect(() => setGenreText((currentStyle?.label === "Illustration Art" ? currentGenre?.prompts?.illustrationArt : currentGenre?.prompts?.default) || ""), [currentGenre, currentStyle?.label]);
 
   const [finalPrompt, setFinalPrompt] = useState("");
-
   // --- File handling ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -139,15 +138,15 @@ export default function EventLandingPage() {
   };
 
   useEffect(() => {
-    if (image) {
-      mergeWithOverlayAndCrop(image, "/images/event_landing/page5_logo.png")
+    if (image && currentGenre?.label) {
+      mergeWithOverlayAndCrop(image, currentGenre.label)
         .then((merged) => {
           setMergedImage(merged);
           setStep(3);
         })
-        .catch((err) => console.error("Error merging overlay:", err));
+        .catch(err => console.error("Error merging overlay:", err));
     }
-  }, [image]);
+  }, [image, currentGenre?.label]);
   
 
   return (
@@ -382,7 +381,7 @@ export default function EventLandingPage() {
                   style={{ marginBottom: 20}}
                   onClick={() => {
                     if (styleText && genreText && file) {
-                      handleUploadClick("gemini");
+                      handleUploadClick("imagen3");
                     }
                   }}
                 >
@@ -414,9 +413,9 @@ export default function EventLandingPage() {
                 />
               </div>
 
-              {image  && (
+              {mergedImage  && (
                 <img
-                  src={`data:image/png;base64,${image }`}
+                  src={mergedImage}
                   alt="Generated"
                   style={{
                     marginTop: 24,
@@ -445,8 +444,12 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
-                    if (!mergedImage ) return;
-                    const byteCharacters = atob(mergedImage ); // decode base64
+                    if (!mergedImage) return;
+
+                    // Strip the prefix if it exists
+                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, "");
+
+                    const byteCharacters = atob(base64Data); // decode base64
                     const byteNumbers = new Array(byteCharacters.length)
                       .fill(0)
                       .map((_, i) => byteCharacters.charCodeAt(i));
@@ -475,25 +478,25 @@ export default function EventLandingPage() {
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
                     if (!mergedImage ) return;
-                    const blob = fetch(`data:image/png;base64,${mergedImage }`)
-                      .then((res) => res.blob())
-                      .then((blob) => {
-                        const file = new File([blob], "generated.png", {
-                          type: "image/png",
-                        });
+                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, ""); // strip prefix
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length)
+                      .fill(0)
+                      .map((_, i) => byteCharacters.charCodeAt(i));
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: "image/png" });
 
-                        if (navigator.share) {
-                          navigator
-                            .share({
-                              title: "Check out my generated character!",
-                              text: "Made with the Event Generator ✨",
-                              files: [file],
-                            })
-                            .catch((err) => console.error("Share failed:", err));
-                        } else {
-                          window.open("https://www.instagram.com/", "_blank");
-                        }
-                      });
+                    const file = new File([blob], "generated.png", { type: "image/png" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                      navigator.share({
+                        files: [file],
+                        title: "Check this out",
+                        text: "Generated with my app!",
+                      }).catch((err) => console.error("Share failed:", err));
+                    } else {
+                      alert("Sharing not supported on this browser/device");
+                    }
                   }}
                 >
                   <Image

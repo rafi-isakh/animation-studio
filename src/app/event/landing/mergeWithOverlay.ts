@@ -1,6 +1,6 @@
 export async function mergeWithOverlayAndCrop(
   base64Image: string,
-  overlayPath: string,
+  currentGenreLabel: string, // pass the genre label here
   width = 682,
   height = 1024
 ): Promise<string> {
@@ -17,6 +17,12 @@ export async function mergeWithOverlayAndCrop(
     background.crossOrigin = "anonymous";
     overlay.crossOrigin = "anonymous";
 
+    // Choose a random number 1, 2, or 3
+    const randomNum = Math.floor(Math.random() * 3) + 1;
+    // Construct overlay path
+    const overlayPath = `/images/event_landing/${currentGenreLabel}${randomNum}.png`;
+    console.log(`${currentGenreLabel}${randomNum}`)
+
     background.onload = () => {
       // Crop center of the original image
       const sx = (background.width - width) / 2;
@@ -29,12 +35,16 @@ export async function mergeWithOverlayAndCrop(
       );
 
       overlay.onload = () => {
-        // Draw overlay logo on top (scaled to 25% width)
-        const logoSize = width * 0.25;
-        const x = width - logoSize - 20;
-        const y = height - logoSize - 20;
+        // Place overlay exactly atop the cropped image
+        // Scale overlay to fill canvas (maintain its own aspect ratio)
+        const scale = Math.min(width / overlay.width, height / overlay.height);
+        const overlayWidth = overlay.width * scale;
+        const overlayHeight = overlay.height * scale;
 
-        ctx.drawImage(overlay, x, y, logoSize, logoSize);
+        const x = (width - overlayWidth) / 2;
+        const y = (height - overlayHeight) / 2;
+
+        ctx.drawImage(overlay, x, y, overlayWidth, overlayHeight);
         resolve(canvas.toDataURL("image/png"));
       };
 

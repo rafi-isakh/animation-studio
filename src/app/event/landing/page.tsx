@@ -452,6 +452,19 @@ export default function EventLandingPage() {
                 />
               </div>
 
+              {/* {image && (
+                <img
+                  src={`data:image/png;base64,${image}`}
+                  alt="Generated"
+                  style={{
+                    marginTop: 24,
+                    maxWidth: "75%",
+                    borderRadius: 8,
+                    marginBottom: 100,
+                  }}
+                  id="generatedImage"
+                />
+              )} */}
               {mergedImage  && (
                 <img
                   src={mergedImage}

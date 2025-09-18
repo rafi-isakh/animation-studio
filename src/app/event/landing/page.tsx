@@ -11,6 +11,7 @@ import { eventPrompts } from "@/constants/eventprompts";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import animationData from '@/assets/N_logo_with_heart.json';
+import { mergeWithOverlayAndCrop } from "./mergeWithOverlay";
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
   ssr: false,
@@ -45,6 +46,7 @@ export default function EventLandingPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [mergedImage, setMergedImage] = useState<string | null>(null);
 
   const currentStyle = eventPrompts.styles[selectedStyleIndex];
   const currentGenre = eventPrompts.genres[selectedGenreIndex];
@@ -53,7 +55,7 @@ export default function EventLandingPage() {
   const [genreText, setGenreText] = useState("");
 
   useEffect(() => setStyleText(currentStyle?.prompt || ""), [currentStyle]);
-  useEffect(() => setGenreText(currentGenre?.prompt || ""), [currentGenre]);
+  useEffect(() => setGenreText((currentStyle?.label === "Illustration Art" ? currentGenre?.prompts?.illustrationArt : currentGenre?.prompts?.default) || ""), [currentGenre, currentStyle?.label]);
 
   const [finalPrompt, setFinalPrompt] = useState("");
 
@@ -138,9 +140,15 @@ export default function EventLandingPage() {
 
   useEffect(() => {
     if (image) {
-      setStep(3);
+      mergeWithOverlayAndCrop(image, "/images/event_landing/page5_logo.png")
+        .then((merged) => {
+          setMergedImage(merged);
+          setStep(3);
+        })
+        .catch((err) => console.error("Error merging overlay:", err));
     }
   }, [image]);
+  
 
   return (
     <div style={{width: '100vw', display: 'flex', justifyContent: 'center', backgroundColor: 'black'}}>
@@ -406,9 +414,9 @@ export default function EventLandingPage() {
                 />
               </div>
 
-              {image && (
+              {image  && (
                 <img
-                  src={`data:image/png;base64,${image}`}
+                  src={`data:image/png;base64,${image }`}
                   alt="Generated"
                   style={{
                     marginTop: 24,
@@ -437,8 +445,8 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
-                    if (!image) return;
-                    const byteCharacters = atob(image); // decode base64
+                    if (!mergedImage ) return;
+                    const byteCharacters = atob(mergedImage ); // decode base64
                     const byteNumbers = new Array(byteCharacters.length)
                       .fill(0)
                       .map((_, i) => byteCharacters.charCodeAt(i));
@@ -466,8 +474,8 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={() => {
-                    if (!image) return;
-                    const blob = fetch(`data:image/png;base64,${image}`)
+                    if (!mergedImage ) return;
+                    const blob = fetch(`data:image/png;base64,${mergedImage }`)
                       .then((res) => res.blob())
                       .then((blob) => {
                         const file = new File([blob], "generated.png", {

@@ -66,7 +66,7 @@ Option A — Elemental Spirits in Anime Forest (Attack on Titan vibe)
 - Mood: epic, immersive, overwhelming. Sword: absent.
 Option B — Sky island with sword
 - Outfit: ornate but functional light armor in {DOMINANT_COLOR} with complementary trims; no jewelry/crowns/ornaments.
-- Pose: cocky/relaxed; one leg propped; one hand resting. Expression: aloof/confident/arrogant.
+- Pose: cocky/relaxed; confident pose. Expression: aloof/confident/arrogant.
 - Sword: embedded in rock (glowing) or hovering upright with faint aura.
 - Background: vast sky; floating islands to horizon; light beams/dust.
 - Lighting: dramatic rim (silver/golden); long stone shadows.

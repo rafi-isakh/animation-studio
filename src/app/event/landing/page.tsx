@@ -99,10 +99,10 @@ export default function EventLandingPage() {
 
       const characterData = await promptResponse.json();
 
-      toast({
-        title: "Prompt generated",
-        description: characterData.prompt,
-      });
+      // toast({
+      //   title: "Prompt generated",
+      //   description: characterData.prompt,
+      // });
 
       // toast({
       //   title: "Prompt generated",
@@ -127,10 +127,10 @@ export default function EventLandingPage() {
       const imageData = await imageResponse.json();
       if (imageData.image) setImage(imageData.image);
 
-      toast({
-        title: "Image generated",
-        description: "Your character image has been received from the backend!",
-      });
+      // toast({
+      //   title: "Image generated",
+      //   description: "Your character image has been received from the backend!",
+      // });
     } catch (err: any) {
       console.error(err);
       toast({
@@ -155,10 +155,10 @@ export default function EventLandingPage() {
         .then(async (merged) => {
           setMergedImage(merged);
 
-          toast({
-            title: "Merge complete",
-            description:  merged,
-          });
+          // toast({
+          //   title: "Merge complete",
+          //   description:  merged,
+          // });
 
           console.log("Merged Image URL:", merged);
 

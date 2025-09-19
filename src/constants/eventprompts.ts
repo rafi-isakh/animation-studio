@@ -57,9 +57,9 @@ Lighting: dramatic chiaroscuro; strong key; soft ambient; rim outline.
 Mood: dazzling, immersive, mystical.
 `,
         default: `
-Vertical; young {gender} standing (full body or knee-shot).
+Vertical; young {gender} standing (full body).
 Option A — Elemental Spirits behind head in Anime Forest (Attack on Titan vibe)
-- Spirits on shoulder: exactly four (Fire/Water/Earth/Wind), UL/UR/LL/LR; each ≤ hand height; no duplicates/fifth; particles ≠ spirits.
+- Spirits behind head: exactly four (Fire/Water/Earth/Wind), UL/UR/LL/LR; each ≤ hand height; no duplicates/fifth; particles ≠ spirits.
 - Outfit: luxurious wizard robe in soft {DOMINANT_COLOR} with complementary trim; no jewelry/embroidery/patterns.
 - Background: colossal anime-style forest; dust and motes in beams; spirits emit subtle colored bounce.
 - Lighting: bold anime contrast; sharp rim; theatrical chiaroscuro.

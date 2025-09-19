@@ -528,27 +528,24 @@ export default function EventLandingPage() {
                 {/* Download Button */}
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!mergedImage) return;
 
-                    // Strip the prefix if it exists
-                    const base64Data = mergedImage.replace(/^data:image\/png;base64,/, "");
-
-                    const byteCharacters = atob(base64Data); // decode base64
-                    const byteNumbers = new Array(byteCharacters.length)
-                      .fill(0)
-                      .map((_, i) => byteCharacters.charCodeAt(i));
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: "image/png" });
-
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = "generated.png";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(link.href);
+                    try {
+                      const response = await fetch(mergedImage);
+                      const blob = await response.blob();
+                      const link = document.createElement("a");
+                      link.href = URL.createObjectURL(blob);
+                      link.download = "generated.png";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(link.href);
+                    } catch (err) {
+                      console.error("Download failed:", err);
+                    }
                   }}
+
                 >
                   <Image
                     src="/images/event_landing/page5_button1.png"

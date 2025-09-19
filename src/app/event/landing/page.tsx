@@ -562,33 +562,30 @@ export default function EventLandingPage() {
                 <div
                   className="relative w-[50%] aspect-square cursor-pointer"
                   onClick={async () => {
-                    if (!mergedImage) return;
+                  if (!mergedImage) return;
 
-                    try {
-                      // Strip prefix if exists
-                      const base64Data = mergedImage.replace(/^data:image\/png;base64,/, "");
-                      const byteCharacters = atob(base64Data);
-                      const byteNumbers = new Array(byteCharacters.length)
-                        .fill(0)
-                        .map((_, i) => byteCharacters.charCodeAt(i));
-                      const byteArray = new Uint8Array(byteNumbers);
-                      const blob = new Blob([byteArray], { type: "image/png" });
+                  try {
+                    // Fetch the base64 data URL as a Blob
+                    const response = await fetch(mergedImage);
+                    const blob = await response.blob();
+                    const file = new File([blob], "generated.png", { type: "image/png" });
 
-                      const file = new File([blob], "generated.png", { type: "image/png" });
-
-                      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                          files: [file],
-                          title: "Check this out",
-                          text: "Generated with my app!",
-                        });
-                      } else {
-                        alert("Sharing not supported on this browser/device");
-                      }
-                    } catch (err) {
-                      console.error("Error sharing:", err);
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                      await navigator.share({
+                        files: [file],
+                        title: "Check this out",
+                        text: "Generated with my app!",
+                      });
+                    } else {
+                      // Fallback for unsupported browsers
+                      const url = URL.createObjectURL(blob);
+                      window.open(url, "_blank");
+                      setTimeout(() => URL.revokeObjectURL(url), 5000);
                     }
-                  }}
+                  } catch (err) {
+                    console.error("Error sharing:", err);
+                  }
+                }}
                 >
                   <Image
                     src="/images/event_landing/page5_button2.png"

@@ -182,10 +182,10 @@ export default function EventLandingPage() {
           } else {
             setStep(3);
 
-            toast({
-              title: "Upload successful",
-              description: "Your image has been successfully uploaded to the database!",
-            });
+            // toast({
+            //   title: "Upload successful",
+            //   description: "Your image has been successfully uploaded to the database!",
+            // });
           }
           setUploading(false);
         })

@@ -245,7 +245,7 @@ export default function EventLandingPage() {
             <div className="w-full flex flex-col items-center">
               <div className="relative w-[75%] aspect-[3/2]">
                 <Image
-                  src="images/event_landing/page1_header.png"
+                  src=""
                   alt="Header text"
                   fill
                   className="object-contain"

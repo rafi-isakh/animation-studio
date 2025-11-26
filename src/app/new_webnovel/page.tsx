@@ -1,12 +1,10 @@
-import { auth } from '@/auth';
-import AddWebnovelComponent from '@/components/AddWebnovelComponent';
+import Mithril from '@/components/Mithril/Mithril';
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
 
-const NewNovel = async () => {
+const NewNovel = () => {
     return (
         <Suspense>
-            <AddWebnovelComponent />
+            <Mithril />
         </Suspense>
     );
 };

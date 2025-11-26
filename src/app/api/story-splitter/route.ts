@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Type } from "@google/genai";
+
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 2000;
 
 interface StorySpitterRequest {
   text: string;
@@ -7,51 +11,81 @@ interface StorySpitterRequest {
   numParts: number;
 }
 
-async function generateContentWithRetry(
-  ai: GoogleGenAI,
-  params: {
-    model: string;
-    contents: string;
-    config: {
-      systemInstruction: string;
-      responseMimeType: string;
-      responseSchema: object;
-    };
-  },
-  maxRetries = 3,
-  initialDelay = 2000
-): Promise<{ text: string }> {
-  let lastError: Error | null = null;
-  let delay = initialDelay;
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  for (let i = 0; i < maxRetries; i++) {
+async function callGeminiWithRetry(prompt: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  let attempt = 0;
+  while (attempt < MAX_RETRIES) {
+    attempt++;
     try {
-      const response = await ai.models.generateContent(params);
-      return { text: response.text || "" };
+      const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData?.error?.message || `HTTP ${response.status}`;
+
+        if (
+          errorMessage.includes("503") ||
+          errorMessage.includes("overloaded") ||
+          errorMessage.includes("UNAVAILABLE")
+        ) {
+          if (attempt < MAX_RETRIES) {
+            const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
+            console.warn(
+              `Attempt ${attempt} failed due to model overload. Retrying in ${delay}ms...`
+            );
+            await sleep(delay);
+            continue;
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      return text;
     } catch (error: unknown) {
-      lastError = error as Error;
       const errorMessage = String(error);
-      // Only retry on specific, transient errors like 503
+      // Only retry on transient errors
       if (
         errorMessage.includes("503") ||
         errorMessage.includes("overloaded") ||
         errorMessage.includes("UNAVAILABLE")
       ) {
-        if (i < maxRetries - 1) {
+        if (attempt < MAX_RETRIES) {
+          const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
           console.warn(
-            `Attempt ${i + 1} failed due to model overload. Retrying in ${delay}ms...`
+            `Attempt ${attempt} failed due to model overload. Retrying in ${delay}ms...`
           );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2; // Exponential backoff
+          await sleep(delay);
+          continue;
         }
-      } else {
-        // Don't retry on non-transient errors (e.g., bad request, auth error)
-        throw error;
       }
+      // Don't retry on non-transient errors
+      throw error;
     }
   }
-  console.error("All retry attempts failed.");
-  throw lastError;
+  throw new Error("API call failed after all retries.");
 }
 
 async function splitTextWithCliffhangers(
@@ -59,15 +93,7 @@ async function splitTextWithCliffhangers(
   guidelines: string,
   numParts: number
 ): Promise<string[]> {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-
-  const systemInstruction = `
+  const prompt = `
 당신은 텍스트 분할을 위한 AI 분석 도구입니다. 당신의 임무는 주어진 텍스트에서 사용자가 요청한 파트의 개수(${numParts}개)에 맞춰, 각 파트(마지막 파트 제외)를 마무리할 **마지막 문장**을 찾아내는 것입니다.
 
 **절대적인 규칙:**
@@ -83,31 +109,23 @@ async function splitTextWithCliffhangers(
 다른 설명 없이, "cliffhangerSentences" 키 하나만을 가진 단일 JSON 객체만 반환해야 합니다. "cliffhangerSentences"의 값은 원본 텍스트에서 추출한 **정확히 ${numParts - 1}개**의 문장(문자열)을 담은 배열이어야 합니다.
 
 사용자 가이드라인: ${guidelines || "추가 가이드라인 없음."}
+
+다음 전체 스크립트를 ${numParts}개의 파트로 나눌 것입니다. 각 파트의 경계가 될 ${numParts - 1}개의 클리프행어 문장을 찾아주세요:
+
+---
+${text}
+---
 `;
 
-  const response = await generateContentWithRetry(ai, {
-    model: "gemini-2.5-pro",
-    contents: `다음 전체 스크립트를 ${numParts}개의 파트로 나눌 것입니다. 각 파트의 경계가 될 ${numParts - 1}개의 클리프행어 문장을 찾아주세요:\n\n---\n${text}\n---`,
-    config: {
-      systemInstruction,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          cliffhangerSentences: {
-            type: Type.ARRAY,
-            description: `An array of exactly ${numParts - 1} strings. Each string is the last sentence of a part and must be an exact quote from the source text.`,
-            items: {
-              type: Type.STRING,
-            },
-          },
-        },
-        required: ["cliffhangerSentences"],
-      },
-    },
-  });
+  let responseText = (await callGeminiWithRetry(prompt)).trim();
 
-  const responseText = response.text.trim();
+  // Strip markdown code block if present (```json ... ```)
+  if (responseText.startsWith("```")) {
+    responseText = responseText
+      .replace(/^```(?:json)?\s*\n?/, "")
+      .replace(/\n?```\s*$/, "");
+  }
+
   let result;
   try {
     result = JSON.parse(responseText);

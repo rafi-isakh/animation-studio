@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "../MithrilContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   Sparkles,
   Download,
@@ -136,6 +137,7 @@ const downloadImage = (base64: string, filename: string): void => {
 
 export default function BgSheetGenerator() {
   const { setStageResult } = useMithril();
+  const { toast } = useToast();
 
   // State from Stage 1
   const [originalText, setOriginalText] = useState<string>("");
@@ -582,10 +584,32 @@ export default function BgSheetGenerator() {
       styleKeyword,
       backgroundBasePrompt,
     };
-    localStorage.setItem("bg_sheet_result", JSON.stringify(result));
-    setStageResult(4, result);
-    setIsSaved(true);
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult]);
+    try {
+      localStorage.setItem("bg_sheet_result", JSON.stringify(result));
+      setStageResult(4, result);
+      setIsSaved(true);
+      toast({
+        variant: "success",
+        title: "Saved",
+        description: "Background sheet results saved successfully.",
+      });
+    } catch (error) {
+      console.error("localStorage save failed:", error);
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Storage limit exceeded. Too many images to save locally.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Failed to save results.",
+        });
+      }
+    }
+  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
 
   return (
     <div className="space-y-6">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "./MithrilContext";
+import { useToast } from "@/hooks/use-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Download, Save } from "lucide-react";
@@ -32,6 +33,7 @@ const Loader: React.FC = () => (
 
 export default function Stage3Content() {
   const { setStageResult } = useMithril();
+  const { toast } = useToast();
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
@@ -125,10 +127,32 @@ export default function Stage3Content() {
   const handleSave = useCallback(() => {
     if (!splitResult) return;
 
-    localStorage.setItem("story_splitter_result", JSON.stringify(splitResult));
-    setStageResult(3, splitResult);
-    setIsSaved(true);
-  }, [splitResult, setStageResult]);
+    try {
+      localStorage.setItem("story_splitter_result", JSON.stringify(splitResult));
+      setStageResult(3, splitResult);
+      setIsSaved(true);
+      toast({
+        variant: "success",
+        title: "Saved",
+        description: "Story splitter results saved successfully.",
+      });
+    } catch (error) {
+      console.error("localStorage save failed:", error);
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Storage limit exceeded.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Failed to save results.",
+        });
+      }
+    }
+  }, [splitResult, setStageResult, toast]);
 
   return (
     <div className="space-y-6">

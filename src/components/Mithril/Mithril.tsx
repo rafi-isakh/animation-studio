@@ -3,16 +3,16 @@
 import UploadManager from "./UploadManager";
 import Stage2Content from "./Stage2Content";
 import StorySplitter from "./StorySplitter";
-import Stage4Content from "./Stage4Content";
 import Stage5Content from "./Stage5Content";
 import Stage6Content from "./Stage6Content";
 import { MithrilProvider, useMithril } from "./MithrilContext";
+import BgSheetGenerator from "./BgSheetGenerator";
 
 const stages = [
   { id: 1, label: "Stage 1" },
   { id: 2, label: "Stage 2" },
   { id: 3, label: "Story Splitter" },
-  { id: 4, label: "Stage 4" },
+  { id: 4, label: "BG Sheet Generator" },
   { id: 5, label: "Stage 5" },
   { id: 6, label: "Stage 6" },
 ];
@@ -88,7 +88,7 @@ function MithrilContent() {
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <Stage2Content />}
           {currentStage === 3 && <StorySplitter />}
-          {currentStage === 4 && <Stage4Content />}
+          {currentStage === 4 && <BgSheetGenerator />}
           {currentStage === 5 && <Stage5Content />}
           {currentStage === 6 && <Stage6Content />}
         </div>

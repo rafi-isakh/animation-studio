@@ -26,10 +26,11 @@ export default function UploadManager() {
 
   // Load from localStorage on mount
   useEffect(() => {
-    const savedContent = localStorage.getItem("uploaded_file");
+    const savedContent = localStorage.getItem("chapter");
+    const savedFileName = localStorage.getItem("chapter_filename");
     if (savedContent) {
       setFileContent(savedContent);
-      setFileName("Previously uploaded file");
+      setFileName(savedFileName || "Previously uploaded file");
     }
   }, []);
 
@@ -44,7 +45,8 @@ export default function UploadManager() {
       const content = await file.text();
       setFileContent(content);
       setFileName(file.name);
-      localStorage.setItem("uploaded_file", content);
+      localStorage.setItem("chapter", content);
+      localStorage.setItem("chapter_filename", file.name);
     } catch (error) {
       console.error("Error reading file:", error);
       alert("Error reading file");
@@ -82,7 +84,8 @@ export default function UploadManager() {
   const handleClear = () => {
     setFileContent(null);
     setFileName(null);
-    localStorage.removeItem("uploaded_file");
+    localStorage.removeItem("chapter");
+    localStorage.removeItem("chapter_filename");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

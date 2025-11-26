@@ -24,7 +24,7 @@ function MithrilContent() {
   return (
     <div className="flex flex-col min-h-screen w-full p-4 md:p-8">
       {/* Stepper */}
-      <div className="w-full overflow-x-auto pb-4">
+      <div className="w-full overflow-x-auto p-4">
         <div className="flex items-center justify-center min-w-max px-4">
           {stages.map((stage, index) => (
             <div key={stage.id} className="flex items-center">

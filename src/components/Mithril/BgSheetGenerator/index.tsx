@@ -615,7 +615,7 @@ export default function BgSheetGenerator() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">BG Sheet Generator</h2>
+        <h2 className="text-2xl font-bold mb-2">Character Sheet Generator</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           AI extracts backgrounds from your story and generates multi-angle views
         </p>

@@ -31,7 +31,7 @@ const Loader: React.FC = () => (
 );
 
 
-export default function Stage3Content() {
+export default function StorySplitter() {
   const { setStageResult } = useMithril();
   const { toast } = useToast();
 

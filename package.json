@@ -29,6 +29,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@google/genai": "^1.30.0",
     "@gxl/epub-parser": "^2.0.4",
     "@heroicons/react": "^2.1.5",
     "@mui/icons-material": "^6.2.0",

@@ -1,7 +1,7 @@
 "use client";
 
 import UploadManager from "./UploadManager";
-import Stage2Content from "./Stage2Content";
+import StoryAnalyzer from "./StoryAnalyzer";
 import Stage3Content from "./Stage3Content";
 import Stage4Content from "./Stage4Content";
 import Stage5Content from "./Stage5Content";
@@ -86,7 +86,7 @@ function MithrilContent() {
       <div className="flex-1 flex flex-col items-center justify-center py-8">
         <div className="w-full max-w-2xl mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           {currentStage === 1 && <UploadManager />}
-          {currentStage === 2 && <Stage2Content />}
+          {currentStage === 2 && <StoryAnalyzer />}
           {currentStage === 3 && <Stage3Content />}
           {currentStage === 4 && <Stage4Content />}
           {currentStage === 5 && <Stage5Content />}

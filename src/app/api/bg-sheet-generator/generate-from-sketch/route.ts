@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent";
 
 interface GenerateFromSketchRequest {
   sketchBase64: string;
   prompt: string;
   styleReferenceBase64?: string;
+}
+
+interface Part {
+  inlineData?: { data: string; mimeType: string };
+  text?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -34,9 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
-    const parts: Array<{ inlineData?: { data: string; mimeType: string }; text?: string }> = [
+    const parts: Part[] = [
       {
         inlineData: {
           data: sketchBase64,
@@ -79,19 +84,33 @@ export async function POST(request: NextRequest) {
 
     parts.push({ text: finalPrompt });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: { parts },
-      config: {
-        responseModalities: ["image", "text"],
-        imageConfig: {
-          aspectRatio: "16:9",
-        },
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: {
+          responseModalities: ["IMAGE", "TEXT"],
+          imageConfig: {
+            aspectRatio: "16:9",
+          },
+        },
+      }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage =
+        errorData?.error?.message || `HTTP ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+
     // Extract image from response
-    for (const candidate of response.candidates || []) {
+    for (const candidate of data.candidates || []) {
       if (!candidate.content?.parts) continue;
       for (const part of candidate.content.parts) {
         if (part.inlineData && part.inlineData.data) {

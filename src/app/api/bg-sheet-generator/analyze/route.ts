@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Type } from "@google/genai";
+
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 interface AnalyzeRequest {
   text: string;
 }
 
 const analysisSchema = {
-  type: Type.OBJECT,
+  type: "OBJECT",
   properties: {
     backgrounds: {
-      type: Type.ARRAY,
+      type: "ARRAY",
       description: "List of all distinct settings/locations.",
       items: {
-        type: Type.OBJECT,
+        type: "OBJECT",
         properties: {
           name: {
-            type: Type.STRING,
+            type: "STRING",
             description: "Name of the location or setting.",
           },
           description: {
-            type: Type.STRING,
+            type: "STRING",
             description: "Detailed description of the setting.",
           },
         },
@@ -49,8 +51,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
     const prompt = `
       You are a story analyst for a creative studio. Your task is to read the following novel text and extract structured information about settings for design purposes.
 
@@ -68,16 +68,30 @@ export async function POST(request: NextRequest) {
       (Text truncated if too long)
     `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: analysisSchema,
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: analysisSchema,
+        },
+      }),
     });
 
-    const responseText = response.text;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage =
+        errorData?.error?.message || `HTTP ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
     if (!responseText) {
       throw new Error("No response text from AI");
     }

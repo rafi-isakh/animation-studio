@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { marked } from "marked";
+import { useMithril } from "./MithrilContext";
 
 const LoadingSpinner: React.FC = () => (
   <svg
@@ -27,73 +28,27 @@ const LoadingSpinner: React.FC = () => (
 );
 
 export default function StoryAnalyzer() {
+  const { storyAnalyzer, startStoryAnalysis } = useMithril();
+  const { isLoading, error, progressMessage, summary } = storyAnalyzer;
+
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [conditions, setConditions] = useState<string>("");
   const [analysisType, setAnalysisType] = useState<"plot" | "episode">("plot");
-  const [summary, setSummary] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [progressMessage, setProgressMessage] = useState<string>("");
 
-  // Load file content and previous analysis from localStorage on mount
+  // Load file content from localStorage on mount
   useEffect(() => {
     const savedContent = localStorage.getItem("chapter");
     const savedFileName = localStorage.getItem("chapter_filename");
-    const savedAnalysis = localStorage.getItem("story_analysis");
     if (savedContent) {
       setFileContent(savedContent);
       setFileName(savedFileName || "Uploaded file");
     }
-    if (savedAnalysis) {
-      setSummary(savedAnalysis);
-    }
   }, []);
 
-  const handleAnalyze = useCallback(async () => {
-    if (!fileContent) {
-      setError("Please upload a text file in Stage 1 first.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setSummary("");
-    setProgressMessage("Analyzing story...");
-
-    try {
-      const response = await fetch("/api/analyze_story", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          novelText: fileContent,
-          conditions,
-          analysisType,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to analyze story");
-      }
-
-      setSummary(data.result);
-      // Save analysis result to localStorage
-      localStorage.setItem("story_analysis", data.result);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("An unknown error occurred. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-      setProgressMessage("");
-    }
-  }, [fileContent, conditions, analysisType]);
+  const handleAnalyze = useCallback(() => {
+    startStoryAnalysis(conditions, analysisType);
+  }, [startStoryAnalysis, conditions, analysisType]);
 
   const handleDownload = useCallback(() => {
     if (!summary) return;

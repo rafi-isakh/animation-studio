@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "./MithrilContext";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { Download, Save } from "lucide-react";
 
 interface SplitResult {
   parts: string[];
@@ -28,39 +29,6 @@ const Loader: React.FC = () => (
   </div>
 );
 
-const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-    />
-  </svg>
-);
-
-const SaveIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-    />
-  </svg>
-);
 
 export default function Stage3Content() {
   const { setStageResult } = useMithril();
@@ -289,14 +257,14 @@ export default function Stage3Content() {
                     : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
                 }`}
               >
-                <SaveIcon className="w-4 h-4" />
+                <Save className="w-4 h-4" />
                 <span>{isSaved ? "Saved" : "Save"}</span>
               </button>
               <button
                 onClick={handleDownload}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
-                <DownloadIcon className="w-4 h-4" />
+                <Download className="w-4 h-4" />
                 <span>Download ZIP</span>
               </button>
             </div>

@@ -150,6 +150,7 @@ export default function BgSheetGenerator() {
   const [error, setError] = useState<string>("");
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
   // Global settings
   const [styleKeyword, setStyleKeyword] = useState<string>(
@@ -219,6 +220,7 @@ export default function BgSheetGenerator() {
           // Ignore parse errors
         }
       }
+      setIsLoadingData(false);
     };
 
     loadSavedData();
@@ -682,7 +684,18 @@ export default function BgSheetGenerator() {
         </p>
       </div>
 
+      {/* Loading State */}
+      {isLoadingData && (
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#DB2777]"></div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Loading saved backgrounds...
+          </p>
+        </div>
+      )}
+
       {/* Global Configuration */}
+      {!isLoadingData && (
       <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-4">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <span className="w-1 h-4 bg-[#DB2777] rounded-full"></span>
@@ -739,9 +752,10 @@ export default function BgSheetGenerator() {
           </label>
         </div>
       </div>
+      )}
 
       {/* Text Preview from Stage 1 */}
-      {originalText ? (
+      {!isLoadingData && (originalText ? (
         <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -764,10 +778,10 @@ export default function BgSheetGenerator() {
             Please upload a text file in Stage 1 first.
           </p>
         </div>
-      )}
+      ))}
 
       {/* Analyze Button */}
-      {originalText && !isAnalyzing && backgrounds.length === 0 && (
+      {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
         <div className="text-center">
           <button
             onClick={handleAnalyze}
@@ -780,7 +794,7 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Error Display */}
-      {error && (
+      {!isLoadingData && error && (
         <div
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
@@ -791,10 +805,10 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Loader */}
-      {isAnalyzing && <Loader />}
+      {!isLoadingData && isAnalyzing && <Loader />}
 
       {/* Results */}
-      {backgrounds.length > 0 && !isAnalyzing && (
+      {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
         <div className="space-y-4">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

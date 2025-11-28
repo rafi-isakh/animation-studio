@@ -1,0 +1,168 @@
+// Mithril IndexedDB Service
+// Stores large image data that exceeds localStorage limits
+
+const DB_NAME = "MithrilDB";
+const STORE_NAME = "mithrilAssets";
+const DB_VERSION = 1;
+
+export interface MithrilImage {
+  id: string; // e.g., "bg_{bgId}_{angle}" like "bg_abc123_Front_View"
+  type: "bg_image";
+  base64: string;
+  mimeType: string;
+  bgId: string; // Reference to parent background
+  angle: string; // "Front View", "Side View (Left)", etc.
+  createdAt: number;
+}
+
+export type StoredItem = MithrilImage;
+
+let db: IDBDatabase | null = null;
+
+const getDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    if (db) {
+      return resolve(db);
+    }
+
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => {
+      console.error("MithrilDB error:", request.error);
+      reject("Error opening MithrilDB.");
+    };
+
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const dbInstance = (event.target as IDBOpenDBRequest).result;
+
+      if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+        const store = dbInstance.createObjectStore(STORE_NAME, {
+          keyPath: "id",
+        });
+        // Create index for querying by bgId
+        store.createIndex("bgId", "bgId", { unique: false });
+      }
+    };
+  });
+};
+
+// Save a single background image
+export const saveBgImage = async (image: MithrilImage): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(image);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error saving image in MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get a single background image by ID
+export const getBgImage = async (id: string): Promise<MithrilImage | null> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(id);
+    request.onsuccess = () => {
+      resolve(request.result || null);
+    };
+    request.onerror = () => {
+      console.error("Error getting image from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get all images for a specific background ID
+export const getBgImagesByBgId = async (
+  bgId: string
+): Promise<MithrilImage[]> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+  const index = store.index("bgId");
+
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(bgId);
+    request.onsuccess = () => {
+      resolve(request.result as MithrilImage[]);
+    };
+    request.onerror = () => {
+      console.error("Error getting images by bgId from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Delete all images for a specific background ID
+export const deleteBgImagesByBgId = async (bgId: string): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+  const index = store.index("bgId");
+
+  return new Promise((resolve, reject) => {
+    const getRequest = index.getAllKeys(bgId);
+
+    getRequest.onsuccess = () => {
+      const keys = getRequest.result;
+      keys.forEach((key) => {
+        store.delete(key);
+      });
+    };
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => {
+      console.error("Error deleting images from MithrilDB:", transaction.error);
+      reject(transaction.error);
+    };
+  });
+};
+
+// Get all background images
+export const getAllBgImages = async (): Promise<MithrilImage[]> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const items = request.result as StoredItem[];
+      // Filter to only bg_image types
+      resolve(items.filter((item) => item.type === "bg_image") as MithrilImage[]);
+    };
+    request.onerror = () => {
+      console.error("Error getting all images from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Clear all data (useful for testing/reset)
+export const clearAllData = async (): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error clearing MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};

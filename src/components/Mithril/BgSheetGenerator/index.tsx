@@ -14,9 +14,10 @@ import {
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type {
   Background,
-  BgSheetResult,
+  BgSheetResultMetadata,
   AnalysisResult,
 } from "./types";
+import { saveBgImage, getBgImage } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -176,18 +177,50 @@ export default function BgSheetGenerator() {
     }
 
     // Load previously saved result if exists
-    const savedResult = localStorage.getItem("bg_sheet_result");
-    if (savedResult) {
-      try {
-        const parsed: BgSheetResult = JSON.parse(savedResult);
-        setBackgrounds(parsed.backgrounds);
-        setStyleKeyword(parsed.styleKeyword);
-        setBackgroundBasePrompt(parsed.backgroundBasePrompt);
-        setIsSaved(true);
-      } catch {
-        // Ignore parse errors
+    const loadSavedData = async () => {
+      const savedResult = localStorage.getItem("bg_sheet_result");
+      if (savedResult) {
+        try {
+          const metadata: BgSheetResultMetadata = JSON.parse(savedResult);
+
+          // Reconstruct backgrounds with images from IndexedDB
+          const backgroundsWithImages: Background[] = await Promise.all(
+            metadata.backgrounds.map(async (bgMeta) => {
+              const images = await Promise.all(
+                bgMeta.images.map(async (imgMeta) => {
+                  let imageBase64 = "";
+                  if (imgMeta.imageId) {
+                    const dbImage = await getBgImage(imgMeta.imageId);
+                    imageBase64 = dbImage?.base64 || "";
+                  }
+                  return {
+                    angle: imgMeta.angle,
+                    prompt: imgMeta.prompt,
+                    imageBase64,
+                    isGenerating: false,
+                  };
+                })
+              );
+              return {
+                id: bgMeta.id,
+                name: bgMeta.name,
+                description: bgMeta.description,
+                images,
+              };
+            })
+          );
+
+          setBackgrounds(backgroundsWithImages);
+          setStyleKeyword(metadata.styleKeyword);
+          setBackgroundBasePrompt(metadata.backgroundBasePrompt);
+          setIsSaved(true);
+        } catch {
+          // Ignore parse errors
+        }
       }
-    }
+    };
+
+    loadSavedData();
   }, []);
 
   const handleReferenceImageChange = (
@@ -578,15 +611,47 @@ export default function BgSheetGenerator() {
     }
   };
 
-  const handleSave = useCallback(() => {
-    const result: BgSheetResult = {
-      backgrounds,
-      styleKeyword,
-      backgroundBasePrompt,
-    };
+  const handleSave = useCallback(async () => {
     try {
-      localStorage.setItem("bg_sheet_result", JSON.stringify(result));
-      setStageResult(4, result);
+      // 1. Save all images to IndexedDB
+      for (const bg of backgrounds) {
+        for (const img of bg.images) {
+          if (img.imageBase64) {
+            const imageId = `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
+            await saveBgImage({
+              id: imageId,
+              type: "bg_image",
+              base64: img.imageBase64,
+              mimeType: "image/jpeg",
+              bgId: bg.id,
+              angle: img.angle,
+              createdAt: Date.now(),
+            });
+          }
+        }
+      }
+
+      // 2. Create metadata (without base64)
+      const metadata: BgSheetResultMetadata = {
+        backgrounds: backgrounds.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: img.imageBase64
+              ? `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`
+              : "",
+          })),
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+
+      // 3. Save metadata to localStorage (small, won't exceed limit)
+      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+      setStageResult(4, metadata);
       setIsSaved(true);
       toast({
         variant: "success",
@@ -594,20 +659,12 @@ export default function BgSheetGenerator() {
         description: "Background sheet results saved successfully.",
       });
     } catch (error) {
-      console.error("localStorage save failed:", error);
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Storage limit exceeded. Too many images to save locally.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Failed to save results.",
-        });
-      }
+      console.error("Save failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: "Failed to save results.",
+      });
     }
   }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
 

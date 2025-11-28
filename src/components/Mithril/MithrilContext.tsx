@@ -176,6 +176,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
+  // Helper to clear specific stage results
+  const clearStageResult = useCallback((stage: number) => {
+    setStageResults(prev => {
+      const next = { ...prev };
+      delete next[stage];
+      return next;
+    });
+  }, []);
+
   // Story Analyzer methods
   const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
     const fileContent = localStorage.getItem("chapter");
@@ -241,7 +250,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       progressMessage: "",
       summary: "",
     });
-  }, []);
+    clearStageResult(2);
+  }, [clearStageResult]);
 
   // Story Splitter methods
   const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
@@ -308,7 +318,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       result: null,
     });
-  }, []);
+    clearStageResult(3);
+  }, [clearStageResult]);
 
   // Storyboard Generator methods
   const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
@@ -369,7 +380,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scenes: [],
       voicePrompts: [],
     });
-  }, []);
+    clearStageResult(5);
+  }, [clearStageResult]);
 
   // BgSheet Generator state (Stage 4)
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
@@ -452,7 +464,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
     });
     localStorage.removeItem("bg_sheet_result");
-  }, []);
+    clearStageResult(4);
+  }, [clearStageResult]);
 
   // Navigation methods
   const goToNextStage = () => {

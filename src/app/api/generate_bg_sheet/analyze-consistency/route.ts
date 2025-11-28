@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ analysis });
   } catch (error: unknown) {
     console.error(
-      "Error in generate-bg-sheet/analyze-consistency API:",
+      "Error in generate_bg_sheet/analyze-consistency API:",
       error
     );
 

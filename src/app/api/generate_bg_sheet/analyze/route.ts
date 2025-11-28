@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    console.error("Error in generate-bg-sheet/analyze API:", error);
+    console.error("Error in generate_bg_sheet/analyze API:", error);
 
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

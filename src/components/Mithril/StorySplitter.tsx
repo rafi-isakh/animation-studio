@@ -93,7 +93,7 @@ export default function StorySplitter() {
     setSplitResult(null);
 
     try {
-      const response = await fetch("/api/split-story", {
+      const response = await fetch("/api/split_story", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

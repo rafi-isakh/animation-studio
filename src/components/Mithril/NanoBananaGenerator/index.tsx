@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -45,6 +45,7 @@ export default function NanoBananaGenerator() {
 
   // Loading state
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+  const hasLoadedRef = useRef<boolean>(false);
 
   // Reference images from BgSheetGenerator (IndexedDB)
   const [availableReferences, setAvailableReferences] = useState<
@@ -68,8 +69,13 @@ export default function NanoBananaGenerator() {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Load reference images from IndexedDB
+  // Load reference images from IndexedDB - only on initial mount
   useEffect(() => {
+    // Prevent re-loading if already loaded
+    if (hasLoadedRef.current) {
+      return;
+    }
+
     const loadData = async () => {
       try {
         // Load all background images from IndexedDB
@@ -103,7 +109,7 @@ export default function NanoBananaGenerator() {
 
         setAvailableReferences(references);
 
-        // Load previously saved result
+        // Load previously saved result only on initial load
         const savedResult = localStorage.getItem(STORAGE_KEY);
         if (savedResult) {
           try {
@@ -127,6 +133,8 @@ export default function NanoBananaGenerator() {
             // Ignore parse errors
           }
         }
+
+        hasLoadedRef.current = true;
       } catch (err) {
         console.error("Error loading reference images:", err);
         toast({
@@ -196,6 +204,7 @@ export default function NanoBananaGenerator() {
     setIsGenerating(true);
     setError("");
     setIsSaved(false);
+    setGeneratedImage(""); // Clear previous image to show loading state
 
     try {
       // Build prompt with style and scene
@@ -540,7 +549,7 @@ export default function NanoBananaGenerator() {
         </div>
 
         {/* Right Column - Output */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Generated Result
           </label>

@@ -14,9 +14,10 @@ import {
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type {
   Background,
-  BgSheetResult,
+  BgSheetResultMetadata,
   AnalysisResult,
 } from "./types";
+import { saveBgImage, getBgImage } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -148,6 +149,8 @@ export default function BgSheetGenerator() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
   // Global settings
   const [styleKeyword, setStyleKeyword] = useState<string>(
@@ -176,18 +179,51 @@ export default function BgSheetGenerator() {
     }
 
     // Load previously saved result if exists
-    const savedResult = localStorage.getItem("bg_sheet_result");
-    if (savedResult) {
-      try {
-        const parsed: BgSheetResult = JSON.parse(savedResult);
-        setBackgrounds(parsed.backgrounds);
-        setStyleKeyword(parsed.styleKeyword);
-        setBackgroundBasePrompt(parsed.backgroundBasePrompt);
-        setIsSaved(true);
-      } catch {
-        // Ignore parse errors
+    const loadSavedData = async () => {
+      const savedResult = localStorage.getItem("bg_sheet_result");
+      if (savedResult) {
+        try {
+          const metadata: BgSheetResultMetadata = JSON.parse(savedResult);
+
+          // Reconstruct backgrounds with images from IndexedDB
+          const backgroundsWithImages: Background[] = await Promise.all(
+            metadata.backgrounds.map(async (bgMeta) => {
+              const images = await Promise.all(
+                bgMeta.images.map(async (imgMeta) => {
+                  let imageBase64 = "";
+                  if (imgMeta.imageId) {
+                    const dbImage = await getBgImage(imgMeta.imageId);
+                    imageBase64 = dbImage?.base64 || "";
+                  }
+                  return {
+                    angle: imgMeta.angle,
+                    prompt: imgMeta.prompt,
+                    imageBase64,
+                    isGenerating: false,
+                  };
+                })
+              );
+              return {
+                id: bgMeta.id,
+                name: bgMeta.name,
+                description: bgMeta.description,
+                images,
+              };
+            })
+          );
+
+          setBackgrounds(backgroundsWithImages);
+          setStyleKeyword(metadata.styleKeyword);
+          setBackgroundBasePrompt(metadata.backgroundBasePrompt);
+          setIsSaved(true);
+        } catch {
+          // Ignore parse errors
+        }
       }
-    }
+      setIsLoadingData(false);
+    };
+
+    loadSavedData();
   }, []);
 
   const handleReferenceImageChange = (
@@ -209,7 +245,7 @@ export default function BgSheetGenerator() {
     setIsSaved(false);
 
     try {
-      const response = await fetch("/api/bg-sheet-generator/analyze", {
+      const response = await fetch("/api/generate_bg_sheet/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: originalText }),
@@ -297,7 +333,7 @@ export default function BgSheetGenerator() {
       );
 
       try {
-        const response = await fetch("/api/bg-sheet-generator/generate-image", {
+        const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
@@ -325,7 +361,7 @@ export default function BgSheetGenerator() {
 
         // Analyze for consistency
         const consistencyResponse = await fetch(
-          "/api/bg-sheet-generator/analyze-consistency",
+          "/api/generate_bg_sheet/analyze-consistency",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -369,7 +405,7 @@ export default function BgSheetGenerator() {
     } else {
       // Analyze existing first image for consistency
       const consistencyResponse = await fetch(
-        "/api/bg-sheet-generator/analyze-consistency",
+        "/api/generate_bg_sheet/analyze-consistency",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -427,7 +463,7 @@ export default function BgSheetGenerator() {
       );
 
       try {
-        const response = await fetch("/api/bg-sheet-generator/generate-image", {
+        const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
@@ -527,7 +563,7 @@ export default function BgSheetGenerator() {
 
     try {
       const response = await fetch(
-        "/api/bg-sheet-generator/generate-from-sketch",
+        "/api/generate_bg_sheet/generate-from-sketch",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -578,15 +614,48 @@ export default function BgSheetGenerator() {
     }
   };
 
-  const handleSave = useCallback(() => {
-    const result: BgSheetResult = {
-      backgrounds,
-      styleKeyword,
-      backgroundBasePrompt,
-    };
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
     try {
-      localStorage.setItem("bg_sheet_result", JSON.stringify(result));
-      setStageResult(4, result);
+      // 1. Save all images to IndexedDB
+      for (const bg of backgrounds) {
+        for (const img of bg.images) {
+          if (img.imageBase64) {
+            const imageId = `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
+            await saveBgImage({
+              id: imageId,
+              type: "bg_image",
+              base64: img.imageBase64,
+              mimeType: "image/jpeg",
+              bgId: bg.id,
+              angle: img.angle,
+              createdAt: Date.now(),
+            });
+          }
+        }
+      }
+
+      // 2. Create metadata (without base64)
+      const metadata: BgSheetResultMetadata = {
+        backgrounds: backgrounds.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: img.imageBase64
+              ? `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`
+              : "",
+          })),
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+
+      // 3. Save metadata to localStorage (small, won't exceed limit)
+      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+      setStageResult(4, metadata);
       setIsSaved(true);
       toast({
         variant: "success",
@@ -594,20 +663,14 @@ export default function BgSheetGenerator() {
         description: "Background sheet results saved successfully.",
       });
     } catch (error) {
-      console.error("localStorage save failed:", error);
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Storage limit exceeded. Too many images to save locally.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Failed to save results.",
-        });
-      }
+      console.error("Save failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: "Failed to save results.",
+      });
+    } finally {
+      setIsSaving(false);
     }
   }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
 
@@ -615,13 +678,24 @@ export default function BgSheetGenerator() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Character Sheet Generator</h2>
+        <h2 className="text-2xl font-bold mb-2">Background Sheet Generator</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           AI extracts backgrounds from your story and generates multi-angle views
         </p>
       </div>
 
+      {/* Loading State */}
+      {isLoadingData && (
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#DB2777]"></div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Loading saved backgrounds...
+          </p>
+        </div>
+      )}
+
       {/* Global Configuration */}
+      {!isLoadingData && (
       <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-4">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <span className="w-1 h-4 bg-[#DB2777] rounded-full"></span>
@@ -678,9 +752,10 @@ export default function BgSheetGenerator() {
           </label>
         </div>
       </div>
+      )}
 
       {/* Text Preview from Stage 1 */}
-      {originalText ? (
+      {!isLoadingData && (originalText ? (
         <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -703,10 +778,10 @@ export default function BgSheetGenerator() {
             Please upload a text file in Stage 1 first.
           </p>
         </div>
-      )}
+      ))}
 
       {/* Analyze Button */}
-      {originalText && !isAnalyzing && backgrounds.length === 0 && (
+      {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
         <div className="text-center">
           <button
             onClick={handleAnalyze}
@@ -719,7 +794,7 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Error Display */}
-      {error && (
+      {!isLoadingData && error && (
         <div
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
@@ -730,10 +805,10 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Loader */}
-      {isAnalyzing && <Loader />}
+      {!isLoadingData && isAnalyzing && <Loader />}
 
       {/* Results */}
-      {backgrounds.length > 0 && !isAnalyzing && (
+      {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
         <div className="space-y-4">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -744,15 +819,21 @@ export default function BgSheetGenerator() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handleSave}
-                disabled={isSaved}
+                disabled={isSaved || isSaving}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
                   isSaved
                     ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                    : isSaving
+                    ? "bg-[#DB2777]/70 text-white cursor-wait"
                     : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
                 }`}
               >
-                <Save className="w-4 h-4" />
-                <span>{isSaved ? "Saved" : "Save"}</span>
+                {isSaving ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>{isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}</span>
               </button>
               <button
                 onClick={handleGenerateAll}

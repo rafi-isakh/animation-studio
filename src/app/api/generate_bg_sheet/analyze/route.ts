@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const responseText = response.text;
+    const responseText = response.text?.trim();
     if (!responseText) {
       throw new Error("No response text from AI");
     }
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    console.error("Error in bg-sheet-generator/analyze API:", error);
+    console.error("Error in generate_bg_sheet/analyze API:", error);
 
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

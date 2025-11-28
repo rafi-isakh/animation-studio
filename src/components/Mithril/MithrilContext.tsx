@@ -12,6 +12,17 @@ interface StoryAnalyzerState {
   summary: string;
 }
 
+// Types for Story Splitter
+interface SplitResult {
+  parts: string[];
+}
+
+interface StorySplitterState {
+  isLoading: boolean;
+  error: string | null;
+  result: SplitResult | null;
+}
+
 // Types for shared state
 interface MithrilContextProps {
   // Navigation
@@ -35,6 +46,11 @@ interface MithrilContextProps {
   storyAnalyzer: StoryAnalyzerState;
   startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
   clearStoryAnalysis: () => void;
+
+  // Story Splitter (Stage 3)
+  storySplitter: StorySplitterState;
+  startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
+  clearStorySplit: () => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -55,6 +71,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     progressMessage: "",
     summary: "",
+  });
+
+  // Story Splitter state (Stage 3)
+  const [storySplitter, setStorySplitter] = useState<StorySplitterState>({
+    isLoading: false,
+    error: null,
+    result: null,
   });
 
   // Story Analyzer methods
@@ -124,6 +147,71 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, []);
 
+  // Story Splitter methods
+  const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
+    if (!text) {
+      setStorySplitter(prev => ({
+        ...prev,
+        error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return;
+    }
+
+    setStorySplitter({
+      isLoading: true,
+      error: null,
+      result: null,
+    });
+
+    try {
+      const response = await fetch("/api/split_story", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          guidelines,
+          numParts,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "API request failed");
+      }
+
+      const result = { parts: data.parts };
+
+      // Save to localStorage
+      localStorage.setItem("story_splitter_result", JSON.stringify(result));
+
+      setStorySplitter({
+        isLoading: false,
+        error: null,
+        result,
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setStorySplitter(prev => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+    }
+  }, []);
+
+  const clearStorySplit = useCallback(() => {
+    localStorage.removeItem("story_splitter_result");
+    setStorySplitter({
+      isLoading: false,
+      error: null,
+      result: null,
+    });
+  }, []);
+
   // Navigation methods
   const goToNextStage = () => {
     if (currentStage < TOTAL_STAGES) {
@@ -176,6 +264,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         storyAnalyzer,
         startStoryAnalysis,
         clearStoryAnalysis,
+        // Story Splitter
+        storySplitter,
+        startStorySplit,
+        clearStorySplit,
       }}
     >
       {children}

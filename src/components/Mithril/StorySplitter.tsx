@@ -2,14 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "./MithrilContext";
-import { useToast } from "@/hooks/use-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Download } from "lucide-react";
-
-interface SplitResult {
-  parts: string[];
-}
 
 const defaultGuidelines = `클리프행어는 궁금증과 기대감을 폭발시키는 장면으로서, 다음 중 하나를 반드시 충족한다.
 
@@ -32,16 +27,15 @@ const Loader: React.FC = () => (
 
 
 export default function StorySplitter() {
-  const { setStageResult } = useMithril();
-  const { toast } = useToast();
+  const { setStageResult, storySplitter, startStorySplit } = useMithril();
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
   const numParts = 12;
   const [guidelines, setGuidelines] = useState<string>(defaultGuidelines);
-  const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+
+  // Use state from context
+  const { isLoading, error, result: splitResult } = storySplitter;
 
   // Load text from localStorage (from Stage 1)
   useEffect(() => {
@@ -51,75 +45,17 @@ export default function StorySplitter() {
       setOriginalText(savedContent);
       setFileName(savedFileName || "uploaded_file.txt");
     }
-
-    // Load previously saved split result if exists
-    const savedResult = localStorage.getItem("story_splitter_result");
-    if (savedResult) {
-      try {
-        const parsed = JSON.parse(savedResult);
-        setSplitResult(parsed);
-      } catch {
-        // Ignore parse errors
-      }
-    }
   }, []);
 
-  // Auto-save when splitResult changes
+  // Sync splitResult to stageResult when it changes
   useEffect(() => {
     if (!splitResult) return;
-
-    try {
-      localStorage.setItem("story_splitter_result", JSON.stringify(splitResult));
-      setStageResult(3, splitResult);
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast({
-          variant: "destructive",
-          title: "Auto-save Failed",
-          description: "Storage limit exceeded.",
-        });
-      }
-    }
-  }, [splitResult, setStageResult, toast]);
+    setStageResult(3, splitResult);
+  }, [splitResult, setStageResult]);
 
   const handleGenerate = useCallback(async () => {
-    if (!originalText) {
-      setError("No script found. Please upload a file in Stage 1 first.");
-      return;
-    }
-    setError("");
-    setIsLoading(true);
-    setSplitResult(null);
-
-    try {
-      const response = await fetch("/api/split_story", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: originalText,
-          guidelines,
-          numParts,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "API request failed");
-      }
-
-      setSplitResult({ parts: data.parts });
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [originalText, guidelines]);
+    await startStorySplit(originalText, guidelines, numParts);
+  }, [originalText, guidelines, numParts, startStorySplit]);
 
   const handleDownload = useCallback(async () => {
     if (!splitResult) return;

@@ -3,7 +3,7 @@
 import UploadManager from "./UploadManager";
 import StoryAnalyzer from "./StoryAnalyzer";
 import StorySplitter from "./StorySplitter";
-import Stage5Content from "./Stage5Content";
+import StoryboardGenerator from "./StoryboardGenerator";
 import Stage6Content from "./Stage6Content";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import BgSheetGenerator from "./BgSheetGenerator";
@@ -13,7 +13,7 @@ const stages = [
   { id: 2, label: "Stage 2" },
   { id: 3, label: "Story Splitter" },
   { id: 4, label: "BG Sheet Generator" },
-  { id: 5, label: "Stage 5" },
+  { id: 5, label: "Storyboard Generator" },
   { id: 6, label: "Stage 6" },
 ];
 
@@ -84,12 +84,14 @@ function MithrilContent() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center py-8">
-        <div className="w-full max-w-2xl mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div
+          className={`w-full ${currentStage === 5 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
+        >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StoryAnalyzer />}
           {currentStage === 3 && <StorySplitter />}
           {currentStage === 4 && <BgSheetGenerator />}
-          {currentStage === 5 && <Stage5Content />}
+          {currentStage === 5 && <StoryboardGenerator />}
           {currentStage === 6 && <Stage6Content />}
         </div>
       </div>

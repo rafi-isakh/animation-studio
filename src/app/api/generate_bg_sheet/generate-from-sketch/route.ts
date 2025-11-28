@@ -7,6 +7,11 @@ interface GenerateFromSketchRequest {
   styleReferenceBase64?: string;
 }
 
+interface Part {
+  inlineData?: { data: string; mimeType: string };
+  text?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateFromSketchRequest = await request.json();
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const parts: Array<{ inlineData?: { data: string; mimeType: string }; text?: string }> = [
+    const parts: Part[] = [
       {
         inlineData: {
           data: sketchBase64,
@@ -80,12 +85,14 @@ export async function POST(request: NextRequest) {
     parts.push({ text: finalPrompt });
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: { parts },
+      model: "gemini-3-pro-image-preview",
+      contents: {
+        parts: parts,
+      },
       config: {
-        responseModalities: ["image", "text"],
         imageConfig: {
           aspectRatio: "16:9",
+          imageSize: "2K",
         },
       },
     });
@@ -109,7 +116,7 @@ export async function POST(request: NextRequest) {
     throw new Error("Model executed but returned no image data.");
   } catch (error: unknown) {
     console.error(
-      "Error in bg-sheet-generator/generate-from-sketch API:",
+      "Error in generate_bg_sheet/generate-from-sketch API:",
       error
     );
 

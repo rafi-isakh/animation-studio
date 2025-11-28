@@ -1,3 +1,4 @@
+// In-memory types (used during session)
 export interface GeneratedImage {
   angle: string;
   prompt: string;
@@ -12,8 +13,29 @@ export interface Background {
   images: GeneratedImage[];
 }
 
+// Legacy type - kept for backward compatibility
 export interface BgSheetResult {
   backgrounds: Background[];
+  styleKeyword: string;
+  backgroundBasePrompt: string;
+}
+
+// Metadata types for localStorage (without base64 data)
+export interface GeneratedImageMetadata {
+  angle: string;
+  prompt: string;
+  imageId: string; // Reference to IndexedDB image ID
+}
+
+export interface BackgroundMetadata {
+  id: string;
+  name: string;
+  description: string;
+  images: GeneratedImageMetadata[];
+}
+
+export interface BgSheetResultMetadata {
+  backgrounds: BackgroundMetadata[];
   styleKeyword: string;
   backgroundBasePrompt: string;
 }

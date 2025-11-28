@@ -3,17 +3,21 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Image as ImageIcon, Check, Download, Save } from "lucide-react";
+import {
+  Sparkles,
+  Image as ImageIcon,
+  Check,
+  Download,
+  Save,
+} from "lucide-react";
 import {
   getAllBgImages,
   saveNanoBananaImage,
   getNanoBananaImage,
 } from "../services/mithrilIndexedDB";
-import type {
-  ReferenceImage,
-  NanoBananaResultMetadata,
-} from "./types";
+import type { ReferenceImage, NanoBananaResultMetadata } from "./types";
 import { ASPECT_RATIOS } from "./types";
+import Image from "next/image";
 
 const STORAGE_KEY = "nano_banana_result";
 
@@ -55,9 +59,7 @@ export default function NanoBananaGenerator() {
     "2D anime style, clean linework, soft cel shading, vibrant colors"
   );
   const [scenePrompt, setScenePrompt] = useState<string>("");
-  const [aspectRatio, setAspectRatio] = useState<
-    "16:9" | "9:16" | "1:1" | "4:3" | "3:4"
-  >("16:9");
+  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -80,11 +82,9 @@ export default function NanoBananaGenerator() {
         if (bgSheetResult) {
           try {
             const parsed = JSON.parse(bgSheetResult);
-            parsed.backgrounds?.forEach(
-              (bg: { id: string; name: string }) => {
-                bgNameMap[bg.id] = bg.name;
-              }
-            );
+            parsed.backgrounds?.forEach((bg: { id: string; name: string }) => {
+              bgNameMap[bg.id] = bg.name;
+            });
           } catch {
             // Ignore parse errors
           }
@@ -184,7 +184,11 @@ export default function NanoBananaGenerator() {
   // Generate image
   const handleGenerate = useCallback(async () => {
     // At least one of style prompt, scene prompt, or reference images is needed
-    if (!stylePrompt.trim() && !scenePrompt.trim() && selectedReferenceIds.size === 0) {
+    if (
+      !stylePrompt.trim() &&
+      !scenePrompt.trim() &&
+      selectedReferenceIds.size === 0
+    ) {
       setError("Please enter a prompt or select reference images.");
       return;
     }
@@ -209,25 +213,31 @@ export default function NanoBananaGenerator() {
         selectedReferenceIds.has(ref.id)
       );
 
-      // Prepare request body
+      // Prepare request body for NanoBanana API
       const requestBody: {
         prompt: string;
         aspectRatio: string;
-        referenceImages?: { base64: string; mimeType: string }[];
+        references?: {
+          backgrounds: { base64: string; mimeType: string }[];
+          characters: { base64: string; mimeType: string }[];
+        };
       } = {
         prompt: fullPrompt,
         aspectRatio: aspectRatio,
       };
 
-      // Add reference images if any selected
+      // Add reference images as backgrounds
       if (selectedRefs.length > 0) {
-        requestBody.referenceImages = selectedRefs.map((ref) => ({
-          base64: ref.base64,
-          mimeType: ref.mimeType,
-        }));
+        requestBody.references = {
+          backgrounds: selectedRefs.map((ref) => ({
+            base64: ref.base64,
+            mimeType: ref.mimeType,
+          })),
+          characters: [],
+        };
       }
 
-      const response = await fetch("/api/generate_bg_sheet/generate-image", {
+      const response = await fetch("/api/nano_banana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -339,7 +349,10 @@ export default function NanoBananaGenerator() {
   // Download generated image
   const handleDownload = () => {
     if (generatedImage) {
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+      const timestamp = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/:/g, "-");
       downloadImage(generatedImage, `nano_banana_${timestamp}.jpg`);
     }
   };
@@ -353,7 +366,7 @@ export default function NanoBananaGenerator() {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
@@ -404,28 +417,34 @@ export default function NanoBananaGenerator() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 {availableReferences.map((ref) => (
                   <div
                     key={ref.id}
-                    onClick={() => !isGenerating && toggleReferenceSelection(ref.id)}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                    onClick={() =>
+                      !isGenerating && toggleReferenceSelection(ref.id)
+                    }
+                    className={`relative cursor-pointer rounded-lg overflow-hidden border-3 transition-all ${
                       selectedReferenceIds.has(ref.id)
                         ? "border-[#DB2777] ring-2 ring-[#DB2777]/50"
                         : "border-transparent hover:border-gray-400"
                     } ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <img
-                      src={`data:${ref.mimeType};base64,${ref.base64}`}
-                      alt={`${ref.bgName} - ${ref.angle}`}
-                      className="w-full aspect-video object-cover"
-                    />
+                    <div className="relative w-full aspect-video">
+                      <Image
+                        src={`data:${ref.mimeType};base64,${ref.base64}`}
+                        alt={`${ref.bgName} - ${ref.angle}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
                     {selectedReferenceIds.has(ref.id) && (
-                      <div className="absolute top-1 right-1 bg-[#DB2777] text-white rounded-full p-0.5">
-                        <Check size={12} />
+                      <div className="absolute top-2 right-2 bg-[#DB2777] text-white rounded-full p-1">
+                        <Check size={16} />
                       </div>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 truncate">
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-2">
                       {ref.bgName} - {ref.angle}
                     </div>
                   </div>
@@ -498,7 +517,12 @@ export default function NanoBananaGenerator() {
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={isGenerating || (!stylePrompt.trim() && !scenePrompt.trim() && selectedReferenceIds.size === 0)}
+            disabled={
+              isGenerating ||
+              (!stylePrompt.trim() &&
+                !scenePrompt.trim() &&
+                selectedReferenceIds.size === 0)
+            }
             className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#DB2777] hover:bg-[#BE185D] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? (
@@ -530,11 +554,15 @@ export default function NanoBananaGenerator() {
             {isGenerating ? (
               <Loader message="AI is generating your image..." />
             ) : generatedImage ? (
-              <img
-                src={`data:image/jpeg;base64,${generatedImage}`}
-                alt="Generated result"
-                className="w-full h-full object-contain"
-              />
+              <div className="relative w-full h-full">
+                <Image
+                  src={`data:image/jpeg;base64,${generatedImage}`}
+                  alt="Generated result"
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <ImageIcon size={48} className="mb-2 opacity-50" />

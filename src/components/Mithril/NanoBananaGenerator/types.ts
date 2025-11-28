@@ -16,7 +16,7 @@ export interface NanoBananaResult {
   id: string;
   stylePrompt: string;
   scenePrompt: string;
-  aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+  aspectRatio: "16:9" | "9:16";
   referenceImageIds: string[]; // IDs of selected reference images
   combinedPrompt: string;
   generatedImageBase64: string;
@@ -29,7 +29,7 @@ export interface NanoBananaResultMetadata {
   id: string;
   stylePrompt: string;
   scenePrompt: string;
-  aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+  aspectRatio: "16:9" | "9:16";
   referenceImageIds: string[];
   combinedPrompt: string;
   generatedImageId: string; // Reference to IndexedDB
@@ -45,7 +45,4 @@ export interface NanoBananaHistory {
 export const ASPECT_RATIOS = [
   { value: "16:9" as const, label: "Landscape (16:9)" },
   { value: "9:16" as const, label: "Portrait (9:16)" },
-  { value: "1:1" as const, label: "Square (1:1)" },
-  { value: "4:3" as const, label: "Standard (4:3)" },
-  { value: "3:4" as const, label: "Portrait (3:4)" },
 ];

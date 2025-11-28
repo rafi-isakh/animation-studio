@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "./MithrilContext";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 
 const defaultGuidelines = `클리프행어는 궁금증과 기대감을 폭발시키는 장면으로서, 다음 중 하나를 반드시 충족한다.
 
@@ -27,7 +27,7 @@ const Loader: React.FC = () => (
 
 
 export default function StorySplitter() {
-  const { setStageResult, storySplitter, startStorySplit } = useMithril();
+  const { setStageResult, storySplitter, startStorySplit, clearStorySplit } = useMithril();
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
@@ -159,13 +159,22 @@ export default function StorySplitter() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               Split Results ({splitResult.parts.length} Parts)
             </h3>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download ZIP</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download ZIP</span>
+              </button>
+              <button
+                onClick={clearStorySplit}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Clear</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">

@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 
 const TOTAL_STAGES = 6;
 
@@ -21,6 +22,24 @@ interface StorySplitterState {
   isLoading: boolean;
   error: string | null;
   result: SplitResult | null;
+}
+
+// Types for Storyboard Generator
+interface StoryboardGeneratorState {
+  isGenerating: boolean;
+  error: string | null;
+  scenes: Scene[];
+  voicePrompts: VoicePrompt[];
+}
+
+interface GenerateStoryboardParams {
+  sourceText: string;
+  storyCondition: string;
+  imageCondition: string;
+  videoCondition: string;
+  soundCondition: string;
+  imageGuide: string;
+  videoGuide: string;
 }
 
 // Types for shared state
@@ -51,6 +70,11 @@ interface MithrilContextProps {
   storySplitter: StorySplitterState;
   startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
   clearStorySplit: () => void;
+
+  // Storyboard Generator (Stage 5)
+  storyboardGenerator: StoryboardGeneratorState;
+  startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
+  clearStoryboardGeneration: () => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -79,6 +103,44 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     result: null,
   });
+
+  // Hydrate storySplitter from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("story_splitter_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setStorySplitter(prev => ({ ...prev, result: parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Storyboard Generator state (Stage 5)
+  const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
+    isGenerating: false,
+    error: null,
+    scenes: [],
+    voicePrompts: [],
+  });
+
+  // Hydrate storyboardGenerator from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("storyboard_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setStoryboardGenerator(prev => ({
+          ...prev,
+          scenes: parsed.scenes || [],
+          voicePrompts: parsed.voicePrompts || [],
+        }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
 
   // Story Analyzer methods
   const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
@@ -163,6 +225,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       result: null,
     });
 
+    localStorage.removeItem("story_splitter_result");
+
     try {
       const response = await fetch("/api/split_story", {
         method: "POST",
@@ -209,6 +273,67 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       isLoading: false,
       error: null,
       result: null,
+    });
+  }, []);
+
+  // Storyboard Generator methods
+  const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
+    if (!params.sourceText) {
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        error: "No source text provided. Please select a part from Stage 3.",
+      }));
+      return;
+    }
+
+    setStoryboardGenerator({
+      isGenerating: true,
+      error: null,
+      scenes: [],
+      voicePrompts: [],
+    });
+
+    localStorage.removeItem("storyboard_result");
+
+    try {
+      const response = await fetch("/api/generate_storyboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
+
+      // Save to localStorage
+      localStorage.setItem("storyboard_result", JSON.stringify(result));
+
+      setStoryboardGenerator({
+        isGenerating: false,
+        error: null,
+        scenes: data.scenes,
+        voicePrompts: data.voicePrompts,
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        isGenerating: false,
+        error: errorMessage,
+      }));
+    }
+  }, []);
+
+  const clearStoryboardGeneration = useCallback(() => {
+    localStorage.removeItem("storyboard_result");
+    setStoryboardGenerator({
+      isGenerating: false,
+      error: null,
+      scenes: [],
+      voicePrompts: [],
     });
   }, []);
 
@@ -268,6 +393,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         storySplitter,
         startStorySplit,
         clearStorySplit,
+        // Storyboard Generator
+        storyboardGenerator,
+        startStoryboardGeneration,
+        clearStoryboardGeneration,
       }}
     >
       {children}

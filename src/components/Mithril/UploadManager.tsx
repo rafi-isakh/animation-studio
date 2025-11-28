@@ -1,28 +1,25 @@
-import { useState, useEffect, useRef, DragEvent } from "react";
+"use client";
 
-const FileUploadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-    />
-  </svg>
-);
+import { useState, useEffect } from "react";
+
+// List of available sample files in public/samples folder
+// Add your TXT files here with their display names
+const SAMPLE_FILES = [
+  {
+    name: "마성의 신입사원 1~50",
+    path: "/samples/마성의 신입사원 1~50.txt",
+  },
+  { name: "Sample Story 1", path: "/samples/sample1.txt" },
+  { name: "Sample Story 2", path: "/samples/sample2.txt" },
+  { name: "Sample Story 3", path: "/samples/sample3.txt" },
+];
 
 export default function UploadManager() {
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -30,152 +27,152 @@ export default function UploadManager() {
     const savedFileName = localStorage.getItem("chapter_filename");
     if (savedContent) {
       setFileContent(savedContent);
-      setFileName(savedFileName || "Previously uploaded file");
+      setFileName(savedFileName || "Previously selected file");
+
+      // Find and set the matching dropdown option
+      const matchingFile = SAMPLE_FILES.find((f) => f.name === savedFileName);
+      if (matchingFile) {
+        setSelectedFile(matchingFile.path);
+      }
     }
   }, []);
 
-  const processFile = async (file: File) => {
-    if (!file.name.endsWith(".txt")) {
-      alert("Please upload a .txt file");
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSelectedFile(selected);
+    setError(null);
+
+    if (!selected) {
       return;
     }
 
+    const file = SAMPLE_FILES.find((f) => f.path === selected);
+    if (!file) return;
+
     setIsLoading(true);
     try {
-      const content = await file.text();
+      const response = await fetch(selected);
+      if (!response.ok) {
+        throw new Error("Failed to load file");
+      }
+      const content = await response.text();
       setFileContent(content);
       setFileName(file.name);
       localStorage.setItem("chapter", content);
       localStorage.setItem("chapter_filename", file.name);
-    } catch (error) {
-      console.error("Error reading file:", error);
-      alert("Error reading file");
+    } catch (err) {
+      console.error("Error loading file:", err);
+      setError("Failed to load the selected file. Please try again.");
+      setFileContent(null);
+      setFileName(null);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await processFile(file);
-    }
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = async (e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await processFile(file);
     }
   };
 
   const handleClear = () => {
     setFileContent(null);
     setFileName(null);
+    setSelectedFile("");
+    setError(null);
     localStorage.removeItem("chapter");
     localStorage.removeItem("chapter_filename");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-4">Upload Manager</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">Story Selector</h2>
       <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
-        Upload a TXT file to get started
+        Select a story file to get started
       </p>
 
       <div className="space-y-4">
-        {/* Drag & Drop Zone */}
-        <div className="flex items-center justify-center w-full">
+        {/* File Selection Dropdown */}
+        <div>
           <label
-            htmlFor="dropzone-file"
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`
-              flex flex-col items-center justify-center w-full h-48
-              border-2 border-dashed rounded-lg cursor-pointer
-              transition-colors duration-200
-              ${
-                isDragging
-                  ? "border-[#DB2777] bg-[#DB2777]/10"
-                  : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
-              }
-            `}
+            htmlFor="file-select"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <FileUploadIcon
-                className={`w-10 h-10 mb-3 ${
-                  isDragging
-                    ? "text-[#DB2777]"
-                    : "text-gray-400 dark:text-gray-400"
-                }`}
-              />
-              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">Click to upload</span> or drag
-                and drop
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                .TXT file only
-              </p>
-              {fileName && !isLoading && (
-                <p className="mt-2 text-sm text-[#DB2777] font-semibold">
-                  {fileName}
-                </p>
-              )}
-              {isLoading && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Loading...
-                </p>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              id="dropzone-file"
-              type="file"
-              accept=".txt"
-              className="hidden"
-              onChange={handleFileChange}
-              disabled={isLoading}
-            />
+            Select a Story File
           </label>
+          <select
+            id="file-select"
+            value={selectedFile}
+            onChange={handleFileSelect}
+            disabled={isLoading}
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#DB2777] focus:border-[#DB2777] transition-colors text-gray-900 dark:text-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">-- Select a file --</option>
+            {SAMPLE_FILES.map((file) => (
+              <option key={file.path} value={file.path}>
+                {file.name}
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-4">
+            <svg
+              className="animate-spin h-5 w-5 text-[#DB2777] mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Loading file...
+            </span>
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-lg">
+            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* File Preview */}
-        {fileContent && (
-          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+        {fileContent && !isLoading && (
+          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-[#DB2777]">
                 {fileName}
               </span>
               <button
                 onClick={handleClear}
-                className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
               >
                 Clear
               </button>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {fileContent.length} characters
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              {fileContent.length.toLocaleString()} characters
             </p>
-            <div className="mt-2 max-h-32 overflow-y-auto">
+            <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-600">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {fileContent.slice(0, 500)}
-                {fileContent.length > 500 && "..."}
+                {fileContent.slice(0, 1000)}
+                {fileContent.length > 1000 && (
+                  <span className="text-gray-400">
+                    {"\n\n"}... ({(fileContent.length - 1000).toLocaleString()}{" "}
+                    more characters)
+                  </span>
+                )}
               </pre>
             </div>
           </div>

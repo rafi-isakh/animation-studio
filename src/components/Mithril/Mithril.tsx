@@ -9,12 +9,12 @@ import { MithrilProvider, useMithril } from "./MithrilContext";
 import BgSheetGenerator from "./BgSheetGenerator";
 
 const stages = [
-  { id: 1, label: "Stage 1" },
-  { id: 2, label: "Stage 2" },
+  { id: 1, label: "Story Selector" },
+  { id: 2, label: "Story Analyzer" },
   { id: 3, label: "Story Splitter" },
   { id: 4, label: "BG Sheet Generator" },
   { id: 5, label: "Storyboard Generator" },
-  { id: 6, label: "Stage 6" },
+  { id: 6, label: "Nanobanana Image Creator" },
 ];
 
 function MithrilContent() {
@@ -85,7 +85,7 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center py-8">
         <div
-          className={`w-full ${currentStage === 5 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
+          className={`w-full ${currentStage === 5 || currentStage === 6 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
         >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StoryAnalyzer />}

@@ -81,7 +81,7 @@ export default function UploadManager() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-4">Upload Manager</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">Story Selector</h2>
       <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
         Select a story file to get started
       </p>

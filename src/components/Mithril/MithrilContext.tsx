@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 
 const TOTAL_STAGES = 6;
 
@@ -10,6 +11,64 @@ interface StoryAnalyzerState {
   error: string | null;
   progressMessage: string;
   summary: string;
+}
+
+// Types for Story Splitter
+interface SplitResult {
+  parts: string[];
+}
+
+interface StorySplitterState {
+  isLoading: boolean;
+  error: string | null;
+  result: SplitResult | null;
+}
+
+// Types for Storyboard Generator
+interface StoryboardGeneratorState {
+  isGenerating: boolean;
+  error: string | null;
+  scenes: Scene[];
+  voicePrompts: VoicePrompt[];
+}
+
+// Types for BgSheet Generator
+interface BgSheetGeneratorState {
+  isAnalyzing: boolean;
+  error: string | null;
+}
+
+interface BgSheetBackground {
+  id: string;
+  name: string;
+  description: string;
+  images: {
+    angle: string;
+    prompt: string;
+    imageBase64: string;
+    isGenerating: boolean;
+  }[];
+}
+
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Side View (Left)",
+  "Side View (Right)",
+  "Rear View",
+  "Low Angle",
+  "High Angle",
+  "Wide Shot",
+  "Close-up Detail",
+];
+
+interface GenerateStoryboardParams {
+  sourceText: string;
+  storyCondition: string;
+  imageCondition: string;
+  videoCondition: string;
+  soundCondition: string;
+  imageGuide: string;
+  videoGuide: string;
 }
 
 // Types for shared state
@@ -35,6 +94,21 @@ interface MithrilContextProps {
   storyAnalyzer: StoryAnalyzerState;
   startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
   clearStoryAnalysis: () => void;
+
+  // Story Splitter (Stage 3)
+  storySplitter: StorySplitterState;
+  startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
+  clearStorySplit: () => void;
+
+  // Storyboard Generator (Stage 5)
+  storyboardGenerator: StoryboardGeneratorState;
+  startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
+  clearStoryboardGeneration: () => void;
+
+  // BgSheet Generator (Stage 4)
+  bgSheetGenerator: BgSheetGeneratorState;
+  startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
+  clearBgSheetAnalysis: () => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -56,6 +130,60 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     progressMessage: "",
     summary: "",
   });
+
+  // Story Splitter state (Stage 3)
+  const [storySplitter, setStorySplitter] = useState<StorySplitterState>({
+    isLoading: false,
+    error: null,
+    result: null,
+  });
+
+  // Hydrate storySplitter from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("story_splitter_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setStorySplitter(prev => ({ ...prev, result: parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Storyboard Generator state (Stage 5)
+  const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
+    isGenerating: false,
+    error: null,
+    scenes: [],
+    voicePrompts: [],
+  });
+
+  // Hydrate storyboardGenerator from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("storyboard_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setStoryboardGenerator(prev => ({
+          ...prev,
+          scenes: parsed.scenes || [],
+          voicePrompts: parsed.voicePrompts || [],
+        }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Helper to clear specific stage results
+  const clearStageResult = useCallback((stage: number) => {
+    setStageResults(prev => {
+      const next = { ...prev };
+      delete next[stage];
+      return next;
+    });
+  }, []);
 
   // Story Analyzer methods
   const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
@@ -122,7 +250,222 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       progressMessage: "",
       summary: "",
     });
+    clearStageResult(2);
+  }, [clearStageResult]);
+
+  // Story Splitter methods
+  const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
+    if (!text) {
+      setStorySplitter(prev => ({
+        ...prev,
+        error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return;
+    }
+
+    setStorySplitter({
+      isLoading: true,
+      error: null,
+      result: null,
+    });
+
+    localStorage.removeItem("story_splitter_result");
+
+    try {
+      const response = await fetch("/api/split_story", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          guidelines,
+          numParts,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "API request failed");
+      }
+
+      const result = { parts: data.parts };
+
+      // Save to localStorage
+      localStorage.setItem("story_splitter_result", JSON.stringify(result));
+
+      setStorySplitter({
+        isLoading: false,
+        error: null,
+        result,
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setStorySplitter(prev => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+    }
   }, []);
+
+  const clearStorySplit = useCallback(() => {
+    localStorage.removeItem("story_splitter_result");
+    setStorySplitter({
+      isLoading: false,
+      error: null,
+      result: null,
+    });
+    clearStageResult(3);
+  }, [clearStageResult]);
+
+  // Storyboard Generator methods
+  const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
+    if (!params.sourceText) {
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        error: "No source text provided. Please select a part from Stage 3.",
+      }));
+      return;
+    }
+
+    setStoryboardGenerator({
+      isGenerating: true,
+      error: null,
+      scenes: [],
+      voicePrompts: [],
+    });
+
+    localStorage.removeItem("storyboard_result");
+
+    try {
+      const response = await fetch("/api/generate_storyboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
+
+      // Save to localStorage
+      localStorage.setItem("storyboard_result", JSON.stringify(result));
+
+      setStoryboardGenerator({
+        isGenerating: false,
+        error: null,
+        scenes: data.scenes,
+        voicePrompts: data.voicePrompts,
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        isGenerating: false,
+        error: errorMessage,
+      }));
+    }
+  }, []);
+
+  const clearStoryboardGeneration = useCallback(() => {
+    localStorage.removeItem("storyboard_result");
+    setStoryboardGenerator({
+      isGenerating: false,
+      error: null,
+      scenes: [],
+      voicePrompts: [],
+    });
+    clearStageResult(5);
+  }, [clearStageResult]);
+
+  // BgSheet Generator state (Stage 4)
+  const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+  });
+
+  // BgSheet Generator methods
+  const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
+    if (!text) {
+      setBgSheetGenerator(prev => ({
+        ...prev,
+        error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return [];
+    }
+
+    setBgSheetGenerator({
+      isAnalyzing: true,
+      error: null,
+    });
+
+    try {
+      const response = await fetch("/api/generate_bg_sheet/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const backgroundsWithImages: BgSheetBackground[] = data.backgrounds.map((b: { name: string; description: string }) => ({
+        ...b,
+        id: crypto.randomUUID(),
+        images: BACKGROUND_ANGLES.map((angle) => ({
+          angle,
+          prompt: "",
+          imageBase64: "",
+          isGenerating: false,
+        })),
+      }));
+
+      // Auto-save to localStorage
+      const metadata = {
+        backgrounds: backgroundsWithImages.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: "",
+          })),
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+
+      setBgSheetGenerator({
+        isAnalyzing: false,
+        error: null,
+      });
+
+      return backgroundsWithImages;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      setBgSheetGenerator({
+        isAnalyzing: false,
+        error: errorMessage,
+      });
+      return [];
+    }
+  }, []);
+
+  const clearBgSheetAnalysis = useCallback(() => {
+    setBgSheetGenerator({
+      isAnalyzing: false,
+      error: null,
+    });
+    localStorage.removeItem("bg_sheet_result");
+    clearStageResult(4);
+  }, [clearStageResult]);
 
   // Navigation methods
   const goToNextStage = () => {
@@ -176,6 +519,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         storyAnalyzer,
         startStoryAnalysis,
         clearStoryAnalysis,
+        // Story Splitter
+        storySplitter,
+        startStorySplit,
+        clearStorySplit,
+        // Storyboard Generator
+        storyboardGenerator,
+        startStoryboardGeneration,
+        clearStoryboardGeneration,
+        // BgSheet Generator
+        bgSheetGenerator,
+        startBgSheetAnalysis,
+        clearBgSheetAnalysis,
       }}
     >
       {children}

@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 2000;
+import { GoogleGenAI, Type } from "@google/genai";
 
 interface StorySpitterRequest {
   text: string;
@@ -11,81 +7,42 @@ interface StorySpitterRequest {
   numParts: number;
 }
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+async function generateContentWithRetry(
+  ai: GoogleGenAI,
+  params: Parameters<GoogleGenAI["models"]["generateContent"]>[0],
+  maxRetries = 3,
+  initialDelay = 2000
+): Promise<Awaited<ReturnType<GoogleGenAI["models"]["generateContent"]>>> {
+  let lastError: unknown;
+  let delay = initialDelay;
 
-async function callGeminiWithRetry(prompt: string): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
-
-  let attempt = 0;
-  while (attempt < MAX_RETRIES) {
-    attempt++;
+  for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData?.error?.message || `HTTP ${response.status}`;
-
-        if (
-          errorMessage.includes("503") ||
-          errorMessage.includes("overloaded") ||
-          errorMessage.includes("UNAVAILABLE")
-        ) {
-          if (attempt < MAX_RETRIES) {
-            const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
-            console.warn(
-              `Attempt ${attempt} failed due to model overload. Retrying in ${delay}ms...`
-            );
-            await sleep(delay);
-            continue;
-          }
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      return text;
+      return await ai.models.generateContent(params);
     } catch (error: unknown) {
+      lastError = error;
       const errorMessage = String(error);
-      // Only retry on transient errors
+      // Only retry on specific, transient errors like 503.
       if (
         errorMessage.includes("503") ||
         errorMessage.includes("overloaded") ||
         errorMessage.includes("UNAVAILABLE")
       ) {
-        if (attempt < MAX_RETRIES) {
-          const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
+        if (i < maxRetries - 1) {
           console.warn(
-            `Attempt ${attempt} failed due to model overload. Retrying in ${delay}ms...`
+            `Attempt ${i + 1} failed due to model overload. Retrying in ${delay}ms...`
           );
-          await sleep(delay);
-          continue;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
         }
+      } else {
+        // Don't retry on non-transient errors (e.g., bad request, auth error)
+        throw error;
       }
-      // Don't retry on non-transient errors
-      throw error;
     }
   }
-  throw new Error("API call failed after all retries.");
+  console.error("All retry attempts failed.");
+  throw lastError;
 }
 
 async function splitTextWithCliffhangers(
@@ -93,7 +50,14 @@ async function splitTextWithCliffhangers(
   guidelines: string,
   numParts: number
 ): Promise<string[]> {
-  const prompt = `
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+
+  const systemInstruction = `
 당신은 텍스트 분할을 위한 AI 분석 도구입니다. 당신의 임무는 주어진 텍스트에서 사용자가 요청한 파트의 개수(${numParts}개)에 맞춰, 각 파트(마지막 파트 제외)를 마무리할 **마지막 문장**을 찾아내는 것입니다.
 
 **절대적인 규칙:**
@@ -109,82 +73,120 @@ async function splitTextWithCliffhangers(
 다른 설명 없이, "cliffhangerSentences" 키 하나만을 가진 단일 JSON 객체만 반환해야 합니다. "cliffhangerSentences"의 값은 원본 텍스트에서 추출한 **정확히 ${numParts - 1}개**의 문장(문자열)을 담은 배열이어야 합니다.
 
 사용자 가이드라인: ${guidelines || "추가 가이드라인 없음."}
-
-다음 전체 스크립트를 ${numParts}개의 파트로 나눌 것입니다. 각 파트의 경계가 될 ${numParts - 1}개의 클리프행어 문장을 찾아주세요:
-
----
-${text}
----
 `;
 
-  let responseText = (await callGeminiWithRetry(prompt)).trim();
-
-  // Strip markdown code block if present (```json ... ```)
-  if (responseText.startsWith("```")) {
-    responseText = responseText
-      .replace(/^```(?:json)?\s*\n?/, "")
-      .replace(/\n?```\s*$/, "");
-  }
-
-  let result;
   try {
-    result = JSON.parse(responseText);
-  } catch (parseError: unknown) {
-    console.error("JSON parsing error:", parseError);
-    console.error("Malformed JSON string from API:", responseText);
-    throw new Error(
-      `AI 응답을 JSON으로 분석하는 데 실패했습니다. Error: ${(parseError as Error).message}`
-    );
-  }
+    const response = await generateContentWithRetry(ai, {
+      model: "gemini-2.5-pro",
+      contents: `다음 전체 스크립트를 ${numParts}개의 파트로 나눌 것입니다. 각 파트의 경계가 될 ${numParts - 1}개의 클리프행어 문장을 찾아주세요:\n\n---\n${text}\n---`,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            cliffhangerSentences: {
+              type: Type.ARRAY,
+              description: `An array of exactly ${numParts - 1} strings. Each string is the last sentence of a part and must be an exact quote from the source text.`,
+              items: {
+                type: Type.STRING,
+              },
+            },
+          },
+          required: ["cliffhangerSentences"],
+        },
+      },
+    });
 
-  const cliffhangerSentences = result.cliffhangerSentences as string[];
+    const responseText = response.text?.trim();
+    if (!responseText) {
+      throw new Error("Empty response from Gemini API");
+    }
 
-  if (
-    !Array.isArray(cliffhangerSentences) ||
-    cliffhangerSentences.some((p) => typeof p !== "string")
-  ) {
-    throw new Error(
-      "AI가 유효하지 않은 형식의 클리프행어를 반환했습니다. 문자열 배열이 필요합니다."
-    );
-  }
-
-  if (cliffhangerSentences.length !== numParts - 1) {
-    throw new Error(
-      `AI가 요청된 클리프행어 문장 수를 생성하지 못했습니다. 요청: ${numParts - 1}개, 생성: ${cliffhangerSentences.length}개. 다시 시도해주세요.`
-    );
-  }
-
-  const parts: string[] = [];
-  let remainingText = text;
-
-  for (const sentence of cliffhangerSentences) {
-    const searchSentence = sentence.trim();
-    const index = remainingText.indexOf(searchSentence);
-
-    if (index === -1) {
-      console.error(
-        `Could not find cliffhanger: "${searchSentence}" in remaining text.`
-      );
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError: unknown) {
+      console.error("JSON parsing error:", parseError);
+      console.error("Malformed JSON string from API:", responseText);
       throw new Error(
-        `AI가 반환한 클리프행어 문장("${searchSentence.substring(0, 50)}...")을 원본 스크립트에서 찾을 수 없습니다. AI가 문장을 변경했을 수 있습니다. 다시 시도해주세요.`
+        `Failed to parse AI response into JSON. Error: ${(parseError as Error).message}`
       );
     }
 
-    const splitPoint = index + searchSentence.length;
-    const part = remainingText.substring(0, splitPoint);
-    parts.push(part.trim());
-    remainingText = remainingText.substring(splitPoint);
+    const cliffhangerSentences = result.cliffhangerSentences as string[];
+
+    if (
+      !Array.isArray(cliffhangerSentences) ||
+      cliffhangerSentences.some((p) => typeof p !== "string")
+    ) {
+      throw new Error(
+        "AI returned an invalid format for cliffhanger sentences. A string array is required."
+      );
+    }
+
+    if (cliffhangerSentences.length !== numParts - 1) {
+      throw new Error(
+        `AI failed to generate the requested number of cliffhanger sentences. Requested: ${numParts - 1}, Generated: ${cliffhangerSentences.length}. Please try again.`
+      );
+    }
+
+    const parts: string[] = [];
+    let remainingText = text;
+
+    for (const sentence of cliffhangerSentences) {
+      const searchSentence = sentence.trim();
+      const index = remainingText.indexOf(searchSentence);
+
+      if (index === -1) {
+        console.error(
+          `Could not find cliffhanger: "${searchSentence}" in remaining text.`
+        );
+        throw new Error(
+          `AI returned a cliffhanger sentence ("${searchSentence.substring(0, 50)}...") that could not be found in the original script. The AI may have altered the sentence. Please try again.`
+        );
+      }
+
+      const splitPoint = index + searchSentence.length;
+      const part = remainingText.substring(0, splitPoint);
+      parts.push(part.trim());
+      remainingText = remainingText.substring(splitPoint);
+    }
+
+    parts.push(remainingText.trim());
+
+    if (parts.length !== numParts) {
+      throw new Error(
+        `The final number of parts after splitting does not match the expected count. Expected: ${numParts}, Actual: ${parts.length}`
+      );
+    }
+
+    return parts;
+  } catch (error: unknown) {
+    console.error("Error calling Gemini API:", error);
+    const errorMessage = String(error);
+
+    if (
+      errorMessage.includes("503") ||
+      errorMessage.includes("overloaded") ||
+      errorMessage.includes("UNAVAILABLE")
+    ) {
+      throw new Error(
+        "The AI model is currently overloaded. All retries have failed. Please try again in a few moments."
+      );
+    }
+
+    if (error instanceof Error) {
+      if (
+        error.message.startsWith("Failed to parse AI") ||
+        error.message.startsWith("AI") ||
+        error.message.startsWith("The final")
+      ) {
+        throw error;
+      }
+    }
+    throw new Error("An unexpected error occurred while communicating with the AI.");
   }
-
-  parts.push(remainingText.trim());
-
-  if (parts.length !== numParts) {
-    throw new Error(
-      `최종 분할 후 파트 개수가 일치하지 않습니다. 예상: ${numParts}, 실제: ${parts.length}`
-    );
-  }
-
-  return parts;
 }
 
 export async function POST(request: NextRequest) {

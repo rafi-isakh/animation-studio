@@ -61,7 +61,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
     <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/80">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Google Drive 설정
+          Google Drive Settings
         </h3>
         {onClose && (
           <button
@@ -73,8 +73,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
         )}
       </div>
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Google Drive API 자격 증명을 입력하세요. 이 정보는 브라우저에 로컬로
-        저장됩니다.
+        Enter your Google Drive API credentials. This information will be stored locally in your browser.
       </p>
       <div className="space-y-3">
         <div>
@@ -151,11 +150,11 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
           onClick={handleSave}
           className="px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white bg-[#DB2777] hover:bg-[#BE185D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#DB2777] transition-colors"
         >
-          설정 저장
+          Save settings
         </button>
         {isSaved && (
           <span className="text-sm text-green-600 dark:text-green-400">
-            저장되었습니다!
+            Saved!
           </span>
         )}
       </div>

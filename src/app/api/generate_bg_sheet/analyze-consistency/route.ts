@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+import { GoogleGenAI } from "@google/genai";
 
 interface AnalyzeConsistencyRequest {
   imageBase64: string;
@@ -27,6 +25,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ai = new GoogleGenAI({ apiKey });
+
     const prompt = `
       Analyze this background image for the purpose of 3D reconstruction and consistency.
       List the FIXED physical elements that must remain identical in other angles.
@@ -40,37 +40,20 @@ export async function POST(request: NextRequest) {
       Do NOT describe the camera angle. Only describe the static physical reality of the room.
     `;
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: "image/jpeg",
-                  data: imageBase64,
-                },
-              },
-              { text: prompt },
-            ],
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageBase64,
           },
-        ],
-      }),
+        },
+        { text: prompt },
+      ],
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        errorData?.error?.message || `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const data = await response.json();
-    const analysis = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const analysis = response.text || "";
 
     return NextResponse.json({ analysis });
   } catch (error: unknown) {

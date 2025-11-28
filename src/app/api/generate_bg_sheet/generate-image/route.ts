@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent";
+import { GoogleGenAI } from "@google/genai";
 
 interface GenerateImageRequest {
   prompt: string;
@@ -28,33 +26,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseModalities: ["IMAGE", "TEXT"],
-          imageConfig: {
-            aspectRatio: aspectRatio,
-          },
+    const ai = new GoogleGenAI({ apiKey });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-image-preview",
+      contents: { parts: [{ text: prompt }] },
+      config: {
+        imageConfig: {
+          aspectRatio: aspectRatio,
+          imageSize: "2K",
         },
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        errorData?.error?.message || `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const data = await response.json();
-
     // Extract image from response
-    for (const candidate of data.candidates || []) {
+    for (const candidate of response.candidates || []) {
       if (!candidate.content?.parts) continue;
       for (const part of candidate.content.parts) {
         if (part.inlineData && part.inlineData.data) {

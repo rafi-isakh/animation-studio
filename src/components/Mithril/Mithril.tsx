@@ -9,12 +9,12 @@ import { MithrilProvider, useMithril } from "./MithrilContext";
 import BgSheetGenerator from "./BgSheetGenerator";
 
 const stages = [
-  { id: 1, label: "Stage 1" },
-  { id: 2, label: "Stage 2" },
+  { id: 1, label: "Story Selector" },
+  { id: 2, label: "Story Analyzer" },
   { id: 3, label: "Story Splitter" },
   { id: 4, label: "BG Sheet Generator" },
   { id: 5, label: "Storyboard Generator" },
-  { id: 6, label: "Stage 6" },
+  { id: 6, label: "Nanobanana Image Creator" },
 ];
 
 function MithrilContent() {

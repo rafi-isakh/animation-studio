@@ -379,7 +379,7 @@ export default function NanoBananaGenerator() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Nano Banana Generator
+          Nano Banana Image Creator
         </h2>
         {isSaved && (
           <span className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">

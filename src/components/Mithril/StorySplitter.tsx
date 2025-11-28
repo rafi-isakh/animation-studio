@@ -37,7 +37,7 @@ export default function StorySplitter() {
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
-  const [numParts, setNumParts] = useState<number>(5);
+  const numParts = 12;
   const [guidelines, setGuidelines] = useState<string>(defaultGuidelines);
   const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -88,10 +88,6 @@ export default function StorySplitter() {
       setError("No script found. Please upload a file in Stage 1 first.");
       return;
     }
-    if (numParts < 2 || numParts > 10) {
-      setError("Number of parts must be between 2 and 10.");
-      return;
-    }
     setError("");
     setIsLoading(true);
     setSplitResult(null);
@@ -123,7 +119,7 @@ export default function StorySplitter() {
     } finally {
       setIsLoading(false);
     }
-  }, [originalText, guidelines, numParts]);
+  }, [originalText, guidelines]);
 
   const handleDownload = useCallback(async () => {
     if (!splitResult) return;
@@ -178,36 +174,6 @@ export default function StorySplitter() {
 
       {/* Configuration Section */}
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="numParts"
-            className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Number of Parts
-          </label>
-          <input
-            id="numParts"
-            type="number"
-            min="2"
-            max="10"
-            value={numParts}
-            onChange={(e) => {
-              const value = e.target.value;
-              setNumParts(value === "" ? 2 : Number(value));
-            }}
-            onBlur={(e) => {
-              const value = Number(e.target.value);
-              if (value < 2) {
-                setNumParts(2);
-              } else if (value > 10) {
-                setNumParts(10);
-              }
-            }}
-            className="block w-32 p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
-            placeholder="2-10"
-          />
-        </div>
-
         <div>
           <label
             htmlFor="guidelines"

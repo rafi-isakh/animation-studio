@@ -200,13 +200,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof numParts !== "number" || numParts < 2 || numParts > 10) {
-      return NextResponse.json(
-        { error: "numParts must be a number between 2 and 10" },
-        { status: 400 }
-      );
-    }
-
     const parts = await splitTextWithCliffhangers(
       text,
       guidelines || "",

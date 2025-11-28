@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
+import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 
 const TOTAL_STAGES = 6;
 
@@ -36,6 +37,7 @@ interface StoryboardGeneratorState {
 interface BgSheetGeneratorState {
   isAnalyzing: boolean;
   error: string | null;
+  result: BgSheetResultMetadata | null;
 }
 
 interface BgSheetBackground {
@@ -387,7 +389,21 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
     isAnalyzing: false,
     error: null,
+    result: null,
   });
+
+  // Hydrate bgSheetGenerator from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("bg_sheet_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setBgSheetGenerator(prev => ({ ...prev, result: parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
 
   // BgSheet Generator methods
   const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
@@ -399,10 +415,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
-    setBgSheetGenerator({
+    setBgSheetGenerator(prev => ({
+      ...prev,
       isAnalyzing: true,
       error: null,
-    });
+    }));
 
     try {
       const response = await fetch("/api/generate_bg_sheet/analyze", {
@@ -445,15 +462,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       setBgSheetGenerator({
         isAnalyzing: false,
         error: null,
+        result: metadata,
       });
 
       return backgroundsWithImages;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      setBgSheetGenerator({
+      setBgSheetGenerator(prev => ({
+        ...prev,
         isAnalyzing: false,
         error: errorMessage,
-      });
+      }));
       return [];
     }
   }, []);
@@ -462,6 +481,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     setBgSheetGenerator({
       isAnalyzing: false,
       error: null,
+      result: null,
     });
     localStorage.removeItem("bg_sheet_result");
     clearStageResult(4);

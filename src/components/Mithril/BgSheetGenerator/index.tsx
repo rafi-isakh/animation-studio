@@ -13,10 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
-import type {
-  Background,
-  BgSheetResultMetadata,
-} from "./types";
+import type { Background, BgSheetResultMetadata } from "./types";
 import { saveBgImage, getBgImage, clearAllData } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
@@ -139,7 +136,7 @@ const downloadImage = (base64: string, filename: string): void => {
 export default function BgSheetGenerator() {
   const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis } = useMithril();
   const { toast } = useToast();
-  const { isAnalyzing, error: analysisError } = bgSheetGenerator;
+  const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
 
   // State from Stage 1
   const [originalText, setOriginalText] = useState<string>("");
@@ -169,7 +166,7 @@ export default function BgSheetGenerator() {
     initialPrompt: string;
   } | null>(null);
 
-  // Load text from localStorage (from Stage 1) and saved results
+  // Load text from localStorage (from Stage 1)
   useEffect(() => {
     const savedContent = localStorage.getItem("chapter");
     const savedFileName = localStorage.getItem("chapter_filename");
@@ -177,54 +174,63 @@ export default function BgSheetGenerator() {
       setOriginalText(savedContent);
       setFileName(savedFileName || "uploaded_file.txt");
     }
+  }, []);
 
-    // Load previously saved result if exists
-    const loadSavedData = async () => {
-      const savedResult = localStorage.getItem("bg_sheet_result");
-      if (savedResult) {
-        try {
-          const metadata: BgSheetResultMetadata = JSON.parse(savedResult);
+  // Hydrate from context result (similar to StorySplitter pattern)
+  useEffect(() => {
+    if (!contextResult) {
+      setIsLoadingData(false);
+      return;
+    }
 
-          // Reconstruct backgrounds with images from IndexedDB
-          const backgroundsWithImages: Background[] = await Promise.all(
-            metadata.backgrounds.map(async (bgMeta) => {
-              const images = await Promise.all(
-                bgMeta.images.map(async (imgMeta) => {
-                  let imageBase64 = "";
-                  if (imgMeta.imageId) {
-                    const dbImage = await getBgImage(imgMeta.imageId);
-                    imageBase64 = dbImage?.base64 || "";
-                  }
-                  return {
-                    angle: imgMeta.angle,
-                    prompt: imgMeta.prompt,
-                    imageBase64,
-                    isGenerating: false,
-                  };
-                })
-              );
-              return {
-                id: bgMeta.id,
-                name: bgMeta.name,
-                description: bgMeta.description,
-                images,
-              };
-            })
-          );
+    const hydrateFromContext = async () => {
+      setIsLoadingData(true);
+      try {
+        // Reconstruct backgrounds with images from IndexedDB
+        const backgroundsWithImages: Background[] = await Promise.all(
+          contextResult.backgrounds.map(async (bgMeta) => {
+            const images = await Promise.all(
+              bgMeta.images.map(async (imgMeta) => {
+                let imageBase64 = "";
+                if (imgMeta.imageId) {
+                  const dbImage = await getBgImage(imgMeta.imageId);
+                  imageBase64 = dbImage?.base64 || "";
+                }
+                return {
+                  angle: imgMeta.angle,
+                  prompt: imgMeta.prompt,
+                  imageBase64,
+                  isGenerating: false,
+                };
+              })
+            );
+            return {
+              id: bgMeta.id,
+              name: bgMeta.name,
+              description: bgMeta.description,
+              images,
+            };
+          })
+        );
 
-          setBackgrounds(backgroundsWithImages);
-          setStyleKeyword(metadata.styleKeyword);
-          setBackgroundBasePrompt(metadata.backgroundBasePrompt);
-          setIsSaved(true);
-        } catch {
-          // Ignore parse errors
-        }
+        setBackgrounds(backgroundsWithImages);
+        setStyleKeyword(contextResult.styleKeyword);
+        setBackgroundBasePrompt(contextResult.backgroundBasePrompt);
+        setIsSaved(true);
+      } catch {
+        // Ignore errors
       }
       setIsLoadingData(false);
     };
 
-    loadSavedData();
-  }, []);
+    hydrateFromContext();
+  }, [contextResult]);
+
+  // Sync backgrounds to stageResult when they change (matching StorySplitter pattern)
+  useEffect(() => {
+    if (backgrounds.length === 0) return;
+    setStageResult(4, { backgrounds, styleKeyword, backgroundBasePrompt });
+  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>

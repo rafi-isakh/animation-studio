@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     throw new Error("Model executed but returned no image data.");
   } catch (error: unknown) {
     console.error(
-      "Error in bg-sheet-generator/generate-from-sketch API:",
+      "Error in generate-bg-sheet/generate-from-sketch API:",
       error
     );
 

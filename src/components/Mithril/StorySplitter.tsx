@@ -5,7 +5,7 @@ import { useMithril } from "./MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Download, Save } from "lucide-react";
+import { Download } from "lucide-react";
 
 interface SplitResult {
   parts: string[];
@@ -42,7 +42,6 @@ export default function StorySplitter() {
   const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   // Load text from localStorage (from Stage 1)
   useEffect(() => {
@@ -59,12 +58,30 @@ export default function StorySplitter() {
       try {
         const parsed = JSON.parse(savedResult);
         setSplitResult(parsed);
-        setIsSaved(true);
       } catch {
         // Ignore parse errors
       }
     }
   }, []);
+
+  // Auto-save when splitResult changes
+  useEffect(() => {
+    if (!splitResult) return;
+
+    try {
+      localStorage.setItem("story_splitter_result", JSON.stringify(splitResult));
+      setStageResult(3, splitResult);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        toast({
+          variant: "destructive",
+          title: "Auto-save Failed",
+          description: "Storage limit exceeded.",
+        });
+      }
+    }
+  }, [splitResult, setStageResult, toast]);
 
   const handleGenerate = useCallback(async () => {
     if (!originalText) {
@@ -78,10 +95,9 @@ export default function StorySplitter() {
     setError("");
     setIsLoading(true);
     setSplitResult(null);
-    setIsSaved(false);
 
     try {
-      const response = await fetch("/api/story-splitter", {
+      const response = await fetch("/api/split-story", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,36 +139,6 @@ export default function StorySplitter() {
     const zipFileName = `${fileName.replace(".txt", "") || "script"}_parts.zip`;
     saveAs(content, zipFileName);
   }, [splitResult, fileName]);
-
-  const handleSave = useCallback(() => {
-    if (!splitResult) return;
-
-    try {
-      localStorage.setItem("story_splitter_result", JSON.stringify(splitResult));
-      setStageResult(3, splitResult);
-      setIsSaved(true);
-      toast({
-        variant: "success",
-        title: "Saved",
-        description: "Story splitter results saved successfully.",
-      });
-    } catch (error) {
-      console.error("localStorage save failed:", error);
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Storage limit exceeded.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Save Failed",
-          description: "Failed to save results.",
-        });
-      }
-    }
-  }, [splitResult, setStageResult, toast]);
 
   return (
     <div className="space-y-6">
@@ -271,27 +257,13 @@ export default function StorySplitter() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               Split Results ({splitResult.parts.length} Parts)
             </h3>
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                disabled={isSaved}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isSaved
-                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                    : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
-                }`}
-              >
-                <Save className="w-4 h-4" />
-                <span>{isSaved ? "Saved" : "Save"}</span>
-              </button>
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download ZIP</span>
-              </button>
-            </div>
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download ZIP</span>
+            </button>
           </div>
 
           <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">

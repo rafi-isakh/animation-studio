@@ -209,7 +209,7 @@ export default function BgSheetGenerator() {
     setIsSaved(false);
 
     try {
-      const response = await fetch("/api/bg-sheet-generator/analyze", {
+      const response = await fetch("/api/generate-bg-sheet/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: originalText }),
@@ -297,7 +297,7 @@ export default function BgSheetGenerator() {
       );
 
       try {
-        const response = await fetch("/api/bg-sheet-generator/generate-image", {
+        const response = await fetch("/api/generate-bg-sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
@@ -325,7 +325,7 @@ export default function BgSheetGenerator() {
 
         // Analyze for consistency
         const consistencyResponse = await fetch(
-          "/api/bg-sheet-generator/analyze-consistency",
+          "/api/generate-bg-sheet/analyze-consistency",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -369,7 +369,7 @@ export default function BgSheetGenerator() {
     } else {
       // Analyze existing first image for consistency
       const consistencyResponse = await fetch(
-        "/api/bg-sheet-generator/analyze-consistency",
+        "/api/generate-bg-sheet/analyze-consistency",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -427,7 +427,7 @@ export default function BgSheetGenerator() {
       );
 
       try {
-        const response = await fetch("/api/bg-sheet-generator/generate-image", {
+        const response = await fetch("/api/generate-bg-sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
@@ -527,7 +527,7 @@ export default function BgSheetGenerator() {
 
     try {
       const response = await fetch(
-        "/api/bg-sheet-generator/generate-from-sketch",
+        "/api/generate-bg-sheet/generate-from-sketch",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -10,11 +10,12 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import { uploadFileToDrive } from "../services";
-import type { Scene, VoicePrompt, SplitResult } from "../types";
+import type { SplitResult } from "../types";
 
 const Loader: React.FC = () => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
@@ -26,7 +27,14 @@ const Loader: React.FC = () => (
 );
 
 export default function StoryboardGenerator() {
-  const { setStageResult, getStageResult } = useMithril();
+  const {
+    setStageResult,
+    getStageResult,
+    storyboardGenerator,
+    startStoryboardGeneration,
+    clearStoryboardGeneration,
+  } = useMithril();
+  const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
   const { toast } = useToast();
 
   // Default conditions
@@ -90,119 +98,65 @@ export default function StoryboardGenerator() {
   const [imageGuide, setImageGuide] = useState("");
   const [videoGuide, setVideoGuide] = useState("");
 
-  // Results state
-  const [scenes, setScenes] = useState<Scene[]>([]);
-  const [voicePrompts, setVoicePrompts] = useState<VoicePrompt[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Local UI state (not lifted to context)
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
-  const [error, setError] = useState("");
 
   // UI state
   const [showDriveSettings, setShowDriveSettings] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
 
-  // Load split parts from localStorage on mount
+  // Load split parts from context on mount
   useEffect(() => {
-    const savedResult = localStorage.getItem("story_splitter_result");
-    if (savedResult) {
-      try {
-        const parsed: SplitResult = JSON.parse(savedResult);
-        if (parsed.parts && Array.isArray(parsed.parts)) {
-          setSplitParts(parsed.parts);
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
-
-    // Also try to get from context
     const contextResult = getStageResult(3) as SplitResult | undefined;
     if (contextResult?.parts && Array.isArray(contextResult.parts)) {
       setSplitParts(contextResult.parts);
     }
 
-    // Load previously saved storyboard result
-    const savedStoryboard = localStorage.getItem("storyboard_result");
-    if (savedStoryboard) {
-      try {
-        const parsed = JSON.parse(savedStoryboard);
-        if (parsed.scenes) setScenes(parsed.scenes);
-        if (parsed.voicePrompts) setVoicePrompts(parsed.voicePrompts);
-      } catch {
-        // Ignore parse errors
-      }
-    }
   }, [getStageResult]);
 
-  // Auto-save when results change
+  // Sync context results to stage results for other components
   useEffect(() => {
     if (scenes.length === 0) return;
-
-    try {
-      const result = { scenes, voicePrompts };
-      localStorage.setItem("storyboard_result", JSON.stringify(result));
-      setStageResult(5, result);
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast({
-          variant: "destructive",
-          title: "Auto-save Failed",
-          description: "Storage limit exceeded.",
-        });
-      }
-    }
-  }, [scenes, voicePrompts, setStageResult, toast]);
+    setStageResult(5, { scenes, voicePrompts });
+  }, [scenes, voicePrompts, setStageResult]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
-      setError(
-        "No split parts found. Please complete Stage 3 (Story Splitter) first."
-      );
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No split parts found. Please complete Stage 3 (Story Splitter) first.",
+      });
       return;
     }
 
     const sourceText = splitParts[selectedPartIndex];
     if (!sourceText) {
-      setError("Selected part is empty.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Selected part is empty.",
+      });
       return;
     }
 
-    setIsGenerating(true);
-    setError("");
+    await startStoryboardGeneration({
+      sourceText,
+      storyCondition,
+      imageCondition,
+      videoCondition,
+      soundCondition,
+      imageGuide,
+      videoGuide,
+    });
 
-    try {
-      const response = await fetch("/api/generate_storyboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceText,
-          storyCondition,
-          imageCondition,
-          videoCondition,
-          soundCondition,
-          imageGuide,
-          videoGuide,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "API request failed");
-
-      setScenes(data.scenes);
-      setVoicePrompts(data.voicePrompts);
-
+    // Show success toast if generation completed without error
+    if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
         variant: "success",
         title: "Storyboard Generated",
-        description: `Created ${data.scenes.length} scenes with ${data.scenes.reduce((acc: number, s: Scene) => acc + s.clips.length, 0)} clips.`,
+        description: `Created ${storyboardGenerator.scenes.length} scenes.`,
       });
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setIsGenerating(false);
     }
   }, [
     splitParts,
@@ -213,6 +167,8 @@ export default function StoryboardGenerator() {
     soundCondition,
     imageGuide,
     videoGuide,
+    startStoryboardGeneration,
+    storyboardGenerator,
     toast,
   ]);
 
@@ -569,6 +525,16 @@ export default function StoryboardGenerator() {
                 <CloudUpload className="w-4 h-4" />
                 {isSavingToDrive ? "Saving..." : "Save to Drive"}
               </button>
+              {scenes.length > 0 && (
+                <button
+                  onClick={clearStoryboardGeneration}
+                  disabled={isGenerating}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 

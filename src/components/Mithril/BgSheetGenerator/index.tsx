@@ -259,18 +259,38 @@ export default function BgSheetGenerator() {
 
       const result: AnalysisResult = data;
 
-      setBackgrounds(
-        result.backgrounds.map((b) => ({
-          ...b,
-          id: crypto.randomUUID(),
-          images: BACKGROUND_ANGLES.map((angle) => ({
-            angle,
-            prompt: "",
-            imageBase64: "",
-            isGenerating: false,
+      const backgroundsWithImages = result.backgrounds.map((b) => ({
+        ...b,
+        id: crypto.randomUUID(),
+        images: BACKGROUND_ANGLES.map((angle) => ({
+          angle,
+          prompt: "",
+          imageBase64: "",
+          isGenerating: false,
+        })),
+      }));
+
+      setBackgrounds(backgroundsWithImages);
+
+      // Auto-save analyzed results to localStorage
+      const metadata: BgSheetResultMetadata = {
+        backgrounds: backgroundsWithImages.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: "",
           })),
-        }))
-      );
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+
+      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+      setStageResult(4, metadata);
+      setIsSaved(true);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
@@ -278,7 +298,7 @@ export default function BgSheetGenerator() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [originalText]);
+  }, [originalText, styleKeyword, backgroundBasePrompt, setStageResult]);
 
   const updateBackground = (
     id: string,

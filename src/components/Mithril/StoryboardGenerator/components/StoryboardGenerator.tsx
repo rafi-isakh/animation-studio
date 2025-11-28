@@ -529,7 +529,7 @@ export default function StoryboardGenerator() {
                 <button
                   onClick={clearStoryboardGeneration}
                   disabled={isGenerating}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >
                   <Trash2 className="w-5 h-5" />
                   Clear

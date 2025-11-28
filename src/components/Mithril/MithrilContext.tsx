@@ -32,6 +32,35 @@ interface StoryboardGeneratorState {
   voicePrompts: VoicePrompt[];
 }
 
+// Types for BgSheet Generator
+interface BgSheetGeneratorState {
+  isAnalyzing: boolean;
+  error: string | null;
+}
+
+interface BgSheetBackground {
+  id: string;
+  name: string;
+  description: string;
+  images: {
+    angle: string;
+    prompt: string;
+    imageBase64: string;
+    isGenerating: boolean;
+  }[];
+}
+
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Side View (Left)",
+  "Side View (Right)",
+  "Rear View",
+  "Low Angle",
+  "High Angle",
+  "Wide Shot",
+  "Close-up Detail",
+];
+
 interface GenerateStoryboardParams {
   sourceText: string;
   storyCondition: string;
@@ -75,6 +104,11 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
+
+  // BgSheet Generator (Stage 4)
+  bgSheetGenerator: BgSheetGeneratorState;
+  startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
+  clearBgSheetAnalysis: () => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -337,6 +371,89 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, []);
 
+  // BgSheet Generator state (Stage 4)
+  const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+  });
+
+  // BgSheet Generator methods
+  const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
+    if (!text) {
+      setBgSheetGenerator(prev => ({
+        ...prev,
+        error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return [];
+    }
+
+    setBgSheetGenerator({
+      isAnalyzing: true,
+      error: null,
+    });
+
+    try {
+      const response = await fetch("/api/generate_bg_sheet/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const backgroundsWithImages: BgSheetBackground[] = data.backgrounds.map((b: { name: string; description: string }) => ({
+        ...b,
+        id: crypto.randomUUID(),
+        images: BACKGROUND_ANGLES.map((angle) => ({
+          angle,
+          prompt: "",
+          imageBase64: "",
+          isGenerating: false,
+        })),
+      }));
+
+      // Auto-save to localStorage
+      const metadata = {
+        backgrounds: backgroundsWithImages.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: "",
+          })),
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+
+      setBgSheetGenerator({
+        isAnalyzing: false,
+        error: null,
+      });
+
+      return backgroundsWithImages;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      setBgSheetGenerator({
+        isAnalyzing: false,
+        error: errorMessage,
+      });
+      return [];
+    }
+  }, []);
+
+  const clearBgSheetAnalysis = useCallback(() => {
+    setBgSheetGenerator({
+      isAnalyzing: false,
+      error: null,
+    });
+    localStorage.removeItem("bg_sheet_result");
+  }, []);
+
   // Navigation methods
   const goToNextStage = () => {
     if (currentStage < TOTAL_STAGES) {
@@ -397,6 +514,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         storyboardGenerator,
         startStoryboardGeneration,
         clearStoryboardGeneration,
+        // BgSheet Generator
+        bgSheetGenerator,
+        startBgSheetAnalysis,
+        clearBgSheetAnalysis,
       }}
     >
       {children}

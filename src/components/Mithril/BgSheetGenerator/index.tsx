@@ -10,14 +10,14 @@ import {
   Pencil,
   Save,
   FileDown,
+  Trash2,
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type {
   Background,
   BgSheetResultMetadata,
-  AnalysisResult,
 } from "./types";
-import { saveBgImage, getBgImage } from "../services/mithrilIndexedDB";
+import { saveBgImage, getBgImage, clearAllData } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -137,8 +137,9 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function BgSheetGenerator() {
-  const { setStageResult } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis } = useMithril();
   const { toast } = useToast();
+  const { isAnalyzing, error: analysisError } = bgSheetGenerator;
 
   // State from Stage 1
   const [originalText, setOriginalText] = useState<string>("");
@@ -146,7 +147,6 @@ export default function BgSheetGenerator() {
 
   // Main state
   const [backgrounds, setBackgrounds] = useState<Background[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -236,69 +236,19 @@ export default function BgSheetGenerator() {
   };
 
   const handleAnalyze = useCallback(async () => {
-    if (!originalText) {
-      setError("No script found. Please upload a file in Stage 1 first.");
-      return;
-    }
-    setIsAnalyzing(true);
     setError("");
     setIsSaved(false);
 
-    try {
-      const response = await fetch("/api/generate_bg_sheet/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: originalText }),
-      });
+    const result = await startBgSheetAnalysis(originalText, styleKeyword, backgroundBasePrompt);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "API request failed");
-      }
-
-      const result: AnalysisResult = data;
-
-      const backgroundsWithImages = result.backgrounds.map((b) => ({
-        ...b,
-        id: crypto.randomUUID(),
-        images: BACKGROUND_ANGLES.map((angle) => ({
-          angle,
-          prompt: "",
-          imageBase64: "",
-          isGenerating: false,
-        })),
-      }));
-
-      setBackgrounds(backgroundsWithImages);
-
-      // Auto-save analyzed results to localStorage
-      const metadata: BgSheetResultMetadata = {
-        backgrounds: backgroundsWithImages.map((bg) => ({
-          id: bg.id,
-          name: bg.name,
-          description: bg.description,
-          images: bg.images.map((img) => ({
-            angle: img.angle,
-            prompt: img.prompt,
-            imageId: "",
-          })),
-        })),
-        styleKeyword,
-        backgroundBasePrompt,
-      };
-
-      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
-      setStageResult(4, metadata);
+    if (result.length > 0) {
+      setBackgrounds(result);
+      setStageResult(4, { backgrounds: result, styleKeyword, backgroundBasePrompt });
       setIsSaved(true);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
-    } finally {
-      setIsAnalyzing(false);
+    } else if (analysisError) {
+      setError(analysisError);
     }
-  }, [originalText, styleKeyword, backgroundBasePrompt, setStageResult]);
+  }, [originalText, styleKeyword, backgroundBasePrompt, startBgSheetAnalysis, setStageResult, analysisError]);
 
   const updateBackground = (
     id: string,
@@ -865,10 +815,21 @@ export default function BgSheetGenerator() {
               </button>
               <button
                 onClick={() => exportToCSV(backgrounds)}
-                className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
                 <FileDown className="w-4 h-4" />
                 <span>Export CSV</span>
+              </button>
+              <button
+                onClick={async () => {
+                  setBackgrounds([]);
+                  clearBgSheetAnalysis();
+                  await clearAllData();
+                }}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                {/* <span>Clear</span> */}
               </button>
             </div>
           </div>

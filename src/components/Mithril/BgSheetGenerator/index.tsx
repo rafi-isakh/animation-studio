@@ -149,6 +149,7 @@ export default function BgSheetGenerator() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   // Global settings
   const [styleKeyword, setStyleKeyword] = useState<string>(
@@ -612,6 +613,7 @@ export default function BgSheetGenerator() {
   };
 
   const handleSave = useCallback(async () => {
+    setIsSaving(true);
     try {
       // 1. Save all images to IndexedDB
       for (const bg of backgrounds) {
@@ -665,6 +667,8 @@ export default function BgSheetGenerator() {
         title: "Save Failed",
         description: "Failed to save results.",
       });
+    } finally {
+      setIsSaving(false);
     }
   }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
 
@@ -801,15 +805,21 @@ export default function BgSheetGenerator() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handleSave}
-                disabled={isSaved}
+                disabled={isSaved || isSaving}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
                   isSaved
                     ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                    : isSaving
+                    ? "bg-[#DB2777]/70 text-white cursor-wait"
                     : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
                 }`}
               >
-                <Save className="w-4 h-4" />
-                <span>{isSaved ? "Saved" : "Save"}</span>
+                {isSaving ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>{isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}</span>
               </button>
               <button
                 onClick={handleGenerateAll}

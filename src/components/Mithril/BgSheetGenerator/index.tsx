@@ -149,6 +149,9 @@ export default function BgSheetGenerator() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
+  // Use ref to track hydration to avoid triggering re-renders
+  const hasHydratedRef = useRef<boolean>(false);
+
   // Global settings
   const [styleKeyword, setStyleKeyword] = useState<string>(
     "2020 Japanese Anime Style, Pastel Color"
@@ -187,8 +190,14 @@ export default function BgSheetGenerator() {
     }
   }, []);
 
-  // Hydrate from context result (similar to StorySplitter pattern)
+  // Hydrate from context result on mount only (run once)
   useEffect(() => {
+    // Skip if already hydrated
+    if (hasHydratedRef.current) {
+      setIsLoadingData(false);
+      return;
+    }
+
     if (!contextResult) {
       setIsLoadingData(false);
       return;
@@ -224,24 +233,23 @@ export default function BgSheetGenerator() {
           })
         );
 
+        // Mark as hydrated BEFORE setting state to prevent re-runs
+        hasHydratedRef.current = true;
+
         setBackgrounds(backgroundsWithImages);
         setStyleKeyword(contextResult.styleKeyword);
         setBackgroundBasePrompt(contextResult.backgroundBasePrompt);
         setIsSaved(true);
       } catch {
         // Ignore errors
+        hasHydratedRef.current = true;
       }
       setIsLoadingData(false);
     };
 
     hydrateFromContext();
-  }, [contextResult]);
-
-  // Sync backgrounds to stageResult when they change (matching StorySplitter pattern)
-  useEffect(() => {
-    if (backgrounds.length === 0) return;
-    setStageResult(4, { backgrounds, styleKeyword, backgroundBasePrompt });
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on mount, contextResult from initial render
+  }, []);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -287,13 +295,13 @@ export default function BgSheetGenerator() {
           }
         }
         localStorage.setItem("bg_sheet_result", JSON.stringify(meta));
-        // Also update context
-        setStageResult(4, meta);
+        // Note: Don't call setStageResult here - it causes infinite loop.
+        // The sync useEffect will handle context updates when backgrounds change.
       }
     } catch (error) {
       console.error("Auto-save failed for image:", error);
     }
-  }, [setStageResult]);
+  }, []);
 
   const handleAnalyze = useCallback(async () => {
     setError("");

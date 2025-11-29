@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -166,6 +166,17 @@ export default function BgSheetGenerator() {
     initialPrompt: string;
   } | null>(null);
 
+  // AbortController for canceling in-flight requests on unmount
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup: abort any pending requests when component unmounts
+  useEffect(() => {
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- We intentionally want the latest ref value at cleanup time
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   // Load text from localStorage (from Stage 1)
   useEffect(() => {
     const savedContent = localStorage.getItem("chapter");
@@ -241,6 +252,49 @@ export default function BgSheetGenerator() {
     }
   };
 
+  // Auto-save a single image to IndexedDB and update localStorage metadata
+  const autoSaveImage = useCallback(async (
+    bgId: string,
+    angle: string,
+    imageBase64: string,
+    prompt: string
+  ) => {
+    try {
+      // 1. Save image to IndexedDB
+      const imageId = `bg_${bgId}_${angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
+      await saveBgImage({
+        id: imageId,
+        type: "bg_image",
+        base64: imageBase64,
+        mimeType: "image/jpeg",
+        bgId: bgId,
+        angle: angle,
+        createdAt: Date.now(),
+      });
+
+      // 2. Update localStorage metadata
+      const existingMeta = localStorage.getItem("bg_sheet_result");
+      if (existingMeta) {
+        const meta = JSON.parse(existingMeta) as BgSheetResultMetadata;
+        const bgIndex = meta.backgrounds.findIndex((bg) => bg.id === bgId);
+        if (bgIndex !== -1) {
+          const imgIndex = meta.backgrounds[bgIndex].images.findIndex(
+            (img) => img.angle === angle
+          );
+          if (imgIndex !== -1) {
+            meta.backgrounds[bgIndex].images[imgIndex].imageId = imageId;
+            meta.backgrounds[bgIndex].images[imgIndex].prompt = prompt;
+          }
+        }
+        localStorage.setItem("bg_sheet_result", JSON.stringify(meta));
+        // Also update context
+        setStageResult(4, meta);
+      }
+    } catch (error) {
+      console.error("Auto-save failed for image:", error);
+    }
+  }, [setStageResult]);
+
   const handleAnalyze = useCallback(async () => {
     setError("");
     setIsSaved(false);
@@ -270,6 +324,12 @@ export default function BgSheetGenerator() {
   const handleGenerateBackgroundSheet = async (id: string) => {
     const background = backgrounds.find((b) => b.id === id);
     if (!background) return;
+
+    // Create new AbortController for this generation session
+    abortControllerRef.current?.abort(); // Cancel any previous generation
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
 
     let referenceDescription = background.description;
 
@@ -313,6 +373,7 @@ export default function BgSheetGenerator() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          signal,
         });
 
         const data = await response.json();
@@ -335,6 +396,9 @@ export default function BgSheetGenerator() {
           )
         );
 
+        // Auto-save first image immediately
+        await autoSaveImage(background.id, imageInfo.angle, newImageBase64, prompt);
+
         // Analyze for consistency
         const consistencyResponse = await fetch(
           "/api/generate_bg_sheet/analyze-consistency",
@@ -342,6 +406,7 @@ export default function BgSheetGenerator() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ imageBase64: newImageBase64 }),
+            signal,
           }
         );
 
@@ -350,7 +415,15 @@ export default function BgSheetGenerator() {
           referenceDescription = consistencyData.analysis;
         }
       } catch (e: unknown) {
+        // Don't log abort errors - they're expected when navigating away
+        if (e instanceof Error && e.name === "AbortError") return;
         console.error(`Failed to generate base image for ${background.name}:`, e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+        toast({
+          variant: "destructive",
+          title: "Image Generation Failed",
+          description: `${background.name}: ${errorMessage}`,
+        });
         setBackgrounds((prevBgs) =>
           prevBgs.map((bg) =>
             bg.id === id
@@ -380,18 +453,24 @@ export default function BgSheetGenerator() {
       }
     } else {
       // Analyze existing first image for consistency
-      const consistencyResponse = await fetch(
-        "/api/generate_bg_sheet/analyze-consistency",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64: background.images[0].imageBase64 }),
-        }
-      );
+      try {
+        const consistencyResponse = await fetch(
+          "/api/generate_bg_sheet/analyze-consistency",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: background.images[0].imageBase64 }),
+            signal,
+          }
+        );
 
-      const consistencyData = await consistencyResponse.json();
-      if (consistencyData.analysis) {
-        referenceDescription = consistencyData.analysis;
+        const consistencyData = await consistencyResponse.json();
+        if (consistencyData.analysis) {
+          referenceDescription = consistencyData.analysis;
+        }
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        console.error("Failed to analyze consistency:", e);
       }
     }
 
@@ -443,6 +522,7 @@ export default function BgSheetGenerator() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          signal,
         });
 
         const data = await response.json();
@@ -460,8 +540,19 @@ export default function BgSheetGenerator() {
               : bg
           )
         );
+
+        // Auto-save each remaining image immediately after generation
+        await autoSaveImage(background.id, img.angle, data.imageBase64, prompt);
       } catch (e) {
+        // Don't log abort errors - they're expected when navigating away
+        if (e instanceof Error && e.name === "AbortError") return;
         console.error(`Failed to generate ${img.angle} for ${background.name}`, e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+        toast({
+          variant: "destructive",
+          title: "Image Generation Failed",
+          description: `${background.name} (${img.angle}): ${errorMessage}`,
+        });
       } finally {
         setBackgrounds((prevBgs) =>
           prevBgs.map((bg) =>
@@ -522,6 +613,11 @@ export default function BgSheetGenerator() {
   ) => {
     if (!editingTarget) return;
 
+    // Create new AbortController for this edit session
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setBackgrounds((prev) =>
       prev.map((b) =>
         b.id === editingTarget.bgId
@@ -548,6 +644,7 @@ export default function BgSheetGenerator() {
             prompt: finalPrompt,
             styleReferenceBase64: styleRef,
           }),
+          signal: controller.signal,
         }
       );
 
@@ -568,9 +665,21 @@ export default function BgSheetGenerator() {
             : b
         )
       );
+
+      // Auto-save edited image immediately
+      const editedBg = backgrounds.find((b) => b.id === editingTarget.bgId);
+      if (editedBg) {
+        const editedAngle = editedBg.images[editingTarget.imageIndex]?.angle;
+        if (editedAngle) {
+          await autoSaveImage(editingTarget.bgId, editedAngle, data.imageBase64, finalPrompt);
+        }
+      }
+
       setEditingTarget(null);
       setIsSaved(false);
     } catch (e) {
+      // Don't log abort errors - they're expected when navigating away
+      if (e instanceof Error && e.name === "AbortError") return;
       console.error("Edit failed", e);
       setBackgrounds((prev) =>
         prev.map((b) =>
@@ -586,7 +695,12 @@ export default function BgSheetGenerator() {
             : b
         )
       );
-      alert("Failed to edit image. Please try again.");
+      const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+      toast({
+        variant: "destructive",
+        title: "Edit Failed",
+        description: errorMessage,
+      });
     }
   };
 

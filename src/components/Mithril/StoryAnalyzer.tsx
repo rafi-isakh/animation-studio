@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { marked } from "marked";
 import { useMithril } from "./MithrilContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 const LoadingSpinner: React.FC = () => (
   <svg
@@ -30,6 +32,7 @@ const LoadingSpinner: React.FC = () => (
 export default function StoryAnalyzer() {
   const { storyAnalyzer, startStoryAnalysis } = useMithril();
   const { isLoading, error, progressMessage, summary } = storyAnalyzer;
+  const { language, dictionary } = useLanguage();
 
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -76,9 +79,9 @@ export default function StoryAnalyzer() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Story Analyzer</h2>
+        <h2 className="text-2xl font-bold mb-2">{phrase(dictionary, "analyzer_title", language)}</h2>
         <p className="text-gray-500 dark:text-gray-400">
-          AI analyzes your web novel&apos;s structure, A-line, and key story points.
+          {phrase(dictionary, "analyzer_subtitle", language)}
         </p>
       </div>
 
@@ -86,7 +89,7 @@ export default function StoryAnalyzer() {
       {!fileContent && (
         <div className="p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-lg">
           <p className="text-red-700 dark:text-red-300 text-sm">
-            No file uploaded. Please go back to Stage 1 and upload a file.
+            {phrase(dictionary, "analyzer_no_file", language)}
           </p>
         </div>
       )}
@@ -97,13 +100,13 @@ export default function StoryAnalyzer() {
           htmlFor="conditions-input"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Analysis Conditions (Optional)
+          {phrase(dictionary, "analyzer_conditions", language)}
         </label>
         <textarea
           id="conditions-input"
           value={conditions}
           onChange={(e) => setConditions(e.target.value)}
-          placeholder="e.g., Focus on the protagonist's emotional arc, analyze only certain supporting characters..."
+          placeholder={phrase(dictionary, "analyzer_conditions_placeholder", language)}
           rows={3}
           className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#DB2777] focus:border-[#DB2777] transition-colors text-gray-900 dark:text-gray-100"
           disabled={isLoading}
@@ -113,7 +116,7 @@ export default function StoryAnalyzer() {
       {/* Analysis Mode */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Analysis Mode
+          {phrase(dictionary, "analyzer_mode", language)}
         </label>
         <div className="flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1 border border-gray-300 dark:border-gray-600">
           <button
@@ -125,7 +128,7 @@ export default function StoryAnalyzer() {
                 : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
-            Plot Structure Analysis
+            {phrase(dictionary, "analyzer_plot", language)}
           </button>
           <button
             onClick={() => setAnalysisType("episode")}
@@ -136,7 +139,7 @@ export default function StoryAnalyzer() {
                 : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
-            Episode-based Analysis
+            {phrase(dictionary, "analyzer_episode", language)}
           </button>
         </div>
       </div>
@@ -151,10 +154,10 @@ export default function StoryAnalyzer() {
           {isLoading ? (
             <>
               <LoadingSpinner />
-              <span>{progressMessage || "Analyzing..."}</span>
+              <span>{progressMessage || phrase(dictionary, "analyzer_analyzing", language)}</span>
             </>
           ) : (
-            "Analyze Story"
+            phrase(dictionary, "analyzer_analyze", language)
           )}
         </button>
       </div>
@@ -163,7 +166,7 @@ export default function StoryAnalyzer() {
       {error && (
         <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
           <p>
-            <span className="font-bold">Error:</span> {error}
+            <span className="font-bold">{phrase(dictionary, "storysplitter_error", language)}</span> {error}
           </p>
         </div>
       )}
@@ -173,7 +176,7 @@ export default function StoryAnalyzer() {
         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-[#DB2777]">
-              AI Story Structure Analysis Result
+              {phrase(dictionary, "analyzer_result", language)}
             </h3>
             <button
               onClick={handleDownload}
@@ -193,7 +196,7 @@ export default function StoryAnalyzer() {
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 ></path>
               </svg>
-              Download (.txt)
+              {phrase(dictionary, "analyzer_download", language)}
             </button>
           </div>
           <div

@@ -2,8 +2,10 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
+import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
+import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 
-const TOTAL_STAGES = 6;
+const TOTAL_STAGES = 7;
 
 // Types for Story Analyzer
 interface StoryAnalyzerState {
@@ -36,6 +38,14 @@ interface StoryboardGeneratorState {
 interface BgSheetGeneratorState {
   isAnalyzing: boolean;
   error: string | null;
+  result: BgSheetResultMetadata | null;
+}
+
+// Types for Character Sheet Generator
+interface CharacterSheetGeneratorState {
+  isAnalyzing: boolean;
+  error: string | null;
+  result: CharacterSheetResultMetadata | null;
 }
 
 interface BgSheetBackground {
@@ -105,10 +115,17 @@ interface MithrilContextProps {
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
 
-  // BgSheet Generator (Stage 4)
+  // BgSheet Generator (Stage 5)
   bgSheetGenerator: BgSheetGeneratorState;
   startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
   clearBgSheetAnalysis: () => void;
+  setBgSheetResult: (result: BgSheetResultMetadata) => void;
+
+  // Character Sheet Generator (Stage 4)
+  characterSheetGenerator: CharacterSheetGeneratorState;
+  startCharacterSheetAnalysis: (text: string, styleKeyword: string, characterBasePrompt: string) => Promise<Character[]>;
+  clearCharacterSheetAnalysis: () => void;
+  setCharacterSheetResult: (result: CharacterSheetResultMetadata) => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -380,14 +397,28 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scenes: [],
       voicePrompts: [],
     });
-    clearStageResult(5);
+    clearStageResult(6);
   }, [clearStageResult]);
 
   // BgSheet Generator state (Stage 4)
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
     isAnalyzing: false,
     error: null,
+    result: null,
   });
+
+  // Hydrate bgSheetGenerator from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("bg_sheet_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setBgSheetGenerator(prev => ({ ...prev, result: parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
 
   // BgSheet Generator methods
   const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
@@ -399,10 +430,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
-    setBgSheetGenerator({
+    setBgSheetGenerator(prev => ({
+      ...prev,
       isAnalyzing: true,
       error: null,
-    });
+    }));
 
     try {
       const response = await fetch("/api/generate_bg_sheet/analyze", {
@@ -445,15 +477,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       setBgSheetGenerator({
         isAnalyzing: false,
         error: null,
+        result: metadata,
       });
 
       return backgroundsWithImages;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      setBgSheetGenerator({
+      setBgSheetGenerator(prev => ({
+        ...prev,
         isAnalyzing: false,
         error: errorMessage,
-      });
+      }));
       return [];
     }
   }, []);
@@ -462,10 +496,118 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     setBgSheetGenerator({
       isAnalyzing: false,
       error: null,
+      result: null,
     });
     localStorage.removeItem("bg_sheet_result");
+    clearStageResult(5);
+  }, [clearStageResult]);
+
+  const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
+    setBgSheetGenerator(prev => ({ ...prev, result }));
+  }, []);
+
+  // Character Sheet Generator state (Stage 4)
+  const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+    result: null,
+  });
+
+  // Hydrate characterSheetGenerator from localStorage on mount
+  useEffect(() => {
+    const savedResult = localStorage.getItem("character_sheet_result");
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setCharacterSheetGenerator(prev => ({ ...prev, result: parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Character Sheet Generator methods
+  const startCharacterSheetAnalysis = useCallback(async (text: string, styleKeyword: string, characterBasePrompt: string): Promise<Character[]> => {
+    if (!text) {
+      setCharacterSheetGenerator(prev => ({
+        ...prev,
+        error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return [];
+    }
+
+    setCharacterSheetGenerator(prev => ({
+      ...prev,
+      isAnalyzing: true,
+      error: null,
+    }));
+
+    try {
+      const response = await fetch("/api/generate_character_sheet/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const charactersWithImages: Character[] = data.characters.map((c: { name: string; appearance: string; clothing: string; personality: string; backgroundStory: string }) => ({
+        ...c,
+        id: crypto.randomUUID(),
+        imagePrompt: "",
+        imageBase64: "",
+        isGenerating: false,
+      }));
+
+      // Auto-save to localStorage
+      const metadata: CharacterSheetResultMetadata = {
+        characters: charactersWithImages.map((char) => ({
+          id: char.id,
+          name: char.name,
+          appearance: char.appearance,
+          clothing: char.clothing,
+          personality: char.personality,
+          backgroundStory: char.backgroundStory,
+          imageId: "",
+          imagePrompt: "",
+        })),
+        styleKeyword,
+        characterBasePrompt,
+      };
+      localStorage.setItem("character_sheet_result", JSON.stringify(metadata));
+
+      setCharacterSheetGenerator({
+        isAnalyzing: false,
+        error: null,
+        result: metadata,
+      });
+
+      return charactersWithImages;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      setCharacterSheetGenerator(prev => ({
+        ...prev,
+        isAnalyzing: false,
+        error: errorMessage,
+      }));
+      return [];
+    }
+  }, []);
+
+  const clearCharacterSheetAnalysis = useCallback(() => {
+    setCharacterSheetGenerator({
+      isAnalyzing: false,
+      error: null,
+      result: null,
+    });
+    localStorage.removeItem("character_sheet_result");
     clearStageResult(4);
   }, [clearStageResult]);
+
+  const setCharacterSheetResult = useCallback((result: CharacterSheetResultMetadata) => {
+    setCharacterSheetGenerator(prev => ({ ...prev, result }));
+  }, []);
 
   // Navigation methods
   const goToNextStage = () => {
@@ -490,13 +632,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Stage results methods
-  const setStageResult = (stage: number, result: unknown) => {
+  const setStageResult = useCallback((stage: number, result: unknown) => {
     setStageResults((prev) => ({ ...prev, [stage]: result }));
-  };
+  }, []);
 
-  const getStageResult = (stage: number) => {
+  const getStageResult = useCallback((stage: number) => {
     return stageResults[stage];
-  };
+  }, [stageResults]);
 
   return (
     <MithrilContext.Provider
@@ -531,6 +673,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         bgSheetGenerator,
         startBgSheetAnalysis,
         clearBgSheetAnalysis,
+        setBgSheetResult,
+        // Character Sheet Generator
+        characterSheetGenerator,
+        startCharacterSheetAnalysis,
+        clearCharacterSheetAnalysis,
+        setCharacterSheetResult,
       }}
     >
       {children}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 // List of available sample files in public/samples folder
 // Add your TXT files here with their display names
@@ -15,6 +17,7 @@ const SAMPLE_FILES = [
 ];
 
 export default function UploadManager() {
+  const { language, dictionary } = useLanguage();
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string>("");
@@ -81,9 +84,9 @@ export default function UploadManager() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-4">Story Selector</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">{phrase(dictionary, "upload_title", language)}</h2>
       <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
-        Select a story file to get started
+        {phrase(dictionary, "upload_subtitle", language)}
       </p>
 
       <div className="space-y-4">
@@ -93,7 +96,7 @@ export default function UploadManager() {
             htmlFor="file-select"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            Select a Story File
+            {phrase(dictionary, "upload_select_label", language)}
           </label>
           <select
             id="file-select"
@@ -102,7 +105,7 @@ export default function UploadManager() {
             disabled={isLoading}
             className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#DB2777] focus:border-[#DB2777] transition-colors text-gray-900 dark:text-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">-- Select a file --</option>
+            <option value="">{phrase(dictionary, "upload_select_placeholder", language)}</option>
             {SAMPLE_FILES.map((file) => (
               <option key={file.path} value={file.path}>
                 {file.name}
@@ -135,7 +138,7 @@ export default function UploadManager() {
               ></path>
             </svg>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Loading file...
+              {phrase(dictionary, "upload_loading", language)}
             </span>
           </div>
         )}
@@ -143,7 +146,7 @@ export default function UploadManager() {
         {/* Error Display */}
         {error && (
           <div className="p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-lg">
-            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            <p className="text-red-700 dark:text-red-300 text-sm">{phrase(dictionary, "upload_error", language)}</p>
           </div>
         )}
 
@@ -158,11 +161,11 @@ export default function UploadManager() {
                 onClick={handleClear}
                 className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
               >
-                Clear
+                {phrase(dictionary, "upload_clear", language)}
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              {fileContent.length.toLocaleString()} characters
+              {fileContent.length.toLocaleString()} {phrase(dictionary, "upload_characters", language)}
             </p>
             <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-600">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
@@ -170,7 +173,7 @@ export default function UploadManager() {
                 {fileContent.length > 1000 && (
                   <span className="text-gray-400">
                     {"\n\n"}... ({(fileContent.length - 1000).toLocaleString()}{" "}
-                    more characters)
+                    {phrase(dictionary, "upload_more_characters", language)})
                   </span>
                 )}
               </pre>

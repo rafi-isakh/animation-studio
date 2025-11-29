@@ -89,6 +89,14 @@ export function GlobalSidebar() {
         href="/my_library"
         type="link"
       />
+      <SidebarItem
+        icon={<PencilLine />}
+        text={phrase(dictionary, "sidebar_mithril", language)}
+        active={pathname.startsWith('/mithril')}
+        alert={false}
+        href="/mithril"
+        type="link"
+      />
     </Sidebar>
   )
 }

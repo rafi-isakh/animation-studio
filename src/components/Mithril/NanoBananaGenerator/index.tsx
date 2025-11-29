@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
   Image as ImageIcon,
@@ -21,9 +24,11 @@ import Image from "next/image";
 
 const STORAGE_KEY = "nano_banana_result";
 
-const Loader: React.FC<{ message?: string }> = ({
-  message = "Generating image...",
-}) => (
+interface LoaderProps {
+  message: string;
+}
+
+const Loader: React.FC<LoaderProps> = ({ message }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
@@ -42,6 +47,7 @@ const downloadImage = (base64: string, filename: string): void => {
 export default function NanoBananaGenerator() {
   const { setStageResult } = useMithril();
   const { toast } = useToast();
+  const { language, dictionary } = useLanguage();
 
   // Loading state
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
@@ -138,8 +144,8 @@ export default function NanoBananaGenerator() {
       } catch (err) {
         console.error("Error loading reference images:", err);
         toast({
-          title: "Error",
-          description: "Failed to load reference images from database.",
+          title: phrase(dictionary, "nano_toast_error", language),
+          description: phrase(dictionary, "nano_toast_load_failed", language),
           variant: "destructive",
         });
       } finally {
@@ -186,8 +192,8 @@ export default function NanoBananaGenerator() {
       parts.push(`Reference backgrounds: ${refDescriptions}`);
     }
 
-    return parts.join(". ") || "Enter prompts above to preview...";
-  }, [stylePrompt, scenePrompt, selectedReferenceIds, availableReferences]);
+    return parts.join(". ") || phrase(dictionary, "nano_enter_prompts", language);
+  }, [stylePrompt, scenePrompt, selectedReferenceIds, availableReferences, dictionary, language]);
 
   // Generate image
   const handleGenerate = useCallback(async () => {
@@ -197,7 +203,7 @@ export default function NanoBananaGenerator() {
       !scenePrompt.trim() &&
       selectedReferenceIds.size === 0
     ) {
-      setError("Please enter a prompt or select reference images.");
+      setError(phrase(dictionary, "nano_toast_enter_prompt", language));
       return;
     }
 
@@ -261,15 +267,15 @@ export default function NanoBananaGenerator() {
       setGeneratedImage(data.imageBase64);
 
       toast({
-        title: "Success",
-        description: "Image generated successfully!",
+        title: phrase(dictionary, "nano_toast_success", language),
+        description: phrase(dictionary, "nano_toast_generated", language),
       });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
       setError(errorMessage);
       toast({
-        title: "Error",
+        title: phrase(dictionary, "nano_toast_error", language),
         description: errorMessage,
         variant: "destructive",
       });
@@ -283,14 +289,16 @@ export default function NanoBananaGenerator() {
     selectedReferenceIds,
     availableReferences,
     toast,
+    dictionary,
+    language,
   ]);
 
   // Save result to IndexedDB and localStorage
   const handleSave = useCallback(async () => {
     if (!generatedImage) {
       toast({
-        title: "Nothing to save",
-        description: "Generate an image first.",
+        title: phrase(dictionary, "nano_toast_nothing", language),
+        description: phrase(dictionary, "nano_toast_generate_first", language),
         variant: "destructive",
       });
       return;
@@ -331,14 +339,14 @@ export default function NanoBananaGenerator() {
 
       setIsSaved(true);
       toast({
-        title: "Saved",
-        description: "Result saved successfully!",
+        title: phrase(dictionary, "nano_toast_saved", language),
+        description: phrase(dictionary, "nano_toast_saved_desc", language),
       });
     } catch (err) {
       console.error("Error saving result:", err);
       toast({
-        title: "Error",
-        description: "Failed to save result.",
+        title: phrase(dictionary, "nano_toast_error", language),
+        description: phrase(dictionary, "nano_toast_save_failed", language),
         variant: "destructive",
       });
     } finally {
@@ -353,6 +361,8 @@ export default function NanoBananaGenerator() {
     combinedPrompt,
     setStageResult,
     toast,
+    dictionary,
+    language,
   ]);
 
   // Download generated image
@@ -369,7 +379,7 @@ export default function NanoBananaGenerator() {
   if (isLoadingData) {
     return (
       <div className="w-full p-6">
-        <Loader message="Loading data..." />
+        <Loader message={phrase(dictionary, "nano_loading_data", language)} />
       </div>
     );
   }
@@ -379,11 +389,11 @@ export default function NanoBananaGenerator() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Nano Banana Image Creator
+          {phrase(dictionary, "nano_title", language)}
         </h2>
         {isSaved && (
           <span className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-            <Check size={16} /> Saved
+            <Check size={16} /> {phrase(dictionary, "nano_saved", language)}
           </span>
         )}
       </div>
@@ -394,7 +404,7 @@ export default function NanoBananaGenerator() {
           {/* Style Prompt */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Style Prompt
+              {phrase(dictionary, "nano_style_prompt", language)}
             </label>
             <textarea
               value={stylePrompt}
@@ -402,7 +412,7 @@ export default function NanoBananaGenerator() {
                 setStylePrompt(e.target.value);
                 setIsSaved(false);
               }}
-              placeholder="Enter style keywords (e.g., 2D anime, watercolor, etc.)"
+              placeholder={phrase(dictionary, "nano_style_placeholder", language)}
               className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none transition resize-none"
               rows={2}
               disabled={isGenerating}
@@ -412,17 +422,17 @@ export default function NanoBananaGenerator() {
           {/* Reference Image Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Reference Images from Bg Sheet Generator
+              {phrase(dictionary, "nano_reference_images", language)}
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                ({selectedReferenceIds.size} selected)
+                ({selectedReferenceIds.size} {phrase(dictionary, "nano_selected", language)})
               </span>
             </label>
             {availableReferences.length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                 <ImageIcon className="mx-auto h-12 w-12 mb-2 opacity-50" />
-                <p>No reference images available.</p>
+                <p>{phrase(dictionary, "nano_no_references", language)}</p>
                 <p className="text-xs mt-1">
-                  Generate backgrounds in Bg Sheet Generator first.
+                  {phrase(dictionary, "nano_generate_bg_first", language)}
                 </p>
               </div>
             ) : (
@@ -465,7 +475,7 @@ export default function NanoBananaGenerator() {
           {/* Scene Prompt */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Scene Prompt
+              {phrase(dictionary, "nano_scene_prompt", language)}
             </label>
             <textarea
               value={scenePrompt}
@@ -473,7 +483,7 @@ export default function NanoBananaGenerator() {
                 setScenePrompt(e.target.value);
                 setIsSaved(false);
               }}
-              placeholder="Describe the scene you want to generate..."
+              placeholder={phrase(dictionary, "nano_scene_placeholder", language)}
               className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none transition resize-none"
               rows={4}
               disabled={isGenerating}
@@ -483,7 +493,7 @@ export default function NanoBananaGenerator() {
           {/* Aspect Ratio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Aspect Ratio
+              {phrase(dictionary, "nano_aspect_ratio", language)}
             </label>
             <div className="grid grid-cols-5 gap-2">
               {ASPECT_RATIOS.map((ratio) => (
@@ -509,7 +519,7 @@ export default function NanoBananaGenerator() {
           {/* Combined Prompt Preview */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Combined Prompt Preview
+              {phrase(dictionary, "nano_combined_preview", language)}
             </label>
             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-400 max-h-32 overflow-y-auto">
               {combinedPrompt}
@@ -537,12 +547,12 @@ export default function NanoBananaGenerator() {
             {isGenerating ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                Generating...
+                {phrase(dictionary, "nano_generating", language)}
               </>
             ) : (
               <>
                 <Sparkles size={20} />
-                Generate Image
+                {phrase(dictionary, "nano_generate_image", language)}
               </>
             )}
           </button>
@@ -551,7 +561,7 @@ export default function NanoBananaGenerator() {
         {/* Right Column - Output */}
         <div className="space-y-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Generated Result
+            {phrase(dictionary, "nano_generated_result", language)}
           </label>
 
           <div
@@ -561,7 +571,7 @@ export default function NanoBananaGenerator() {
             }}
           >
             {isGenerating ? (
-              <Loader message="AI is generating your image..." />
+              <Loader message={phrase(dictionary, "nano_ai_generating", language)} />
             ) : generatedImage ? (
               <div className="relative w-full h-full">
                 <Image
@@ -575,7 +585,7 @@ export default function NanoBananaGenerator() {
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <ImageIcon size={48} className="mb-2 opacity-50" />
-                <p className="text-sm">Generated image will appear here</p>
+                <p className="text-sm">{phrase(dictionary, "nano_result_placeholder", language)}</p>
               </div>
             )}
           </div>
@@ -591,17 +601,17 @@ export default function NanoBananaGenerator() {
                 {isSaving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                    Saving...
+                    {phrase(dictionary, "nano_saving", language)}
                   </>
                 ) : isSaved ? (
                   <>
                     <Check size={18} />
-                    Saved
+                    {phrase(dictionary, "nano_saved", language)}
                   </>
                 ) : (
                   <>
                     <Save size={18} />
-                    Save Result
+                    {phrase(dictionary, "nano_save_result", language)}
                   </>
                 )}
               </button>
@@ -610,7 +620,7 @@ export default function NanoBananaGenerator() {
                 className="flex items-center justify-center gap-2 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
               >
                 <Download size={18} />
-                Download
+                {phrase(dictionary, "download", language)}
               </button>
             </div>
           )}

@@ -108,9 +108,8 @@ async function generateImage(
 
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
-        if (part.inlineData) {
-          const base64ImageBytes: string = part.inlineData.data;
-          return base64ImageBytes;
+        if (part.inlineData?.data) {
+          return part.inlineData.data;
         }
       }
     }

@@ -5,7 +5,7 @@ import { Brush, Eraser, Undo2, X, Upload, Image as ImageIcon } from "lucide-reac
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 
-interface BgSheetImageEditorProps {
+interface CharacterSheetImageEditorProps {
   initialImage: string | null;
   initialPrompt: string;
   isOpen: boolean;
@@ -21,13 +21,13 @@ const LoadingSpinner = () => (
   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
 );
 
-export default function BgSheetImageEditor({
+export default function CharacterSheetImageEditor({
   initialImage,
   initialPrompt,
   isOpen,
   onClose,
   onSave,
-}: BgSheetImageEditorProps) {
+}: CharacterSheetImageEditorProps) {
   const { language, dictionary } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

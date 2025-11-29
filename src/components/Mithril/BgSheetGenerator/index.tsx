@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
   Download,
@@ -13,11 +16,8 @@ import {
   Trash2,
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
-import type {
-  Background,
-  BgSheetResultMetadata,
-} from "./types";
-import { saveBgImage, getBgImage, clearAllData } from "../services/mithrilIndexedDB";
+import type { Background, BgSheetResultMetadata } from "./types";
+import { saveBgImage, getBgImage, clearBgImagesOnly } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -48,11 +48,16 @@ const angleToDetailedPrompt: Record<string, string> = {
     "A close focus on a specific architectural detail or furniture piece in this room.",
 };
 
-const Loader: React.FC = () => (
+interface LoaderProps {
+  dictionary: Dictionary;
+  language: Language;
+}
+
+const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
-      AI is analyzing the story...
+      {phrase(dictionary, "bgsheet_ai_analyzing", language)}
     </p>
   </div>
 );
@@ -137,9 +142,10 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult } = useMithril();
   const { toast } = useToast();
-  const { isAnalyzing, error: analysisError } = bgSheetGenerator;
+  const { language, dictionary } = useLanguage();
+  const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
 
   // State from Stage 1
   const [originalText, setOriginalText] = useState<string>("");
@@ -151,6 +157,9 @@ export default function BgSheetGenerator() {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+
+  // Use ref to track hydration to avoid triggering re-renders
+  const hasHydratedRef = useRef<boolean>(false);
 
   // Global settings
   const [styleKeyword, setStyleKeyword] = useState<string>(
@@ -169,7 +178,18 @@ export default function BgSheetGenerator() {
     initialPrompt: string;
   } | null>(null);
 
-  // Load text from localStorage (from Stage 1) and saved results
+  // AbortController for canceling in-flight requests on unmount
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup: abort any pending requests when component unmounts
+  useEffect(() => {
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- We intentionally want the latest ref value at cleanup time
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  // Load text from localStorage (from Stage 1)
   useEffect(() => {
     const savedContent = localStorage.getItem("chapter");
     const savedFileName = localStorage.getItem("chapter_filename");
@@ -177,54 +197,67 @@ export default function BgSheetGenerator() {
       setOriginalText(savedContent);
       setFileName(savedFileName || "uploaded_file.txt");
     }
+  }, []);
 
-    // Load previously saved result if exists
-    const loadSavedData = async () => {
-      const savedResult = localStorage.getItem("bg_sheet_result");
-      if (savedResult) {
-        try {
-          const metadata: BgSheetResultMetadata = JSON.parse(savedResult);
+  // Hydrate from context result on mount only (run once)
+  useEffect(() => {
+    // Skip if already hydrated
+    if (hasHydratedRef.current) {
+      setIsLoadingData(false);
+      return;
+    }
 
-          // Reconstruct backgrounds with images from IndexedDB
-          const backgroundsWithImages: Background[] = await Promise.all(
-            metadata.backgrounds.map(async (bgMeta) => {
-              const images = await Promise.all(
-                bgMeta.images.map(async (imgMeta) => {
-                  let imageBase64 = "";
-                  if (imgMeta.imageId) {
-                    const dbImage = await getBgImage(imgMeta.imageId);
-                    imageBase64 = dbImage?.base64 || "";
-                  }
-                  return {
-                    angle: imgMeta.angle,
-                    prompt: imgMeta.prompt,
-                    imageBase64,
-                    isGenerating: false,
-                  };
-                })
-              );
-              return {
-                id: bgMeta.id,
-                name: bgMeta.name,
-                description: bgMeta.description,
-                images,
-              };
-            })
-          );
+    if (!contextResult) {
+      setIsLoadingData(false);
+      return;
+    }
 
-          setBackgrounds(backgroundsWithImages);
-          setStyleKeyword(metadata.styleKeyword);
-          setBackgroundBasePrompt(metadata.backgroundBasePrompt);
-          setIsSaved(true);
-        } catch {
-          // Ignore parse errors
-        }
+    const hydrateFromContext = async () => {
+      setIsLoadingData(true);
+      try {
+        // Reconstruct backgrounds with images from IndexedDB
+        const backgroundsWithImages: Background[] = await Promise.all(
+          contextResult.backgrounds.map(async (bgMeta) => {
+            const images = await Promise.all(
+              bgMeta.images.map(async (imgMeta) => {
+                let imageBase64 = "";
+                if (imgMeta.imageId) {
+                  const dbImage = await getBgImage(imgMeta.imageId);
+                  imageBase64 = dbImage?.base64 || "";
+                }
+                return {
+                  angle: imgMeta.angle,
+                  prompt: imgMeta.prompt,
+                  imageBase64,
+                  isGenerating: false,
+                };
+              })
+            );
+            return {
+              id: bgMeta.id,
+              name: bgMeta.name,
+              description: bgMeta.description,
+              images,
+            };
+          })
+        );
+
+        // Mark as hydrated BEFORE setting state to prevent re-runs
+        hasHydratedRef.current = true;
+
+        setBackgrounds(backgroundsWithImages);
+        setStyleKeyword(contextResult.styleKeyword);
+        setBackgroundBasePrompt(contextResult.backgroundBasePrompt);
+        setIsSaved(true);
+      } catch {
+        // Ignore errors
+        hasHydratedRef.current = true;
       }
       setIsLoadingData(false);
     };
 
-    loadSavedData();
-  }, []);
+    hydrateFromContext();
+  }, [contextResult]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -234,6 +267,50 @@ export default function BgSheetGenerator() {
       setReferenceImageName(file.name);
     }
   };
+
+  // Auto-save a single image to IndexedDB and update localStorage metadata + context
+  const autoSaveImage = useCallback(async (
+    bgId: string,
+    angle: string,
+    imageBase64: string,
+    prompt: string
+  ) => {
+    try {
+      // 1. Save image to IndexedDB
+      const imageId = `bg_${bgId}_${angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
+      await saveBgImage({
+        id: imageId,
+        type: "bg_image",
+        base64: imageBase64,
+        mimeType: "image/jpeg",
+        bgId: bgId,
+        angle: angle,
+        createdAt: Date.now(),
+      });
+
+      // 2. Update localStorage metadata
+      const existingMeta = localStorage.getItem("bg_sheet_result");
+      if (existingMeta) {
+        const meta = JSON.parse(existingMeta) as BgSheetResultMetadata;
+        const bgIndex = meta.backgrounds.findIndex((bg) => bg.id === bgId);
+        if (bgIndex !== -1) {
+          const imgIndex = meta.backgrounds[bgIndex].images.findIndex(
+            (img) => img.angle === angle
+          );
+          if (imgIndex !== -1) {
+            meta.backgrounds[bgIndex].images[imgIndex].imageId = imageId;
+            meta.backgrounds[bgIndex].images[imgIndex].prompt = prompt;
+          }
+        }
+        localStorage.setItem("bg_sheet_result", JSON.stringify(meta));
+
+        // 3. Update context state so navigation works without manual save
+        setBgSheetResult(meta);
+      }
+    } catch (error) {
+      console.error("Auto-save failed for image:", error);
+    }
+  }, [setBgSheetResult]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");
@@ -264,6 +341,12 @@ export default function BgSheetGenerator() {
   const handleGenerateBackgroundSheet = async (id: string) => {
     const background = backgrounds.find((b) => b.id === id);
     if (!background) return;
+
+    // Create new AbortController for this generation session
+    abortControllerRef.current?.abort(); // Cancel any previous generation
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
 
     let referenceDescription = background.description;
 
@@ -307,6 +390,7 @@ export default function BgSheetGenerator() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          signal,
         });
 
         const data = await response.json();
@@ -329,6 +413,9 @@ export default function BgSheetGenerator() {
           )
         );
 
+        // Auto-save first image immediately
+        await autoSaveImage(background.id, imageInfo.angle, newImageBase64, prompt);
+
         // Analyze for consistency
         const consistencyResponse = await fetch(
           "/api/generate_bg_sheet/analyze-consistency",
@@ -336,6 +423,7 @@ export default function BgSheetGenerator() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ imageBase64: newImageBase64 }),
+            signal,
           }
         );
 
@@ -344,7 +432,15 @@ export default function BgSheetGenerator() {
           referenceDescription = consistencyData.analysis;
         }
       } catch (e: unknown) {
+        // Don't log abort errors - they're expected when navigating away
+        if (e instanceof Error && e.name === "AbortError") return;
         console.error(`Failed to generate base image for ${background.name}:`, e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "bgsheet_toast_image_failed", language),
+          description: `${background.name}: ${errorMessage}`,
+        });
         setBackgrounds((prevBgs) =>
           prevBgs.map((bg) =>
             bg.id === id
@@ -374,18 +470,24 @@ export default function BgSheetGenerator() {
       }
     } else {
       // Analyze existing first image for consistency
-      const consistencyResponse = await fetch(
-        "/api/generate_bg_sheet/analyze-consistency",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64: background.images[0].imageBase64 }),
-        }
-      );
+      try {
+        const consistencyResponse = await fetch(
+          "/api/generate_bg_sheet/analyze-consistency",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: background.images[0].imageBase64 }),
+            signal,
+          }
+        );
 
-      const consistencyData = await consistencyResponse.json();
-      if (consistencyData.analysis) {
-        referenceDescription = consistencyData.analysis;
+        const consistencyData = await consistencyResponse.json();
+        if (consistencyData.analysis) {
+          referenceDescription = consistencyData.analysis;
+        }
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        console.error("Failed to analyze consistency:", e);
       }
     }
 
@@ -437,6 +539,7 @@ export default function BgSheetGenerator() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          signal,
         });
 
         const data = await response.json();
@@ -454,8 +557,19 @@ export default function BgSheetGenerator() {
               : bg
           )
         );
+
+        // Auto-save each remaining image immediately after generation
+        await autoSaveImage(background.id, img.angle, data.imageBase64, prompt);
       } catch (e) {
+        // Don't log abort errors - they're expected when navigating away
+        if (e instanceof Error && e.name === "AbortError") return;
         console.error(`Failed to generate ${img.angle} for ${background.name}`, e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "bgsheet_toast_image_failed", language),
+          description: `${background.name} (${img.angle}): ${errorMessage}`,
+        });
       } finally {
         setBackgrounds((prevBgs) =>
           prevBgs.map((bg) =>
@@ -516,6 +630,11 @@ export default function BgSheetGenerator() {
   ) => {
     if (!editingTarget) return;
 
+    // Create new AbortController for this edit session
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setBackgrounds((prev) =>
       prev.map((b) =>
         b.id === editingTarget.bgId
@@ -542,6 +661,7 @@ export default function BgSheetGenerator() {
             prompt: finalPrompt,
             styleReferenceBase64: styleRef,
           }),
+          signal: controller.signal,
         }
       );
 
@@ -562,9 +682,21 @@ export default function BgSheetGenerator() {
             : b
         )
       );
+
+      // Auto-save edited image immediately
+      const editedBg = backgrounds.find((b) => b.id === editingTarget.bgId);
+      if (editedBg) {
+        const editedAngle = editedBg.images[editingTarget.imageIndex]?.angle;
+        if (editedAngle) {
+          await autoSaveImage(editingTarget.bgId, editedAngle, data.imageBase64, finalPrompt);
+        }
+      }
+
       setEditingTarget(null);
       setIsSaved(false);
     } catch (e) {
+      // Don't log abort errors - they're expected when navigating away
+      if (e instanceof Error && e.name === "AbortError") return;
       console.error("Edit failed", e);
       setBackgrounds((prev) =>
         prev.map((b) =>
@@ -580,7 +712,12 @@ export default function BgSheetGenerator() {
             : b
         )
       );
-      alert("Failed to edit image. Please try again.");
+      const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_toast_edit_failed", language),
+        description: errorMessage,
+      });
     }
   };
 
@@ -626,31 +763,32 @@ export default function BgSheetGenerator() {
       // 3. Save metadata to localStorage (small, won't exceed limit)
       localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
       setStageResult(4, metadata);
+      setBgSheetResult(metadata); // Update context so navigation uses new values
       setIsSaved(true);
       toast({
         variant: "success",
-        title: "Saved",
-        description: "Background sheet results saved successfully.",
+        title: phrase(dictionary, "bgsheet_toast_saved", language),
+        description: phrase(dictionary, "bgsheet_toast_saved_desc", language),
       });
     } catch (error) {
       console.error("Save failed:", error);
       toast({
         variant: "destructive",
-        title: "Save Failed",
-        description: "Failed to save results.",
+        title: phrase(dictionary, "bgsheet_toast_save_failed", language),
+        description: phrase(dictionary, "bgsheet_toast_save_failed_desc", language),
       });
     } finally {
       setIsSaving(false);
     }
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
+  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Background Sheet Generator</h2>
+        <h2 className="text-2xl font-bold mb-2">{phrase(dictionary, "bgsheet_title", language)}</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          AI extracts backgrounds from your story and generates multi-angle views
+          {phrase(dictionary, "bgsheet_subtitle", language)}
         </p>
       </div>
 
@@ -659,7 +797,7 @@ export default function BgSheetGenerator() {
         <div className="flex flex-col items-center justify-center space-y-4 py-12">
           <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#DB2777]"></div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Loading saved backgrounds...
+            {phrase(dictionary, "bgsheet_loading", language)}
           </p>
         </div>
       )}
@@ -669,12 +807,12 @@ export default function BgSheetGenerator() {
       <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-4">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <span className="w-1 h-4 bg-[#DB2777] rounded-full"></span>
-          Global Configuration
+          {phrase(dictionary, "bgsheet_global_config", language)}
         </h3>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Background Base Prompt
+            {phrase(dictionary, "bgsheet_base_prompt", language)}
           </label>
           <textarea
             value={backgroundBasePrompt}
@@ -684,13 +822,13 @@ export default function BgSheetGenerator() {
             }}
             rows={2}
             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm resize-none"
-            placeholder="Base prompt for backgrounds..."
+            placeholder={phrase(dictionary, "bgsheet_base_prompt_placeholder", language)}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Style Keywords (Applied to all)
+            {phrase(dictionary, "bgsheet_style_keywords", language)}
           </label>
           <input
             type="text"
@@ -699,19 +837,19 @@ export default function BgSheetGenerator() {
               setStyleKeyword(e.target.value);
               setIsSaved(false);
             }}
-            placeholder="e.g., anime style, photorealistic, watercolor"
+            placeholder={phrase(dictionary, "bgsheet_style_placeholder", language)}
             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Reference Image (for Aspect Ratio)
+            {phrase(dictionary, "bgsheet_reference_image", language)}
           </label>
           <label className="w-full cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 flex items-center justify-center transition duration-200 group">
             <ImageIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
             <span className="ml-2 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 truncate text-sm">
-              {referenceImageName || "Upload Image (Optional)"}
+              {referenceImageName || phrase(dictionary, "bgsheet_upload_optional", language)}
             </span>
             <input
               type="file"
@@ -732,7 +870,7 @@ export default function BgSheetGenerator() {
               {fileName}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {originalText.length.toLocaleString()} characters
+              {originalText.length.toLocaleString()} {phrase(dictionary, "chars", language)}
             </span>
           </div>
           <div className="max-h-24 overflow-y-auto">
@@ -745,7 +883,7 @@ export default function BgSheetGenerator() {
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            Please upload a text file in Stage 1 first.
+            {phrase(dictionary, "storysplitter_upload_file_first", language)}
           </p>
         </div>
       ))}
@@ -758,7 +896,7 @@ export default function BgSheetGenerator() {
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
           >
             <Sparkles className="w-5 h-5" />
-            Analyze Text
+            {phrase(dictionary, "bgsheet_analyze_text", language)}
           </button>
         </div>
       )}
@@ -769,13 +907,13 @@ export default function BgSheetGenerator() {
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
         >
-          <strong className="font-bold">Error: </strong>
+          <strong className="font-bold">{phrase(dictionary, "storysplitter_error", language)} </strong>
           <span>{error}</span>
         </div>
       )}
 
       {/* Loader */}
-      {!isLoadingData && isAnalyzing && <Loader />}
+      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} />}
 
       {/* Results */}
       {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
@@ -784,7 +922,7 @@ export default function BgSheetGenerator() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <span className="w-1 h-5 bg-[#DB2777] rounded-full"></span>
-              Backgrounds ({backgrounds.length})
+              {phrase(dictionary, "bgsheet_backgrounds", language)} ({backgrounds.length})
             </h3>
             <div className="flex gap-2 flex-wrap">
               <button
@@ -803,7 +941,7 @@ export default function BgSheetGenerator() {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                <span>{isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}</span>
+                <span>{isSaving ? phrase(dictionary, "bgsheet_saving", language) : isSaved ? phrase(dictionary, "bgsheet_saved", language) : phrase(dictionary, "bgsheet_save", language)}</span>
               </button>
               <button
                 onClick={handleGenerateAll}
@@ -811,20 +949,20 @@ export default function BgSheetGenerator() {
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Generate All</span>
+                <span>{phrase(dictionary, "bgsheet_generate_all", language)}</span>
               </button>
               <button
                 onClick={() => exportToCSV(backgrounds)}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
                 <FileDown className="w-4 h-4" />
-                <span>Export CSV</span>
+                <span>{phrase(dictionary, "bgsheet_export_csv", language)}</span>
               </button>
               <button
                 onClick={async () => {
                   setBackgrounds([]);
                   clearBgSheetAnalysis();
-                  await clearAllData();
+                  await clearBgImagesOnly();
                 }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
@@ -844,12 +982,12 @@ export default function BgSheetGenerator() {
                 {/* Editable Fields */}
                 <div className="grid grid-cols-1 gap-3">
                   <EditableField
-                    label="Location Name"
+                    label={phrase(dictionary, "bgsheet_location_name", language)}
                     value={bg.name}
                     onChange={(v) => updateBackground(bg.id, "name", v)}
                   />
                   <EditableField
-                    label="Visual Description"
+                    label={phrase(dictionary, "bgsheet_visual_description", language)}
                     value={bg.description}
                     onChange={(v) => updateBackground(bg.id, "description", v)}
                   />
@@ -858,13 +996,13 @@ export default function BgSheetGenerator() {
                 {/* Generate Button */}
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Reference Views
+                    {phrase(dictionary, "bgsheet_reference_views", language)}
                   </h4>
                   <button
                     onClick={() => handleGenerateBackgroundSheet(bg.id)}
                     className="text-xs bg-[#DB2777]/10 text-[#DB2777] px-3 py-1 rounded-full hover:bg-[#DB2777]/20 border border-[#DB2777]/20 transition-colors"
                   >
-                    Generate All Views
+                    {phrase(dictionary, "bgsheet_generate_all_views", language)}
                   </button>
                 </div>
 
@@ -891,7 +1029,7 @@ export default function BgSheetGenerator() {
                                 )
                               }
                               className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
-                              title="Download"
+                              title={phrase(dictionary, "download", language)}
                             >
                               <Download className="w-4 h-4" />
                             </button>
@@ -900,7 +1038,7 @@ export default function BgSheetGenerator() {
                                 handleEditImage(bg.id, idx, img.imageBase64)
                               }
                               className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
-                              title="Edit"
+                              title={phrase(dictionary, "edit", language)}
                             >
                               <Pencil className="w-3 h-3" />
                             </button>

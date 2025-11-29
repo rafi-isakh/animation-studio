@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import UploadManager from "./UploadManager";
 import StoryAnalyzer from "./StoryAnalyzer";
 import StorySplitter from "./StorySplitter";
@@ -7,19 +8,25 @@ import StoryboardGenerator from "./StoryboardGenerator";
 import Stage6Content from "./Stage6Content";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import BgSheetGenerator from "./BgSheetGenerator";
-
-const stages = [
-  { id: 1, label: "Story Selector" },
-  { id: 2, label: "Story Analyzer" },
-  { id: 3, label: "Story Splitter" },
-  { id: 4, label: "BG Sheet Generator" },
-  { id: 5, label: "Storyboard Generator" },
-  { id: 6, label: "Nanobanana Image Creator" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 function MithrilContent() {
   const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage } =
     useMithril();
+  const { language, dictionary } = useLanguage();
+
+  const stages = useMemo(
+    () => [
+      { id: 1, label: phrase(dictionary, "mithril_stage1", language) },
+      { id: 2, label: phrase(dictionary, "mithril_stage2", language) },
+      { id: 3, label: phrase(dictionary, "mithril_stage3", language) },
+      { id: 4, label: phrase(dictionary, "mithril_stage4", language) },
+      { id: 5, label: phrase(dictionary, "mithril_stage5", language) },
+      { id: 6, label: phrase(dictionary, "mithril_stage6", language) },
+    ],
+    [dictionary, language]
+  );
 
   return (
     <div className="flex flex-col min-h-screen w-full p-4 md:p-8">
@@ -110,7 +117,7 @@ function MithrilContent() {
             }
           `}
         >
-          Previous
+          {phrase(dictionary, "mithril_previous", language)}
         </button>
         <button
           onClick={goToNextStage}
@@ -124,7 +131,9 @@ function MithrilContent() {
             }
           `}
         >
-          {currentStage === stages.length ? "Finish" : "Next"}
+          {currentStage === stages.length
+            ? phrase(dictionary, "mithril_finish", language)
+            : phrase(dictionary, "mithril_next", language)}
         </button>
       </div>
     </div>

@@ -699,3 +699,64 @@ editor_remove_reference,참조 제거,,Remove Reference
 editor_style_applied,선\, 색상 및 스타일이 그림에 적용됩니다.,,Line\, color\, and style will be applied to your drawing.
 editor_processing,처리 중...,,Processing...
 editor_apply_to_frame,프레임에 적용,,Apply to Frame
+analyzer_title,스토리 분석기,,Story Analyzer
+analyzer_subtitle,AI가 웹소설의 구조\, A라인\, 핵심 스토리 포인트를 분석합니다.,,AI analyzes your web novel's structure\, A-line\, and key story points.
+analyzer_no_file,파일이 업로드되지 않았습니다. 1단계로 돌아가서 파일을 업로드해 주세요.,,No file uploaded. Please go back to Stage 1 and upload a file.
+analyzer_conditions,분석 조건 (선택사항),,Analysis Conditions (Optional)
+analyzer_conditions_placeholder,예: 주인공의 감정 변화에 집중\, 특정 조연만 분석...,,e.g.\, Focus on the protagonist's emotional arc\, analyze only certain supporting characters...
+analyzer_mode,분석 모드,,Analysis Mode
+analyzer_plot,플롯 구조 분석,,Plot Structure Analysis
+analyzer_episode,에피소드 기반 분석,,Episode-based Analysis
+analyzer_analyzing,분석 중...,,Analyzing...
+analyzer_analyze,스토리 분석,,Analyze Story
+analyzer_result,AI 스토리 구조 분석 결과,,AI Story Structure Analysis Result
+analyzer_download,다운로드 (.txt),,Download (.txt)
+upload_title,스토리 선택기,,Story Selector
+upload_subtitle,시작하려면 스토리 파일을 선택하세요,,Select a story file to get started
+upload_select_label,스토리 파일 선택,,Select a Story File
+upload_select_placeholder,-- 파일 선택 --,,-- Select a file --
+upload_loading,파일 불러오는 중...,,Loading file...
+upload_error,선택한 파일을 불러오지 못했습니다. 다시 시도해 주세요.,,Failed to load the selected file. Please try again.
+upload_clear,지우기,,Clear
+upload_characters,자,,characters
+upload_more_characters,자 더 있음,,more characters
+nano_title,Nano Banana 이미지 생성기,,Nano Banana Image Creator
+nano_saved,저장됨,,Saved
+nano_style_prompt,스타일 프롬프트,,Style Prompt
+nano_style_placeholder,스타일 키워드 입력 (예: 2D 애니메이션\, 수채화 등),,Enter style keywords (e.g.\, 2D anime\, watercolor\, etc.)
+nano_reference_images,Bg Sheet Generator의 참조 이미지,,Reference Images from Bg Sheet Generator
+nano_selected,선택됨,,selected
+nano_no_references,참조 이미지가 없습니다.,,No reference images available.
+nano_generate_bg_first,먼저 Bg Sheet Generator에서 배경을 생성하세요.,,Generate backgrounds in Bg Sheet Generator first.
+nano_scene_prompt,장면 프롬프트,,Scene Prompt
+nano_scene_placeholder,생성하려는 장면을 설명하세요...,,Describe the scene you want to generate...
+nano_aspect_ratio,화면 비율,,Aspect Ratio
+nano_combined_preview,통합 프롬프트 미리보기,,Combined Prompt Preview
+nano_enter_prompts,미리보기할 프롬프트를 입력하세요...,,Enter prompts above to preview...
+nano_generating,생성 중...,,Generating...
+nano_generate_image,이미지 생성,,Generate Image
+nano_generated_result,생성된 결과,,Generated Result
+nano_ai_generating,AI가 이미지를 생성 중입니다...,,AI is generating your image...
+nano_result_placeholder,생성된 이미지가 여기에 표시됩니다,,Generated image will appear here
+nano_saving,저장 중...,,Saving...
+nano_save_result,결과 저장,,Save Result
+nano_loading_data,데이터 불러오는 중...,,Loading data...
+nano_toast_error,오류,,Error
+nano_toast_load_failed,데이터베이스에서 참조 이미지를 불러오지 못했습니다.,,Failed to load reference images from database.
+nano_toast_enter_prompt,프롬프트를 입력하거나 참조 이미지를 선택해 주세요.,,Please enter a prompt or select reference images.
+nano_toast_success,성공,,Success
+nano_toast_generated,이미지가 성공적으로 생성되었습니다!,,Image generated successfully!
+nano_toast_nothing,저장할 내용 없음,,Nothing to save
+nano_toast_generate_first,먼저 이미지를 생성하세요.,,Generate an image first.
+nano_toast_saved,저장됨,,Saved
+nano_toast_saved_desc,결과가 성공적으로 저장되었습니다!,,Result saved successfully!
+nano_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save result.
+mithril_stage1,스토리 선택기,,Story Selector
+mithril_stage2,스토리 분석기,,Story Analyzer
+mithril_stage3,스토리 분할기,,Story Splitter
+mithril_stage4,배경 시트 생성기,,BG Sheet Generator
+mithril_stage5,스토리보드 생성기,,Storyboard Generator
+mithril_stage6,Nanobanana 이미지 생성기,,Nanobanana Image Creator
+mithril_previous,이전,,Previous
+mithril_next,다음,,Next
+mithril_finish,완료,,Finish

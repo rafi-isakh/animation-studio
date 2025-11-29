@@ -510,13 +510,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Stage results methods
-  const setStageResult = (stage: number, result: unknown) => {
+  const setStageResult = useCallback((stage: number, result: unknown) => {
     setStageResults((prev) => ({ ...prev, [stage]: result }));
-  };
+  }, []);
 
-  const getStageResult = (stage: number) => {
+  const getStageResult = useCallback((stage: number) => {
     return stageResults[stage];
-  };
+  }, [stageResults]);
 
   return (
     <MithrilContext.Provider

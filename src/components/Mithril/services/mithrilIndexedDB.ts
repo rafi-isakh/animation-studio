@@ -176,6 +176,33 @@ export const clearAllData = async (): Promise<void> => {
   });
 };
 
+// Clear only background images (preserves NanoBanana images)
+export const clearBgImagesOnly = async (): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor) {
+        if (cursor.value.type === "bg_image") {
+          cursor.delete();
+        }
+        cursor.continue();
+      }
+    };
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => {
+      console.error("Error clearing bg images from MithrilDB:", transaction.error);
+      reject(transaction.error);
+    };
+  });
+};
+
 // ============ NanoBanana Image Functions ============
 
 // Save a NanoBanana generated image

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type { Background, BgSheetResultMetadata } from "./types";
-import { saveBgImage, getBgImage, clearAllData } from "../services/mithrilIndexedDB";
+import { saveBgImage, getBgImage, clearBgImagesOnly } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -962,7 +962,7 @@ export default function BgSheetGenerator() {
                 onClick={async () => {
                   setBackgrounds([]);
                   clearBgSheetAnalysis();
-                  await clearAllData();
+                  await clearBgImagesOnly();
                 }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >

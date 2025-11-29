@@ -24,7 +24,16 @@ export interface NanoBananaImage {
   createdAt: number;
 }
 
-export type StoredItem = MithrilImage | NanoBananaImage;
+export interface CharacterImage {
+  id: string; // e.g., "char_{characterId}"
+  type: "character_image";
+  base64: string;
+  mimeType: string;
+  characterId: string; // Reference to parent character
+  createdAt: number;
+}
+
+export type StoredItem = MithrilImage | NanoBananaImage | CharacterImage;
 
 let db: IDBDatabase | null = null;
 
@@ -286,6 +295,120 @@ export const deleteNanoBananaImage = async (id: string): Promise<void> => {
     request.onerror = () => {
       console.error("Error deleting NanoBanana image from MithrilDB:", request.error);
       reject(request.error);
+    };
+  });
+};
+
+// ============ Character Image Functions ============
+
+// Save a Character sheet image
+export const saveCharacterImage = async (
+  image: CharacterImage
+): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(image);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error saving Character image in MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get a Character image by ID
+export const getCharacterImage = async (
+  id: string
+): Promise<CharacterImage | null> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const result = request.result;
+      if (result && result.type === "character_image") {
+        resolve(result as CharacterImage);
+      } else {
+        resolve(null);
+      }
+    };
+    request.onerror = () => {
+      console.error("Error getting Character image from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get all Character images
+export const getAllCharacterImages = async (): Promise<CharacterImage[]> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const items = request.result as StoredItem[];
+      resolve(
+        items.filter(
+          (item) => item.type === "character_image"
+        ) as CharacterImage[]
+      );
+    };
+    request.onerror = () => {
+      console.error(
+        "Error getting all Character images from MithrilDB:",
+        request.error
+      );
+      reject(request.error);
+    };
+  });
+};
+
+// Delete a Character image by ID
+export const deleteCharacterImage = async (id: string): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error deleting Character image from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Clear only character images (preserves BG and NanoBanana images)
+export const clearCharacterImagesOnly = async (): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor) {
+        if (cursor.value.type === "character_image") {
+          cursor.delete();
+        }
+        cursor.continue();
+      }
+    };
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => {
+      console.error("Error clearing character images from MithrilDB:", transaction.error);
+      reject(transaction.error);
     };
   });
 };

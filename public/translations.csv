@@ -754,9 +754,43 @@ nano_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save resu
 mithril_stage1,스토리 선택기,,Story Selector
 mithril_stage2,스토리 분석기,,Story Analyzer
 mithril_stage3,스토리 분할기,,Story Splitter
-mithril_stage4,배경 시트 생성기,,BG Sheet Generator
-mithril_stage5,스토리보드 생성기,,Storyboard Generator
-mithril_stage6,Nanobanana 이미지 생성기,,Nanobanana Image Creator
+mithril_stage4,캐릭터 시트 생성기,,Character Sheet Generator
+mithril_stage5,배경 시트 생성기,,BG Sheet Generator
+mithril_stage6,스토리보드 생성기,,Storyboard Generator
+mithril_stage7,Nanobanana 이미지 생성기,,Nanobanana Image Creator
 mithril_previous,이전,,Previous
 mithril_next,다음,,Next
 mithril_finish,완료,,Finish
+charsheet_title,캐릭터 시트 생성기,,Character Sheet Generator
+charsheet_subtitle,스토리에서 캐릭터를 추출하고 디자인 시트를 생성합니다,,Extract characters from your story and generate design sheets
+charsheet_global_config,전역 설정,,Global Configuration
+charsheet_base_prompt,캐릭터 기본 프롬프트,,Character Base Prompt
+charsheet_base_prompt_placeholder,캐릭터 생성을 위한 기본 프롬프트...,,Base prompt for characters...
+charsheet_style_keywords,스타일 키워드 (전체 적용),,Style Keywords (Applied to all)
+charsheet_style_placeholder,예: 애니메 스타일, 사실적, 수채화,,e.g., anime style, photorealistic, watercolor
+charsheet_reference_image,참조 이미지 (가로세로 비율),,Reference Image (for Aspect Ratio)
+charsheet_upload_optional,이미지 업로드 (선택사항),,Upload Image (Optional)
+charsheet_analyze_text,텍스트 분석,,Analyze Text
+charsheet_ai_analyzing,AI가 캐릭터를 분석하고 있습니다...,,AI is analyzing characters...
+charsheet_loading,데이터 로딩 중...,,Loading data...
+charsheet_characters,캐릭터,,Characters
+charsheet_generate_all,모두 생성,,Generate All
+charsheet_generate_sheet,시트 생성,,Generate Sheet
+charsheet_regenerate_sheet,시트 재생성,,Regenerate Sheet
+charsheet_character_name,캐릭터 이름,,Character Name
+charsheet_appearance,외모,,Appearance
+charsheet_clothing,의상,,Clothing
+charsheet_personality,성격,,Personality
+charsheet_background_story,배경 스토리,,Background Story
+charsheet_export_csv,CSV 내보내기,,Export CSV
+charsheet_save,저장,,Save
+charsheet_saving,저장 중...,,Saving...
+charsheet_saved,저장됨,,Saved
+charsheet_no_image,이미지 없음,,No Image
+charsheet_generating,시트 생성 중...,,Generating Sheet...
+charsheet_toast_image_failed,이미지 생성 실패,,Image generation failed
+charsheet_toast_edit_failed,편집 실패,,Edit failed
+charsheet_toast_saved,저장됨,,Saved
+charsheet_toast_saved_desc,캐릭터 시트가 성공적으로 저장되었습니다!,,Character sheet saved successfully!
+charsheet_toast_save_failed,저장 실패,,Save failed
+charsheet_toast_save_failed_desc,캐릭터 시트 저장에 실패했습니다.,,Failed to save character sheet.

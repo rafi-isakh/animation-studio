@@ -257,8 +257,7 @@ export default function BgSheetGenerator() {
     };
 
     hydrateFromContext();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on mount, contextResult from initial render
-  }, []);
+  }, [contextResult]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -269,7 +268,7 @@ export default function BgSheetGenerator() {
     }
   };
 
-  // Auto-save a single image to IndexedDB and update localStorage metadata
+  // Auto-save a single image to IndexedDB and update localStorage metadata + context
   const autoSaveImage = useCallback(async (
     bgId: string,
     angle: string,
@@ -304,13 +303,14 @@ export default function BgSheetGenerator() {
           }
         }
         localStorage.setItem("bg_sheet_result", JSON.stringify(meta));
-        // Note: Don't call setStageResult here - it causes infinite loop.
-        // The sync useEffect will handle context updates when backgrounds change.
+
+        // 3. Update context state so navigation works without manual save
+        setBgSheetResult(meta);
       }
     } catch (error) {
       console.error("Auto-save failed for image:", error);
     }
-  }, []);
+  }, [setBgSheetResult]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");

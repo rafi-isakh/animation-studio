@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Image as ImageIcon } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 import type { Scene, VoicePrompt } from "../types";
 
 interface StoryboardTableProps {
@@ -13,21 +15,23 @@ export default function StoryboardTable({
   data,
   voicePrompts,
 }: StoryboardTableProps) {
+  const { language, dictionary } = useLanguage();
+
   const clipHeaders = [
-    "클립",
-    "길이",
-    "누적 시간",
-    "배경 ID",
-    "스토리",
-    "이미지 프롬프트",
-    "비디오 프롬프트",
-    "Sora 비디오 프롬프트",
-    "대사 (Ko)",
-    "대사 (En)",
-    "효과음 (Ko)",
-    "효과음 (En)",
-    "BGM (Ko)",
-    "BGM (En)",
+    phrase(dictionary, "table_clip", language),
+    phrase(dictionary, "table_length", language),
+    phrase(dictionary, "table_accumulated_time", language),
+    phrase(dictionary, "table_background_id", language),
+    phrase(dictionary, "table_story", language),
+    phrase(dictionary, "table_image_prompt", language),
+    phrase(dictionary, "table_video_prompt", language),
+    phrase(dictionary, "table_sora_video_prompt", language),
+    phrase(dictionary, "table_dialogue_ko", language),
+    phrase(dictionary, "table_dialogue_en", language),
+    phrase(dictionary, "table_sfx_ko", language),
+    phrase(dictionary, "table_sfx_en", language),
+    phrase(dictionary, "table_bgm_ko", language),
+    phrase(dictionary, "table_bgm_en", language),
   ];
 
   if (data.length === 0) {
@@ -36,10 +40,10 @@ export default function StoryboardTable({
         <div className="text-center text-gray-500 dark:text-gray-400">
           <ImageIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
           <h3 className="mt-2 text-sm font-semibold">
-            이곳에 콘티가 표시됩니다
+            {phrase(dictionary, "table_empty_title", language)}
           </h3>
           <p className="mt-1 text-sm">
-            파트를 선택하고 조건을 설정하여 생성하세요.
+            {phrase(dictionary, "table_empty_desc", language)}
           </p>
         </div>
       </div>
@@ -51,7 +55,7 @@ export default function StoryboardTable({
       {voicePrompts.length > 0 && (
         <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-            캐릭터 보이스 프롬프트
+            {phrase(dictionary, "table_voice_prompts", language)}
           </h3>
           <dl className="space-y-2">
             {voicePrompts.map((vp, index) => (
@@ -60,11 +64,11 @@ export default function StoryboardTable({
                 className="text-sm text-gray-600 dark:text-gray-400 border-l-2 border-[#DB2777] pl-3"
               >
                 <dt className="font-semibold text-gray-700 dark:text-gray-300">
-                  프롬프트 {index + 1}
+                  {phrase(dictionary, "table_prompt", language)} {index + 1}
                 </dt>
                 <dd className="mt-1">
                   <span className="font-medium text-gray-500 dark:text-gray-400">
-                    [한글]:
+                    {phrase(dictionary, "table_korean", language)}
                   </span>{" "}
                   {vp.promptKo}
                 </dd>
@@ -102,7 +106,7 @@ export default function StoryboardTable({
                   colSpan={clipHeaders.length}
                   className="px-4 py-3 text-lg font-bold text-gray-900 dark:text-gray-100"
                 >
-                  씬 {sceneIndex + 1}: {scene.sceneTitle}
+                  {phrase(dictionary, "table_scene", language)} {sceneIndex + 1}: {scene.sceneTitle}
                 </td>
               </tr>
               {scene.clips.map((row, clipIndex) => {
@@ -119,7 +123,7 @@ export default function StoryboardTable({
                           colSpan={clipHeaders.length}
                           className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 italic pl-8"
                         >
-                          배경: {row.backgroundPrompt}
+                          {phrase(dictionary, "table_background", language)} {row.backgroundPrompt}
                         </td>
                       </tr>
                     )}

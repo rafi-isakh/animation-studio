@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMithril } from "./MithrilContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { Dictionary, Language } from "@/components/Types";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Download, Trash2 } from "lucide-react";
@@ -16,11 +19,16 @@ const defaultGuidelines = `클리프행어는 궁금증과 기대감을 폭발�
 
 주인공 중심의 클리프행어만 탐색한다.`;
 
-const Loader: React.FC = () => (
+interface LoaderProps {
+  dictionary: Dictionary;
+  language: Language;
+}
+
+const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
-      AI is analyzing the best split points...
+      {phrase(dictionary, "storysplitter_ai_analyzing", language)}
     </p>
   </div>
 );
@@ -28,6 +36,7 @@ const Loader: React.FC = () => (
 
 export default function StorySplitter() {
   const { setStageResult, storySplitter, startStorySplit, clearStorySplit } = useMithril();
+  const { language, dictionary } = useLanguage();
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
@@ -76,9 +85,9 @@ export default function StorySplitter() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Cliffhanger Story Splitter</h2>
+        <h2 className="text-2xl font-bold mb-2">{phrase(dictionary, "storysplitter_title", language)}</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          AI finds optimal cliffhanger points to split your story
+          {phrase(dictionary, "storysplitter_subtitle", language)}
         </p>
       </div>
 
@@ -90,7 +99,7 @@ export default function StorySplitter() {
               {fileName}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {originalText.length.toLocaleString()} characters
+              {originalText.length.toLocaleString()} {phrase(dictionary, "chars", language)}
             </span>
           </div>
           <div className="max-h-24 overflow-y-auto">
@@ -103,7 +112,7 @@ export default function StorySplitter() {
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            Please upload a text file in Stage 1 first.
+            {phrase(dictionary, "storysplitter_upload_file_first", language)}
           </p>
         </div>
       )}
@@ -115,7 +124,7 @@ export default function StorySplitter() {
             htmlFor="guidelines"
             className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            AI Guidelines (Optional)
+            {phrase(dictionary, "storysplitter_ai_guidelines", language)}
           </label>
           <textarea
             id="guidelines"
@@ -134,7 +143,7 @@ export default function StorySplitter() {
           disabled={isLoading || !originalText}
           className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Analyzing..." : "Split Story"}
+          {isLoading ? phrase(dictionary, "storysplitter_analyzing", language) : phrase(dictionary, "storysplitter_split_story", language)}
         </button>
       </div>
 
@@ -144,20 +153,20 @@ export default function StorySplitter() {
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
         >
-          <strong className="font-bold">Error: </strong>
+          <strong className="font-bold">{phrase(dictionary, "storysplitter_error", language)} </strong>
           <span>{error}</span>
         </div>
       )}
 
       {/* Loader */}
-      {isLoading && <Loader />}
+      {isLoading && <Loader dictionary={dictionary} language={language} />}
 
       {/* Results */}
       {splitResult && !isLoading && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              Split Results ({splitResult.parts.length} Parts)
+              {phrase(dictionary, "storysplitter_split_results", language)} ({splitResult.parts.length} {phrase(dictionary, "storysplitter_parts", language)})
             </h3>
             <div className="flex gap-2">
               <button
@@ -165,14 +174,14 @@ export default function StorySplitter() {
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 <Download className="w-4 h-4" />
-                <span>Download ZIP</span>
+                <span>{phrase(dictionary, "storysplitter_download_zip", language)}</span>
               </button>
               <button
                 onClick={clearStorySplit}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Clear</span>
+                <span>{phrase(dictionary, "storysplitter_clear", language)}</span>
               </button>
             </div>
           </div>
@@ -184,14 +193,14 @@ export default function StorySplitter() {
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
               >
                 <h4 className="font-bold text-[#DB2777] mb-2">
-                  Part {index + 1}
+                  {phrase(dictionary, "storysplitter_part", language)} {index + 1}
                 </h4>
                 <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                   {part.length > 500 ? `${part.slice(0, 500)}...` : part}
                 </p>
                 {part.length > 500 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    ... and {(part.length - 500).toLocaleString()} more characters
+                    ... {(part.length - 500).toLocaleString()} {phrase(dictionary, "storysplitter_more_chars", language)}
                   </p>
                 )}
               </div>

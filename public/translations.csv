@@ -582,3 +582,120 @@ toonyz_post_feed,최신 피드,,Feed
 toonyz_post_ranking,순위,,Ranking
 toonyz_post_service_preparing,이 서비스는 준비중 입니다.,,This feature is currently in development.
 choose_pictures,영상화할 그림을 고르세요,,Choose pictures to make a video
+storysplitter_title,클리프행어 스토리 분할기,,Cliffhanger Story Splitter
+storysplitter_subtitle,AI가 스토리를 분할하기 위한 최적의 클리프행어 지점을 찾습니다,,AI finds optimal cliffhanger points to split your story
+storysplitter_upload_file_first,먼저 Stage 1에서 텍스트 파일을 업로드해 주세요.,,Please upload a text file in Stage 1 first.
+storysplitter_ai_guidelines,AI 가이드라인 (선택사항),,AI Guidelines (Optional)
+storysplitter_analyzing,분석 중...,,Analyzing...
+storysplitter_split_story,스토리 분할,,Split Story
+storysplitter_ai_analyzing,AI가 최적의 분할 지점을 분석하고 있습니다...,,AI is analyzing the best split points...
+storysplitter_split_results,분할 결과,,Split Results
+storysplitter_parts,파트,,Parts
+storysplitter_download_zip,ZIP 다운로드,,Download ZIP
+storysplitter_clear,초기화,,Clear
+storysplitter_part,파트,,Part
+storysplitter_more_chars,개의 문자가 더 있습니다,,more characters
+storysplitter_error,오류:,,Error:
+storyboard_title,AI 애니메이션 스토리보드 생성기,,AI Animation Storyboard Generator
+storyboard_subtitle,분할된 스토리 파트에서 상세한 애니메이션 스토리보드를 생성합니다,,Generate detailed animation storyboards from your split story parts
+storyboard_select_part,Stage 3에서 파트 선택,,Select Part from Stage 3
+storyboard_part_preview,미리보기,,Preview
+storyboard_no_parts,분할된 파트가 없습니다. Stage 3 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 3 (Story Splitter) first.
+storyboard_generation_conditions,생성 조건,,Generation Conditions
+storyboard_story_conditions,스토리 조건,,Story conditions
+storyboard_image_conditions,이미지 조건,,Image conditions
+storyboard_video_conditions,비디오 조건,,Video conditions
+storyboard_sound_conditions,사운드 조건,,Sound conditions
+storyboard_additional_guide,추가 가이드 프롬프트 (선택사항),,Additional guide prompts (optional)
+storyboard_image_guide,이미지 가이드,,Image guide
+storyboard_video_guide,비디오 가이드,,Video guide
+storyboard_image_guide_placeholder,추가 이미지 생성 가이드라인...,,Additional image generation guidelines...
+storyboard_video_guide_placeholder,추가 비디오 생성 가이드라인...,,Additional video generation guidelines...
+storyboard_generating,생성 중...,,Generating...
+storyboard_generate,스토리보드 생성,,Generate Storyboard
+storyboard_drive_settings,드라이브 설정,,Drive Settings
+storyboard_ai_generating,AI가 스토리보드를 생성 중입니다... 몇 분 정도 소요될 수 있습니다.,,AI is generating the storyboard... This may take a few minutes.
+storyboard_generated,생성된 스토리보드,,Generated Storyboard
+storyboard_scenes,씬,,Scenes
+storyboard_clips,클립,,Clips
+storyboard_csv_download,CSV 다운로드,,CSV Download
+storyboard_saving,저장 중...,,Saving...
+storyboard_save_to_drive,드라이브에 저장,,Save to Drive
+storyboard_toast_no_parts,분할된 파트가 없습니다. Stage 3 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 3 (Story Splitter) first.
+storyboard_toast_empty_part,선택한 파트가 비어있습니다.,,Selected part is empty.
+storyboard_toast_generated,스토리보드 생성됨,,Storyboard Generated
+storyboard_toast_created_scenes,씬이 생성되었습니다.,,scenes created.
+storyboard_toast_saved_drive,드라이브에 저장됨,,Saved to Drive
+storyboard_toast_drive_success,Google 드라이브에 성공적으로 업로드되었습니다!,,Successfully uploaded to Google Drive!
+storyboard_toast_drive_failed,드라이브 업로드 실패,,Drive Upload Failed
+table_clip,클립,,Clip
+table_length,길이,,Length
+table_accumulated_time,누적 시간,,Accumulated Time
+table_background_id,배경 ID,,Background ID
+table_story,스토리,,Story
+table_image_prompt,이미지 프롬프트,,Image Prompt
+table_video_prompt,비디오 프롬프트,,Video Prompt
+table_sora_video_prompt,Sora 비디오 프롬프트,,Sora Video Prompt
+table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
+table_dialogue_en,대사 (En),,Dialogue (En)
+table_sfx_ko,효과음 (Ko),,SFX (Ko)
+table_sfx_en,효과음 (En),,SFX (En)
+table_bgm_ko,BGM (Ko),,BGM (Ko)
+table_bgm_en,BGM (En),,BGM (En)
+table_empty_title,이곳에 콘티가 표시됩니다,,Storyboard will be displayed here
+table_empty_desc,파트를 선택하고 조건을 설정하여 생성하세요.,,Select a part and set conditions to generate.
+table_voice_prompts,캐릭터 보이스 프롬프트,,Character Voice Prompts
+table_prompt,프롬프트,,Prompt
+table_korean,[한글]:,,[Korean]:
+table_scene,씬,,Scene
+table_background,배경:,,Background:
+drive_settings_title,Google 드라이브 설정,,Google Drive Settings
+drive_settings_desc,Google 드라이브 API 자격 증명을 입력하세요. 이 정보는 브라우저에 로컬로 저장됩니다.,,Enter your Google Drive API credentials. This information will be stored locally in your browser.
+drive_client_id,클라이언트 ID,,Client ID
+drive_client_secret,클라이언트 시크릿,,Client Secret
+drive_refresh_token,리프레시 토큰,,Refresh Token
+drive_folder_id,폴더 ID,,Folder ID
+drive_save_settings,설정 저장,,Save settings
+drive_saved,저장됨!,,Saved!
+bgsheet_title,배경 시트 생성기,,Background Sheet Generator
+bgsheet_subtitle,AI가 스토리에서 배경을 추출하고 다각도 뷰를 생성합니다,,AI extracts backgrounds from your story and generates multi-angle views
+bgsheet_loading,저장된 배경 불러오는 중...,,Loading saved backgrounds...
+bgsheet_global_config,전역 설정,,Global Configuration
+bgsheet_base_prompt,배경 기본 프롬프트,,Background Base Prompt
+bgsheet_base_prompt_placeholder,배경 기본 프롬프트...,,Base prompt for backgrounds...
+bgsheet_style_keywords,스타일 키워드 (전체 적용),,Style Keywords (Applied to all)
+bgsheet_style_placeholder,예: 애니메이션 스타일\, 포토리얼리스틱\, 수채화,,e.g.\, anime style\, photorealistic\, watercolor
+bgsheet_reference_image,참조 이미지 (화면 비율용),,Reference Image (for Aspect Ratio)
+bgsheet_upload_optional,이미지 업로드 (선택사항),,Upload Image (Optional)
+bgsheet_ai_analyzing,AI가 스토리를 분석 중입니다...,,AI is analyzing the story...
+bgsheet_analyze_text,텍스트 분석,,Analyze Text
+bgsheet_backgrounds,배경,,Backgrounds
+bgsheet_saving,저장 중...,,Saving...
+bgsheet_saved,저장됨,,Saved
+bgsheet_save,저장,,Save
+bgsheet_generate_all,전체 생성,,Generate All
+bgsheet_export_csv,CSV 내보내기,,Export CSV
+bgsheet_location_name,장소 이름,,Location Name
+bgsheet_visual_description,시각적 설명,,Visual Description
+bgsheet_reference_views,참조 뷰,,Reference Views
+bgsheet_generate_all_views,모든 뷰 생성,,Generate All Views
+bgsheet_toast_saved,저장됨,,Saved
+bgsheet_toast_saved_desc,배경 시트 결과가 성공적으로 저장되었습니다.,,Background sheet results saved successfully.
+bgsheet_toast_save_failed,저장 실패,,Save Failed
+bgsheet_toast_save_failed_desc,결과 저장에 실패했습니다.,,Failed to save results.
+bgsheet_toast_image_failed,이미지 생성 실패,,Image Generation Failed
+bgsheet_toast_edit_failed,편집 실패,,Edit Failed
+editor_drawing_tools,드로잉 도구,,Drawing Tools
+editor_color,색상,,Color
+editor_brush_size,브러시 크기,,Brush Size
+editor_undo,실행 취소,,Undo
+editor_clear_all,전체 지우기,,Clear All
+editor_brush,브러시,,Brush
+editor_eraser,지우개,,Eraser
+editor_style_reference,스타일 참조,,Style Reference
+editor_optional,선택사항,,Optional
+editor_upload_image,이미지 업로드,,Upload Image
+editor_remove_reference,참조 제거,,Remove Reference
+editor_style_applied,선\, 색상 및 스타일이 그림에 적용됩니다.,,Line\, color\, and style will be applied to your drawing.
+editor_processing,처리 중...,,Processing...
+editor_apply_to_frame,프레임에 적용,,Apply to Frame

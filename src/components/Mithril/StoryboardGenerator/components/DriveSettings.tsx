@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 const DRIVE_SETTINGS_KEY = "driveApiSettings";
 
@@ -16,6 +18,7 @@ interface DriveSettingsProps {
 }
 
 export default function DriveSettings({ onClose }: DriveSettingsProps) {
+  const { language, dictionary } = useLanguage();
   const [settings, setSettings] = useState<DriveSettingsData>({
     clientId: "",
     clientSecret: "",
@@ -61,7 +64,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
     <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/80">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Google Drive Settings
+          {phrase(dictionary, "drive_settings_title", language)}
         </h3>
         {onClose && (
           <button
@@ -73,7 +76,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
         )}
       </div>
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Enter your Google Drive API credentials. This information will be stored locally in your browser.
+        {phrase(dictionary, "drive_settings_desc", language)}
       </p>
       <div className="space-y-3">
         <div>
@@ -81,7 +84,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
             htmlFor="clientId"
             className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
           >
-            Client ID
+            {phrase(dictionary, "drive_client_id", language)}
           </label>
           <input
             type="text"
@@ -98,7 +101,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
             htmlFor="clientSecret"
             className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
           >
-            Client Secret
+            {phrase(dictionary, "drive_client_secret", language)}
           </label>
           <input
             type="password"
@@ -115,7 +118,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
             htmlFor="refreshToken"
             className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
           >
-            Refresh Token
+            {phrase(dictionary, "drive_refresh_token", language)}
           </label>
           <input
             type="password"
@@ -132,7 +135,7 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
             htmlFor="folderId"
             className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1"
           >
-            Folder ID
+            {phrase(dictionary, "drive_folder_id", language)}
           </label>
           <input
             type="text"
@@ -150,11 +153,11 @@ export default function DriveSettings({ onClose }: DriveSettingsProps) {
           onClick={handleSave}
           className="px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white bg-[#DB2777] hover:bg-[#BE185D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#DB2777] transition-colors"
         >
-          Save settings
+          {phrase(dictionary, "drive_save_settings", language)}
         </button>
         {isSaved && (
           <span className="text-sm text-green-600 dark:text-green-400">
-            Saved!
+            {phrase(dictionary, "drive_saved", language)}
           </span>
         )}
       </div>

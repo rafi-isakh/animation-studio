@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useMithril } from "../../MithrilContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { Dictionary, Language } from "@/components/Types";
 import { useToast } from "@/hooks/use-toast";
 import {
   Download,
@@ -17,11 +20,16 @@ import DriveSettings from "./DriveSettings";
 import { uploadFileToDrive } from "../services";
 import type { SplitResult } from "../types";
 
-const Loader: React.FC = () => (
+interface LoaderProps {
+  dictionary: Dictionary;
+  language: Language;
+}
+
+const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
-      AI is generating the storyboard... This may take a few minutes.
+      {phrase(dictionary, "storyboard_ai_generating", language)}
     </p>
   </div>
 );
@@ -36,6 +44,7 @@ export default function StoryboardGenerator() {
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
   const { toast } = useToast();
+  const { language, dictionary } = useLanguage();
 
   // Default conditions
   const defaultConditions = useMemo(
@@ -124,8 +133,8 @@ export default function StoryboardGenerator() {
     if (splitParts.length === 0) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No split parts found. Please complete Stage 3 (Story Splitter) first.",
+        title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+        description: phrase(dictionary, "storyboard_toast_no_parts", language),
       });
       return;
     }
@@ -134,8 +143,8 @@ export default function StoryboardGenerator() {
     if (!sourceText) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Selected part is empty.",
+        title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+        description: phrase(dictionary, "storyboard_toast_empty_part", language),
       });
       return;
     }
@@ -154,8 +163,8 @@ export default function StoryboardGenerator() {
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
         variant: "success",
-        title: "Storyboard Generated",
-        description: `Created ${storyboardGenerator.scenes.length} scenes.`,
+        title: phrase(dictionary, "storyboard_toast_generated", language),
+        description: `${storyboardGenerator.scenes.length} ${phrase(dictionary, "storyboard_toast_created_scenes", language)}`,
       });
     }
   }, [
@@ -170,6 +179,8 @@ export default function StoryboardGenerator() {
     startStoryboardGeneration,
     storyboardGenerator,
     toast,
+    dictionary,
+    language,
   ]);
 
   const handleDownloadCSV = useCallback(() => {
@@ -285,15 +296,15 @@ export default function StoryboardGenerator() {
       await uploadFileToDrive(blob, fileName);
       toast({
         variant: "success",
-        title: "Saved to Drive",
-        description: "Successfully uploaded to Google Drive!",
+        title: phrase(dictionary, "storyboard_toast_saved_drive", language),
+        description: phrase(dictionary, "storyboard_toast_drive_success", language),
       });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Unknown error occurred";
       toast({
         variant: "destructive",
-        title: "Drive Upload Failed",
+        title: phrase(dictionary, "storyboard_toast_drive_failed", language),
         description: errorMessage,
       });
       if (errorMessage.includes("has not been set")) {
@@ -302,17 +313,17 @@ export default function StoryboardGenerator() {
     } finally {
       setIsSavingToDrive(false);
     }
-  }, [scenes, selectedPartIndex, toast]);
+  }, [scenes, selectedPartIndex, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">
-          AI Animation Storyboard Generator
+          {phrase(dictionary, "storyboard_title", language)}
         </h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          Generate detailed animation storyboards from your split story parts
+          {phrase(dictionary, "storyboard_subtitle", language)}
         </p>
       </div>
 
@@ -320,7 +331,7 @@ export default function StoryboardGenerator() {
       {splitParts.length > 0 ? (
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Select Part from Stage 3
+            {phrase(dictionary, "storyboard_select_part", language)}
           </label>
           <div className="flex flex-wrap gap-2">
             {splitParts.map((_, index) => (
@@ -333,7 +344,7 @@ export default function StoryboardGenerator() {
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
-                Part {index + 1}
+                {phrase(dictionary, "storysplitter_part", language)} {index + 1}
               </button>
             ))}
           </div>
@@ -342,11 +353,11 @@ export default function StoryboardGenerator() {
           <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Part {selectedPartIndex + 1} Preview
+                {phrase(dictionary, "storysplitter_part", language)} {selectedPartIndex + 1} {phrase(dictionary, "storyboard_part_preview", language)}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {splitParts[selectedPartIndex]?.length.toLocaleString()}{" "}
-                characters
+                {phrase(dictionary, "chars", language)}
               </span>
             </div>
             <div className="max-h-24 overflow-y-auto">
@@ -360,8 +371,7 @@ export default function StoryboardGenerator() {
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            No split parts found. Please complete Stage 3 (Story Splitter)
-            first.
+            {phrase(dictionary, "storyboard_no_parts", language)}
           </p>
         </div>
       )}
@@ -373,7 +383,7 @@ export default function StoryboardGenerator() {
           className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <span className="font-medium text-gray-700 dark:text-gray-300">
-            Generation Conditions
+            {phrase(dictionary, "storyboard_generation_conditions", language)}
           </span>
           {showConditions ? (
             <ChevronUp className="w-5 h-5 text-gray-500" />
@@ -386,7 +396,7 @@ export default function StoryboardGenerator() {
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Story conditions
+                {phrase(dictionary, "storyboard_story_conditions", language)}
               </label>
               <textarea
                 rows={4}
@@ -397,7 +407,7 @@ export default function StoryboardGenerator() {
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Image conditions
+                {phrase(dictionary, "storyboard_image_conditions", language)}
               </label>
               <textarea
                 rows={4}
@@ -408,7 +418,7 @@ export default function StoryboardGenerator() {
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Video conditions
+                {phrase(dictionary, "storyboard_video_conditions", language)}
               </label>
               <textarea
                 rows={4}
@@ -419,7 +429,7 @@ export default function StoryboardGenerator() {
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Sound conditions
+                {phrase(dictionary, "storyboard_sound_conditions", language)}
               </label>
               <textarea
                 rows={4}
@@ -431,30 +441,30 @@ export default function StoryboardGenerator() {
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
               <h4 className="font-medium text-gray-700 dark:text-gray-300">
-                Additional guide prompts (optional)
+                {phrase(dictionary, "storyboard_additional_guide", language)}
               </h4>
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Image guide
+                  {phrase(dictionary, "storyboard_image_guide", language)}
                 </label>
                 <input
                   type="text"
                   value={imageGuide}
                   onChange={(e) => setImageGuide(e.target.value)}
                   className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
-                  placeholder="Additional image generation guidelines..."
+                  placeholder={phrase(dictionary, "storyboard_image_guide_placeholder", language)}
                 />
               </div>
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Video guide
+                  {phrase(dictionary, "storyboard_video_guide", language)}
                 </label>
                 <input
                   type="text"
                   value={videoGuide}
                   onChange={(e) => setVideoGuide(e.target.value)}
                   className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
-                  placeholder="Additional video generation guidelines..."
+                  placeholder={phrase(dictionary, "storyboard_video_guide_placeholder", language)}
                 />
               </div>
             </div>
@@ -470,7 +480,7 @@ export default function StoryboardGenerator() {
           className="flex items-center gap-2 px-6 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-5 h-5" />
-          {isGenerating ? "Generating..." : "Generate Storyboard"}
+          {isGenerating ? phrase(dictionary, "storyboard_generating", language) : phrase(dictionary, "storyboard_generate", language)}
         </button>
 
         <button
@@ -478,7 +488,7 @@ export default function StoryboardGenerator() {
           className="flex items-center gap-2 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
         >
           <Settings className="w-5 h-5" />
-          Drive Settings
+          {phrase(dictionary, "storyboard_drive_settings", language)}
         </button>
       </div>
 
@@ -493,21 +503,21 @@ export default function StoryboardGenerator() {
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
         >
-          <strong className="font-bold">Error: </strong>
+          <strong className="font-bold">{phrase(dictionary, "storysplitter_error", language)} </strong>
           <span>{error}</span>
         </div>
       )}
 
       {/* Loader */}
-      {isGenerating && <Loader />}
+      {isGenerating && <Loader dictionary={dictionary} language={language} />}
 
       {/* Results */}
       {scenes.length > 0 && !isGenerating && (
         <div className="space-y-4">
           <div className="flex flex-wrap justify-between items-center gap-3">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              Generated Storyboard ({scenes.length} Scenes,{" "}
-              {scenes.reduce((acc, s) => acc + s.clips.length, 0)} Clips)
+              {phrase(dictionary, "storyboard_generated", language)} ({scenes.length} {phrase(dictionary, "storyboard_scenes", language)},{" "}
+              {scenes.reduce((acc, s) => acc + s.clips.length, 0)} {phrase(dictionary, "storyboard_clips", language)})
             </h3>
             <div className="flex gap-2">
               <button
@@ -515,7 +525,7 @@ export default function StoryboardGenerator() {
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors"
               >
                 <Download className="w-4 h-4" />
-                CSV Download
+                {phrase(dictionary, "storyboard_csv_download", language)}
               </button>
               <button
                 onClick={handleSaveToDrive}
@@ -523,7 +533,7 @@ export default function StoryboardGenerator() {
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CloudUpload className="w-4 h-4" />
-                {isSavingToDrive ? "Saving..." : "Save to Drive"}
+                {isSavingToDrive ? phrase(dictionary, "storyboard_saving", language) : phrase(dictionary, "storyboard_save_to_drive", language)}
               </button>
               {scenes.length > 0 && (
                 <button
@@ -532,7 +542,7 @@ export default function StoryboardGenerator() {
                   className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >
                   <Trash2 className="w-5 h-5" />
-                  Clear
+                  {phrase(dictionary, "storysplitter_clear", language)}
                 </button>
               )}
             </div>

@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
   Download,
@@ -45,11 +48,16 @@ const angleToDetailedPrompt: Record<string, string> = {
     "A close focus on a specific architectural detail or furniture piece in this room.",
 };
 
-const Loader: React.FC = () => (
+interface LoaderProps {
+  dictionary: Dictionary;
+  language: Language;
+}
+
+const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
-      AI is analyzing the story...
+      {phrase(dictionary, "bgsheet_ai_analyzing", language)}
     </p>
   </div>
 );
@@ -136,6 +144,7 @@ const downloadImage = (base64: string, filename: string): void => {
 export default function BgSheetGenerator() {
   const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult } = useMithril();
   const { toast } = useToast();
+  const { language, dictionary } = useLanguage();
   const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
 
   // State from Stage 1
@@ -429,7 +438,7 @@ export default function BgSheetGenerator() {
         const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
         toast({
           variant: "destructive",
-          title: "Image Generation Failed",
+          title: phrase(dictionary, "bgsheet_toast_image_failed", language),
           description: `${background.name}: ${errorMessage}`,
         });
         setBackgrounds((prevBgs) =>
@@ -558,7 +567,7 @@ export default function BgSheetGenerator() {
         const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
         toast({
           variant: "destructive",
-          title: "Image Generation Failed",
+          title: phrase(dictionary, "bgsheet_toast_image_failed", language),
           description: `${background.name} (${img.angle}): ${errorMessage}`,
         });
       } finally {
@@ -706,7 +715,7 @@ export default function BgSheetGenerator() {
       const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
       toast({
         variant: "destructive",
-        title: "Edit Failed",
+        title: phrase(dictionary, "bgsheet_toast_edit_failed", language),
         description: errorMessage,
       });
     }
@@ -758,28 +767,28 @@ export default function BgSheetGenerator() {
       setIsSaved(true);
       toast({
         variant: "success",
-        title: "Saved",
-        description: "Background sheet results saved successfully.",
+        title: phrase(dictionary, "bgsheet_toast_saved", language),
+        description: phrase(dictionary, "bgsheet_toast_saved_desc", language),
       });
     } catch (error) {
       console.error("Save failed:", error);
       toast({
         variant: "destructive",
-        title: "Save Failed",
-        description: "Failed to save results.",
+        title: phrase(dictionary, "bgsheet_toast_save_failed", language),
+        description: phrase(dictionary, "bgsheet_toast_save_failed_desc", language),
       });
     } finally {
       setIsSaving(false);
     }
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast]);
+  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Background Sheet Generator</h2>
+        <h2 className="text-2xl font-bold mb-2">{phrase(dictionary, "bgsheet_title", language)}</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          AI extracts backgrounds from your story and generates multi-angle views
+          {phrase(dictionary, "bgsheet_subtitle", language)}
         </p>
       </div>
 
@@ -788,7 +797,7 @@ export default function BgSheetGenerator() {
         <div className="flex flex-col items-center justify-center space-y-4 py-12">
           <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#DB2777]"></div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Loading saved backgrounds...
+            {phrase(dictionary, "bgsheet_loading", language)}
           </p>
         </div>
       )}
@@ -798,12 +807,12 @@ export default function BgSheetGenerator() {
       <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-4">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <span className="w-1 h-4 bg-[#DB2777] rounded-full"></span>
-          Global Configuration
+          {phrase(dictionary, "bgsheet_global_config", language)}
         </h3>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Background Base Prompt
+            {phrase(dictionary, "bgsheet_base_prompt", language)}
           </label>
           <textarea
             value={backgroundBasePrompt}
@@ -813,13 +822,13 @@ export default function BgSheetGenerator() {
             }}
             rows={2}
             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm resize-none"
-            placeholder="Base prompt for backgrounds..."
+            placeholder={phrase(dictionary, "bgsheet_base_prompt_placeholder", language)}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Style Keywords (Applied to all)
+            {phrase(dictionary, "bgsheet_style_keywords", language)}
           </label>
           <input
             type="text"
@@ -828,19 +837,19 @@ export default function BgSheetGenerator() {
               setStyleKeyword(e.target.value);
               setIsSaved(false);
             }}
-            placeholder="e.g., anime style, photorealistic, watercolor"
+            placeholder={phrase(dictionary, "bgsheet_style_placeholder", language)}
             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Reference Image (for Aspect Ratio)
+            {phrase(dictionary, "bgsheet_reference_image", language)}
           </label>
           <label className="w-full cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 flex items-center justify-center transition duration-200 group">
             <ImageIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
             <span className="ml-2 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 truncate text-sm">
-              {referenceImageName || "Upload Image (Optional)"}
+              {referenceImageName || phrase(dictionary, "bgsheet_upload_optional", language)}
             </span>
             <input
               type="file"
@@ -861,7 +870,7 @@ export default function BgSheetGenerator() {
               {fileName}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {originalText.length.toLocaleString()} characters
+              {originalText.length.toLocaleString()} {phrase(dictionary, "chars", language)}
             </span>
           </div>
           <div className="max-h-24 overflow-y-auto">
@@ -874,7 +883,7 @@ export default function BgSheetGenerator() {
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            Please upload a text file in Stage 1 first.
+            {phrase(dictionary, "storysplitter_upload_file_first", language)}
           </p>
         </div>
       ))}
@@ -887,7 +896,7 @@ export default function BgSheetGenerator() {
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
           >
             <Sparkles className="w-5 h-5" />
-            Analyze Text
+            {phrase(dictionary, "bgsheet_analyze_text", language)}
           </button>
         </div>
       )}
@@ -898,13 +907,13 @@ export default function BgSheetGenerator() {
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           role="alert"
         >
-          <strong className="font-bold">Error: </strong>
+          <strong className="font-bold">{phrase(dictionary, "storysplitter_error", language)} </strong>
           <span>{error}</span>
         </div>
       )}
 
       {/* Loader */}
-      {!isLoadingData && isAnalyzing && <Loader />}
+      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} />}
 
       {/* Results */}
       {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
@@ -913,7 +922,7 @@ export default function BgSheetGenerator() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <span className="w-1 h-5 bg-[#DB2777] rounded-full"></span>
-              Backgrounds ({backgrounds.length})
+              {phrase(dictionary, "bgsheet_backgrounds", language)} ({backgrounds.length})
             </h3>
             <div className="flex gap-2 flex-wrap">
               <button
@@ -932,7 +941,7 @@ export default function BgSheetGenerator() {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                <span>{isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}</span>
+                <span>{isSaving ? phrase(dictionary, "bgsheet_saving", language) : isSaved ? phrase(dictionary, "bgsheet_saved", language) : phrase(dictionary, "bgsheet_save", language)}</span>
               </button>
               <button
                 onClick={handleGenerateAll}
@@ -940,14 +949,14 @@ export default function BgSheetGenerator() {
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Generate All</span>
+                <span>{phrase(dictionary, "bgsheet_generate_all", language)}</span>
               </button>
               <button
                 onClick={() => exportToCSV(backgrounds)}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
                 <FileDown className="w-4 h-4" />
-                <span>Export CSV</span>
+                <span>{phrase(dictionary, "bgsheet_export_csv", language)}</span>
               </button>
               <button
                 onClick={async () => {
@@ -973,12 +982,12 @@ export default function BgSheetGenerator() {
                 {/* Editable Fields */}
                 <div className="grid grid-cols-1 gap-3">
                   <EditableField
-                    label="Location Name"
+                    label={phrase(dictionary, "bgsheet_location_name", language)}
                     value={bg.name}
                     onChange={(v) => updateBackground(bg.id, "name", v)}
                   />
                   <EditableField
-                    label="Visual Description"
+                    label={phrase(dictionary, "bgsheet_visual_description", language)}
                     value={bg.description}
                     onChange={(v) => updateBackground(bg.id, "description", v)}
                   />
@@ -987,13 +996,13 @@ export default function BgSheetGenerator() {
                 {/* Generate Button */}
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Reference Views
+                    {phrase(dictionary, "bgsheet_reference_views", language)}
                   </h4>
                   <button
                     onClick={() => handleGenerateBackgroundSheet(bg.id)}
                     className="text-xs bg-[#DB2777]/10 text-[#DB2777] px-3 py-1 rounded-full hover:bg-[#DB2777]/20 border border-[#DB2777]/20 transition-colors"
                   >
-                    Generate All Views
+                    {phrase(dictionary, "bgsheet_generate_all_views", language)}
                   </button>
                 </div>
 
@@ -1020,7 +1029,7 @@ export default function BgSheetGenerator() {
                                 )
                               }
                               className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
-                              title="Download"
+                              title={phrase(dictionary, "download", language)}
                             >
                               <Download className="w-4 h-4" />
                             </button>
@@ -1029,7 +1038,7 @@ export default function BgSheetGenerator() {
                                 handleEditImage(bg.id, idx, img.imageBase64)
                               }
                               className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
-                              title="Edit"
+                              title={phrase(dictionary, "edit", language)}
                             >
                               <Pencil className="w-3 h-3" />
                             </button>

@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Brush, Eraser, Undo2, X, Upload, Image as ImageIcon } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 interface BgSheetImageEditorProps {
   initialImage: string | null;
@@ -26,6 +28,7 @@ export default function BgSheetImageEditor({
   onClose,
   onSave,
 }: BgSheetImageEditorProps) {
+  const { language, dictionary } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -199,13 +202,13 @@ export default function BgSheetImageEditor({
         {/* Sidebar */}
         <div className="w-full md:w-72 bg-gray-800 flex flex-col p-4 shrink-0 border-b md:border-b-0 md:border-r border-gray-700 overflow-y-auto">
           <h3 className="text-[#DB2777] font-bold text-xl mb-4">
-            Drawing Tools
+            {phrase(dictionary, "editor_drawing_tools", language)}
           </h3>
 
           {/* Color Picker */}
           <div className="mb-4">
             <label className="block text-gray-400 text-sm font-medium mb-2">
-              Color
+              {phrase(dictionary, "editor_color", language)}
             </label>
             <div className="grid grid-cols-6 gap-2 mb-2">
               {colors.map((c) => (
@@ -241,7 +244,7 @@ export default function BgSheetImageEditor({
           {/* Brush Size */}
           <div className="mb-4">
             <label className="block text-gray-400 text-sm font-medium mb-2">
-              Brush Size: {brushSize}px
+              {phrase(dictionary, "editor_brush_size", language)}: {brushSize}px
             </label>
             <input
               type="range"
@@ -259,13 +262,13 @@ export default function BgSheetImageEditor({
               onClick={handleUndo}
               className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300 font-medium flex items-center justify-center gap-2 transition-colors text-sm"
             >
-              <Undo2 className="w-4 h-4" /> Undo
+              <Undo2 className="w-4 h-4" /> {phrase(dictionary, "editor_undo", language)}
             </button>
             <button
               onClick={handleClear}
               className="w-full py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-800/30 rounded-lg text-red-300 font-medium transition-colors text-sm"
             >
-              Clear All
+              {phrase(dictionary, "editor_clear_all", language)}
             </button>
             <div className="flex gap-2 mt-1">
               <button
@@ -276,7 +279,7 @@ export default function BgSheetImageEditor({
                     : "bg-gray-700 text-gray-400"
                 }`}
               >
-                <Brush className="w-4 h-4" /> Brush
+                <Brush className="w-4 h-4" /> {phrase(dictionary, "editor_brush", language)}
               </button>
               <button
                 onClick={() => setTool("eraser")}
@@ -286,7 +289,7 @@ export default function BgSheetImageEditor({
                     : "bg-gray-700 text-gray-400"
                 }`}
               >
-                <Eraser className="w-4 h-4" /> Eraser
+                <Eraser className="w-4 h-4" /> {phrase(dictionary, "editor_eraser", language)}
               </button>
             </div>
           </div>
@@ -294,16 +297,16 @@ export default function BgSheetImageEditor({
           {/* Style Reference */}
           <div className="mb-4 flex-1">
             <label className="text-gray-400 text-xs uppercase tracking-wider font-bold mb-2 flex items-center justify-between">
-              Style Reference
+              {phrase(dictionary, "editor_style_reference", language)}
               <span className="text-[10px] bg-gray-700 px-2 py-0.5 rounded text-gray-500 normal-case font-normal">
-                Optional
+                {phrase(dictionary, "editor_optional", language)}
               </span>
             </label>
             {!styleRef ? (
               <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer hover:bg-gray-700 transition group">
                 <Upload className="w-5 h-5 text-gray-500 group-hover:text-gray-300" />
                 <span className="text-xs text-gray-500 mt-1 group-hover:text-gray-300">
-                  Upload Image
+                  {phrase(dictionary, "editor_upload_image", language)}
                 </span>
                 <input
                   type="file"
@@ -322,7 +325,7 @@ export default function BgSheetImageEditor({
                 <button
                   onClick={() => setStyleRef(null)}
                   className="absolute top-2 right-2 bg-black/70 p-1.5 rounded-full text-white hover:bg-red-500 transition opacity-0 group-hover:opacity-100"
-                  title="Remove Reference"
+                  title={phrase(dictionary, "editor_remove_reference", language)}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -330,7 +333,7 @@ export default function BgSheetImageEditor({
             )}
             {styleRef && (
               <p className="text-[10px] text-gray-500 mt-1">
-                Line, color, and style will be applied to your drawing.
+                {phrase(dictionary, "editor_style_applied", language)}
               </p>
             )}
           </div>
@@ -343,13 +346,13 @@ export default function BgSheetImageEditor({
               className="w-full py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95"
             >
               {isSaving ? <LoadingSpinner /> : <ImageIcon className="w-5 h-5" />}
-              {isSaving ? "Processing..." : "Apply to Frame"}
+              {isSaving ? phrase(dictionary, "editor_processing", language) : phrase(dictionary, "editor_apply_to_frame", language)}
             </button>
             <button
               onClick={onClose}
               className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-colors"
             >
-              Close
+              {phrase(dictionary, "close", language)}
             </button>
           </div>
         </div>

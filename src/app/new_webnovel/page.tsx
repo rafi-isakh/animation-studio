@@ -1,10 +1,12 @@
-import Mithril from '@/components/Mithril/Mithril';
+import { auth } from '@/auth';
+import AddWebnovelComponent from '@/components/AddWebnovelComponent';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
-const NewNovel = () => {
+const NewNovel = async () => {
     return (
         <Suspense>
-            <Mithril />
+            <AddWebnovelComponent />
         </Suspense>
     );
 };

@@ -15,7 +15,16 @@ export interface MithrilImage {
   createdAt: number;
 }
 
-export type StoredItem = MithrilImage;
+export interface NanoBananaImage {
+  id: string; // e.g., "nano_banana_{resultId}"
+  type: "nano_banana_image";
+  base64: string;
+  mimeType: string;
+  resultId: string; // Reference to parent result
+  createdAt: number;
+}
+
+export type StoredItem = MithrilImage | NanoBananaImage;
 
 let db: IDBDatabase | null = null;
 
@@ -162,6 +171,93 @@ export const clearAllData = async (): Promise<void> => {
     request.onsuccess = () => resolve();
     request.onerror = () => {
       console.error("Error clearing MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// ============ NanoBanana Image Functions ============
+
+// Save a NanoBanana generated image
+export const saveNanoBananaImage = async (
+  image: NanoBananaImage
+): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(image);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error saving NanoBanana image in MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get a NanoBanana image by ID
+export const getNanoBananaImage = async (
+  id: string
+): Promise<NanoBananaImage | null> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const result = request.result;
+      if (result && result.type === "nano_banana_image") {
+        resolve(result as NanoBananaImage);
+      } else {
+        resolve(null);
+      }
+    };
+    request.onerror = () => {
+      console.error("Error getting NanoBanana image from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get all NanoBanana images
+export const getAllNanoBananaImages = async (): Promise<NanoBananaImage[]> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const items = request.result as StoredItem[];
+      resolve(
+        items.filter(
+          (item) => item.type === "nano_banana_image"
+        ) as NanoBananaImage[]
+      );
+    };
+    request.onerror = () => {
+      console.error(
+        "Error getting all NanoBanana images from MithrilDB:",
+        request.error
+      );
+      reject(request.error);
+    };
+  });
+};
+
+// Delete a NanoBanana image by ID
+export const deleteNanoBananaImage = async (id: string): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error deleting NanoBanana image from MithrilDB:", request.error);
       reject(request.error);
     };
   });

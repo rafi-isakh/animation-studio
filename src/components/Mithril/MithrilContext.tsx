@@ -111,6 +111,7 @@ interface MithrilContextProps {
   bgSheetGenerator: BgSheetGeneratorState;
   startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
   clearBgSheetAnalysis: () => void;
+  setBgSheetResult: (result: BgSheetResultMetadata) => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -487,6 +488,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     clearStageResult(4);
   }, [clearStageResult]);
 
+  const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
+    setBgSheetGenerator(prev => ({ ...prev, result }));
+  }, []);
+
   // Navigation methods
   const goToNextStage = () => {
     if (currentStage < TOTAL_STAGES) {
@@ -551,6 +556,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         bgSheetGenerator,
         startBgSheetAnalysis,
         clearBgSheetAnalysis,
+        setBgSheetResult,
       }}
     >
       {children}

@@ -134,7 +134,7 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult } = useMithril();
   const { toast } = useToast();
   const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
 
@@ -754,6 +754,7 @@ export default function BgSheetGenerator() {
       // 3. Save metadata to localStorage (small, won't exceed limit)
       localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
       setStageResult(4, metadata);
+      setBgSheetResult(metadata); // Update context so navigation uses new values
       setIsSaved(true);
       toast({
         variant: "success",
@@ -770,7 +771,7 @@ export default function BgSheetGenerator() {
     } finally {
       setIsSaving(false);
     }
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, toast]);
+  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast]);
 
   return (
     <div className="space-y-6">

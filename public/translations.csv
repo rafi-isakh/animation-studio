@@ -848,3 +848,7 @@ storyboard_select_bg_first,먼저 배경을 선택하세요,,Select BG first
 storyboard_scene_style,장면 이미지 스타일 프롬프트,,Scene Image Style Prompt
 storyboard_scene_style_placeholder,예: 2D 애니메이션 스타일\, 깔끔한 선화...,,e.g.\, 2D anime style\, clean linework...
 storyboard_scene_style_hint,이 스타일은 장면 이미지 생성 시 각 클립의 이미지 프롬프트와 결합됩니다,,This style will be combined with each clip's image prompt when generating scene images
+storyboard_char_reference,캐릭터 시트 생성기의 참조 이미지,,Reference Images from Character Sheet Generator
+storyboard_char_reference_hint,모든 장면 이미지 생성에 사용할 캐릭터 참조를 선택하세요,,Select character references to use for all scene image generations
+storyboard_no_char_available,캐릭터 이미지가 없습니다. 먼저 캐릭터 시트를 생성하세요.,,No character images available. Generate character sheets first.
+storyboard_chars_selected,캐릭터가 선택되었습니다,,character(s) selected

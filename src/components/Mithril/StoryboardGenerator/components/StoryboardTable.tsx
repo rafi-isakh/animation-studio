@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import {
   getAllBgImages,
+  getAllCharacterImages,
   saveStoryboardSceneImage,
   getAllStoryboardSceneImages,
 } from "../../services/mithrilIndexedDB";
@@ -30,21 +31,37 @@ interface ReferenceImage {
   mimeType: string;
 }
 
+interface CharacterReferenceImage {
+  id: string;
+  characterId: string;
+  characterName: string;
+  base64: string;
+  mimeType: string;
+}
+
 interface StoryboardTableProps {
   data: Scene[];
   voicePrompts: VoicePrompt[];
-  stylePrompt: string;
 }
 
 export default function StoryboardTable({
   data,
   voicePrompts,
-  stylePrompt,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
 
+  // Style prompt (moved here from parent)
+  const [stylePrompt, setStylePrompt] = useState(
+    "2D anime style, clean linework, soft cel shading, vibrant colors"
+  );
+
   // Available background references from BgSheetGenerator
   const [availableReferences, setAvailableReferences] = useState<ReferenceImage[]>([]);
+
+  // Available character references from CharacterSheetGenerator
+  const [availableCharacters, setAvailableCharacters] = useState<CharacterReferenceImage[]>([]);
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
+
   const [isLoadingRefs, setIsLoadingRefs] = useState(true);
 
   // Clip image states: Map<"sceneIdx-clipIdx", ClipImageState>
@@ -59,11 +76,12 @@ export default function StoryboardTable({
   // Saved scene images from IndexedDB (loaded on mount)
   const [savedSceneImages, setSavedSceneImages] = useState<Map<string, ClipImageState>>(new Map());
 
-  // Load background references and saved scene images on mount
+  // Load background references, character images, and saved scene images on mount
   useEffect(() => {
     const loadReferences = async () => {
       try {
-        const allImages = await getAllBgImages();
+        // Load background images
+        const allBgImages = await getAllBgImages();
 
         // Get background names from localStorage
         const bgSheetResult = localStorage.getItem("bg_sheet_result");
@@ -80,7 +98,7 @@ export default function StoryboardTable({
           }
         }
 
-        const references: ReferenceImage[] = allImages.map((img) => ({
+        const references: ReferenceImage[] = allBgImages.map((img) => ({
           id: img.id,
           bgId: img.bgId,
           bgName: bgNameMap[img.bgId] || `Background ${img.bgId.slice(0, 6)}`,
@@ -90,6 +108,34 @@ export default function StoryboardTable({
         }));
 
         setAvailableReferences(references);
+
+        // Load character images
+        const allCharImages = await getAllCharacterImages();
+
+        // Get character names from localStorage
+        const charSheetResult = localStorage.getItem("character_sheet_result");
+        let charNameMap: Record<string, string> = {};
+
+        if (charSheetResult) {
+          try {
+            const parsed = JSON.parse(charSheetResult);
+            parsed.characters?.forEach((char: { id: string; name: string }) => {
+              charNameMap[char.id] = char.name;
+            });
+          } catch {
+            // Ignore parse errors
+          }
+        }
+
+        const characters: CharacterReferenceImage[] = allCharImages.map((img) => ({
+          id: img.id,
+          characterId: img.characterId,
+          characterName: charNameMap[img.characterId] || `Character ${img.characterId.slice(0, 6)}`,
+          base64: img.base64,
+          mimeType: img.mimeType,
+        }));
+
+        setAvailableCharacters(characters);
 
         // Load metadata from localStorage
         const savedMetadataJson = localStorage.getItem(STORAGE_KEY);
@@ -259,6 +305,9 @@ export default function StoryboardTable({
         ? `${stylePrompt}. ${clip.imagePrompt}`
         : clip.imagePrompt;
 
+      // Get selected character references
+      const selectedChars = availableCharacters.filter(char => selectedCharacterIds.has(char.id));
+
       const response = await fetch("/api/nano_banana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -270,7 +319,10 @@ export default function StoryboardTable({
               base64: selectedRef.base64,
               mimeType: selectedRef.mimeType,
             }],
-            characters: [],
+            characters: selectedChars.map(char => ({
+              base64: char.base64,
+              mimeType: char.mimeType,
+            })),
           },
         }),
       });
@@ -325,7 +377,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, stylePrompt, saveMetadataToLocalStorage]);
+  }, [clipImageStates, availableReferences, availableCharacters, selectedCharacterIds, stylePrompt, saveMetadataToLocalStorage]);
 
   // Check if all clips have backgrounds selected
   const allBgSelected = useMemo(() => {
@@ -394,6 +446,19 @@ export default function StoryboardTable({
     return { totalClips: total, selectedCount: selected, generatedCount: generated };
   }, [data, clipImageStates]);
 
+  // Toggle character selection
+  const toggleCharacterSelection = useCallback((charId: string) => {
+    setSelectedCharacterIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(charId)) {
+        newSet.delete(charId);
+      } else {
+        newSet.add(charId);
+      }
+      return newSet;
+    });
+  }, []);
+
   const clipHeaders = [
     phrase(dictionary, "table_clip", language),
     phrase(dictionary, "table_length", language),
@@ -431,6 +496,89 @@ export default function StoryboardTable({
 
   return (
     <div className="space-y-4">
+      {/* Scene Image Style Prompt */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          {phrase(dictionary, "storyboard_scene_style", language) || "Scene Image Style Prompt"}
+        </label>
+        <textarea
+          rows={2}
+          value={stylePrompt}
+          onChange={(e) => setStylePrompt(e.target.value)}
+          placeholder={phrase(dictionary, "storyboard_scene_style_placeholder", language) || "e.g., 2D anime style, clean linework..."}
+          className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {phrase(dictionary, "storyboard_scene_style_hint", language) || "This style will be combined with each clip's image prompt when generating scene images"}
+        </p>
+      </div>
+
+      {/* Reference Images from Character Sheet Generator */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          {phrase(dictionary, "storyboard_char_reference", language) || "Reference Images from Character Sheet Generator"}
+        </label>
+        <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          {phrase(dictionary, "storyboard_char_reference_hint", language) || "Select character references to use for all scene image generations"}
+        </p>
+
+        {isLoadingRefs ? (
+          <div className="flex items-center gap-2 text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Loading characters...</span>
+          </div>
+        ) : availableCharacters.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            {phrase(dictionary, "storyboard_no_char_available", language) || "No character images available. Generate character sheets first."}
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {availableCharacters.map((char) => {
+              const isSelected = selectedCharacterIds.has(char.id);
+              return (
+                <button
+                  key={char.id}
+                  onClick={() => toggleCharacterSelection(char.id)}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+                    isSelected
+                      ? "border-[#DB2777] ring-2 ring-[#DB2777]/30"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                  }`}
+                >
+                  <div className="aspect-square relative">
+                    <Image
+                      src={`data:${char.mimeType};base64,${char.base64}`}
+                      alt={char.characterName}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-[#DB2777] rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-1.5 bg-white dark:bg-gray-700 text-center">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate block">
+                      {char.characterName}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {selectedCharacterIds.size > 0 && (
+          <p className="mt-2 text-xs text-[#DB2777]">
+            {selectedCharacterIds.size} {phrase(dictionary, "storyboard_chars_selected", language) || "character(s) selected"}
+          </p>
+        )}
+      </div>
+
       {/* Generate All Button & Stats */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4">

@@ -55,6 +55,9 @@ export default function StoryboardTable({
     "2D anime style, clean linework, soft cel shading, vibrant colors"
   );
 
+  // Aspect ratio for generated images
+  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
+
   // Available background references from BgSheetGenerator
   const [availableReferences, setAvailableReferences] = useState<ReferenceImage[]>([]);
 
@@ -300,10 +303,15 @@ export default function StoryboardTable({
     });
 
     try {
-      // Build prompt combining style and clip's imagePrompt
+      // Build prompt combining style, aspect ratio, and clip's imagePrompt
+      // Include aspect ratio in prompt text for more reliable enforcement
+      const aspectRatioText = aspectRatio === "9:16"
+        ? "vertical portrait orientation (9:16 aspect ratio)"
+        : "horizontal landscape orientation (16:9 aspect ratio)";
+
       const fullPrompt = stylePrompt
-        ? `${stylePrompt}. ${clip.imagePrompt}`
-        : clip.imagePrompt;
+        ? `${stylePrompt}. ${aspectRatioText}. ${clip.imagePrompt}`
+        : `${aspectRatioText}. ${clip.imagePrompt}`;
 
       // Get selected character references
       const selectedChars = availableCharacters.filter(char => selectedCharacterIds.has(char.id));
@@ -313,7 +321,7 @@ export default function StoryboardTable({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: fullPrompt,
-          aspectRatio: "16:9",
+          aspectRatio,
           references: {
             backgrounds: [{
               base64: selectedRef.base64,
@@ -377,7 +385,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, availableCharacters, selectedCharacterIds, stylePrompt, saveMetadataToLocalStorage]);
+  }, [clipImageStates, availableReferences, availableCharacters, selectedCharacterIds, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
 
   // Check if all clips have backgrounds selected
   const allBgSelected = useMemo(() => {
@@ -579,6 +587,43 @@ export default function StoryboardTable({
         )}
       </div>
 
+      {/* Aspect Ratio Selection */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          {phrase(dictionary, "storyboard_aspect_ratio", language) || "Aspect Ratio"}
+        </label>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setAspectRatio("16:9")}
+            className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+              aspectRatio === "16:9"
+                ? "border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]"
+                : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400"
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-8 h-[18px] border-2 border-current rounded-sm" />
+              <span className="text-sm font-medium">16:9</span>
+            </div>
+            <span className="text-xs mt-1 block">{phrase(dictionary, "storyboard_landscape", language) || "Landscape"}</span>
+          </button>
+          <button
+            onClick={() => setAspectRatio("9:16")}
+            className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+              aspectRatio === "9:16"
+                ? "border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]"
+                : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400"
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-[18px] h-8 border-2 border-current rounded-sm" />
+              <span className="text-sm font-medium">9:16</span>
+            </div>
+            <span className="text-xs mt-1 block">{phrase(dictionary, "storyboard_portrait", language) || "Portrait"}</span>
+          </button>
+        </div>
+      </div>
+
       {/* Generate All Button & Stats */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4">
@@ -715,7 +760,7 @@ export default function StoryboardTable({
                         </td>
 
                         {/* Background Selection Column */}
-                        <td className="px-4 py-4 min-w-[180px]">
+                        <td className="px-4 py-4 w-[140px] max-w-[140px]">
                           {isLoadingRefs ? (
                             <div className="flex items-center gap-2 text-gray-400">
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -729,11 +774,11 @@ export default function StoryboardTable({
                             <div className="relative">
                               <button
                                 onClick={() => setOpenDropdownKey(openDropdownKey === clipKey ? null : clipKey)}
-                                className="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#DB2777] transition-colors"
+                                className="flex flex-col items-start gap-1 w-full px-2 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#DB2777] transition-colors"
                               >
                                 {selectedRef ? (
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <div className="w-8 h-6 relative rounded overflow-hidden flex-shrink-0">
+                                  <>
+                                    <div className="w-full h-12 relative rounded overflow-hidden">
                                       <Image
                                         src={`data:${selectedRef.mimeType};base64,${selectedRef.base64}`}
                                         alt=""
@@ -742,16 +787,18 @@ export default function StoryboardTable({
                                         unoptimized
                                       />
                                     </div>
-                                    <span className="truncate text-gray-700 dark:text-gray-300">
+                                    <span className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 text-left w-full">
                                       {selectedRef.bgName}
                                     </span>
-                                  </div>
+                                  </>
                                 ) : (
-                                  <span className="text-gray-400 flex-1 text-left">
-                                    {phrase(dictionary, "storyboard_select_bg", language) || "Select background..."}
-                                  </span>
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="text-gray-400 text-xs">
+                                      {phrase(dictionary, "storyboard_select_bg", language) || "Select BG..."}
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  </div>
                                 )}
-                                <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                               </button>
 
                               {/* Dropdown */}
@@ -804,12 +851,12 @@ export default function StoryboardTable({
                         <td className="px-4 py-4 min-w-[200px]">
                           <div className="flex flex-col items-center gap-2">
                             {clipState?.isGenerating ? (
-                              <div className="w-32 h-20 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
+                              <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}>
                                 <Loader2 className="w-6 h-6 animate-spin text-[#DB2777]" />
                               </div>
                             ) : clipState?.generatedImageBase64 ? (
                               <div className="relative group">
-                                <div className="w-32 h-20 relative rounded-lg overflow-hidden">
+                                <div className={`relative rounded-lg overflow-hidden ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}>
                                   <Image
                                     src={`data:image/jpeg;base64,${clipState.generatedImageBase64}`}
                                     alt="Generated"

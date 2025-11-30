@@ -47,6 +47,7 @@ export default function SoraVideoGenerator() {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const shouldStopRef = useRef(false);
 
   // Load storyboard data and NanoBanana images on mount
@@ -346,6 +347,8 @@ export default function SoraVideoGenerator() {
 
   // Clear all results and delete videos from S3
   const handleClear = useCallback(async () => {
+    setIsClearing(true);
+
     // Collect S3 filenames to delete
     const s3FileNames = clips
       .filter((c) => c.s3FileName)
@@ -378,6 +381,7 @@ export default function SoraVideoGenerator() {
     );
     localStorage.removeItem(STORAGE_KEY);
     setIsSaved(false);
+    setIsClearing(false);
   }, [clips]);
 
   // Download all videos as a batch
@@ -541,10 +545,17 @@ export default function SoraVideoGenerator() {
 
           <button
             onClick={handleClear}
-            disabled={isGeneratingAll}
+            disabled={isGeneratingAll || isClearing}
             className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
           >
-            <Trash2 size={16} />
+            {isClearing ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <Trash2 size={16} />
+                <span>{phrase(dictionary, "storysplitter_clear", language)}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

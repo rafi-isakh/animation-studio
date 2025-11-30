@@ -59,7 +59,7 @@ export default function StorySplitter() {
   // Sync splitResult to stageResult when it changes
   useEffect(() => {
     if (!splitResult) return;
-    setStageResult(3, splitResult);
+    setStageResult(2, splitResult);
   }, [splitResult, setStageResult]);
 
   const handleGenerate = useCallback(async () => {

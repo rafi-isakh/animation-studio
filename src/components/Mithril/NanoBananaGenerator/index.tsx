@@ -335,7 +335,7 @@ export default function NanoBananaGenerator() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
 
       // Update stage result for Mithril context
-      setStageResult(5, metadata);
+      setStageResult(6, metadata);
 
       setIsSaved(true);
       toast({

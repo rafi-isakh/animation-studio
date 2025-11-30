@@ -312,6 +312,30 @@ export const deleteNanoBananaImage = async (id: string): Promise<void> => {
   });
 };
 
+// Get NanoBanana image by scene and clip index
+export const getNanoBananaImageBySceneClip = async (
+  sceneIndex: number,
+  clipIndex: number
+): Promise<string | null> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+  const id = `scene_${sceneIndex}.${clipIndex}`;
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const result = request.result;
+      // Return base64 string if found, null otherwise
+      resolve(result?.base64 || null);
+    };
+    request.onerror = () => {
+      console.error("Error getting NanoBanana image by scene/clip from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
 // ============ Character Image Functions ============
 
 // Save a Character sheet image

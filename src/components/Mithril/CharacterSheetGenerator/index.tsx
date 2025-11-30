@@ -267,7 +267,7 @@ export default function CharacterSheetGenerator() {
 
     if (result.length > 0) {
       setCharacters(result);
-      setStageResult(4, { characters: result, styleKeyword, characterBasePrompt });
+      setStageResult(3, { characters: result, styleKeyword, characterBasePrompt });
       setIsSaved(true);
     } else if (analysisError) {
       setError(analysisError);
@@ -490,7 +490,7 @@ export default function CharacterSheetGenerator() {
 
       // 3. Save metadata to localStorage (small, won't exceed limit)
       localStorage.setItem("character_sheet_result", JSON.stringify(metadata));
-      setStageResult(4, metadata);
+      setStageResult(3, metadata);
       setCharacterSheetResult(metadata); // Update context so navigation uses new values
       setIsSaved(true);
       toast({

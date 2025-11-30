@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import UploadManager from "./UploadManager";
-import StoryAnalyzer from "./StoryAnalyzer";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
 import Stage6Content from "./Stage6Content";
+import SoraVideoGenerator from "./SoraVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -94,15 +94,15 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center py-8">
         <div
-          className={`w-full ${currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
+          className={`w-full max-w-6xl mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
         >
           {currentStage === 1 && <UploadManager />}
-          {currentStage === 2 && <StoryAnalyzer />}
-          {currentStage === 3 && <StorySplitter />}
-          {currentStage === 4 && <CharacterSheetGenerator />}
-          {currentStage === 5 && <BgSheetGenerator />}
-          {currentStage === 6 && <StoryboardGenerator />}
-          {currentStage === 7 && <Stage6Content />}
+          {currentStage === 2 && <StorySplitter />}
+          {currentStage === 3 && <CharacterSheetGenerator />}
+          {currentStage === 4 && <BgSheetGenerator />}
+          {currentStage === 5 && <StoryboardGenerator />}
+          {currentStage === 6 && <Stage6Content />}
+          {currentStage === 7 && <SoraVideoGenerator />}
         </div>
       </div>
 

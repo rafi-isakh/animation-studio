@@ -25,22 +25,22 @@ const SAMPLE_FILES = [
   {
     name: "마성의 신입사원",
     path: "/samples/마성의 신입사원 1~50.txt",
-    thumbnail: "/samples/thumbnails/마성의 신입사원.webp",
+    thumbnail: "/samples/thumbnails/마성의 신입사원.jpg",
   },
   {
     name: "맛있는 스캔들",
     path: "/samples/맛있는 스캔들 1~50.txt",
-    thumbnail: "/samples/thumbnails/맛있는 스캔들.webp",
+    thumbnail: "/samples/thumbnails/맛있는 스캔들.jpg",
   },
   {
     name: "손님(개정판)",
     path: "/samples/손님(개정판).txt",
-    thumbnail: "/samples/thumbnails/손님.png",
+    thumbnail: "/samples/thumbnails/손님.jpg",
   },
   {
     name: "언니의 인생을 연기중입니다.",
     path: "/samples/언니의 인생을 연기중입니다..txt",
-    thumbnail: "/samples/thumbnails/언니의인생을연기중입니다.png",
+    thumbnail: "/samples/thumbnails/언니의인생을연기중입니다.jpg",
   },
   {
     name: "이세계의 정령사가 되었다",
@@ -55,7 +55,7 @@ const SAMPLE_FILES = [
   {
     name: "주인공들이 동물센터로 쳐들어왔다",
     path: "/samples/주인공들이 동물센터로 쳐들어왔다.txt",
-    thumbnail: "/samples/thumbnails/주인공들이 동물센터로 쳐들어왔다.png",
+    thumbnail: "/samples/thumbnails/주인공들이 동물센터로 쳐들어왔다.jpg",
   },
 ];
 

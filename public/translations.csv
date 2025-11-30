@@ -794,3 +794,33 @@ charsheet_toast_saved,저장됨,,Saved
 charsheet_toast_saved_desc,캐릭터 시트가 성공적으로 저장되었습니다!,,Character sheet saved successfully!
 charsheet_toast_save_failed,저장 실패,,Save failed
 charsheet_toast_save_failed_desc,캐릭터 시트 저장에 실패했습니다.,,Failed to save character sheet.
+mithril_stage8,Sora 비디오 생성기,,Sora Video Generator
+sora_title,Sora 비디오 생성기,,Sora Video Generator
+sora_subtitle,Sora 2를 사용하여 각 스토리보드 클립에 대한 비디오를 생성합니다,,Generate videos for each storyboard clip using Sora 2
+sora_loading,데이터 로딩 중...,,Loading data...
+sora_no_storyboard,스토리보드 데이터가 없습니다. 먼저 스토리보드를 생성하세요.,,No storyboard data found. Please generate a storyboard first.
+sora_aspect_ratio,화면 비율,,Aspect Ratio
+sora_stop,중지,,Stop
+sora_generate_all,전체 생성,,Generate All
+sora_progress,진행,,Progress
+sora_saving,저장 중...,,Saving...
+sora_saved,저장됨,,Saved
+sora_save,저장,,Save
+sora_download_all,전체 다운로드,,Download All
+sora_toast_error,오류,,Error
+sora_toast_load_failed,데이터를 불러오지 못했습니다.,,Failed to load data
+sora_toast_success,성공,,Success
+sora_toast_clip_generated,클립 생성 완료,,Clip generated successfully
+sora_toast_stopped,중지됨,,Stopped
+sora_toast_stopped_desc,비디오 생성이 중지되었습니다.,,Video generation stopped
+sora_toast_saved,저장됨,,Saved
+sora_toast_saved_desc,결과가 성공적으로 저장되었습니다.,,Results saved successfully
+sora_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save results
+sora_toast_no_videos,다운로드할 완료된 비디오가 없습니다.,,No completed videos to download
+sora_status_pending,대기 중,,Pending
+sora_status_generating,생성 중...,,Generating...
+sora_status_done,완료,,Done
+sora_status_failed,실패,,Failed
+sora_clip_download,다운로드,,Download
+sora_clip_generating,생성 중...,,Generating...
+sora_clip_generate,생성,,Generate

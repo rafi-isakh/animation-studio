@@ -6,7 +6,7 @@ import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import { clearBgImagesOnly, clearCharacterImagesOnly } from "./services/mithrilIndexedDB";
 
-const TOTAL_STAGES = 7;
+const TOTAL_STAGES = 8;
 
 // Types for Story Analyzer
 interface StoryAnalyzerState {

@@ -8,6 +8,7 @@ import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
 import Stage6Content from "./Stage6Content";
+import SoraVideoGenerator from "./SoraVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -26,6 +27,7 @@ function MithrilContent() {
       { id: 5, label: phrase(dictionary, "mithril_stage5", language) },
       { id: 6, label: phrase(dictionary, "mithril_stage6", language) },
       { id: 7, label: phrase(dictionary, "mithril_stage7", language) },
+      { id: 8, label: phrase(dictionary, "mithril_stage8", language) },
     ],
     [dictionary, language]
   );
@@ -94,7 +96,7 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center py-8">
         <div
-          className={`w-full ${currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
+          className={`w-full ${currentStage >= 4 ? "max-w-6xl" : "max-w-2xl"} mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
         >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StoryAnalyzer />}
@@ -103,6 +105,7 @@ function MithrilContent() {
           {currentStage === 5 && <BgSheetGenerator />}
           {currentStage === 6 && <StoryboardGenerator />}
           {currentStage === 7 && <Stage6Content />}
+          {currentStage === 8 && <SoraVideoGenerator />}
         </div>
       </div>
 

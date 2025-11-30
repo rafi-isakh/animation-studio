@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
+import { clearBgImagesOnly, clearCharacterImagesOnly } from "./services/mithrilIndexedDB";
 
 const TOTAL_STAGES = 7;
 
@@ -430,11 +431,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
-    setBgSheetGenerator(prev => ({
-      ...prev,
+    setBgSheetGenerator({
       isAnalyzing: true,
       error: null,
-    }));
+      result: null,
+    });
 
     try {
       const response = await fetch("/api/generate_bg_sheet/analyze", {
@@ -492,13 +493,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
-  const clearBgSheetAnalysis = useCallback(() => {
+  const clearBgSheetAnalysis = useCallback(async () => {
     setBgSheetGenerator({
       isAnalyzing: false,
       error: null,
       result: null,
     });
     localStorage.removeItem("bg_sheet_result");
+    await clearBgImagesOnly();
     clearStageResult(5);
   }, [clearStageResult]);
 
@@ -536,11 +538,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
-    setCharacterSheetGenerator(prev => ({
-      ...prev,
+    setCharacterSheetGenerator({
       isAnalyzing: true,
       error: null,
-    }));
+      result: null,
+    });
 
     try {
       const response = await fetch("/api/generate_character_sheet/analyze", {
@@ -595,13 +597,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
-  const clearCharacterSheetAnalysis = useCallback(() => {
+  const clearCharacterSheetAnalysis = useCallback(async () => {
     setCharacterSheetGenerator({
       isAnalyzing: false,
       error: null,
       result: null,
     });
     localStorage.removeItem("character_sheet_result");
+    await clearCharacterImagesOnly();
     clearStageResult(4);
   }, [clearStageResult]);
 

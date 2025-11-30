@@ -49,6 +49,20 @@ export default function SoraVideoGenerator() {
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const shouldStopRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+   // Reset mounted ref on mount, cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    shouldStopRef.current = false;
+
+    return () => {
+      isMountedRef.current = false;
+      shouldStopRef.current = true;
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   // Load storyboard data and NanoBanana images on mount
   useEffect(() => {
@@ -170,6 +184,10 @@ export default function SoraVideoGenerator() {
 
       const clip = clips[clipArrayIndex];
 
+       // Create AbortController for this generation
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       // Update status to generating
       setClips((prev) =>
         prev.map((c, i) =>
@@ -197,6 +215,7 @@ export default function SoraVideoGenerator() {
             duration: soraDuration,
             aspectRatio,
           }),
+          signal: abortController.signal,
         });
 
         const submitData: SoraVideoSubmitResponse = await submitResponse.json();
@@ -221,14 +240,16 @@ export default function SoraVideoGenerator() {
         let pollError: string | undefined;
 
         while (status === "pending" || status === "running") {
-          // Check if we should stop
-          if (shouldStopRef.current) {
+          // Check if we should stop (user clicked stop or component unmounted)
+          if (shouldStopRef.current || !isMountedRef.current) {
             throw new Error("Generation cancelled");
           }
 
           await sleep(5000); // Poll every 5 seconds
 
-          const statusResponse = await fetch(`/api/sora_video/status?jobId=${jobId}`);
+          const statusResponse = await fetch(`/api/sora_video/status?jobId=${jobId}`, {
+            signal: abortController.signal,
+          });
           const statusData: SoraVideoStatusResponse = await statusResponse.json();
 
           status = statusData.status;
@@ -241,23 +262,33 @@ export default function SoraVideoGenerator() {
           }
         }
 
-        // 3. Update with completed video and auto-save
-        setClips((prev) => {
-          const updatedClips = prev.map((c, i) =>
-            i === clipArrayIndex
-              ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, s3FileName: s3FileName || null, error: undefined }
-              : c
-          );
-          // Auto-save after successful generation
-          autoSave(updatedClips);
-          return updatedClips;
-        });
+        // 3. Update with completed video and auto-save (only if still mounted)
+        if (isMountedRef.current) {
+          setClips((prev) => {
+            const updatedClips = prev.map((c, i) =>
+              i === clipArrayIndex
+                ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, s3FileName: s3FileName || null, error: undefined }
+                : c
+            );
+            // Auto-save after successful generation
+            autoSave(updatedClips);
+            return updatedClips;
+          });
 
-        toast({
-          title: phrase(dictionary, "sora_toast_success", language),
-          description: `${phrase(dictionary, "sora_toast_clip_generated", language)} ${sceneIndex + 1}-${clipIndex + 1}`,
-        });
+          toast({
+            title: phrase(dictionary, "sora_toast_success", language),
+            description: `${phrase(dictionary, "sora_toast_clip_generated", language)} ${sceneIndex + 1}-${clipIndex + 1}`,
+          });
+        }
       } catch (err) {
+        // Don't show error for aborted requests or unmounted component
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+        if (!isMountedRef.current) {
+          return;
+        }
+
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
 
         setClips((prev) =>
@@ -284,7 +315,8 @@ export default function SoraVideoGenerator() {
     setIsGeneratingAll(true);
 
     for (let i = 0; i < clips.length; i++) {
-      if (shouldStopRef.current) break;
+      // Check if we should stop (user clicked stop or component unmounted)
+      if (shouldStopRef.current || !isMountedRef.current) break;
 
       const clip = clips[i];
       if (clip.status === "completed") continue; // Skip already completed clips
@@ -292,8 +324,11 @@ export default function SoraVideoGenerator() {
       await generateClip(clip.clipIndex, clip.sceneIndex);
     }
 
-    setIsGeneratingAll(false);
-    shouldStopRef.current = false;
+    // Only update state if still mounted
+    if (isMountedRef.current) {
+      setIsGeneratingAll(false);
+      shouldStopRef.current = false;
+    }
   }, [clips, generateClip]);
 
   // Stop generation

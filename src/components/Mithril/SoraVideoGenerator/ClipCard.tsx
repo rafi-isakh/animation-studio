@@ -127,17 +127,8 @@ export default function ClipCard({ clip, onGenerate, isGeneratingAll }: ClipCard
               disabled={status === "generating" || isGeneratingAll || !imageBase64}
               className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {status === "generating" ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  <span>{phrase(dictionary, "sora_clip_generating", language)}</span>
-                </>
-              ) : (
-                <>
-                  <Play size={14} />
-                  <span>{phrase(dictionary, "sora_clip_generate", language)}</span>
-                </>
-              )}
+              <Play size={14} />
+              <span>{phrase(dictionary, "sora_clip_generate", language)}</span>
             </button>
           )}
         </div>

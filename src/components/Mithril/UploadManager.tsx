@@ -1,19 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 
-// List of available sample files in public/samples folder
-// Add your TXT files here with their display names
+// List of available sample files in public/samples folder with thumbnails
 const SAMPLE_FILES = [
   {
-    name: "마성의 신입사원 1~50",
-    path: "/samples/마성의 신입사원 1~50.txt",
+    name: "내 딸이 검술천재",
+    path: "/samples/내 딸이 검술천재.txt",
+    thumbnail: "/samples/thumbnails/내 딸이 검술 천재.webp",
   },
-  { name: "Sample Story 1", path: "/samples/sample1.txt" },
-  { name: "Sample Story 2", path: "/samples/sample2.txt" },
-  { name: "Sample Story 3", path: "/samples/sample3.txt" },
+  {
+    name: "레벨업하는 무신님",
+    path: "/samples/레벨업하는 무신님.txt",
+    thumbnail: "/samples/thumbnails/레벨업하는 무신님.webp",
+  },
+  {
+    name: "리더 -읽는 자-",
+    path: "/samples/리더 -읽는 자-.txt",
+    thumbnail: "/samples/thumbnails/리더-읽는 자.webp",
+  },
+  {
+    name: "마성의 신입사원",
+    path: "/samples/마성의 신입사원 1~50.txt",
+    thumbnail: "/samples/thumbnails/마성의 신입사원.webp",
+  },
+  {
+    name: "맛있는 스캔들",
+    path: "/samples/맛있는 스캔들 1~50.txt",
+    thumbnail: "/samples/thumbnails/맛있는 스캔들.webp",
+  },
+  {
+    name: "손님(개정판)",
+    path: "/samples/손님(개정판).txt",
+    thumbnail: "/samples/thumbnails/손님.png",
+  },
+  {
+    name: "언니의 인생을 연기중입니다.",
+    path: "/samples/언니의 인생을 연기중입니다..txt",
+    thumbnail: "/samples/thumbnails/언니의인생을연기중입니다.png",
+  },
+  {
+    name: "이세계의 정령사가 되었다",
+    path: "/samples/이세계의 정령사가 되었다.txt",
+    thumbnail: "/samples/thumbnails/이세계의 정령사가 되었다.webp",
+  },
+  {
+    name: "전생의 프로",
+    path: "/samples/전생의 프로1-40.txt",
+    thumbnail: "/samples/thumbnails/전생의 프로가 꿀 빠는 법.webp",
+  },
+  {
+    name: "주인공들이 동물센터로 쳐들어왔다",
+    path: "/samples/주인공들이 동물센터로 쳐들어왔다.txt",
+    thumbnail: "/samples/thumbnails/주인공들이 동물센터로 쳐들어왔다.png",
+  },
 ];
 
 export default function UploadManager() {
@@ -32,7 +75,7 @@ export default function UploadManager() {
       setFileContent(savedContent);
       setFileName(savedFileName || "Previously selected file");
 
-      // Find and set the matching dropdown option
+      // Find and set the matching option
       const matchingFile = SAMPLE_FILES.find((f) => f.name === savedFileName);
       if (matchingFile) {
         setSelectedFile(matchingFile.path);
@@ -40,21 +83,13 @@ export default function UploadManager() {
     }
   }, []);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setSelectedFile(selected);
+  const handleFileSelect = async (file: (typeof SAMPLE_FILES)[0]) => {
+    setSelectedFile(file.path);
     setError(null);
-
-    if (!selected) {
-      return;
-    }
-
-    const file = SAMPLE_FILES.find((f) => f.path === selected);
-    if (!file) return;
-
     setIsLoading(true);
+
     try {
-      const response = await fetch(selected);
+      const response = await fetch(file.path);
       if (!response.ok) {
         throw new Error("Failed to load file");
       }
@@ -84,34 +119,67 @@ export default function UploadManager() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-4">{phrase(dictionary, "upload_title", language)}</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">
+        {phrase(dictionary, "upload_title", language)}
+      </h2>
       <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
         {phrase(dictionary, "upload_subtitle", language)}
       </p>
 
       <div className="space-y-4">
-        {/* File Selection Dropdown */}
+        {/* Thumbnail Grid Selection */}
         <div>
-          <label
-            htmlFor="file-select"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             {phrase(dictionary, "upload_select_label", language)}
           </label>
-          <select
-            id="file-select"
-            value={selectedFile}
-            onChange={handleFileSelect}
-            disabled={isLoading}
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#DB2777] focus:border-[#DB2777] transition-colors text-gray-900 dark:text-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="">{phrase(dictionary, "upload_select_placeholder", language)}</option>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {SAMPLE_FILES.map((file) => (
-              <option key={file.path} value={file.path}>
-                {file.name}
-              </option>
+              <button
+                key={file.path}
+                onClick={() => handleFileSelect(file)}
+                disabled={isLoading}
+                className={`relative group rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                  selectedFile === file.path
+                    ? "border-[#DB2777] ring-2 ring-[#DB2777] ring-opacity-50"
+                    : "border-gray-200 dark:border-gray-700 hover:border-[#DB2777]"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <div className="aspect-[3/4] relative">
+                  <Image
+                    src={file.thumbnail}
+                    alt={file.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                  />
+                  {/* Selection overlay */}
+                  {selectedFile === file.path && (
+                    <div className="absolute inset-0 bg-[#DB2777] bg-opacity-20 flex items-center justify-center">
+                      <div className="bg-[#DB2777] rounded-full p-2">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Title below thumbnail */}
+                <div className="p-2 bg-white dark:bg-gray-800">
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate text-center">
+                    {file.name}
+                  </p>
+                </div>
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         {/* Loading State */}
@@ -146,7 +214,9 @@ export default function UploadManager() {
         {/* Error Display */}
         {error && (
           <div className="p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-lg">
-            <p className="text-red-700 dark:text-red-300 text-sm">{phrase(dictionary, "upload_error", language)}</p>
+            <p className="text-red-700 dark:text-red-300 text-sm">
+              {phrase(dictionary, "upload_error", language)}
+            </p>
           </div>
         )}
 
@@ -165,7 +235,8 @@ export default function UploadManager() {
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              {fileContent.length.toLocaleString()} {phrase(dictionary, "upload_characters", language)}
+              {fileContent.length.toLocaleString()}{" "}
+              {phrase(dictionary, "upload_characters", language)}
             </p>
             <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-600">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">

@@ -11,10 +11,10 @@ interface SoraVideoRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.SORA_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY is not configured" },
+        { error: "SORA_API_KEY is not configured" },
         { status: 500 }
       );
     }

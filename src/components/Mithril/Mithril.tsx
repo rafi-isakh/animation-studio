@@ -48,7 +48,11 @@ function MithrilContent() {
   return (
     <div className="flex flex-col min-h-screen w-full">
       {/* Stepper - Fixed at top */}
-      <div className={`w-full overflow-x-auto p-4 fixed left-0 right-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm md:pl-[72px] transition-[top] duration-200 ${scrolled ? "top-0" : "top-14"}`}>
+      <div
+        className={`w-full overflow-x-auto p-4 fixed left-0 right-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm md:pl-[72px] transition-[top] duration-200 ${
+          scrolled ? "top-0" : "top-14"
+        }`}
+      >
         <div className="flex items-center justify-center min-w-max px-4">
           {stages.map((stage, index) => (
             <div key={stage.id} className="flex items-center">
@@ -112,7 +116,7 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         <div
-          className={`w-full max-w-6xl mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
+          className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"}`}
         >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StorySplitter />}

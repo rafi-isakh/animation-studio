@@ -6,15 +6,15 @@ import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import { clearBgImagesOnly, clearCharacterImagesOnly } from "./services/mithrilIndexedDB";
 
-const TOTAL_STAGES = 8;
+const TOTAL_STAGES = 7;
 
 // Types for Story Analyzer
-interface StoryAnalyzerState {
-  isLoading: boolean;
-  error: string | null;
-  progressMessage: string;
-  summary: string;
-}
+// interface StoryAnalyzerState {
+//   isLoading: boolean;
+//   error: string | null;
+//   progressMessage: string;
+//   summary: string;
+// }
 
 // Types for Story Splitter
 interface SplitResult {
@@ -102,11 +102,11 @@ interface MithrilContextProps {
   getStageResult: (stage: number) => unknown;
 
   // Story Analyzer (Stage 2)
-  storyAnalyzer: StoryAnalyzerState;
-  startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
-  clearStoryAnalysis: () => void;
+  // storyAnalyzer: StoryAnalyzerState;
+  // startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
+  // clearStoryAnalysis: () => void;
 
-  // Story Splitter (Stage 3)
+  // Story Splitter (Stage 2)
   storySplitter: StorySplitterState;
   startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
   clearStorySplit: () => void;
@@ -142,14 +142,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [stageResults, setStageResults] = useState<Record<number, unknown>>({});
 
   // Story Analyzer state (Stage 2)
-  const [storyAnalyzer, setStoryAnalyzer] = useState<StoryAnalyzerState>({
-    isLoading: false,
-    error: null,
-    progressMessage: "",
-    summary: "",
-  });
+  // const [storyAnalyzer, setStoryAnalyzer] = useState<StoryAnalyzerState>({
+  //   isLoading: false,
+  //   error: null,
+  //   progressMessage: "",
+  //   summary: "",
+  // });
 
-  // Story Splitter state (Stage 3)
+  // Story Splitter state (Stage 2)
   const [storySplitter, setStorySplitter] = useState<StorySplitterState>({
     isLoading: false,
     error: null,
@@ -204,72 +204,72 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   // Story Analyzer methods
-  const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
-    const fileContent = localStorage.getItem("chapter");
+  // const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
+  //   const fileContent = localStorage.getItem("chapter");
 
-    if (!fileContent) {
-      setStoryAnalyzer(prev => ({
-        ...prev,
-        error: "Please upload a text file in Stage 1 first.",
-      }));
-      return;
-    }
+  //   if (!fileContent) {
+  //     setStoryAnalyzer(prev => ({
+  //       ...prev,
+  //       error: "Please upload a text file in Stage 1 first.",
+  //     }));
+  //     return;
+  //   }
 
-    setStoryAnalyzer({
-      isLoading: true,
-      error: null,
-      progressMessage: "Analyzing story...",
-      summary: "",
-    });
+  //   setStoryAnalyzer({
+  //     isLoading: true,
+  //     error: null,
+  //     progressMessage: "Analyzing story...",
+  //     summary: "",
+  //   });
 
-    try {
-      const response = await fetch("/api/analyze_story", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          novelText: fileContent,
-          conditions,
-          analysisType,
-        }),
-      });
+  //   try {
+  //     const response = await fetch("/api/analyze_story", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         novelText: fileContent,
+  //         conditions,
+  //         analysisType,
+  //       }),
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to analyze story");
-      }
+  //     if (!response.ok) {
+  //       throw new Error(data.error || "Failed to analyze story");
+  //     }
 
-      // Save to localStorage
-      localStorage.setItem("story_analysis", data.result);
+  //     // Save to localStorage
+  //     localStorage.setItem("story_analysis", data.result);
 
-      setStoryAnalyzer({
-        isLoading: false,
-        error: null,
-        progressMessage: "",
-        summary: data.result,
-      });
-    } catch (e) {
-      setStoryAnalyzer(prev => ({
-        ...prev,
-        isLoading: false,
-        progressMessage: "",
-        error: e instanceof Error ? e.message : "An unknown error occurred.",
-      }));
-    }
-  }, []);
+  //     setStoryAnalyzer({
+  //       isLoading: false,
+  //       error: null,
+  //       progressMessage: "",
+  //       summary: data.result,
+  //     });
+  //   } catch (e) {
+  //     setStoryAnalyzer(prev => ({
+  //       ...prev,
+  //       isLoading: false,
+  //       progressMessage: "",
+  //       error: e instanceof Error ? e.message : "An unknown error occurred.",
+  //     }));
+  //   }
+  // }, []);
 
-  const clearStoryAnalysis = useCallback(() => {
-    localStorage.removeItem("story_analysis");
-    setStoryAnalyzer({
-      isLoading: false,
-      error: null,
-      progressMessage: "",
-      summary: "",
-    });
-    clearStageResult(2);
-  }, [clearStageResult]);
+  // const clearStoryAnalysis = useCallback(() => {
+  //   localStorage.removeItem("story_analysis");
+  //   setStoryAnalyzer({
+  //     isLoading: false,
+  //     error: null,
+  //     progressMessage: "",
+  //     summary: "",
+  //   });
+  //   clearStageResult(2);
+  // }, [clearStageResult]);
 
   // Story Splitter methods
   const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
@@ -336,7 +336,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       result: null,
     });
-    clearStageResult(3);
+    clearStageResult(2);
   }, [clearStageResult]);
 
   // Storyboard Generator methods
@@ -398,7 +398,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scenes: [],
       voicePrompts: [],
     });
-    clearStageResult(6);
+    clearStageResult(5);
   }, [clearStageResult]);
 
   // BgSheet Generator state (Stage 4)
@@ -501,7 +501,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
     localStorage.removeItem("bg_sheet_result");
     await clearBgImagesOnly();
-    clearStageResult(5);
+    clearStageResult(4);
   }, [clearStageResult]);
 
   const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
@@ -605,7 +605,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
     localStorage.removeItem("character_sheet_result");
     await clearCharacterImagesOnly();
-    clearStageResult(4);
+    clearStageResult(3);
   }, [clearStageResult]);
 
   const setCharacterSheetResult = useCallback((result: CharacterSheetResultMetadata) => {
@@ -661,9 +661,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setStageResult,
         getStageResult,
         // Story Analyzer
-        storyAnalyzer,
-        startStoryAnalysis,
-        clearStoryAnalysis,
+        // storyAnalyzer,
+        // startStoryAnalysis,
+        // clearStoryAnalysis,
         // Story Splitter
         storySplitter,
         startStorySplit,

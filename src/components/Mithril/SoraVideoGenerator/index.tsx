@@ -150,7 +150,7 @@ export default function SoraVideoGenerator() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
-      setStageResult(8, metadata);
+      setStageResult(7, metadata);
       setIsSaved(true);
     } catch (err) {
       console.error("Error auto-saving:", err);
@@ -320,7 +320,7 @@ export default function SoraVideoGenerator() {
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
-      setStageResult(8, metadata);
+      setStageResult(7, metadata);
       setIsSaved(true);
 
       toast({

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check the status of the video generation job
-    const response = await fetch(`https://api.openai.com/v1/videos/generations/${jobId}`, {
+    const response = await fetch(`https://api.openai.com/v1/videos/${jobId}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -86,10 +86,9 @@ export async function GET(request: NextRequest) {
       status,
     };
 
-    // If completed, include the video URL
+    // If completed, include the video URL (via our proxy endpoint for authentication)
     if (status === "completed") {
-      // The video URL could be in different locations depending on API version
-      result.videoUrl = data.output?.url || data.video_url || data.result?.url;
+      result.videoUrl = `/api/sora_video/download?jobId=${jobId}`;
     }
 
     // If failed, include the error message

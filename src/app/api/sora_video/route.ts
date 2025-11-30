@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
 
 export const maxDuration = 300; // Allow up to 5 minutes for job submission
 
@@ -31,12 +30,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!duration || duration < 1 || duration > 20) {
-      return NextResponse.json(
-        { error: "Duration must be between 1 and 20 seconds" },
-        { status: 400 }
-      );
-    }
+    // Sora only supports 4, 8, or 12 second videos
+    // Map to nearest valid duration
+    const validDurations = [4, 8, 12];
+    const parsedDuration = Number(duration) || 4;
+    const soraDuration = validDurations.reduce((prev, curr) =>
+      Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration) ? curr : prev
+    );
 
     if (!aspectRatio || !["16:9", "9:16"].includes(aspectRatio)) {
       return NextResponse.json(
@@ -45,38 +45,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openai = new OpenAI({ apiKey });
-
     // Determine size based on aspect ratio
-    const size = aspectRatio === "16:9" ? "1920x1080" : "1080x1920";
+    // Sora supports: 720x1280, 1280x720, 1024x1792, 1792x1024
+    const size = aspectRatio === "16:9" ? "1280x720" : "720x1280";
 
-    // Build the request for Sora API
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestParams: any = {
-      model: "sora",
-      prompt,
-      duration,
-      size,
-    };
+    // Use raw fetch API since OpenAI SDK may not have videos namespace yet
+    // Sora API expects multipart/form-data
+    const formData = new FormData();
+    formData.append("model", "sora-2");
+    formData.append("prompt", prompt);
+    formData.append("seconds", soraDuration.toString());
+    formData.append("size", size);
 
     // Add image reference if provided (image-to-video)
     if (imageBase64) {
-      // Sora expects image as a data URI
       const mimeType = imageBase64.startsWith("/9j/") ? "image/jpeg" : "image/png";
-      requestParams.image = `data:${mimeType};base64,${imageBase64}`;
+      const extension = mimeType === "image/jpeg" ? "jpg" : "png";
+      // Convert base64 to Blob for multipart upload
+      const imageBuffer = Buffer.from(imageBase64, "base64");
+      const imageBlob = new Blob([imageBuffer], { type: mimeType });
+      formData.append("input_reference", imageBlob, `input.${extension}`);
     }
 
-    // Submit the video generation job
-    // Note: Using the videos.generate endpoint
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await (openai as any).videos.generate(requestParams);
+    // Submit the video generation job via POST /videos
+    const response = await fetch("https://api.openai.com/v1/videos", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMessage = data.error?.message || data.error || "Failed to create video job";
+      console.error("Sora API Error:", data);
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: response.status }
+      );
+    }
 
     // The response should contain a job ID
-    const jobId = response.id;
+    const jobId = data.id;
 
     return NextResponse.json({
       jobId,
-      status: "pending",
+      status: data.status || "pending",
     });
   } catch (error: unknown) {
     console.error("Error submitting Sora video job:", error);

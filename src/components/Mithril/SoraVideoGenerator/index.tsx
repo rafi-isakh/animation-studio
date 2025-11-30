@@ -153,9 +153,12 @@ export default function SoraVideoGenerator() {
       try {
         // Parse duration from length (e.g., "1초" -> 1, "2초" -> 2)
         const durationMatch = clip.length.match(/(\d+)/);
-        const duration = durationMatch ? parseInt(durationMatch[1], 10) : 2;
-        // Sora requires minimum 5 seconds
-        const soraDuration = Math.max(5, duration);
+        const parsedDuration = durationMatch ? parseInt(durationMatch[1], 10) : 4;
+        // Sora only supports 4, 8, or 12 seconds - map to nearest valid value
+        const validDurations = [4, 8, 12];
+        const soraDuration = validDurations.reduce((prev, curr) =>
+          Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration) ? curr : prev
+        );
 
         // 1. Submit job
         const submitResponse = await fetch("/api/sora_video", {

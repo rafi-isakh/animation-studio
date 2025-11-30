@@ -105,7 +105,6 @@
     "nodemailer": "^6.9.16",
     "npm": "^10.9.2",
     "officeparser": "^5.1.1",
-    "openai": "^4.104.0",
     "pdfjs-dist": "^5.2.133",
     "quill": "^2.0.2",
     "react": "^18.3.1",

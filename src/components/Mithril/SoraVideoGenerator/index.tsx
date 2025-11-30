@@ -48,6 +48,7 @@ export default function SoraVideoGenerator() {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const shouldStopRef = useRef(false);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -419,9 +420,12 @@ export default function SoraVideoGenerator() {
     setIsClearing(false);
   }, [clips]);
 
-  // Download all videos as a batch
-  const handleDownloadAll = useCallback(() => {
-    const completedClips = clips.filter((c) => c.status === "completed" && c.videoUrl);
+  // Download all videos as a ZIP
+  const handleDownloadAll = useCallback(async () => {
+    const completedClips = clips.filter(
+      (c) => c.status === "completed" && c.s3FileName
+    );
+
     if (completedClips.length === 0) {
       toast({
         title: phrase(dictionary, "sora_toast_error", language),
@@ -431,17 +435,51 @@ export default function SoraVideoGenerator() {
       return;
     }
 
-    // Download each video (browser will handle as separate downloads)
-    completedClips.forEach((clip, index) => {
-      setTimeout(() => {
-        const link = document.createElement("a");
-        link.href = clip.videoUrl!;
-        link.download = `clip_${clip.sceneIndex + 1}_${clip.clipIndex + 1}.mp4`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, index * 500); // Stagger downloads
-    });
+    setIsDownloadingZip(true);
+
+    try {
+      const response = await fetch("/api/sora_video/zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clips: completedClips.map((c) => ({
+            s3FileName: c.s3FileName,
+            sceneIndex: c.sceneIndex,
+            clipIndex: c.clipIndex,
+          })),
+          zipFileName: `sora_videos_${Date.now()}.zip`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create ZIP");
+      }
+
+      // Stream the response as a download
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `sora_videos_${Date.now()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: phrase(dictionary, "sora_toast_success", language),
+        description: phrase(dictionary, "sora_toast_zip_downloaded", language),
+      });
+    } catch (error) {
+      console.error("ZIP download error:", error);
+      toast({
+        title: phrase(dictionary, "sora_toast_error", language),
+        description: phrase(dictionary, "sora_toast_zip_failed", language),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingZip(false);
+    }
   }, [clips, toast, dictionary, language]);
 
   // Stats
@@ -571,10 +609,20 @@ export default function SoraVideoGenerator() {
           {completedCount > 0 && (
             <button
               onClick={handleDownloadAll}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors text-sm"
+              disabled={isDownloadingZip}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download size={16} />
-              <span>{phrase(dictionary, "sora_download_all", language)}</span>
+              {isDownloadingZip ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>{phrase(dictionary, "sora_downloading_zip", language)}</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>{phrase(dictionary, "sora_download_all", language)}</span>
+                </>
+              )}
             </button>
           )}
 

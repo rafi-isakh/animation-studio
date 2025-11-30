@@ -816,6 +816,9 @@ sora_toast_saved,저장됨,,Saved
 sora_toast_saved_desc,결과가 성공적으로 저장되었습니다.,,Results saved successfully
 sora_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save results
 sora_toast_no_videos,다운로드할 완료된 비디오가 없습니다.,,No completed videos to download
+sora_toast_zip_downloaded,ZIP 파일이 다운로드되었습니다.,,ZIP file downloaded successfully
+sora_toast_zip_failed,ZIP 파일 생성에 실패했습니다.,,Failed to create ZIP file
+sora_downloading_zip,ZIP 생성 중...,,Creating ZIP...
 sora_status_pending,대기 중,,Pending
 sora_status_generating,생성 중...,,Generating...
 sora_status_done,완료,,Done

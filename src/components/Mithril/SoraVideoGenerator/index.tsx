@@ -133,6 +133,30 @@ export default function SoraVideoGenerator() {
     loadData();
   }, [toast, dictionary, language]);
 
+  // Auto-save helper (silent, no toast)
+  const autoSave = useCallback((updatedClips: SoraVideoClip[]) => {
+    try {
+      const metadata: SoraVideoResultMetadata = {
+        clips: updatedClips.map((c) => ({
+          clipIndex: c.clipIndex,
+          sceneIndex: c.sceneIndex,
+          videoUrl: c.videoUrl,
+          jobId: c.jobId,
+          status: c.status,
+          error: c.error,
+        })),
+        aspectRatio,
+        createdAt: Date.now(),
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
+      setStageResult(8, metadata);
+      setIsSaved(true);
+    } catch (err) {
+      console.error("Error auto-saving:", err);
+    }
+  }, [aspectRatio, setStageResult]);
+
   // Generate a single clip
   const generateClip = useCallback(
     async (clipIndex: number, sceneIndex: number) => {
@@ -212,16 +236,17 @@ export default function SoraVideoGenerator() {
           }
         }
 
-        // 3. Update with completed video
-        setClips((prev) =>
-          prev.map((c, i) =>
+        // 3. Update with completed video and auto-save
+        setClips((prev) => {
+          const updatedClips = prev.map((c, i) =>
             i === clipArrayIndex
-              ? { ...c, status: "completed", videoUrl: videoUrl || null, error: undefined }
+              ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, error: undefined }
               : c
-          )
-        );
-
-        setIsSaved(false);
+          );
+          // Auto-save after successful generation
+          autoSave(updatedClips);
+          return updatedClips;
+        });
 
         toast({
           title: phrase(dictionary, "sora_toast_success", language),
@@ -245,7 +270,7 @@ export default function SoraVideoGenerator() {
         }
       }
     },
-    [clips, aspectRatio, toast, dictionary, language]
+    [clips, aspectRatio, autoSave, toast, dictionary, language]
   );
 
   // Generate all clips sequentially
@@ -465,7 +490,7 @@ export default function SoraVideoGenerator() {
             {isSaving ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : isSaved ? (
-              <Check size={16} />
+              <Save size={16} />
             ) : (
               <Save size={16} />
             )}

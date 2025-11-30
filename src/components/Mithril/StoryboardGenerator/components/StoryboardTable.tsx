@@ -17,7 +17,9 @@ import {
   saveStoryboardSceneImage,
   getAllStoryboardSceneImages,
 } from "../../services/mithrilIndexedDB";
-import type { Scene, VoicePrompt, ClipImageState } from "../types";
+import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata } from "../types";
+
+const STORAGE_KEY = "storyboard_scene_images_metadata";
 
 interface ReferenceImage {
   id: string;
@@ -89,19 +91,44 @@ export default function StoryboardTable({
 
         setAvailableReferences(references);
 
-        // Load previously saved scene images
-        const savedSceneImages = await getAllStoryboardSceneImages();
-        if (savedSceneImages.length > 0) {
-          const savedStatesMap = new Map<string, ClipImageState>();
-          savedSceneImages.forEach((img) => {
-            const key = `${img.sceneIndex}-${img.clipIndex}`;
-            savedStatesMap.set(key, {
-              selectedBgId: img.selectedBgId,
-              generatedImageBase64: img.base64,
-              isGenerating: false,
-              error: null,
+        // Load metadata from localStorage
+        const savedMetadataJson = localStorage.getItem(STORAGE_KEY);
+        let metadataMap = new Map<string, { selectedBgId: string | null; hasGeneratedImage: boolean }>();
+
+        if (savedMetadataJson) {
+          try {
+            const metadata: StoryboardSceneImagesMetadata = JSON.parse(savedMetadataJson);
+            metadata.clips.forEach((clip) => {
+              metadataMap.set(clip.clipKey, {
+                selectedBgId: clip.selectedBgId,
+                hasGeneratedImage: clip.hasGeneratedImage,
+              });
             });
+          } catch {
+            // Ignore parse errors
+          }
+        }
+
+        // Load images from IndexedDB
+        const savedSceneImages = await getAllStoryboardSceneImages();
+        const imagesMap = new Map<string, string>();
+        savedSceneImages.forEach((img) => {
+          const key = `${img.sceneIndex}-${img.clipIndex}`;
+          imagesMap.set(key, img.base64);
+        });
+
+        // Combine metadata and images
+        const savedStatesMap = new Map<string, ClipImageState>();
+        metadataMap.forEach((meta, key) => {
+          savedStatesMap.set(key, {
+            selectedBgId: meta.selectedBgId,
+            generatedImageBase64: meta.hasGeneratedImage ? (imagesMap.get(key) || null) : null,
+            isGenerating: false,
+            error: null,
           });
+        });
+
+        if (savedStatesMap.size > 0) {
           setSavedSceneImages(savedStatesMap);
         }
       } catch (err) {
@@ -114,30 +141,69 @@ export default function StoryboardTable({
     loadReferences();
   }, []);
 
-  // Initialize clip image states when data changes
+  // Initialize clip image states when data changes or saved images are loaded
   useEffect(() => {
+    // Don't initialize until we've finished loading refs (which includes saved images)
+    if (isLoadingRefs) return;
+
     setClipImageStates(prevStates => {
       const newStates = new Map<string, ClipImageState>();
       data.forEach((scene, sceneIdx) => {
         scene.clips.forEach((_, clipIdx) => {
           const key = `${sceneIdx}-${clipIdx}`;
-          // Priority: existing state > saved from IndexedDB > empty state
+          // Priority: existing state (if has image) > saved from IndexedDB > existing state > empty state
           const existingState = prevStates.get(key);
           const savedState = savedSceneImages.get(key);
-          newStates.set(key, existingState || savedState || {
-            selectedBgId: null,
-            generatedImageBase64: null,
-            isGenerating: false,
-            error: null,
-          });
+
+          // If existing state has a generated image, keep it
+          if (existingState?.generatedImageBase64) {
+            newStates.set(key, existingState);
+          }
+          // Otherwise, use saved state if available
+          else if (savedState) {
+            newStates.set(key, savedState);
+          }
+          // Otherwise, keep existing state (for bg selection without image)
+          else if (existingState) {
+            newStates.set(key, existingState);
+          }
+          // Finally, use empty state
+          else {
+            newStates.set(key, {
+              selectedBgId: null,
+              generatedImageBase64: null,
+              isGenerating: false,
+              error: null,
+            });
+          }
         });
       });
       return newStates;
     });
-  }, [data, savedSceneImages]);
+  }, [data, savedSceneImages, isLoadingRefs]);
 
   // Get clip key
   const getClipKey = (sceneIdx: number, clipIdx: number) => `${sceneIdx}-${clipIdx}`;
+
+  // Save metadata to localStorage whenever clipImageStates changes
+  const saveMetadataToLocalStorage = useCallback((states: Map<string, ClipImageState>) => {
+    const clips = Array.from(states.entries()).map(([key, state]) => {
+      const [sceneIdx, clipIdx] = key.split("-").map(Number);
+      return {
+        clipKey: key,
+        clipName: `${sceneIdx + 1}.${clipIdx + 1}`,
+        selectedBgId: state.selectedBgId,
+        hasGeneratedImage: !!state.generatedImageBase64,
+      };
+    });
+
+    const metadata: StoryboardSceneImagesMetadata = {
+      clips,
+      updatedAt: Date.now(),
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
+  }, []);
 
   // Handle background selection for a clip
   const handleBgSelect = useCallback((sceneIdx: number, clipIdx: number, refId: string | null) => {
@@ -151,10 +217,14 @@ export default function StoryboardTable({
         error: null,
       };
       newMap.set(key, { ...current, selectedBgId: refId, error: null });
+
+      // Save to localStorage
+      saveMetadataToLocalStorage(newMap);
+
       return newMap;
     });
     setOpenDropdownKey(null);
-  }, []);
+  }, [saveMetadataToLocalStorage]);
 
   // Generate image for a single clip
   const generateClipImage = useCallback(async (
@@ -221,6 +291,10 @@ export default function StoryboardTable({
           isGenerating: false,
           error: null,
         });
+
+        // Save metadata to localStorage
+        saveMetadataToLocalStorage(newMap);
+
         return newMap;
       });
 
@@ -251,7 +325,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, stylePrompt]);
+  }, [clipImageStates, availableReferences, stylePrompt, saveMetadataToLocalStorage]);
 
   // Check if all clips have backgrounds selected
   const allBgSelected = useMemo(() => {

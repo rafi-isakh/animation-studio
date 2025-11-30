@@ -823,3 +823,9 @@ sora_status_failed,실패,,Failed
 sora_clip_download,다운로드,,Download
 sora_clip_generating,생성 중...,,Generating...
 sora_clip_generate,생성,,Generate
+mithril_passcode_title,Mithril 액세스,,Mithril Access
+mithril_passcode_subtitle,계속하려면 비밀번호를 입력하세요,,Enter passcode to continue
+mithril_passcode_placeholder,비밀번호 입력,,Enter passcode
+mithril_passcode_unlock,잠금 해제,,Unlock
+mithril_passcode_error,비밀번호가 올바르지 않습니다,,Incorrect passcode
+mithril_passcode_goback,← 뒤로 가기,,← Go Back

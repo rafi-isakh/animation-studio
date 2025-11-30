@@ -20,6 +20,7 @@ export interface SoraVideoClip {
   imageBase64: string | null; // From NanoBanana (Stage 7)
   videoUrl: string | null;
   jobId: string | null;
+  s3FileName: string | null; // S3 filename for permanent storage
   status: ClipStatus;
   error?: string;
 }
@@ -31,6 +32,7 @@ export interface SoraVideoResultMetadata {
     sceneIndex: number;
     videoUrl: string | null;
     jobId: string | null;
+    s3FileName: string | null;
     status: ClipStatus;
     error?: string;
   }[];
@@ -55,6 +57,7 @@ export interface SoraVideoStatusResponse {
   jobId: string;
   status: "pending" | "running" | "completed" | "failed";
   videoUrl?: string;
+  s3FileName?: string;
   error?: string;
 }
 

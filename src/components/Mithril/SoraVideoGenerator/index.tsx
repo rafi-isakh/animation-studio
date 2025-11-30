@@ -105,6 +105,7 @@ export default function SoraVideoGenerator() {
               imageBase64: null, // TODO: Load from NanoBanana IndexedDB
               videoUrl: savedClip?.videoUrl || null,
               jobId: savedClip?.jobId || null,
+              s3FileName: savedClip?.s3FileName || null,
               status: savedClip?.status || "pending",
               error: savedClip?.error,
             });
@@ -142,6 +143,7 @@ export default function SoraVideoGenerator() {
           sceneIndex: c.sceneIndex,
           videoUrl: c.videoUrl,
           jobId: c.jobId,
+          s3FileName: c.s3FileName,
           status: c.status,
           error: c.error,
         })),
@@ -214,6 +216,7 @@ export default function SoraVideoGenerator() {
         // 2. Poll for completion
         let status: SoraVideoStatusResponse["status"] = "pending";
         let videoUrl: string | undefined;
+        let s3FileName: string | undefined;
         let pollError: string | undefined;
 
         while (status === "pending" || status === "running") {
@@ -229,6 +232,7 @@ export default function SoraVideoGenerator() {
 
           status = statusData.status;
           videoUrl = statusData.videoUrl;
+          s3FileName = statusData.s3FileName;
           pollError = statusData.error;
 
           if (status === "failed") {
@@ -240,7 +244,7 @@ export default function SoraVideoGenerator() {
         setClips((prev) => {
           const updatedClips = prev.map((c, i) =>
             i === clipArrayIndex
-              ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, error: undefined }
+              ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, s3FileName: s3FileName || null, error: undefined }
               : c
           );
           // Auto-save after successful generation
@@ -312,6 +316,7 @@ export default function SoraVideoGenerator() {
           sceneIndex: c.sceneIndex,
           videoUrl: c.videoUrl,
           jobId: c.jobId,
+          s3FileName: c.s3FileName,
           status: c.status,
           error: c.error,
         })),
@@ -339,20 +344,41 @@ export default function SoraVideoGenerator() {
     }
   }, [clips, aspectRatio, setStageResult, toast, dictionary, language]);
 
-  // Clear all results
-  const handleClear = useCallback(() => {
+  // Clear all results and delete videos from S3
+  const handleClear = useCallback(async () => {
+    // Collect S3 filenames to delete
+    const s3FileNames = clips
+      .filter((c) => c.s3FileName)
+      .map((c) => c.s3FileName as string);
+
+    // Delete from S3 if there are files to delete
+    if (s3FileNames.length > 0) {
+      try {
+        await fetch("/api/sora_video/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileNames: s3FileNames }),
+        });
+      } catch (err) {
+        console.error("Error deleting videos from S3:", err);
+        // Continue with local clear even if S3 delete fails
+      }
+    }
+
+    // Clear local state
     setClips((prev) =>
       prev.map((c) => ({
         ...c,
         videoUrl: null,
         jobId: null,
+        s3FileName: null,
         status: "pending" as const,
         error: undefined,
       }))
     );
     localStorage.removeItem(STORAGE_KEY);
     setIsSaved(false);
-  }, []);
+  }, [clips]);
 
   // Download all videos as a batch
   const handleDownloadAll = useCallback(() => {

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { s3Client } from "@/utils/s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getVideoUrl } from "@/utils/urls";
 
-export const maxDuration = 60; // Allow up to 1 minute for status check
+export const maxDuration = 120; // Allow up to 2 minutes for status check + S3 upload
+
+const VIDEOS_BUCKET_NAME = "toonyzvideosbucket";
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,15 +85,53 @@ export async function GET(request: NextRequest) {
       jobId: string;
       status: "pending" | "running" | "completed" | "failed";
       videoUrl?: string;
+      s3FileName?: string;
       error?: string;
     } = {
       jobId,
       status,
     };
 
-    // If completed, include the video URL (via our proxy endpoint for authentication)
+    // If completed, download from OpenAI and upload to S3 for permanent storage
     if (status === "completed") {
-      result.videoUrl = `/api/sora_video/download?jobId=${jobId}`;
+      try {
+        // Download video from OpenAI
+        const videoResponse = await fetch(`https://api.openai.com/v1/videos/${jobId}/content`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+          },
+        });
+
+        if (!videoResponse.ok) {
+          throw new Error(`Failed to download video from OpenAI: ${videoResponse.statusText}`);
+        }
+
+        const videoBlob = await videoResponse.arrayBuffer();
+        const videoBuffer = Buffer.from(videoBlob);
+
+        // Generate unique filename with jobId for traceability
+        const s3FileName = `sora_${Date.now()}_${jobId}.mp4`;
+
+        // Upload to S3
+        const uploadParams = {
+          Bucket: VIDEOS_BUCKET_NAME,
+          Key: s3FileName,
+          Body: videoBuffer,
+          ContentType: "video/mp4",
+        };
+
+        await s3Client.send(new PutObjectCommand(uploadParams));
+        console.log("Sora video uploaded to S3:", s3FileName);
+
+        // Return CloudFront URL for permanent access
+        result.videoUrl = getVideoUrl(s3FileName);
+        result.s3FileName = s3FileName;
+      } catch (uploadError) {
+        console.error("Error uploading to S3, falling back to proxy URL:", uploadError);
+        // Fallback to proxy URL if S3 upload fails
+        result.videoUrl = `/api/sora_video/download?jobId=${jobId}`;
+      }
     }
 
     // If failed, include the error message

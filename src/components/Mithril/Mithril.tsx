@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
@@ -17,6 +17,21 @@ function MithrilContent() {
     useMithril();
   const { language, dictionary } = useLanguage();
 
+  // Track scroll position to adjust stepper position
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Header height is roughly 56px (top-14 = 3.5rem = 56px)
+      setScrolled(window.scrollY > 56);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Check initial position
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const stages = useMemo(
     () => [
       { id: 1, label: phrase(dictionary, "mithril_stage1", language) },
@@ -31,9 +46,9 @@ function MithrilContent() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen w-full p-4 md:p-8">
-      {/* Stepper */}
-      <div className="w-full overflow-x-auto p-4">
+    <div className="flex flex-col min-h-screen w-full">
+      {/* Stepper - Fixed at top */}
+      <div className={`w-full overflow-x-auto p-4 fixed left-0 right-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm md:pl-[72px] transition-[top] duration-200 ${scrolled ? "top-0" : "top-14"}`}>
         <div className="flex items-center justify-center min-w-max px-4">
           {stages.map((stage, index) => (
             <div key={stage.id} className="flex items-center">
@@ -91,8 +106,11 @@ function MithrilContent() {
         </div>
       </div>
 
+      {/* Spacer for fixed stepper */}
+      <div className="h-24" />
+
       {/* Content Area */}
-      <div className="flex-1 flex flex-col items-center justify-center py-8">
+      <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         <div
           className={`w-full max-w-6xl mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800`}
         >
@@ -107,7 +125,7 @@ function MithrilContent() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-center gap-4 py-6">
+      <div className="flex justify-center gap-4 py-6 px-4 md:px-8">
         <button
           onClick={goToPreviousStage}
           disabled={currentStage === 1}

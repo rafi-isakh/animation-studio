@@ -16,6 +16,7 @@ import type {
 } from "./types";
 import { ASPECT_RATIOS, STORAGE_KEY } from "./types";
 import type { Scene } from "../StoryboardGenerator/types";
+import { getNanoBananaImageBySceneClip } from "../services/mithrilIndexedDB";
 
 interface LoaderProps {
   message: string;
@@ -99,10 +100,7 @@ export default function SoraVideoGenerator() {
         }
 
         // 3. Build clips array from storyboard scenes
-        // TODO: After Friend B completes NanoBanana full port, load images from IndexedDB
-        // For now, imageBase64 will be null
         const allClips: SoraVideoClip[] = [];
-        let globalClipIndex = 0;
 
         storyboardData.scenes.forEach((scene, sceneIndex) => {
           scene.clips.forEach((clip, clipIndex) => {
@@ -118,16 +116,32 @@ export default function SoraVideoGenerator() {
               videoPrompt: clip.videoPrompt,
               soraVideoPrompt: clip.soraVideoPrompt,
               length: clip.length,
-              imageBase64: null, // TODO: Load from NanoBanana IndexedDB
+              imageBase64: null, // Will be loaded from IndexedDB below
               videoUrl: savedClip?.videoUrl || null,
               jobId: savedClip?.jobId || null,
               s3FileName: savedClip?.s3FileName || null,
               status: savedClip?.status || "pending",
               error: savedClip?.error,
             });
-            globalClipIndex++;
           });
         });
+
+        // 4. Load NanoBanana images from IndexedDB for each clip
+        for (let i = 0; i < allClips.length; i++) {
+          const clip = allClips[i];
+          try {
+            const imageBase64 = await getNanoBananaImageBySceneClip(
+              clip.sceneIndex,
+              clip.clipIndex
+            );
+            if (imageBase64) {
+              allClips[i].imageBase64 = imageBase64;
+            }
+          } catch (err) {
+            // Silently continue if image not found - will use text-to-video
+            console.warn(`No NanoBanana image found for scene ${clip.sceneIndex}, clip ${clip.clipIndex}`);
+          }
+        }
 
         setClips(allClips);
         if (savedResult) {

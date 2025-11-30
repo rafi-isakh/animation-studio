@@ -33,7 +33,20 @@ export interface CharacterImage {
   createdAt: number;
 }
 
-export type StoredItem = MithrilImage | NanoBananaImage | CharacterImage;
+export interface StoryboardSceneImage {
+  id: string; // e.g., "scene_1.1" or "scene_2.5"
+  type: "storyboard_scene_image";
+  base64: string;
+  mimeType: string;
+  sceneIndex: number;
+  clipIndex: number;
+  clipName: string; // e.g., "1.1", "2.3"
+  imagePrompt: string; // The prompt used to generate
+  selectedBgId: string; // Reference to background used
+  createdAt: number;
+}
+
+export type StoredItem = MithrilImage | NanoBananaImage | CharacterImage | StoryboardSceneImage;
 
 let db: IDBDatabase | null = null;
 
@@ -408,6 +421,104 @@ export const clearCharacterImagesOnly = async (): Promise<void> => {
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => {
       console.error("Error clearing character images from MithrilDB:", transaction.error);
+      reject(transaction.error);
+    };
+  });
+};
+
+// ============ Storyboard Scene Image Functions ============
+
+// Save a storyboard scene image
+export const saveStoryboardSceneImage = async (
+  image: StoryboardSceneImage
+): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(image);
+    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error("Error saving storyboard scene image in MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get a storyboard scene image by ID
+export const getStoryboardSceneImage = async (
+  id: string
+): Promise<StoryboardSceneImage | null> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const result = request.result;
+      if (result && result.type === "storyboard_scene_image") {
+        resolve(result as StoryboardSceneImage);
+      } else {
+        resolve(null);
+      }
+    };
+    request.onerror = () => {
+      console.error("Error getting storyboard scene image from MithrilDB:", request.error);
+      reject(request.error);
+    };
+  });
+};
+
+// Get all storyboard scene images
+export const getAllStoryboardSceneImages = async (): Promise<StoryboardSceneImage[]> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const items = request.result as StoredItem[];
+      resolve(
+        items.filter(
+          (item) => item.type === "storyboard_scene_image"
+        ) as StoryboardSceneImage[]
+      );
+    };
+    request.onerror = () => {
+      console.error(
+        "Error getting all storyboard scene images from MithrilDB:",
+        request.error
+      );
+      reject(request.error);
+    };
+  });
+};
+
+// Clear only storyboard scene images
+export const clearStoryboardSceneImagesOnly = async (): Promise<void> => {
+  const database = await getDB();
+  const transaction = database.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor) {
+        if (cursor.value.type === "storyboard_scene_image") {
+          cursor.delete();
+        }
+        cursor.continue();
+      }
+    };
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => {
+      console.error("Error clearing storyboard scene images from MithrilDB:", transaction.error);
       reject(transaction.error);
     };
   });

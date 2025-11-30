@@ -794,3 +794,19 @@ charsheet_toast_saved,저장됨,,Saved
 charsheet_toast_saved_desc,캐릭터 시트가 성공적으로 저장되었습니다!,,Character sheet saved successfully!
 charsheet_toast_save_failed,저장 실패,,Save failed
 charsheet_toast_save_failed_desc,캐릭터 시트 저장에 실패했습니다.,,Failed to save character sheet.
+storyboard_bg_selection,배경 선택,,Background Selection
+storyboard_generated_image,생성된 이미지,,Generated Image
+storyboard_generate_all,전체 이미지 생성,,Generate All Images
+storyboard_generating_all,생성 중...,,Generating...
+storyboard_bg_selected,배경이 선택되었습니다,,backgrounds selected
+storyboard_images_generated,이미지가 생성되었습니다,,generated
+storyboard_select_all_bg,전체 이미지 생성을 활성화하려면 모든 클립에 배경을 선택하세요,,Please select a background for all clips to enable Generate All
+storyboard_no_bg_available,배경이 없습니다,,No backgrounds available
+storyboard_select_bg,배경 선택...,,Select background...
+storyboard_clear_selection,선택 해제,,Clear selection
+storyboard_regenerate,다시 생성,,Regenerate
+storyboard_generate_single,생성,,Generate
+storyboard_select_bg_first,먼저 배경을 선택하세요,,Select BG first
+storyboard_scene_style,장면 이미지 스타일 프롬프트,,Scene Image Style Prompt
+storyboard_scene_style_placeholder,예: 2D 애니메이션 스타일\, 깔끔한 선화...,,e.g.\, 2D anime style\, clean linework...
+storyboard_scene_style_hint,이 스타일은 장면 이미지 생성 시 각 클립의 이미지 프롬프트와 결합됩니다,,This style will be combined with each clip's image prompt when generating scene images

@@ -107,6 +107,11 @@ export default function StoryboardGenerator() {
   const [imageGuide, setImageGuide] = useState("");
   const [videoGuide, setVideoGuide] = useState("");
 
+  // Style prompt for scene image generation (used by NanoBanana integration)
+  const [sceneStylePrompt, setSceneStylePrompt] = useState(
+    "2D anime style, clean linework, soft cel shading, vibrant colors"
+  );
+
   // Local UI state (not lifted to context)
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
 
@@ -472,6 +477,23 @@ export default function StoryboardGenerator() {
         )}
       </div>
 
+      {/* Scene Image Style Prompt */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          {phrase(dictionary, "storyboard_scene_style", language) || "Scene Image Style Prompt"}
+        </label>
+        <textarea
+          rows={2}
+          value={sceneStylePrompt}
+          onChange={(e) => setSceneStylePrompt(e.target.value)}
+          placeholder={phrase(dictionary, "storyboard_scene_style_placeholder", language) || "e.g., 2D anime style, clean linework..."}
+          className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {phrase(dictionary, "storyboard_scene_style_hint", language) || "This style will be combined with each clip's image prompt when generating scene images"}
+        </p>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-3">
         <button
@@ -548,7 +570,7 @@ export default function StoryboardGenerator() {
             </div>
           </div>
 
-          <StoryboardTable data={scenes} voicePrompts={voicePrompts} />
+          <StoryboardTable data={scenes} voicePrompts={voicePrompts} stylePrompt={sceneStylePrompt} />
         </div>
       )}
     </div>

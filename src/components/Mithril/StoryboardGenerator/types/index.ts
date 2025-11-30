@@ -15,6 +15,14 @@ export interface Continuity {
   backgroundId: string;
 }
 
+// Scene image generation state per clip
+export interface ClipImageState {
+  selectedBgId: string | null; // Selected background reference ID from BgSheet
+  generatedImageBase64: string | null; // Generated scene image
+  isGenerating: boolean;
+  error: string | null;
+}
+
 export interface VoicePrompt {
   promptKo: string;
   promptEn: string;

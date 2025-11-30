@@ -15,6 +15,28 @@ export interface Continuity {
   backgroundId: string;
 }
 
+// Scene image generation state per clip
+export interface ClipImageState {
+  selectedBgId: string | null; // Selected background reference ID from BgSheet
+  generatedImageBase64: string | null; // Generated scene image
+  isGenerating: boolean;
+  error: string | null;
+}
+
+// Metadata for localStorage (without base64 - that's in IndexedDB)
+export interface ClipImageMetadata {
+  clipKey: string; // e.g., "0-0", "1-2"
+  clipName: string; // e.g., "1.1", "2.3"
+  selectedBgId: string | null;
+  hasGeneratedImage: boolean; // true if image exists in IndexedDB
+}
+
+// localStorage structure for storyboard scene images
+export interface StoryboardSceneImagesMetadata {
+  clips: ClipImageMetadata[];
+  updatedAt: number;
+}
+
 export interface VoicePrompt {
   promptKo: string;
   promptEn: string;

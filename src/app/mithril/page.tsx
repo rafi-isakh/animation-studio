@@ -1,11 +1,14 @@
 import Mithril from '@/components/Mithril/Mithril';
+import PasscodeGate from '@/components/Mithril/PasscodeGate';
 import { Suspense } from 'react';
 
 const MithrilPage = () => {
     return (
-        <Suspense>
-            <Mithril />
-        </Suspense>
+        <PasscodeGate>
+            <Suspense>
+                <Mithril />
+            </Suspense>
+        </PasscodeGate>
     );
 };
 

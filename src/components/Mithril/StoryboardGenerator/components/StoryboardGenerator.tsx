@@ -116,7 +116,7 @@ export default function StoryboardGenerator() {
 
   // Load split parts from context on mount
   useEffect(() => {
-    const contextResult = getStageResult(3) as SplitResult | undefined;
+    const contextResult = getStageResult(2) as SplitResult | undefined;
     if (contextResult?.parts && Array.isArray(contextResult.parts)) {
       setSplitParts(contextResult.parts);
     }

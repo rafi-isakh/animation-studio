@@ -600,7 +600,7 @@ storyboard_title,AI 애니메이션 스토리보드 생성기,,AI Animation Stor
 storyboard_subtitle,분할된 스토리 파트에서 상세한 애니메이션 스토리보드를 생성합니다,,Generate detailed animation storyboards from your split story parts
 storyboard_select_part,Stage 3에서 파트 선택,,Select Part from Stage 3
 storyboard_part_preview,미리보기,,Preview
-storyboard_no_parts,분할된 파트가 없습니다. Stage 3 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 3 (Story Splitter) first.
+storyboard_no_parts,분할된 파트가 없습니다. Stage 2 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 2 (Story Splitter) first.
 storyboard_generation_conditions,생성 조건,,Generation Conditions
 storyboard_story_conditions,스토리 조건,,Story conditions
 storyboard_image_conditions,이미지 조건,,Image conditions
@@ -621,7 +621,7 @@ storyboard_clips,클립,,Clips
 storyboard_csv_download,CSV 다운로드,,CSV Download
 storyboard_saving,저장 중...,,Saving...
 storyboard_save_to_drive,드라이브에 저장,,Save to Drive
-storyboard_toast_no_parts,분할된 파트가 없습니다. Stage 3 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 3 (Story Splitter) first.
+storyboard_toast_no_parts,분할된 파트가 없습니다. Stage 2 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 2 (Story Splitter) first.
 storyboard_toast_empty_part,선택한 파트가 비어있습니다.,,Selected part is empty.
 storyboard_toast_generated,스토리보드 생성됨,,Storyboard Generated
 storyboard_toast_created_scenes,씬이 생성되었습니다.,,scenes created.
@@ -752,12 +752,12 @@ nano_toast_saved,저장됨,,Saved
 nano_toast_saved_desc,결과가 성공적으로 저장되었습니다!,,Result saved successfully!
 nano_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save result.
 mithril_stage1,스토리 선택기,,Story Selector
-mithril_stage2,스토리 분석기,,Story Analyzer
-mithril_stage3,스토리 분할기,,Story Splitter
-mithril_stage4,캐릭터 시트 생성기,,Character Sheet Generator
-mithril_stage5,배경 시트 생성기,,BG Sheet Generator
-mithril_stage6,스토리보드 생성기,,Storyboard Generator
-mithril_stage7,Nanobanana 이미지 생성기,,Nanobanana Image Creator
+mithril_stage2,스토리 분할기,,Story Splitter
+mithril_stage3,캐릭터 시트 생성기,,Character Sheet Generator
+mithril_stage4,배경 시트 생성기,,BG Sheet Generator
+mithril_stage5,스토리보드 생성기,,Storyboard Generator
+mithril_stage6,Nanobanana 이미지 생성기,,Nanobanana Image Creator
+mithril_stage7,Sora 비디오 생성기,,Sora Video Generator
 mithril_previous,이전,,Previous
 mithril_next,다음,,Next
 mithril_finish,완료,,Finish
@@ -794,3 +794,41 @@ charsheet_toast_saved,저장됨,,Saved
 charsheet_toast_saved_desc,캐릭터 시트가 성공적으로 저장되었습니다!,,Character sheet saved successfully!
 charsheet_toast_save_failed,저장 실패,,Save failed
 charsheet_toast_save_failed_desc,캐릭터 시트 저장에 실패했습니다.,,Failed to save character sheet.
+sora_title,Sora 비디오 생성기,,Sora Video Generator
+sora_subtitle,Sora 2를 사용하여 각 스토리보드 클립에 대한 비디오를 생성합니다,,Generate videos for each storyboard clip using Sora 2
+sora_loading,데이터 로딩 중...,,Loading data...
+sora_no_storyboard,스토리보드 데이터가 없습니다. 먼저 스토리보드를 생성하세요.,,No storyboard data found. Please generate a storyboard first.
+sora_aspect_ratio,화면 비율,,Aspect Ratio
+sora_stop,중지,,Stop
+sora_generate_all,전체 생성,,Generate All
+sora_progress,진행,,Progress
+sora_saving,저장 중...,,Saving...
+sora_saved,저장됨,,Saved
+sora_save,저장,,Save
+sora_download_all,전체 다운로드,,Download All
+sora_toast_error,오류,,Error
+sora_toast_load_failed,데이터를 불러오지 못했습니다.,,Failed to load data
+sora_toast_success,성공,,Success
+sora_toast_clip_generated,클립 생성 완료,,Clip generated successfully
+sora_toast_stopped,중지됨,,Stopped
+sora_toast_stopped_desc,비디오 생성이 중지되었습니다.,,Video generation stopped
+sora_toast_saved,저장됨,,Saved
+sora_toast_saved_desc,결과가 성공적으로 저장되었습니다.,,Results saved successfully
+sora_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save results
+sora_toast_no_videos,다운로드할 완료된 비디오가 없습니다.,,No completed videos to download
+sora_toast_zip_downloaded,ZIP 파일이 다운로드되었습니다.,,ZIP file downloaded successfully
+sora_toast_zip_failed,ZIP 파일 생성에 실패했습니다.,,Failed to create ZIP file
+sora_downloading_zip,ZIP 생성 중...,,Creating ZIP...
+sora_status_pending,대기 중,,Pending
+sora_status_generating,생성 중...,,Generating...
+sora_status_done,완료,,Done
+sora_status_failed,실패,,Failed
+sora_clip_download,다운로드,,Download
+sora_clip_generating,생성 중...,,Generating...
+sora_clip_generate,생성,,Generate
+mithril_passcode_title,Mithril 액세스,,Mithril Access
+mithril_passcode_subtitle,계속하려면 비밀번호를 입력하세요,,Enter passcode to continue
+mithril_passcode_placeholder,비밀번호 입력,,Enter passcode
+mithril_passcode_unlock,잠금 해제,,Unlock
+mithril_passcode_error,비밀번호가 올바르지 않습니다,,Incorrect passcode
+mithril_passcode_goback,← 뒤로 가기,,← Go Back

@@ -39,8 +39,8 @@ function MithrilContent() {
       { id: 3, label: phrase(dictionary, "mithril_stage3", language) },
       { id: 4, label: phrase(dictionary, "mithril_stage4", language) },
       { id: 5, label: phrase(dictionary, "mithril_stage5", language) },
-      { id: 6, label: phrase(dictionary, "mithril_stage6", language) },
-      { id: 7, label: phrase(dictionary, "mithril_stage7", language) },
+      // Stage 6 (NanoBanana) hidden - functionality merged into Storyboard Generator
+      { id: 6, label: phrase(dictionary, "mithril_stage7", language) }, // Sora Video Generator
     ],
     [dictionary, language]
   );
@@ -123,8 +123,8 @@ function MithrilContent() {
           {currentStage === 3 && <CharacterSheetGenerator />}
           {currentStage === 4 && <BgSheetGenerator />}
           {currentStage === 5 && <StoryboardGenerator />}
-          {currentStage === 6 && <Stage6Content />}
-          {currentStage === 7 && <SoraVideoGenerator />}
+          {/* Stage6Content (NanoBanana) hidden - functionality merged into Storyboard Generator */}
+          {currentStage === 6 && <SoraVideoGenerator />}
         </div>
       </div>
 

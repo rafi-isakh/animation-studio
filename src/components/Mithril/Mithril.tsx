@@ -96,7 +96,7 @@ function MithrilContent() {
               {index < stages.length - 1 && (
                 <div
                   className={`
-                    w-12 md:w-20 h-1 mx-2
+                    w-12 md:w-20 h-1 mx-2 self-start mt-5
                     ${
                       stage.id < currentStage
                         ? "bg-[#DB2777]"
@@ -116,7 +116,9 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         <div
-          className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"}`}
+          className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
+            currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"
+          }`}
         >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StorySplitter />}

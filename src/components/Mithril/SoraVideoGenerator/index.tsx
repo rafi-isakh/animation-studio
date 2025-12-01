@@ -5,7 +5,7 @@ import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Check, Trash2, Download } from "lucide-react";
+import { Sparkles, StopCircle, Save, Check, Trash2, Download, CloudUpload, CloudDownload } from "lucide-react";
 import ClipCard from "./ClipCard";
 import type {
   SoraVideoClip,
@@ -50,6 +50,8 @@ export default function SoraVideoGenerator() {
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [isSavingToS3, setIsSavingToS3] = useState(false);
+  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
   const shouldStopRef = useRef(false);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -496,6 +498,120 @@ export default function SoraVideoGenerator() {
     }
   }, [clips, toast, dictionary, language]);
 
+  // Save session to S3
+  const handleSaveToS3 = useCallback(async () => {
+    setIsSavingToS3(true);
+
+    try {
+      // Get current session data from localStorage
+      const sessionData = localStorage.getItem(STORAGE_KEY);
+
+      if (!sessionData) {
+        toast({
+          title: phrase(dictionary, "sora_toast_error", language),
+          description: phrase(dictionary, "sora_toast_s3_no_data", language),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch("/api/mithril_session/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionData: JSON.parse(sessionData) }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save to S3");
+      }
+
+      toast({
+        title: phrase(dictionary, "sora_toast_success", language),
+        description: phrase(dictionary, "sora_toast_s3_saved", language),
+      });
+    } catch (error) {
+      console.error("Error saving to S3:", error);
+      toast({
+        title: phrase(dictionary, "sora_toast_error", language),
+        description: error instanceof Error ? error.message : phrase(dictionary, "sora_toast_s3_no_data", language),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingToS3(false);
+    }
+  }, [toast, dictionary, language]);
+
+  // Load session from S3
+  const handleLoadFromS3 = useCallback(async () => {
+    setIsLoadingFromS3(true);
+
+    try {
+      const response = await fetch("/api/mithril_session/load");
+
+      if (response.status === 404) {
+        toast({
+          title: phrase(dictionary, "sora_toast_error", language),
+          description: phrase(dictionary, "sora_toast_s3_no_session", language),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to load from S3");
+      }
+
+      const { sessionData } = await response.json();
+
+      // Save to localStorage
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+
+      // Update local state from loaded data
+      if (sessionData.aspectRatio) {
+        setAspectRatio(sessionData.aspectRatio);
+      }
+
+      // Update clips with loaded data
+      setClips((prevClips) =>
+        prevClips.map((clip) => {
+          const savedClip = sessionData.clips?.find(
+            (c: { sceneIndex: number; clipIndex: number }) =>
+              c.sceneIndex === clip.sceneIndex && c.clipIndex === clip.clipIndex
+          );
+          if (savedClip) {
+            return {
+              ...clip,
+              videoUrl: savedClip.videoUrl || null,
+              jobId: savedClip.jobId || null,
+              s3FileName: savedClip.s3FileName || null,
+              status: savedClip.status || "pending",
+              error: savedClip.error,
+            };
+          }
+          return clip;
+        })
+      );
+
+      setIsSaved(true);
+
+      toast({
+        title: phrase(dictionary, "sora_toast_success", language),
+        description: phrase(dictionary, "sora_toast_s3_loaded", language),
+      });
+    } catch (error) {
+      console.error("Error loading from S3:", error);
+      toast({
+        title: phrase(dictionary, "sora_toast_error", language),
+        description: error instanceof Error ? error.message : phrase(dictionary, "sora_toast_s3_no_session", language),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingFromS3(false);
+    }
+  }, [toast, dictionary, language]);
+
   // Stats
   const completedCount = clips.filter((c) => c.status === "completed").length;
   const totalCount = clips.length;
@@ -653,6 +769,32 @@ export default function SoraVideoGenerator() {
                 <span>{phrase(dictionary, "storysplitter_clear", language)}</span>
               </>
             )}
+          </button>
+
+          <button
+            onClick={handleSaveToS3}
+            disabled={isSavingToS3 || isGeneratingAll}
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+          >
+            {isSavingToS3 ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <CloudUpload size={16} />
+            )}
+            <span>{isSavingToS3 ? phrase(dictionary, "sora_saving_to_s3", language) : phrase(dictionary, "sora_save_to_s3", language)}</span>
+          </button>
+
+          <button
+            onClick={handleLoadFromS3}
+            disabled={isLoadingFromS3 || isGeneratingAll}
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+          >
+            {isLoadingFromS3 ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <CloudDownload size={16} />
+            )}
+            <span>{isLoadingFromS3 ? phrase(dictionary, "sora_loading_from_s3", language) : phrase(dictionary, "sora_load_from_s3", language)}</span>
           </button>
         </div>
       </div>

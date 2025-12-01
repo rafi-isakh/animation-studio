@@ -143,6 +143,11 @@ export default function StoryboardTable({
 
         setAvailableCharacters(characters);
 
+        // Auto-select all characters by default
+        if (characters.length > 0) {
+          setSelectedCharacterIds(new Set(characters.map(c => c.id)));
+        }
+
         // Load metadata from localStorage
         const savedMetadataJson = localStorage.getItem(STORAGE_KEY);
         let metadataMap = new Map<string, { selectedBgId: string | null; hasGeneratedImage: boolean }>();

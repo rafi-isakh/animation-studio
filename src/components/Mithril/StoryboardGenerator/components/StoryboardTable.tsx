@@ -79,6 +79,9 @@ export default function StoryboardTable({
   // Saved scene images from IndexedDB (loaded on mount)
   const [savedSceneImages, setSavedSceneImages] = useState<Map<string, ClipImageState>>(new Map());
 
+  // Lightbox modal state for viewing images in full size
+  const [lightboxImage, setLightboxImage] = useState<{ base64: string; clipName: string } | null>(null);
+
   // Load background references, character images, and saved scene images on mount
   useEffect(() => {
     const loadReferences = async () => {
@@ -856,7 +859,13 @@ export default function StoryboardTable({
                               </div>
                             ) : clipState?.generatedImageBase64 ? (
                               <div className="relative group">
-                                <div className={`relative rounded-lg overflow-hidden ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}>
+                                <button
+                                  onClick={() => setLightboxImage({
+                                    base64: clipState.generatedImageBase64!,
+                                    clipName: `${sceneIndex + 1}.${clipIndex + 1}`
+                                  })}
+                                  className={`relative rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#DB2777] transition-all ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}
+                                >
                                   <Image
                                     src={`data:image/jpeg;base64,${clipState.generatedImageBase64}`}
                                     alt="Generated"
@@ -864,10 +873,13 @@ export default function StoryboardTable({
                                     className="object-cover"
                                     unoptimized
                                   />
-                                </div>
+                                </button>
                                 {/* Regenerate button */}
                                 <button
-                                  onClick={() => generateClipImage(sceneIndex, clipIndex, row)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    generateClipImage(sceneIndex, clipIndex, row);
+                                  }}
                                   disabled={!clipState?.selectedBgId || isGeneratingAll}
                                   className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                                   title={phrase(dictionary, "storyboard_regenerate", language) || "Regenerate"}
@@ -937,6 +949,48 @@ export default function StoryboardTable({
           </tbody>
         </table>
       </div>
+
+      {/* Lightbox Modal for full-size image view */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-[90vw] max-h-[90vh] bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with clip name and close button */}
+            <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {phrase(dictionary, "table_clip", language)} {lightboxImage.clipName}
+              </span>
+              <button
+                onClick={() => setLightboxImage(null)}
+                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Image container */}
+            <div className="p-4">
+              <div
+                className={`relative ${aspectRatio === "9:16" ? "w-[50vh] max-w-[80vw]" : "w-[80vw] max-w-[1200px]"}`}
+                style={{ aspectRatio: aspectRatio.replace(":", "/") }}
+              >
+                <Image
+                  src={`data:image/jpeg;base64,${lightboxImage.base64}`}
+                  alt={`Clip ${lightboxImage.clipName}`}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

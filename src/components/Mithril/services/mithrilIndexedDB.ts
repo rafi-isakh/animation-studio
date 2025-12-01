@@ -313,6 +313,7 @@ export const deleteNanoBananaImage = async (id: string): Promise<void> => {
 };
 
 // Get NanoBanana image by scene and clip index
+// Note: sceneIndex and clipIndex are 0-indexed, but keys are stored as 1-indexed (e.g., "scene_1.1")
 export const getNanoBananaImageBySceneClip = async (
   sceneIndex: number,
   clipIndex: number
@@ -320,7 +321,7 @@ export const getNanoBananaImageBySceneClip = async (
   const database = await getDB();
   const transaction = database.transaction([STORE_NAME], "readonly");
   const store = transaction.objectStore(STORE_NAME);
-  const id = `scene_${sceneIndex}.${clipIndex}`;
+  const id = `scene_${sceneIndex + 1}.${clipIndex + 1}`;
 
   return new Promise((resolve, reject) => {
     const request = store.get(id);

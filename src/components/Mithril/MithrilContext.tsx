@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
-import { clearBgImagesOnly, clearCharacterImagesOnly } from "./services/mithrilIndexedDB";
+import { clearBgImagesOnly, clearCharacterImagesOnly, clearStoryboardSceneImagesOnly } from "./services/mithrilIndexedDB";
 
 const TOTAL_STAGES = 7;
 
@@ -390,7 +390,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
-  const clearStoryboardGeneration = useCallback(() => {
+  const clearStoryboardGeneration = useCallback(async () => {
     localStorage.removeItem("storyboard_result");
     setStoryboardGenerator({
       isGenerating: false,
@@ -398,6 +398,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scenes: [],
       voicePrompts: [],
     });
+    await clearStoryboardSceneImagesOnly();
     clearStageResult(5);
   }, [clearStageResult]);
 

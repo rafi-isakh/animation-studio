@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 
 export const maxDuration = 300; // Allow up to 5 minutes for job submission
+
+// Resize image to exact Sora dimensions
+async function resizeImageToSoraDimensions(
+  base64: string,
+  width: number,
+  height: number
+): Promise<string> {
+  const buffer = Buffer.from(base64, "base64");
+  const resized = await sharp(buffer)
+    .resize(width, height, { fit: "cover" })
+    .jpeg({ quality: 90 })
+    .toBuffer();
+  return resized.toString("base64");
+}
 
 interface SoraVideoRequest {
   prompt: string;
@@ -59,12 +74,21 @@ export async function POST(request: NextRequest) {
 
     // Add image reference if provided (image-to-video)
     if (imageBase64) {
-      const mimeType = imageBase64.startsWith("/9j/") ? "image/jpeg" : "image/png";
-      const extension = mimeType === "image/jpeg" ? "jpg" : "png";
-      // Convert base64 to Blob for multipart upload
-      const imageBuffer = Buffer.from(imageBase64, "base64");
-      const imageBlob = new Blob([imageBuffer], { type: mimeType });
-      formData.append("input_reference", imageBlob, `input.${extension}`);
+      // Sora requires exact dimensions: 1280x720 (16:9) or 720x1280 (9:16)
+      const targetWidth = aspectRatio === "16:9" ? 1280 : 720;
+      const targetHeight = aspectRatio === "16:9" ? 720 : 1280;
+
+      // Resize image to exact Sora dimensions
+      const resizedBase64 = await resizeImageToSoraDimensions(
+        imageBase64,
+        targetWidth,
+        targetHeight
+      );
+
+      // Convert resized base64 to Blob for multipart upload (always JPEG after resize)
+      const imageBuffer = Buffer.from(resizedBase64, "base64");
+      const imageBlob = new Blob([imageBuffer], { type: "image/jpeg" });
+      formData.append("input_reference", imageBlob, "input.jpg");
     }
 
     // Submit the video generation job via POST /videos

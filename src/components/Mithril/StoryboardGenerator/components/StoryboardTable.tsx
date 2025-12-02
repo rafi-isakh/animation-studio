@@ -19,6 +19,7 @@ import {
   getAllStoryboardSceneImages,
 } from "../../services/mithrilIndexedDB";
 import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata } from "../types";
+import type { CharacterSheetResultMetadata } from "../../CharacterSheetGenerator/types";
 
 const STORAGE_KEY = "storyboard_scene_images_metadata";
 
@@ -64,6 +65,9 @@ export default function StoryboardTable({
   // Available character references from CharacterSheetGenerator
   const [availableCharacters, setAvailableCharacters] = useState<CharacterReferenceImage[]>([]);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
+
+  // Full character metadata for smart matching
+  const [characterMetadata, setCharacterMetadata] = useState<CharacterSheetResultMetadata | null>(null);
 
   const [isLoadingRefs, setIsLoadingRefs] = useState(true);
 
@@ -118,16 +122,18 @@ export default function StoryboardTable({
         // Load character images
         const allCharImages = await getAllCharacterImages();
 
-        // Get character names from localStorage
+        // Get character names from localStorage and store full metadata
         const charSheetResult = localStorage.getItem("character_sheet_result");
         let charNameMap: Record<string, string> = {};
 
         if (charSheetResult) {
           try {
-            const parsed = JSON.parse(charSheetResult);
-            parsed.characters?.forEach((char: { id: string; name: string }) => {
+            const parsed = JSON.parse(charSheetResult) as CharacterSheetResultMetadata;
+            parsed.characters?.forEach((char) => {
               charNameMap[char.id] = char.name;
             });
+            // Store full metadata for smart character matching
+            setCharacterMetadata(parsed);
           } catch {
             // Ignore parse errors
           }
@@ -317,12 +323,39 @@ export default function StoryboardTable({
         ? "vertical portrait orientation (9:16 aspect ratio)"
         : "horizontal landscape orientation (16:9 aspect ratio)";
 
-      const fullPrompt = stylePrompt
-        ? `${stylePrompt}. ${aspectRatioText}. ${clip.imagePrompt}`
-        : `${aspectRatioText}. ${clip.imagePrompt}`;
+      // Smart character matching: find characters mentioned in the imagePrompt
+      const imagePromptLower = clip.imagePrompt.toLowerCase();
+      const matchedCharacters = characterMetadata?.characters.filter(
+        char => imagePromptLower.includes(char.name.toLowerCase())
+      ) ?? [];
 
-      // Get selected character references
-      const selectedChars = availableCharacters.filter(char => selectedCharacterIds.has(char.id));
+      // Build prompt parts
+      const promptParts: string[] = [];
+      if (stylePrompt?.trim()) promptParts.push(stylePrompt.trim());
+      promptParts.push(`${aspectRatioText}. ${clip.imagePrompt}`);
+
+      // Add character identification and details if matched
+      if (matchedCharacters.length > 0) {
+        const charNames = matchedCharacters.map(c => c.name).join(', ');
+        promptParts.push(`The scene must feature the character(s) known as: ${charNames}.`);
+
+        const characterDetails = matchedCharacters.map(char => {
+          const details = [
+            char.appearance && `Appearance: ${char.appearance}`,
+            char.clothing && `Clothing: ${char.clothing}`,
+          ].filter(Boolean).join('. ');
+          return details ? `Details for character ${char.name}: "${details}"` : '';
+        }).filter(Boolean).join('. ');
+
+        if (characterDetails) promptParts.push(characterDetails);
+      }
+
+      const fullPrompt = promptParts.join('. ');
+
+      // Only get character refs for matched characters (empty if no match)
+      const matchedCharacterRefs = matchedCharacters
+        .map(char => availableCharacters.find(ac => ac.characterId === char.id))
+        .filter((ref): ref is CharacterReferenceImage => ref !== undefined);
 
       const response = await fetch("/api/nano_banana", {
         method: "POST",
@@ -335,7 +368,7 @@ export default function StoryboardTable({
               base64: selectedRef.base64,
               mimeType: selectedRef.mimeType,
             }],
-            characters: selectedChars.map(char => ({
+            characters: matchedCharacterRefs.map(char => ({
               base64: char.base64,
               mimeType: char.mimeType,
             })),
@@ -393,7 +426,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, availableCharacters, selectedCharacterIds, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
+  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
 
   // Check if all clips have backgrounds selected
   const allBgSelected = useMemo(() => {

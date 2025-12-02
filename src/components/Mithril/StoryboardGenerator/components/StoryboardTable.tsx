@@ -269,17 +269,30 @@ export default function StoryboardTable({
   }, []);
 
   // Handle background selection for a clip
+  // Links all clips with the same backgroundId - selecting BG for one updates all
   const handleBgSelect = useCallback((sceneIdx: number, clipIdx: number, refId: string | null) => {
-    const key = getClipKey(sceneIdx, clipIdx);
+    // Get the backgroundId of the selected clip
+    const selectedClip = data[sceneIdx]?.clips[clipIdx];
+    const backgroundId = selectedClip?.backgroundId;
+
     setClipImageStates(prev => {
       const newMap = new Map(prev);
-      const current = newMap.get(key) || {
-        selectedBgId: null,
-        generatedImageBase64: null,
-        isGenerating: false,
-        error: null,
-      };
-      newMap.set(key, { ...current, selectedBgId: refId, error: null });
+
+      // Find all clips with the same backgroundId and update them
+      data.forEach((scene, sIdx) => {
+        scene.clips.forEach((clip, cIdx) => {
+          if (clip.backgroundId === backgroundId) {
+            const key = getClipKey(sIdx, cIdx);
+            const current = newMap.get(key) || {
+              selectedBgId: null,
+              generatedImageBase64: null,
+              isGenerating: false,
+              error: null,
+            };
+            newMap.set(key, { ...current, selectedBgId: refId, error: null });
+          }
+        });
+      });
 
       // Save to localStorage
       saveMetadataToLocalStorage(newMap);
@@ -287,7 +300,7 @@ export default function StoryboardTable({
       return newMap;
     });
     setOpenDropdownKey(null);
-  }, [saveMetadataToLocalStorage]);
+  }, [data, saveMetadataToLocalStorage]);
 
   // Generate image for a single clip
   const generateClipImage = useCallback(async (

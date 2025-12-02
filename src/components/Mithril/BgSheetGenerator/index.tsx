@@ -14,10 +14,12 @@ import {
   Save,
   FileDown,
   Trash2,
+  CloudUpload,
+  CloudDownload,
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type { Background, BgSheetResultMetadata } from "./types";
-import { saveBgImage, getBgImage, clearBgImagesOnly } from "../services/mithrilIndexedDB";
+import { saveBgImage, getBgImage, clearBgImagesOnly, getAllBgImages } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -157,6 +159,10 @@ export default function BgSheetGenerator() {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+
+  // S3 states
+  const [isSavingToS3, setIsSavingToS3] = useState(false);
+  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
 
   // Use ref to track hydration to avoid triggering re-renders
   const hasHydratedRef = useRef<boolean>(false);
@@ -782,6 +788,108 @@ export default function BgSheetGenerator() {
     }
   }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast, dictionary, language]);
 
+  // Save session to S3
+  const handleSaveToS3 = useCallback(async () => {
+    setIsSavingToS3(true);
+
+    try {
+      // Collect data from localStorage
+      const bgSheetResult = localStorage.getItem("bg_sheet_result");
+
+      // Collect images from IndexedDB
+      const bgImages = await getAllBgImages();
+
+      const sessionData = {
+        version: "1.0",
+        savedAt: Date.now(),
+        bgSheetResult: bgSheetResult ? JSON.parse(bgSheetResult) : null,
+        bgImages,
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+
+      const response = await fetch("/api/mithril_session/bgsheet/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionData }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save to S3");
+      }
+
+      toast({
+        title: phrase(dictionary, "sora_toast_success", language),
+        description: phrase(dictionary, "bgsheet_toast_s3_saved", language),
+      });
+    } catch (error) {
+      console.error("Error saving to S3:", error);
+      toast({
+        title: phrase(dictionary, "sora_toast_error", language),
+        description: error instanceof Error ? error.message : phrase(dictionary, "bgsheet_toast_s3_error", language),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingToS3(false);
+    }
+  }, [toast, dictionary, language, styleKeyword, backgroundBasePrompt]);
+
+  // Load session from S3
+  const handleLoadFromS3 = useCallback(async () => {
+    setIsLoadingFromS3(true);
+
+    try {
+      const response = await fetch("/api/mithril_session/bgsheet/load");
+
+      if (response.status === 404) {
+        toast({
+          title: phrase(dictionary, "sora_toast_error", language),
+          description: phrase(dictionary, "bgsheet_toast_s3_no_session", language),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to load from S3");
+      }
+
+      const { sessionData } = await response.json();
+
+      // Restore localStorage data
+      if (sessionData.bgSheetResult) {
+        localStorage.setItem("bg_sheet_result", JSON.stringify(sessionData.bgSheetResult));
+      }
+
+      // Restore IndexedDB images
+      if (sessionData.bgImages && Array.isArray(sessionData.bgImages)) {
+        for (const img of sessionData.bgImages) {
+          await saveBgImage(img);
+        }
+      }
+
+      toast({
+        title: phrase(dictionary, "sora_toast_success", language),
+        description: phrase(dictionary, "bgsheet_toast_s3_loaded", language),
+      });
+
+      // Save current stage to sessionStorage before reload
+      sessionStorage.setItem("mithril_restore_stage", "4");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error loading from S3:", error);
+      toast({
+        title: phrase(dictionary, "sora_toast_error", language),
+        description: error instanceof Error ? error.message : phrase(dictionary, "bgsheet_toast_s3_no_session", language),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingFromS3(false);
+    }
+  }, [toast, dictionary, language]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -959,6 +1067,30 @@ export default function BgSheetGenerator() {
                 <span>{phrase(dictionary, "bgsheet_export_csv", language)}</span>
               </button>
               <button
+                onClick={handleSaveToS3}
+                disabled={isSavingToS3 || isAnalyzing}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 text-sm"
+              >
+                {isSavingToS3 ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <CloudUpload className="w-4 h-4" />
+                )}
+                <span>{isSavingToS3 ? phrase(dictionary, "bgsheet_saving_to_s3", language) : phrase(dictionary, "bgsheet_save_to_s3", language)}</span>
+              </button>
+              <button
+                onClick={handleLoadFromS3}
+                disabled={isLoadingFromS3 || isAnalyzing}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 text-sm"
+              >
+                {isLoadingFromS3 ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <CloudDownload className="w-4 h-4" />
+                )}
+                <span>{isLoadingFromS3 ? phrase(dictionary, "bgsheet_loading_from_s3", language) : phrase(dictionary, "bgsheet_load_from_s3", language)}</span>
+              </button>
+              <button
                 onClick={async () => {
                   setBackgrounds([]);
                   clearBgSheetAnalysis();
@@ -967,7 +1099,6 @@ export default function BgSheetGenerator() {
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
                 <Trash2 className="w-4 h-4" />
-                {/* <span>Clear</span> */}
               </button>
             </div>
           </div>

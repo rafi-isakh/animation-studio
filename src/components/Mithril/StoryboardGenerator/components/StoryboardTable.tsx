@@ -269,30 +269,43 @@ export default function StoryboardTable({
   }, []);
 
   // Handle background selection for a clip
-  // Links all clips with the same backgroundId - selecting BG for one updates all
+  // Links all clips with the same non-empty backgroundId - selecting BG for one updates all
+  // Clips with empty backgroundId are treated independently
   const handleBgSelect = useCallback((sceneIdx: number, clipIdx: number, refId: string | null) => {
     // Get the backgroundId of the selected clip
     const selectedClip = data[sceneIdx]?.clips[clipIdx];
-    const backgroundId = selectedClip?.backgroundId;
+    const backgroundId = selectedClip?.backgroundId?.trim();
 
     setClipImageStates(prev => {
       const newMap = new Map(prev);
 
-      // Find all clips with the same backgroundId and update them
-      data.forEach((scene, sIdx) => {
-        scene.clips.forEach((clip, cIdx) => {
-          if (clip.backgroundId === backgroundId) {
-            const key = getClipKey(sIdx, cIdx);
-            const current = newMap.get(key) || {
-              selectedBgId: null,
-              generatedImageBase64: null,
-              isGenerating: false,
-              error: null,
-            };
-            newMap.set(key, { ...current, selectedBgId: refId, error: null });
-          }
+      // If backgroundId is empty, only update this specific clip
+      if (!backgroundId) {
+        const key = getClipKey(sceneIdx, clipIdx);
+        const current = newMap.get(key) || {
+          selectedBgId: null,
+          generatedImageBase64: null,
+          isGenerating: false,
+          error: null,
+        };
+        newMap.set(key, { ...current, selectedBgId: refId, error: null });
+      } else {
+        // Find all clips with the same non-empty backgroundId and update them
+        data.forEach((scene, sIdx) => {
+          scene.clips.forEach((clip, cIdx) => {
+            if (clip.backgroundId?.trim() === backgroundId) {
+              const key = getClipKey(sIdx, cIdx);
+              const current = newMap.get(key) || {
+                selectedBgId: null,
+                generatedImageBase64: null,
+                isGenerating: false,
+                error: null,
+              };
+              newMap.set(key, { ...current, selectedBgId: refId, error: null });
+            }
+          });
         });
-      });
+      }
 
       // Save to localStorage
       saveMetadataToLocalStorage(newMap);
@@ -823,7 +836,7 @@ export default function StoryboardTable({
                         </td>
 
                         {/* Background Selection Column */}
-                        <td className="px-4 py-4 w-[140px] max-w-[140px]">
+                        <td className="px-4 py-4 min-w-[180px]">
                           {isLoadingRefs ? (
                             <div className="flex items-center gap-2 text-gray-400">
                               <Loader2 className="w-4 h-4 animate-spin" />

@@ -5,7 +5,7 @@ import { getVideoUrl } from "@/utils/urls";
 
 export const maxDuration = 120; // Allow up to 2 minutes for status check + S3 upload
 
-const VIDEOS_BUCKET_NAME = "toonyzvideosbucket";
+const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
 export async function GET(request: NextRequest) {
   try {

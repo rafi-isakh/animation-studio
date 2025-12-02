@@ -5,7 +5,7 @@ import JSZip from "jszip";
 
 export const maxDuration = 300; // 5 minutes max for large collections
 
-const VIDEOS_BUCKET_NAME = "toonyzvideosbucket";
+const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
 interface ClipInfo {
   s3FileName: string;

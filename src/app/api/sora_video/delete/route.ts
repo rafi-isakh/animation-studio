@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { s3Client } from "@/utils/s3";
 import { DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
-const VIDEOS_BUCKET_NAME = "toonyzvideosbucket";
+const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
 export async function POST(request: NextRequest) {
   try {

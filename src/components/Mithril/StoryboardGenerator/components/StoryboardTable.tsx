@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { useMithril } from "../../MithrilContext";
 import {
   getAllBgImages,
   getAllCharacterImages,
@@ -50,6 +51,7 @@ export default function StoryboardTable({
   voicePrompts,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
+  const { customApiKey } = useMithril();
 
   // Style prompt (moved here from parent)
   const [stylePrompt, setStylePrompt] = useState(
@@ -406,6 +408,7 @@ export default function StoryboardTable({
               mimeType: char.mimeType,
             })),
           },
+          customApiKey: customApiKey || undefined,
         }),
       });
 

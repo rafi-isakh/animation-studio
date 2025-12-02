@@ -4,12 +4,13 @@ import { GoogleGenAI } from "@google/genai";
 interface GenerateImageRequest {
   prompt: string;
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+  customApiKey?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateImageRequest = await request.json();
-    const { prompt, aspectRatio = "16:9" } = body;
+    const { prompt, aspectRatio = "16:9", customApiKey } = body;
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
@@ -18,7 +19,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Use custom API key if provided, otherwise fall back to environment variable
+    const apiKey = customApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY is not configured" },

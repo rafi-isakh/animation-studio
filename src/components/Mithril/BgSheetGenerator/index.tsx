@@ -144,7 +144,7 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
@@ -395,7 +395,7 @@ export default function BgSheetGenerator() {
         const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
           signal,
         });
 
@@ -544,7 +544,7 @@ export default function BgSheetGenerator() {
         const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
           signal,
         });
 
@@ -666,6 +666,7 @@ export default function BgSheetGenerator() {
             sketchBase64,
             prompt: finalPrompt,
             styleReferenceBase64: styleRef,
+            customApiKey: customApiKey || undefined,
           }),
           signal: controller.signal,
         }

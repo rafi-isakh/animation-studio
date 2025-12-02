@@ -55,3 +55,22 @@ export interface GenerationResult {
 export interface SplitResult {
   parts: string[];
 }
+
+// Reference image from BgSheet (background references)
+export interface ReferenceImage {
+  id: string;
+  bgId: string;
+  bgName: string;
+  angle: string;
+  base64: string;
+  mimeType: string;
+}
+
+// Character reference image from CharacterSheet
+export interface CharacterReferenceImage {
+  id: string;
+  characterId: string;
+  characterName: string;
+  base64: string;
+  mimeType: string;
+}

@@ -7,19 +7,14 @@ import {
   Sparkles,
   Loader2,
   X,
-  RefreshCw,
 } from "lucide-react";
-import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import {
-  getAllBgImages,
-  getAllCharacterImages,
-  saveStoryboardSceneImage,
-  getAllStoryboardSceneImages,
-} from "../../services/mithrilIndexedDB";
-import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata } from "../types";
-import type { CharacterSheetResultMetadata } from "../../CharacterSheetGenerator/types";
+import { saveStoryboardSceneImage } from "../../services/mithrilIndexedDB";
+import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata, CharacterReferenceImage } from "../types";
+import { useReferenceImages } from "../hooks/useReferenceImages";
+import LightboxModal from "./LightboxModal";
+import ClipTableRow from "./ClipTableRow";
 
 const STORAGE_KEY = "storyboard_scene_images_metadata";
 
@@ -67,7 +62,7 @@ const BackgroundDropdownItem = React.memo(function BackgroundDropdownItem({
 });
 
 // Memoized background selector with its own dropdown state
-const BackgroundSelector = React.memo(function BackgroundSelector({
+export const BackgroundSelector = React.memo(function BackgroundSelector({
   selectedRef,
   selectedObjectUrl,
   references,
@@ -199,23 +194,6 @@ const CharacterSelectionItem = React.memo(function CharacterSelectionItem({
   );
 });
 
-interface ReferenceImage {
-  id: string;
-  bgId: string;
-  bgName: string;
-  angle: string;
-  base64: string;
-  mimeType: string;
-}
-
-interface CharacterReferenceImage {
-  id: string;
-  characterId: string;
-  characterName: string;
-  base64: string;
-  mimeType: string;
-}
-
 interface StoryboardTableProps {
   data: Scene[];
   voicePrompts: VoicePrompt[];
@@ -227,6 +205,15 @@ export default function StoryboardTable({
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
 
+  // Load references from hook
+  const {
+    availableReferences,
+    availableCharacters,
+    characterMetadata,
+    savedSceneImages,
+    isLoadingRefs,
+  } = useReferenceImages();
+
   // Style prompt (moved here from parent)
   const [stylePrompt, setStylePrompt] = useState(
     "2D anime style, clean linework, soft cel shading, vibrant colors"
@@ -235,148 +222,24 @@ export default function StoryboardTable({
   // Aspect ratio for generated images
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
 
-  // Available background references from BgSheetGenerator
-  const [availableReferences, setAvailableReferences] = useState<ReferenceImage[]>([]);
-
-  // Available character references from CharacterSheetGenerator
-  const [availableCharacters, setAvailableCharacters] = useState<CharacterReferenceImage[]>([]);
+  // Selected character IDs for generation
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
-
-  // Full character metadata for smart matching
-  const [characterMetadata, setCharacterMetadata] = useState<CharacterSheetResultMetadata | null>(null);
-
-  const [isLoadingRefs, setIsLoadingRefs] = useState(true);
 
   // Clip image states: Map<"sceneIdx-clipIdx", ClipImageState>
   const [clipImageStates, setClipImageStates] = useState<Map<string, ClipImageState>>(new Map());
 
-
   // Generate all state
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
-
-  // Saved scene images from IndexedDB (loaded on mount)
-  const [savedSceneImages, setSavedSceneImages] = useState<Map<string, ClipImageState>>(new Map());
 
   // Lightbox modal state for viewing images in full size
   const [lightboxImage, setLightboxImage] = useState<{ base64: string; clipName: string } | null>(null);
 
-  // Load background references, character images, and saved scene images on mount
+  // Auto-select all characters by default when they load
   useEffect(() => {
-    const loadReferences = async () => {
-      try {
-        // Load background images
-        const allBgImages = await getAllBgImages();
-
-        // Get background names from localStorage
-        const bgSheetResult = localStorage.getItem("bg_sheet_result");
-        let bgNameMap: Record<string, string> = {};
-
-        if (bgSheetResult) {
-          try {
-            const parsed = JSON.parse(bgSheetResult);
-            parsed.backgrounds?.forEach((bg: { id: string; name: string }) => {
-              bgNameMap[bg.id] = bg.name;
-            });
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        const references: ReferenceImage[] = allBgImages.map((img) => ({
-          id: img.id,
-          bgId: img.bgId,
-          bgName: bgNameMap[img.bgId] || `Background ${img.bgId.slice(0, 6)}`,
-          angle: img.angle,
-          base64: img.base64,
-          mimeType: img.mimeType,
-        }));
-
-        setAvailableReferences(references);
-
-        // Load character images
-        const allCharImages = await getAllCharacterImages();
-
-        // Get character names from localStorage and store full metadata
-        const charSheetResult = localStorage.getItem("character_sheet_result");
-        let charNameMap: Record<string, string> = {};
-
-        if (charSheetResult) {
-          try {
-            const parsed = JSON.parse(charSheetResult) as CharacterSheetResultMetadata;
-            parsed.characters?.forEach((char) => {
-              charNameMap[char.id] = char.name;
-            });
-            // Store full metadata for smart character matching
-            setCharacterMetadata(parsed);
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        const characters: CharacterReferenceImage[] = allCharImages.map((img) => ({
-          id: img.id,
-          characterId: img.characterId,
-          characterName: charNameMap[img.characterId] || `Character ${img.characterId.slice(0, 6)}`,
-          base64: img.base64,
-          mimeType: img.mimeType,
-        }));
-
-        setAvailableCharacters(characters);
-
-        // Auto-select all characters by default
-        if (characters.length > 0) {
-          setSelectedCharacterIds(new Set(characters.map(c => c.id)));
-        }
-
-        // Load metadata from localStorage
-        const savedMetadataJson = localStorage.getItem(STORAGE_KEY);
-        let metadataMap = new Map<string, { selectedBgId: string | null; hasGeneratedImage: boolean }>();
-
-        if (savedMetadataJson) {
-          try {
-            const metadata: StoryboardSceneImagesMetadata = JSON.parse(savedMetadataJson);
-            metadata.clips.forEach((clip) => {
-              metadataMap.set(clip.clipKey, {
-                selectedBgId: clip.selectedBgId,
-                hasGeneratedImage: clip.hasGeneratedImage,
-              });
-            });
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        // Load images from IndexedDB
-        const savedSceneImages = await getAllStoryboardSceneImages();
-        const imagesMap = new Map<string, string>();
-        savedSceneImages.forEach((img) => {
-          const key = `${img.sceneIndex}-${img.clipIndex}`;
-          imagesMap.set(key, img.base64);
-        });
-
-        // Combine metadata and images
-        const savedStatesMap = new Map<string, ClipImageState>();
-        metadataMap.forEach((meta, key) => {
-          savedStatesMap.set(key, {
-            selectedBgId: meta.selectedBgId,
-            generatedImageBase64: meta.hasGeneratedImage ? (imagesMap.get(key) || null) : null,
-            isGenerating: false,
-            error: null,
-          });
-        });
-
-        if (savedStatesMap.size > 0) {
-          setSavedSceneImages(savedStatesMap);
-        }
-      } catch (err) {
-        console.error("Error loading reference images:", err);
-      } finally {
-        setIsLoadingRefs(false);
-      }
-    };
-
-    loadReferences();
-  }, []);
+    if (availableCharacters.length > 0 && selectedCharacterIds.size === 0) {
+      setSelectedCharacterIds(new Set(availableCharacters.map(c => c.id)));
+    }
+  }, [availableCharacters, selectedCharacterIds.size]);
 
   // Initialize clip image states when data changes or saved images are loaded
   useEffect(() => {
@@ -996,150 +859,29 @@ export default function StoryboardTable({
                   const clipKey = getClipKey(sceneIndex, clipIndex);
                   const clipState = clipImageStates.get(clipKey);
                   const selectedRef = clipState?.selectedBgId
-                    ? availableReferences.find(r => r.id === clipState.selectedBgId)
+                    ? availableReferences.find(r => r.id === clipState.selectedBgId) ?? null
                     : null;
 
                   return (
-                    <React.Fragment key={`scene-${sceneIndex}-clip-${clipIndex}`}>
-                      {isNewBackground && (
-                        <tr className="bg-gray-100 dark:bg-gray-800/70">
-                          <td
-                            colSpan={clipHeaders.length}
-                            className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 italic pl-8"
-                          >
-                            {phrase(dictionary, "table_background", language)} {row.backgroundPrompt}
-                          </td>
-                        </tr>
-                      )}
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150">
-                        <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 w-16 text-center">{`${sceneIndex + 1}.${clipIndex + 1}`}</td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-20 text-center">
-                          {row.length}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-24 text-center">
-                          {row.accumulatedTime}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
-                          {row.backgroundId}
-                        </td>
-
-                        {/* Background Selection Column */}
-                        <td className="px-4 py-4 min-w-[180px]">
-                          {isLoadingRefs ? (
-                            <div className="flex items-center gap-2 text-gray-400">
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span className="text-xs">Loading...</span>
-                            </div>
-                          ) : availableReferences.length === 0 ? (
-                            <span className="text-xs text-gray-400">
-                              {phrase(dictionary, "storyboard_no_bg_available", language) || "No backgrounds"}
-                            </span>
-                          ) : (
-                            <BackgroundSelector
-                              selectedRef={selectedRef ?? null}
-                              selectedObjectUrl={selectedRef ? (referenceObjectUrls.get(selectedRef.id) || "") : ""}
-                              references={availableReferences}
-                              referenceObjectUrls={referenceObjectUrls}
-                              selectedBgId={clipState?.selectedBgId || null}
-                              onSelect={(refId) => handleBgSelect(sceneIndex, clipIndex, refId)}
-                              selectBgLabel={phrase(dictionary, "storyboard_select_bg", language) || "Select BG..."}
-                              clearSelectionLabel={phrase(dictionary, "storyboard_clear_selection", language) || "Clear selection"}
-                            />
-                          )}
-                        </td>
-
-                        {/* Generated Image Column */}
-                        <td className="px-4 py-4 min-w-[200px]">
-                          <div className="flex flex-col items-center gap-2">
-                            {clipState?.isGenerating ? (
-                              <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}>
-                                <Loader2 className="w-6 h-6 animate-spin text-[#DB2777]" />
-                              </div>
-                            ) : clipState?.generatedImageBase64 ? (
-                              <div className="relative group">
-                                <button
-                                  onClick={() => setLightboxImage({
-                                    base64: clipState.generatedImageBase64!,
-                                    clipName: `${sceneIndex + 1}.${clipIndex + 1}`
-                                  })}
-                                  className={`relative rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#DB2777] transition-all ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}
-                                >
-                                  <Image
-                                    src={`data:image/jpeg;base64,${clipState.generatedImageBase64}`}
-                                    alt="Generated"
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                  />
-                                </button>
-                                {/* Regenerate button */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    generateClipImage(sceneIndex, clipIndex, row);
-                                  }}
-                                  disabled={(!!row.backgroundId?.trim() && !clipState?.selectedBgId) || isGeneratingAll}
-                                  className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                                  title={phrase(dictionary, "storyboard_regenerate", language) || "Regenerate"}
-                                >
-                                  <RefreshCw className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : (clipState?.selectedBgId || !row.backgroundId?.trim()) ? (
-                              <button
-                                onClick={() => generateClipImage(sceneIndex, clipIndex, row)}
-                                disabled={isGeneratingAll}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white rounded-lg transition-colors disabled:opacity-50"
-                              >
-                                <Sparkles className="w-3 h-3" />
-                                {phrase(dictionary, "storyboard_generate_single", language) || "Generate"}
-                              </button>
-                            ) : (
-                              <span className="text-xs text-gray-400">
-                                {phrase(dictionary, "storyboard_select_bg_first", language) || "Select BG first"}
-                              </span>
-                            )}
-
-                            {clipState?.error && (
-                              <span className="text-xs text-red-500 max-w-[180px] truncate" title={clipState.error}>
-                                {clipState.error}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-                          {row.story}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-                          {row.imagePrompt}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-                          {row.videoPrompt}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
-                          {row.soraVideoPrompt}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-                          {row.dialogue}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-                          {row.dialogueEn}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-                          {row.sfx}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-                          {row.sfxEn}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-                          {row.bgm}
-                        </td>
-                        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-                          {row.bgmEn}
-                        </td>
-                      </tr>
-                    </React.Fragment>
+                    <ClipTableRow
+                      key={`scene-${sceneIndex}-clip-${clipIndex}`}
+                      row={row}
+                      sceneIndex={sceneIndex}
+                      clipIndex={clipIndex}
+                      clipKey={clipKey}
+                      clipState={clipState}
+                      selectedRef={selectedRef}
+                      isNewBackground={isNewBackground}
+                      isLoadingRefs={isLoadingRefs}
+                      isGeneratingAll={isGeneratingAll}
+                      aspectRatio={aspectRatio}
+                      availableReferences={availableReferences}
+                      referenceObjectUrls={referenceObjectUrls}
+                      clipHeadersLength={clipHeaders.length}
+                      onBgSelect={(refId) => handleBgSelect(sceneIndex, clipIndex, refId)}
+                      onGenerateClip={() => generateClipImage(sceneIndex, clipIndex, row)}
+                      onOpenLightbox={(base64, clipName) => setLightboxImage({ base64, clipName })}
+                    />
                   );
                 })}
               </React.Fragment>
@@ -1150,44 +892,11 @@ export default function StoryboardTable({
 
       {/* Lightbox Modal for full-size image view */}
       {lightboxImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div
-            className="relative max-w-[90vw] max-h-[90vh] bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header with clip name and close button */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {phrase(dictionary, "table_clip", language)} {lightboxImage.clipName}
-              </span>
-              <button
-                onClick={() => setLightboxImage(null)}
-                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Image container */}
-            <div className="p-4">
-              <div
-                className={`relative ${aspectRatio === "9:16" ? "w-[50vh] max-w-[80vw]" : "w-[80vw] max-w-[1200px]"}`}
-                style={{ aspectRatio: aspectRatio.replace(":", "/") }}
-              >
-                <Image
-                  src={`data:image/jpeg;base64,${lightboxImage.base64}`}
-                  alt={`Clip ${lightboxImage.clipName}`}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        <LightboxModal
+          image={lightboxImage}
+          aspectRatio={aspectRatio}
+          onClose={() => setLightboxImage(null)}
+        />
       )}
     </div>
   );

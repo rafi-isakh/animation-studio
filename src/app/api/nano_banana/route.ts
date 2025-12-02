@@ -51,9 +51,9 @@ async function generateImage(
   customApiKey?: string
 ): Promise<string> {
   // Use custom API key if provided, otherwise fall back to environment variable
-  const apiKey = customApiKey || process.env.API_KEY;
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("API_KEY is not configured");
+    throw new Error("GEMINI_API_KEY is not configured");
   }
   const ai = new GoogleGenAI({ apiKey });
   const parts: Part[] = [];

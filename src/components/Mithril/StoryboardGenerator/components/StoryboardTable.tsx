@@ -19,6 +19,7 @@ import {
   getAllStoryboardSceneImages,
 } from "../../services/mithrilIndexedDB";
 import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata } from "../types";
+import type { CharacterSheetResultMetadata } from "../../CharacterSheetGenerator/types";
 
 const STORAGE_KEY = "storyboard_scene_images_metadata";
 
@@ -64,6 +65,9 @@ export default function StoryboardTable({
   // Available character references from CharacterSheetGenerator
   const [availableCharacters, setAvailableCharacters] = useState<CharacterReferenceImage[]>([]);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
+
+  // Full character metadata for smart matching
+  const [characterMetadata, setCharacterMetadata] = useState<CharacterSheetResultMetadata | null>(null);
 
   const [isLoadingRefs, setIsLoadingRefs] = useState(true);
 
@@ -118,16 +122,18 @@ export default function StoryboardTable({
         // Load character images
         const allCharImages = await getAllCharacterImages();
 
-        // Get character names from localStorage
+        // Get character names from localStorage and store full metadata
         const charSheetResult = localStorage.getItem("character_sheet_result");
         let charNameMap: Record<string, string> = {};
 
         if (charSheetResult) {
           try {
-            const parsed = JSON.parse(charSheetResult);
-            parsed.characters?.forEach((char: { id: string; name: string }) => {
+            const parsed = JSON.parse(charSheetResult) as CharacterSheetResultMetadata;
+            parsed.characters?.forEach((char) => {
               charNameMap[char.id] = char.name;
             });
+            // Store full metadata for smart character matching
+            setCharacterMetadata(parsed);
           } catch {
             // Ignore parse errors
           }
@@ -263,17 +269,30 @@ export default function StoryboardTable({
   }, []);
 
   // Handle background selection for a clip
+  // Links all clips with the same backgroundId - selecting BG for one updates all
   const handleBgSelect = useCallback((sceneIdx: number, clipIdx: number, refId: string | null) => {
-    const key = getClipKey(sceneIdx, clipIdx);
+    // Get the backgroundId of the selected clip
+    const selectedClip = data[sceneIdx]?.clips[clipIdx];
+    const backgroundId = selectedClip?.backgroundId;
+
     setClipImageStates(prev => {
       const newMap = new Map(prev);
-      const current = newMap.get(key) || {
-        selectedBgId: null,
-        generatedImageBase64: null,
-        isGenerating: false,
-        error: null,
-      };
-      newMap.set(key, { ...current, selectedBgId: refId, error: null });
+
+      // Find all clips with the same backgroundId and update them
+      data.forEach((scene, sIdx) => {
+        scene.clips.forEach((clip, cIdx) => {
+          if (clip.backgroundId === backgroundId) {
+            const key = getClipKey(sIdx, cIdx);
+            const current = newMap.get(key) || {
+              selectedBgId: null,
+              generatedImageBase64: null,
+              isGenerating: false,
+              error: null,
+            };
+            newMap.set(key, { ...current, selectedBgId: refId, error: null });
+          }
+        });
+      });
 
       // Save to localStorage
       saveMetadataToLocalStorage(newMap);
@@ -281,7 +300,7 @@ export default function StoryboardTable({
       return newMap;
     });
     setOpenDropdownKey(null);
-  }, [saveMetadataToLocalStorage]);
+  }, [data, saveMetadataToLocalStorage]);
 
   // Generate image for a single clip
   const generateClipImage = useCallback(async (
@@ -292,13 +311,20 @@ export default function StoryboardTable({
     const key = getClipKey(sceneIdx, clipIdx);
     const state = clipImageStates.get(key);
 
-    if (!state?.selectedBgId) {
+    // Check if clip has a backgroundId - only require BG selection if it does
+    const hasBackgroundId = !!clip.backgroundId?.trim();
+
+    if (hasBackgroundId && !state?.selectedBgId) {
       return;
     }
 
-    // Find the selected reference
-    const selectedRef = availableReferences.find(ref => ref.id === state.selectedBgId);
-    if (!selectedRef) {
+    // Find the selected reference (may be null if no backgroundId)
+    const selectedRef = state?.selectedBgId
+      ? availableReferences.find(ref => ref.id === state.selectedBgId)
+      : null;
+
+    // Only fail if we needed a ref but couldn't find it
+    if (hasBackgroundId && !selectedRef) {
       return;
     }
 
@@ -317,12 +343,39 @@ export default function StoryboardTable({
         ? "vertical portrait orientation (9:16 aspect ratio)"
         : "horizontal landscape orientation (16:9 aspect ratio)";
 
-      const fullPrompt = stylePrompt
-        ? `${stylePrompt}. ${aspectRatioText}. ${clip.imagePrompt}`
-        : `${aspectRatioText}. ${clip.imagePrompt}`;
+      // Smart character matching: find characters mentioned in the imagePrompt
+      const imagePromptLower = clip.imagePrompt.toLowerCase();
+      const matchedCharacters = characterMetadata?.characters.filter(
+        char => imagePromptLower.includes(char.name.toLowerCase())
+      ) ?? [];
 
-      // Get selected character references
-      const selectedChars = availableCharacters.filter(char => selectedCharacterIds.has(char.id));
+      // Build prompt parts
+      const promptParts: string[] = [];
+      if (stylePrompt?.trim()) promptParts.push(stylePrompt.trim());
+      promptParts.push(`${aspectRatioText}. ${clip.imagePrompt}`);
+
+      // Add character identification and details if matched
+      if (matchedCharacters.length > 0) {
+        const charNames = matchedCharacters.map(c => c.name).join(', ');
+        promptParts.push(`The scene must feature the character(s) known as: ${charNames}.`);
+
+        const characterDetails = matchedCharacters.map(char => {
+          const details = [
+            char.appearance && `Appearance: ${char.appearance}`,
+            char.clothing && `Clothing: ${char.clothing}`,
+          ].filter(Boolean).join('. ');
+          return details ? `Details for character ${char.name}: "${details}"` : '';
+        }).filter(Boolean).join('. ');
+
+        if (characterDetails) promptParts.push(characterDetails);
+      }
+
+      const fullPrompt = promptParts.join('. ');
+
+      // Only get character refs for matched characters (empty if no match)
+      const matchedCharacterRefs = matchedCharacters
+        .map(char => availableCharacters.find(ac => ac.characterId === char.id))
+        .filter((ref): ref is CharacterReferenceImage => ref !== undefined);
 
       const response = await fetch("/api/nano_banana", {
         method: "POST",
@@ -331,11 +384,11 @@ export default function StoryboardTable({
           prompt: fullPrompt,
           aspectRatio,
           references: {
-            backgrounds: [{
+            backgrounds: selectedRef ? [{
               base64: selectedRef.base64,
               mimeType: selectedRef.mimeType,
-            }],
-            characters: selectedChars.map(char => ({
+            }] : [],
+            characters: matchedCharacterRefs.map(char => ({
               base64: char.base64,
               mimeType: char.mimeType,
             })),
@@ -377,7 +430,7 @@ export default function StoryboardTable({
         clipIndex: clipIdx,
         clipName,
         imagePrompt: fullPrompt,
-        selectedBgId: state.selectedBgId,
+        selectedBgId: state?.selectedBgId || "",
         createdAt: Date.now(),
       });
     } catch (err) {
@@ -393,27 +446,29 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, availableCharacters, selectedCharacterIds, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
+  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
 
-  // Check if all clips have backgrounds selected
+  // Check if all clips have backgrounds selected (or don't need one)
   const allBgSelected = useMemo(() => {
     if (data.length === 0) return false;
 
     let totalClips = 0;
-    let selectedCount = 0;
+    let readyCount = 0;
 
     data.forEach((scene, sceneIdx) => {
-      scene.clips.forEach((_, clipIdx) => {
+      scene.clips.forEach((clip, clipIdx) => {
         totalClips++;
         const key = getClipKey(sceneIdx, clipIdx);
         const state = clipImageStates.get(key);
-        if (state?.selectedBgId) {
-          selectedCount++;
+        const hasBackgroundId = !!clip.backgroundId?.trim();
+        // Clip is ready if: no backgroundId needed OR has one selected
+        if (!hasBackgroundId || state?.selectedBgId) {
+          readyCount++;
         }
       });
     });
 
-    return totalClips > 0 && selectedCount === totalClips;
+    return totalClips > 0 && readyCount === totalClips;
   }, [data, clipImageStates]);
 
   // Generate all images
@@ -885,14 +940,14 @@ export default function StoryboardTable({
                                     e.stopPropagation();
                                     generateClipImage(sceneIndex, clipIndex, row);
                                   }}
-                                  disabled={!clipState?.selectedBgId || isGeneratingAll}
+                                  disabled={(!!row.backgroundId?.trim() && !clipState?.selectedBgId) || isGeneratingAll}
                                   className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                                   title={phrase(dictionary, "storyboard_regenerate", language) || "Regenerate"}
                                 >
                                   <RefreshCw className="w-3 h-3" />
                                 </button>
                               </div>
-                            ) : clipState?.selectedBgId ? (
+                            ) : (clipState?.selectedBgId || !row.backgroundId?.trim()) ? (
                               <button
                                 onClick={() => generateClipImage(sceneIndex, clipIndex, row)}
                                 disabled={isGeneratingAll}

@@ -23,6 +23,182 @@ import type { CharacterSheetResultMetadata } from "../../CharacterSheetGenerator
 
 const STORAGE_KEY = "storyboard_scene_images_metadata";
 
+// Memoized background dropdown item to prevent re-renders
+// Uses native img with lazy loading for better performance
+const BackgroundDropdownItem = React.memo(function BackgroundDropdownItem({
+  refId,
+  bgName,
+  angle,
+  objectUrl,
+  isSelected,
+  onSelect,
+}: {
+  refId: string;
+  bgName: string;
+  angle: string;
+  objectUrl: string;
+  isSelected: boolean;
+  onSelect: (refId: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(refId)}
+      className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        isSelected ? "bg-pink-50 dark:bg-pink-900/20" : ""
+      }`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={objectUrl}
+        alt=""
+        loading="lazy"
+        className="w-10 h-7 object-cover rounded flex-shrink-0"
+      />
+      <div className="flex-1 text-left min-w-0">
+        <div className="font-medium text-gray-700 dark:text-gray-300 truncate">
+          {bgName}
+        </div>
+        <div className="text-xs text-gray-500 truncate">
+          {angle}
+        </div>
+      </div>
+    </button>
+  );
+});
+
+// Memoized background selector with its own dropdown state
+const BackgroundSelector = React.memo(function BackgroundSelector({
+  selectedRef,
+  selectedObjectUrl,
+  references,
+  referenceObjectUrls,
+  selectedBgId,
+  onSelect,
+  selectBgLabel,
+  clearSelectionLabel,
+}: {
+  selectedRef: { id: string; bgName: string } | null;
+  selectedObjectUrl: string;
+  references: { id: string; bgName: string; angle: string }[];
+  referenceObjectUrls: Map<string, string>;
+  selectedBgId: string | null;
+  onSelect: (refId: string | null) => void;
+  selectBgLabel: string;
+  clearSelectionLabel: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = useCallback((refId: string | null) => {
+    onSelect(refId);
+    setIsOpen(false);
+  }, [onSelect]);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex flex-col items-start gap-1 w-full px-2 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#DB2777] transition-colors"
+      >
+        {selectedRef ? (
+          <>
+            <div className="w-full h-12 rounded overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedObjectUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 text-left w-full">
+              {selectedRef.bgName}
+            </span>
+          </>
+        ) : (
+          <div className="flex items-center justify-between w-full">
+            <span className="text-gray-400 text-xs">
+              {selectBgLabel}
+            </span>
+            <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </div>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-64 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+          <button
+            onClick={() => handleSelect(null)}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
+          >
+            <X className="w-4 h-4" />
+            {clearSelectionLabel}
+          </button>
+
+          {references.map((ref) => (
+            <BackgroundDropdownItem
+              key={ref.id}
+              refId={ref.id}
+              bgName={ref.bgName}
+              angle={ref.angle}
+              objectUrl={referenceObjectUrls.get(ref.id) || ""}
+              isSelected={selectedBgId === ref.id}
+              onSelect={handleSelect}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Memoized character selection item
+// Uses native img with lazy loading for better performance
+const CharacterSelectionItem = React.memo(function CharacterSelectionItem({
+  charId,
+  characterName,
+  objectUrl,
+  isSelected,
+  onToggle,
+}: {
+  charId: string;
+  characterName: string;
+  objectUrl: string;
+  isSelected: boolean;
+  onToggle: (charId: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onToggle(charId)}
+      className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+        isSelected
+          ? "border-[#DB2777] ring-2 ring-[#DB2777]/30"
+          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+      }`}
+    >
+      <div className="aspect-square relative">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={objectUrl}
+          alt={characterName}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {isSelected && (
+          <div className="absolute top-1 right-1 w-5 h-5 bg-[#DB2777] rounded-full flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="p-1.5 bg-white dark:bg-gray-700 text-center">
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate block">
+          {characterName}
+        </span>
+      </div>
+    </button>
+  );
+});
+
 interface ReferenceImage {
   id: string;
   bgId: string;
@@ -74,8 +250,6 @@ export default function StoryboardTable({
   // Clip image states: Map<"sceneIdx-clipIdx", ClipImageState>
   const [clipImageStates, setClipImageStates] = useState<Map<string, ClipImageState>>(new Map());
 
-  // Dropdown state for background selection
-  const [openDropdownKey, setOpenDropdownKey] = useState<string | null>(null);
 
   // Generate all state
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
@@ -312,7 +486,6 @@ export default function StoryboardTable({
 
       return newMap;
     });
-    setOpenDropdownKey(null);
   }, [data, saveMetadataToLocalStorage]);
 
   // Generate image for a single clip
@@ -530,6 +703,47 @@ export default function StoryboardTable({
     return { totalClips: total, selectedCount: selected, generatedCount: generated };
   }, [data, clipImageStates]);
 
+  // Convert base64 to Object URL (much faster than data URIs for rendering)
+  const base64ToObjectUrl = useCallback((base64: string, mimeType: string): string => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    return URL.createObjectURL(blob);
+  }, []);
+
+  // Pre-compute Object URLs for background references (one-time decode cost)
+  const referenceObjectUrls = useMemo(() => {
+    return new Map(availableReferences.map(ref => [
+      ref.id,
+      base64ToObjectUrl(ref.base64, ref.mimeType)
+    ]));
+  }, [availableReferences, base64ToObjectUrl]);
+
+  // Pre-compute Object URLs for character references
+  const characterObjectUrls = useMemo(() => {
+    return new Map(availableCharacters.map(char => [
+      char.id,
+      base64ToObjectUrl(char.base64, char.mimeType)
+    ]));
+  }, [availableCharacters, base64ToObjectUrl]);
+
+  // Cleanup Object URLs on unmount or when references change
+  useEffect(() => {
+    return () => {
+      referenceObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [referenceObjectUrls]);
+
+  useEffect(() => {
+    return () => {
+      characterObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [characterObjectUrls]);
+
   // Toggle character selection
   const toggleCharacterSelection = useCallback((charId: string) => {
     setSelectedCharacterIds(prev => {
@@ -617,42 +831,16 @@ export default function StoryboardTable({
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {availableCharacters.map((char) => {
-              const isSelected = selectedCharacterIds.has(char.id);
-              return (
-                <button
-                  key={char.id}
-                  onClick={() => toggleCharacterSelection(char.id)}
-                  className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                    isSelected
-                      ? "border-[#DB2777] ring-2 ring-[#DB2777]/30"
-                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                  }`}
-                >
-                  <div className="aspect-square relative">
-                    <Image
-                      src={`data:${char.mimeType};base64,${char.base64}`}
-                      alt={char.characterName}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                    {isSelected && (
-                      <div className="absolute top-1 right-1 w-5 h-5 bg-[#DB2777] rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-1.5 bg-white dark:bg-gray-700 text-center">
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate block">
-                      {char.characterName}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            {availableCharacters.map((char) => (
+              <CharacterSelectionItem
+                key={char.id}
+                charId={char.id}
+                characterName={char.characterName}
+                objectUrl={characterObjectUrls.get(char.id) || ""}
+                isSelected={selectedCharacterIds.has(char.id)}
+                onToggle={toggleCharacterSelection}
+              />
+            ))}
           </div>
         )}
 
@@ -847,79 +1035,16 @@ export default function StoryboardTable({
                               {phrase(dictionary, "storyboard_no_bg_available", language) || "No backgrounds"}
                             </span>
                           ) : (
-                            <div className="relative">
-                              <button
-                                onClick={() => setOpenDropdownKey(openDropdownKey === clipKey ? null : clipKey)}
-                                className="flex flex-col items-start gap-1 w-full px-2 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#DB2777] transition-colors"
-                              >
-                                {selectedRef ? (
-                                  <>
-                                    <div className="w-full h-12 relative rounded overflow-hidden">
-                                      <Image
-                                        src={`data:${selectedRef.mimeType};base64,${selectedRef.base64}`}
-                                        alt=""
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
-                                      />
-                                    </div>
-                                    <span className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 text-left w-full">
-                                      {selectedRef.bgName}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <div className="flex items-center justify-between w-full">
-                                    <span className="text-gray-400 text-xs">
-                                      {phrase(dictionary, "storyboard_select_bg", language) || "Select BG..."}
-                                    </span>
-                                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                  </div>
-                                )}
-                              </button>
-
-                              {/* Dropdown */}
-                              {openDropdownKey === clipKey && (
-                                <div className="absolute z-50 mt-1 w-64 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                                  {/* Clear option */}
-                                  <button
-                                    onClick={() => handleBgSelect(sceneIndex, clipIndex, null)}
-                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
-                                  >
-                                    <X className="w-4 h-4" />
-                                    {phrase(dictionary, "storyboard_clear_selection", language) || "Clear selection"}
-                                  </button>
-
-                                  {/* Background options */}
-                                  {availableReferences.map((ref) => (
-                                    <button
-                                      key={ref.id}
-                                      onClick={() => handleBgSelect(sceneIndex, clipIndex, ref.id)}
-                                      className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                        clipState?.selectedBgId === ref.id ? "bg-pink-50 dark:bg-pink-900/20" : ""
-                                      }`}
-                                    >
-                                      <div className="w-10 h-7 relative rounded overflow-hidden flex-shrink-0">
-                                        <Image
-                                          src={`data:${ref.mimeType};base64,${ref.base64}`}
-                                          alt=""
-                                          fill
-                                          className="object-cover"
-                                          unoptimized
-                                        />
-                                      </div>
-                                      <div className="flex-1 text-left min-w-0">
-                                        <div className="font-medium text-gray-700 dark:text-gray-300 truncate">
-                                          {ref.bgName}
-                                        </div>
-                                        <div className="text-xs text-gray-500 truncate">
-                                          {ref.angle}
-                                        </div>
-                                      </div>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                            <BackgroundSelector
+                              selectedRef={selectedRef ?? null}
+                              selectedObjectUrl={selectedRef ? (referenceObjectUrls.get(selectedRef.id) || "") : ""}
+                              references={availableReferences}
+                              referenceObjectUrls={referenceObjectUrls}
+                              selectedBgId={clipState?.selectedBgId || null}
+                              onSelect={(refId) => handleBgSelect(sceneIndex, clipIndex, refId)}
+                              selectBgLabel={phrase(dictionary, "storyboard_select_bg", language) || "Select BG..."}
+                              clearSelectionLabel={phrase(dictionary, "storyboard_clear_selection", language) || "Clear selection"}
+                            />
                           )}
                         </td>
 

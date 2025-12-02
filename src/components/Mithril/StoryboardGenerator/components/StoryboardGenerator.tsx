@@ -414,7 +414,8 @@ export default function StoryboardGenerator() {
         description: phrase(dictionary, "storyboard_toast_s3_loaded", language),
       });
 
-      // Reload the page to reflect the loaded data
+      // Save current stage to sessionStorage before reload so we return to the same stage
+      sessionStorage.setItem("mithril_restore_stage", "5");
       window.location.reload();
     } catch (error) {
       console.error("Error loading from S3:", error);

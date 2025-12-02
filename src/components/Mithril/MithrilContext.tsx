@@ -135,6 +135,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Navigation state
   const [currentStage, setCurrentStage] = useState(1);
 
+  // Restore stage from sessionStorage after S3 load reload
+  useEffect(() => {
+    const savedStage = sessionStorage.getItem("mithril_restore_stage");
+    if (savedStage) {
+      sessionStorage.removeItem("mithril_restore_stage");
+      setCurrentStage(parseInt(savedStage, 10));
+    }
+  }, []);
+
   // File management state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 

@@ -871,3 +871,27 @@ storyboard_chars_selected,캐릭터가 선택되었습니다,,character(s) selec
 storyboard_aspect_ratio,화면 비율,,Aspect Ratio
 storyboard_landscape,가로,,Landscape
 storyboard_portrait,세로,,Portrait
+storysplitter_save_to_s3,Save to S3,,Save to S3
+storysplitter_load_from_s3,Load from S3,,Load from S3
+storysplitter_saving_to_s3,Saving to S3...,,Saving to S3...
+storysplitter_loading_from_s3,Loading from S3...,,Loading from S3...
+storysplitter_toast_s3_saved,S3에 저장되었습니다,,Saved to S3
+storysplitter_toast_s3_loaded,S3에서 불러왔습니다. 페이지를 새로고침합니다.,,Loaded from S3. Refreshing page.
+storysplitter_toast_s3_no_session,저장된 세션이 없습니다,,No saved session found
+storysplitter_toast_s3_error,S3 저장에 실패했습니다,,Failed to save to S3
+charsheet_save_to_s3,Save to S3,,Save to S3
+charsheet_load_from_s3,Load from S3,,Load from S3
+charsheet_saving_to_s3,Saving to S3...,,Saving to S3...
+charsheet_loading_from_s3,Loading from S3...,,Loading from S3...
+charsheet_toast_s3_saved,캐릭터 시트가 S3에 저장되었습니다,,Character sheet saved to S3
+charsheet_toast_s3_loaded,S3에서 캐릭터 시트를 불러왔습니다. 페이지를 새로고침합니다.,,Character sheet loaded from S3. Refreshing page.
+charsheet_toast_s3_no_session,저장된 캐릭터 시트 세션이 없습니다,,No saved character sheet session found
+charsheet_toast_s3_error,캐릭터 시트 S3 저장에 실패했습니다,,Failed to save character sheet to S3
+bgsheet_save_to_s3,Save to S3,,Save to S3
+bgsheet_load_from_s3,Load from S3,,Load from S3
+bgsheet_saving_to_s3,Saving to S3...,,Saving to S3...
+bgsheet_loading_from_s3,Loading from S3...,,Loading from S3...
+bgsheet_toast_s3_saved,배경 시트가 S3에 저장되었습니다,,Background sheet saved to S3
+bgsheet_toast_s3_loaded,S3에서 배경 시트를 불러왔습니다. 페이지를 새로고침합니다.,,Background sheet loaded from S3. Refreshing page.
+bgsheet_toast_s3_no_session,저장된 배경 시트 세션이 없습니다,,No saved background sheet session found
+bgsheet_toast_s3_error,배경 시트 S3 저장에 실패했습니다,,Failed to save background sheet to S3

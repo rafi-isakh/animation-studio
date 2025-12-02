@@ -895,3 +895,5 @@ bgsheet_toast_s3_saved,배경 시트가 S3에 저장되었습니다,,Background 
 bgsheet_toast_s3_loaded,S3에서 배경 시트를 불러왔습니다. 페이지를 새로고침합니다.,,Background sheet loaded from S3. Refreshing page.
 bgsheet_toast_s3_no_session,저장된 배경 시트 세션이 없습니다,,No saved background sheet session found
 bgsheet_toast_s3_error,배경 시트 S3 저장에 실패했습니다,,Failed to save background sheet to S3
+mithril_gemini_api_key,이미지 생성용 키,, API Key for Image Generation
+mithril_gemini_api_key_placeholder, API 키 입력...,,Enter API key...

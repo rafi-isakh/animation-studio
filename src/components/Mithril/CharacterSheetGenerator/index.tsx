@@ -104,7 +104,7 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function CharacterSheetGenerator() {
-  const { setStageResult, characterSheetGenerator, startCharacterSheetAnalysis, clearCharacterSheetAnalysis, setCharacterSheetResult } = useMithril();
+  const { setStageResult, characterSheetGenerator, startCharacterSheetAnalysis, clearCharacterSheetAnalysis, setCharacterSheetResult, customApiKey } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { isAnalyzing, error: analysisError, result: contextResult } = characterSheetGenerator;
@@ -325,7 +325,7 @@ export default function CharacterSheetGenerator() {
       const response = await fetch("/api/generate_character_sheet/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+        body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
         signal,
       });
 

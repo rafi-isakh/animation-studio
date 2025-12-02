@@ -1,9 +1,6 @@
 import { GoogleGenAI, Part } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
-// Initialize the GoogleGenAI client with the API key from environment variables
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export interface ImageReference {
   base64: string;
   mimeType: string;
@@ -18,6 +15,7 @@ interface RequestBody {
   prompt: string;
   references?: ImageReferencesPayload;
   aspectRatio: string;
+  customApiKey?: string;
 }
 
 function handleCommonErrors(error: any) {
@@ -49,8 +47,15 @@ function handleCommonErrors(error: any) {
 async function generateImage(
   prompt: string,
   references: ImageReferencesPayload | undefined,
-  aspectRatio: string
+  aspectRatio: string,
+  customApiKey?: string
 ): Promise<string> {
+  // Use custom API key if provided, otherwise fall back to environment variable
+  const apiKey = customApiKey || process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY is not configured");
+  }
+  const ai = new GoogleGenAI({ apiKey });
   const parts: Part[] = [];
   const backgrounds = references?.backgrounds || [];
   const characters = references?.characters || [];
@@ -186,7 +191,7 @@ async function generateImage(
 export async function POST(request: NextRequest) {
   try {
     const body: RequestBody = await request.json();
-    const { prompt, references, aspectRatio } = body;
+    const { prompt, references, aspectRatio, customApiKey } = body;
 
     if (
       !prompt &&
@@ -202,7 +207,8 @@ export async function POST(request: NextRequest) {
     const imageBase64 = await generateImage(
       prompt || "",
       references,
-      aspectRatio || "16:9"
+      aspectRatio || "16:9",
+      customApiKey
     );
 
     return NextResponse.json({ imageBase64 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { Key, Eye, EyeOff } from "lucide-react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
@@ -13,9 +14,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 
 function MithrilContent() {
-  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage } =
+  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey } =
     useMithril();
   const { language, dictionary } = useLanguage();
+
+  // API key visibility toggle
+  const [showApiKey, setShowApiKey] = useState(false);
 
   // Track scroll position to adjust stepper position
   const [scrolled, setScrolled] = useState(false);
@@ -115,6 +119,34 @@ function MithrilContent() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
+        {/* Gemini API Key - Top Right, outside container */}
+        {(currentStage === 3 || currentStage === 4 || currentStage === 5) && (
+          <div className={`w-full flex justify-end mb-4 ${currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"}`}>
+            <div className="w-full max-w-sm">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
+                <Key className="w-4 h-4" />
+                {phrase(dictionary, "mithril_gemini_api_key", language)}
+              </label>
+              <div className="relative">
+                <input
+                  type={showApiKey ? "text" : "password"}
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  placeholder={phrase(dictionary, "mithril_gemini_api_key_placeholder", language)}
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 pr-10 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div
           className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
             currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"

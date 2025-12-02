@@ -190,7 +190,16 @@ async function generateImage(
 
 export async function POST(request: NextRequest) {
   try {
-    const body: RequestBody = await request.json();
+    let body: RequestBody;
+    try {
+      body = await request.json();
+    } catch {
+      // Request was likely aborted or body is empty
+      return NextResponse.json(
+        { error: "Invalid or empty request body" },
+        { status: 400 }
+      );
+    }
     const { prompt, references, aspectRatio, customApiKey } = body;
 
     if (

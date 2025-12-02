@@ -9,7 +9,16 @@ interface GenerateImageRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: GenerateImageRequest = await request.json();
+    let body: GenerateImageRequest;
+    try {
+      body = await request.json();
+    } catch {
+      // Request was likely aborted or body is empty
+      return NextResponse.json(
+        { error: "Invalid or empty request body" },
+        { status: 400 }
+      );
+    }
     const { prompt, aspectRatio = "16:9", customApiKey } = body;
 
     if (!prompt || typeof prompt !== "string") {

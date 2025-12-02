@@ -996,16 +996,44 @@ export default function BgSheetGenerator() {
         </div>
       ))}
 
-      {/* Analyze Button */}
+      {/* Analyze Button and S3 Buttons */}
       {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
-        <div className="text-center">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={handleAnalyze}
-            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
+            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             {phrase(dictionary, "bgsheet_analyze_text", language)}
           </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveToS3}
+              disabled={isSavingToS3}
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isSavingToS3 ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <CloudUpload className="w-5 h-5" />
+              )}
+              {isSavingToS3 ? phrase(dictionary, "bgsheet_saving_to_s3", language) : phrase(dictionary, "bgsheet_save_to_s3", language)}
+            </button>
+
+            <button
+              onClick={handleLoadFromS3}
+              disabled={isLoadingFromS3}
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isLoadingFromS3 ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <CloudDownload className="w-5 h-5" />
+              )}
+              {isLoadingFromS3 ? phrase(dictionary, "bgsheet_loading_from_s3", language) : phrase(dictionary, "bgsheet_load_from_s3", language)}
+            </button>
+          </div>
         </div>
       )}
 
@@ -1065,30 +1093,6 @@ export default function BgSheetGenerator() {
               >
                 <FileDown className="w-4 h-4" />
                 <span>{phrase(dictionary, "bgsheet_export_csv", language)}</span>
-              </button>
-              <button
-                onClick={handleSaveToS3}
-                disabled={isSavingToS3 || isAnalyzing}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 text-sm"
-              >
-                {isSavingToS3 ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <CloudUpload className="w-4 h-4" />
-                )}
-                <span>{isSavingToS3 ? phrase(dictionary, "bgsheet_saving_to_s3", language) : phrase(dictionary, "bgsheet_save_to_s3", language)}</span>
-              </button>
-              <button
-                onClick={handleLoadFromS3}
-                disabled={isLoadingFromS3 || isAnalyzing}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 text-sm"
-              >
-                {isLoadingFromS3 ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <CloudDownload className="w-4 h-4" />
-                )}
-                <span>{isLoadingFromS3 ? phrase(dictionary, "bgsheet_loading_from_s3", language) : phrase(dictionary, "bgsheet_load_from_s3", language)}</span>
               </button>
               <button
                 onClick={async () => {

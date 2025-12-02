@@ -311,13 +311,20 @@ export default function StoryboardTable({
     const key = getClipKey(sceneIdx, clipIdx);
     const state = clipImageStates.get(key);
 
-    if (!state?.selectedBgId) {
+    // Check if clip has a backgroundId - only require BG selection if it does
+    const hasBackgroundId = !!clip.backgroundId?.trim();
+
+    if (hasBackgroundId && !state?.selectedBgId) {
       return;
     }
 
-    // Find the selected reference
-    const selectedRef = availableReferences.find(ref => ref.id === state.selectedBgId);
-    if (!selectedRef) {
+    // Find the selected reference (may be null if no backgroundId)
+    const selectedRef = state?.selectedBgId
+      ? availableReferences.find(ref => ref.id === state.selectedBgId)
+      : null;
+
+    // Only fail if we needed a ref but couldn't find it
+    if (hasBackgroundId && !selectedRef) {
       return;
     }
 
@@ -377,10 +384,10 @@ export default function StoryboardTable({
           prompt: fullPrompt,
           aspectRatio,
           references: {
-            backgrounds: [{
+            backgrounds: selectedRef ? [{
               base64: selectedRef.base64,
               mimeType: selectedRef.mimeType,
-            }],
+            }] : [],
             characters: matchedCharacterRefs.map(char => ({
               base64: char.base64,
               mimeType: char.mimeType,
@@ -423,7 +430,7 @@ export default function StoryboardTable({
         clipIndex: clipIdx,
         clipName,
         imagePrompt: fullPrompt,
-        selectedBgId: state.selectedBgId,
+        selectedBgId: state?.selectedBgId || "",
         createdAt: Date.now(),
       });
     } catch (err) {
@@ -441,25 +448,27 @@ export default function StoryboardTable({
     }
   }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
 
-  // Check if all clips have backgrounds selected
+  // Check if all clips have backgrounds selected (or don't need one)
   const allBgSelected = useMemo(() => {
     if (data.length === 0) return false;
 
     let totalClips = 0;
-    let selectedCount = 0;
+    let readyCount = 0;
 
     data.forEach((scene, sceneIdx) => {
-      scene.clips.forEach((_, clipIdx) => {
+      scene.clips.forEach((clip, clipIdx) => {
         totalClips++;
         const key = getClipKey(sceneIdx, clipIdx);
         const state = clipImageStates.get(key);
-        if (state?.selectedBgId) {
-          selectedCount++;
+        const hasBackgroundId = !!clip.backgroundId?.trim();
+        // Clip is ready if: no backgroundId needed OR has one selected
+        if (!hasBackgroundId || state?.selectedBgId) {
+          readyCount++;
         }
       });
     });
 
-    return totalClips > 0 && selectedCount === totalClips;
+    return totalClips > 0 && readyCount === totalClips;
   }, [data, clipImageStates]);
 
   // Generate all images
@@ -931,14 +940,14 @@ export default function StoryboardTable({
                                     e.stopPropagation();
                                     generateClipImage(sceneIndex, clipIndex, row);
                                   }}
-                                  disabled={!clipState?.selectedBgId || isGeneratingAll}
+                                  disabled={(!!row.backgroundId?.trim() && !clipState?.selectedBgId) || isGeneratingAll}
                                   className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                                   title={phrase(dictionary, "storyboard_regenerate", language) || "Regenerate"}
                                 >
                                   <RefreshCw className="w-3 h-3" />
                                 </button>
                               </div>
-                            ) : clipState?.selectedBgId ? (
+                            ) : (clipState?.selectedBgId || !row.backgroundId?.trim()) ? (
                               <button
                                 onClick={() => generateClipImage(sceneIndex, clipIndex, row)}
                                 disabled={isGeneratingAll}

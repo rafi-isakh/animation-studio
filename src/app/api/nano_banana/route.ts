@@ -51,9 +51,9 @@ async function generateImage(
   customApiKey?: string
 ): Promise<string> {
   // Use custom API key if provided, otherwise fall back to environment variable
-  const apiKey = customApiKey || process.env.API_KEY;
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("API_KEY is not configured");
+    throw new Error("GEMINI_API_KEY is not configured");
   }
   const ai = new GoogleGenAI({ apiKey });
   const parts: Part[] = [];
@@ -190,7 +190,16 @@ async function generateImage(
 
 export async function POST(request: NextRequest) {
   try {
-    const body: RequestBody = await request.json();
+    let body: RequestBody;
+    try {
+      body = await request.json();
+    } catch {
+      // Request was likely aborted or body is empty
+      return NextResponse.json(
+        { error: "Invalid or empty request body" },
+        { status: 400 }
+      );
+    }
     const { prompt, references, aspectRatio, customApiKey } = body;
 
     if (

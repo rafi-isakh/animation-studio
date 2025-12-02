@@ -15,7 +15,16 @@ interface Part {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: GenerateFromSketchRequest = await request.json();
+    let body: GenerateFromSketchRequest;
+    try {
+      body = await request.json();
+    } catch {
+      // Request was likely aborted or body is empty
+      return NextResponse.json(
+        { error: "Invalid or empty request body" },
+        { status: 400 }
+      );
+    }
     const { sketchBase64, prompt, styleReferenceBase64, customApiKey } = body;
 
     if (!sketchBase64 || typeof sketchBase64 !== "string") {

@@ -101,6 +101,10 @@ interface MithrilContextProps {
   setStageResult: (stage: number, result: unknown) => void;
   getStageResult: (stage: number) => unknown;
 
+  // Custom API Key for image generation (to avoid rate limits)
+  customApiKey: string;
+  setCustomApiKey: (key: string) => void;
+
   // Story Analyzer (Stage 2)
   // storyAnalyzer: StoryAnalyzerState;
   // startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
@@ -141,6 +145,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (savedStage) {
       sessionStorage.removeItem("mithril_restore_stage");
       setCurrentStage(parseInt(savedStage, 10));
+    }
+  }, []);
+
+  // Custom API Key state (persisted to localStorage)
+  const [customApiKey, setCustomApiKeyState] = useState<string>("");
+
+  // Hydrate customApiKey from localStorage on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("mithril_custom_api_key");
+    if (savedApiKey) {
+      setCustomApiKeyState(savedApiKey);
+    }
+  }, []);
+
+  // Wrapper to persist API key to localStorage
+  const setCustomApiKey = useCallback((key: string) => {
+    setCustomApiKeyState(key);
+    if (key) {
+      localStorage.setItem("mithril_custom_api_key", key);
+    } else {
+      localStorage.removeItem("mithril_custom_api_key");
     }
   }, []);
 
@@ -671,6 +696,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         stageResults,
         setStageResult,
         getStageResult,
+        // Custom API Key
+        customApiKey,
+        setCustomApiKey,
         // Story Analyzer
         // storyAnalyzer,
         // startStoryAnalysis,

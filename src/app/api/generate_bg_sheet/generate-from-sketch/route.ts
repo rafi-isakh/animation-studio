@@ -5,6 +5,7 @@ interface GenerateFromSketchRequest {
   sketchBase64: string;
   prompt: string;
   styleReferenceBase64?: string;
+  customApiKey?: string;
 }
 
 interface Part {
@@ -15,7 +16,7 @@ interface Part {
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateFromSketchRequest = await request.json();
-    const { sketchBase64, prompt, styleReferenceBase64 } = body;
+    const { sketchBase64, prompt, styleReferenceBase64, customApiKey } = body;
 
     if (!sketchBase64 || typeof sketchBase64 !== "string") {
       return NextResponse.json(
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Use custom API key if provided, otherwise fall back to environment variable
+    const apiKey = customApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY is not configured" },

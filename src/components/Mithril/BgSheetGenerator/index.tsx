@@ -144,7 +144,7 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { isAnalyzing, error: analysisError, result: contextResult } = bgSheetGenerator;
@@ -395,7 +395,7 @@ export default function BgSheetGenerator() {
         const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
           signal,
         });
 
@@ -544,7 +544,7 @@ export default function BgSheetGenerator() {
         const response = await fetch("/api/generate_bg_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9" }),
+          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
           signal,
         });
 
@@ -666,6 +666,7 @@ export default function BgSheetGenerator() {
             sketchBase64,
             prompt: finalPrompt,
             styleReferenceBase64: styleRef,
+            customApiKey: customApiKey || undefined,
           }),
           signal: controller.signal,
         }
@@ -996,9 +997,9 @@ export default function BgSheetGenerator() {
         </div>
       ))}
 
-      {/* Analyze Button and S3 Buttons */}
+      {/* Analyze Button - only show when no results */}
       {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="flex justify-center">
           <button
             onClick={handleAnalyze}
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
@@ -1006,34 +1007,37 @@ export default function BgSheetGenerator() {
             <Sparkles className="w-5 h-5" />
             {phrase(dictionary, "bgsheet_analyze_text", language)}
           </button>
+        </div>
+      )}
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSaveToS3}
-              disabled={isSavingToS3}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isSavingToS3 ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <CloudUpload className="w-5 h-5" />
-              )}
-              {isSavingToS3 ? phrase(dictionary, "bgsheet_saving_to_s3", language) : phrase(dictionary, "bgsheet_save_to_s3", language)}
-            </button>
+      {/* S3 Buttons - always show when not loading data */}
+      {!isLoadingData && (
+        <div className="flex justify-center gap-2">
+          <button
+            onClick={handleSaveToS3}
+            disabled={isSavingToS3 || isAnalyzing}
+            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isSavingToS3 ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <CloudUpload className="w-5 h-5" />
+            )}
+            {isSavingToS3 ? phrase(dictionary, "bgsheet_saving_to_s3", language) : phrase(dictionary, "bgsheet_save_to_s3", language)}
+          </button>
 
-            <button
-              onClick={handleLoadFromS3}
-              disabled={isLoadingFromS3}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isLoadingFromS3 ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <CloudDownload className="w-5 h-5" />
-              )}
-              {isLoadingFromS3 ? phrase(dictionary, "bgsheet_loading_from_s3", language) : phrase(dictionary, "bgsheet_load_from_s3", language)}
-            </button>
-          </div>
+          <button
+            onClick={handleLoadFromS3}
+            disabled={isLoadingFromS3}
+            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isLoadingFromS3 ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <CloudDownload className="w-5 h-5" />
+            )}
+            {isLoadingFromS3 ? phrase(dictionary, "bgsheet_loading_from_s3", language) : phrase(dictionary, "bgsheet_load_from_s3", language)}
+          </button>
         </div>
       )}
 

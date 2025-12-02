@@ -11,6 +11,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { saveStoryboardSceneImage } from "../../services/mithrilIndexedDB";
+import { useMithril } from "../../MithrilContext";
 import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata, CharacterReferenceImage } from "../types";
 import { useReferenceImages } from "../hooks/useReferenceImages";
 import LightboxModal from "./LightboxModal";
@@ -204,6 +205,7 @@ export default function StoryboardTable({
   voicePrompts,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
+  const { customApiKey } = useMithril();
 
   // Load references from hook
   const {
@@ -442,6 +444,7 @@ export default function StoryboardTable({
               mimeType: char.mimeType,
             })),
           },
+          customApiKey: customApiKey || undefined,
         }),
       });
 

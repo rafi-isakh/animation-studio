@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
       savedAt: Date.now(),
     });
   } catch (error) {
-    console.error("Error saving session to S3:", error);
+    console.error("Error saving sora session to S3:", error);
     return NextResponse.json(
-      { error: "Failed to save session to S3" },
+      { error: "Failed to save sora session to S3" },
       { status: 500 }
     );
   }

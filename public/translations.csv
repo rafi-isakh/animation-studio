@@ -826,6 +826,14 @@ sora_toast_s3_saved,세션이 S3에 저장되었습니다.,,Session saved to S3
 sora_toast_s3_loaded,세션이 S3에서 불러왔습니다.,,Session loaded from S3
 sora_toast_s3_no_session,S3에 저장된 세션이 없습니다.,,No saved session found in S3
 sora_toast_s3_no_data,저장할 세션 데이터가 없습니다.,,No session data to save
+storyboard_save_to_s3,S3에 저장,,Save to S3
+storyboard_saving_to_s3,저장 중...,,Saving...
+storyboard_load_from_s3,S3에서 불러오기,,Load from S3
+storyboard_loading_from_s3,불러오는 중...,,Loading...
+storyboard_toast_s3_saved,스토리보드가 S3에 저장되었습니다.,,Storyboard saved to S3
+storyboard_toast_s3_loaded,스토리보드를 S3에서 불러왔습니다.,,Storyboard loaded from S3
+storyboard_toast_s3_no_session,S3에 저장된 스토리보드가 없습니다.,,No saved storyboard found in S3
+storyboard_toast_s3_no_data,저장할 스토리보드 데이터가 없습니다.,,No storyboard data to save
 sora_downloading_zip,ZIP 생성 중...,,Creating ZIP...
 sora_status_pending,대기 중,,Pending
 sora_status_generating,생성 중...,,Generating...

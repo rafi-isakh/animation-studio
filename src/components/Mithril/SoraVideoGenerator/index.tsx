@@ -515,7 +515,7 @@ export default function SoraVideoGenerator() {
         return;
       }
 
-      const response = await fetch("/api/mithril_session/save", {
+      const response = await fetch("/api/mithril_session/sora/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionData: JSON.parse(sessionData) }),
@@ -547,7 +547,7 @@ export default function SoraVideoGenerator() {
     setIsLoadingFromS3(true);
 
     try {
-      const response = await fetch("/api/mithril_session/load");
+      const response = await fetch("/api/mithril_session/sora/load");
 
       if (response.status === 404) {
         toast({

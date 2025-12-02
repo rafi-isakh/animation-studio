@@ -392,6 +392,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const clearStoryboardGeneration = useCallback(async () => {
     localStorage.removeItem("storyboard_result");
+    localStorage.removeItem("storyboard_scene_images_metadata");
     setStoryboardGenerator({
       isGenerating: false,
       error: null,

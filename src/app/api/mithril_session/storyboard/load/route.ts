@@ -15,8 +15,8 @@ export async function GET() {
       );
     }
 
-    // S3 key: folder/sora_session.json
-    const key = `${MITHRIL_S3_FOLDER}/sora_session.json`;
+    // S3 key: folder/storyboard_session.json
+    const key = `${MITHRIL_S3_FOLDER}/storyboard_session.json`;
 
     // Fetch from S3
     const command = new GetObjectCommand({
@@ -50,9 +50,9 @@ export async function GET() {
       );
     }
 
-    console.error("Error loading session from S3:", error);
+    console.error("Error loading storyboard session from S3:", error);
     return NextResponse.json(
-      { error: "Failed to load session from S3" },
+      { error: "Failed to load storyboard session from S3" },
       { status: 500 }
     );
   }

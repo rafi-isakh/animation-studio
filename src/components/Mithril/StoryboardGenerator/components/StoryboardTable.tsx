@@ -655,8 +655,24 @@ export default function StoryboardTable({
     );
   }
 
+  // Show loading screen while references are being loaded
+  const isLoading = isLoadingRefs;
+
   return (
     <div className="space-y-4">
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#DB2777]"></div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {phrase(dictionary, "storyboard_loading_refs", language) || "Loading references..."}
+          </p>
+        </div>
+      )}
+
+      {/* Main Content - only show when loading is complete */}
+      {!isLoading && (
+        <>
       {/* Scene Image Style Prompt */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -683,12 +699,7 @@ export default function StoryboardTable({
           {phrase(dictionary, "storyboard_char_reference_hint", language) || "Select character references to use for all scene image generations"}
         </p>
 
-        {isLoadingRefs ? (
-          <div className="flex items-center gap-2 text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">Loading characters...</span>
-          </div>
-        ) : availableCharacters.length === 0 ? (
+        {availableCharacters.length === 0 ? (
           <p className="text-sm text-gray-400">
             {phrase(dictionary, "storyboard_no_char_available", language) || "No character images available. Generate character sheets first."}
           </p>
@@ -897,6 +908,8 @@ export default function StoryboardTable({
           aspectRatio={aspectRatio}
           onClose={() => setLightboxImage(null)}
         />
+      )}
+        </>
       )}
     </div>
   );

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { s3Client } from "@/utils/s3";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 
+export const dynamic = 'force-dynamic';
+
 const BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME;
 const MITHRIL_S3_FOLDER = process.env.MITHRIL_S3_FOLDER;
 

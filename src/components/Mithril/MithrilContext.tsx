@@ -458,7 +458,19 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const newScenes = [...prev.scenes];
       const scene = { ...newScenes[sceneIndex] };
       const clips = [...scene.clips];
-      clips[clipIndex] = { ...clips[clipIndex], [field]: value };
+      const clip = { ...clips[clipIndex], [field]: value };
+
+      // Recalculate soraVideoPrompt (combination of imagePrompt, videoPrompt, dialogueEn, sfxEn, bgmEn)
+      const soraParts = [
+        clip.imagePrompt,
+        clip.videoPrompt,
+        clip.dialogueEn,
+        clip.sfxEn,
+        clip.bgmEn,
+      ].filter((part) => part && part.trim() !== "");
+      clip.soraVideoPrompt = soraParts.join("\n");
+
+      clips[clipIndex] = clip;
       scene.clips = clips;
       newScenes[sceneIndex] = scene;
 

@@ -8,6 +8,9 @@ import { clearBgImagesOnly, clearCharacterImagesOnly, clearStoryboardSceneImages
 
 const TOTAL_STAGES = 7;
 
+// Editable clip field type (shared across components)
+export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+
 // Types for Story Analyzer
 // interface StoryAnalyzerState {
 //   isLoading: boolean;
@@ -119,6 +122,8 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
+  updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
+  getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 
   // BgSheet Generator (Stage 5)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -222,6 +227,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           scenes: parsed.scenes || [],
           voicePrompts: parsed.voicePrompts || [],
         }));
+
+        // If no original exists yet, save the current as original (for reset functionality)
+        const savedOriginal = localStorage.getItem("storyboard_result_original");
+        if (!savedOriginal) {
+          localStorage.setItem("storyboard_result_original", savedResult);
+        }
       } catch {
         // Ignore parse errors
       }
@@ -404,8 +415,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
 
-      // Save to localStorage
+      // Save to localStorage (both current and original for reset functionality)
       localStorage.setItem("storyboard_result", JSON.stringify(result));
+      localStorage.setItem("storyboard_result_original", JSON.stringify(result));
 
       setStoryboardGenerator({
         isGenerating: false,
@@ -426,6 +438,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const clearStoryboardGeneration = useCallback(async () => {
     localStorage.removeItem("storyboard_result");
+    localStorage.removeItem("storyboard_result_original");
     localStorage.removeItem("storyboard_scene_images_metadata");
     setStoryboardGenerator({
       isGenerating: false,
@@ -436,6 +449,62 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     await clearStoryboardSceneImagesOnly();
     clearStageResult(5);
   }, [clearStageResult]);
+
+  // Update a specific clip's prompt field
+  const updateClipPrompt = useCallback((
+    sceneIndex: number,
+    clipIndex: number,
+    field: EditableClipField,
+    value: string
+  ) => {
+    setStoryboardGenerator(prev => {
+      const newScenes = [...prev.scenes];
+      const scene = { ...newScenes[sceneIndex] };
+      const clips = [...scene.clips];
+      const clip = { ...clips[clipIndex], [field]: value };
+
+      // Recalculate soraVideoPrompt (combination of imagePrompt, videoPrompt, dialogueEn, sfxEn, bgmEn)
+      const soraParts = [
+        clip.imagePrompt,
+        clip.videoPrompt,
+        clip.dialogueEn,
+        clip.sfxEn,
+        clip.bgmEn,
+      ].filter((part) => part && part.trim() !== "");
+      clip.soraVideoPrompt = soraParts.join("\n");
+
+      clips[clipIndex] = clip;
+      scene.clips = clips;
+      newScenes[sceneIndex] = scene;
+
+      // Persist to localStorage
+      localStorage.setItem("storyboard_result", JSON.stringify({
+        scenes: newScenes,
+        voicePrompts: prev.voicePrompts,
+      }));
+
+      return { ...prev, scenes: newScenes };
+    });
+  }, []);
+
+  // Get the original AI-generated prompt value for reset functionality
+  const getOriginalClipPrompt = useCallback((
+    sceneIndex: number,
+    clipIndex: number,
+    field: EditableClipField
+  ): string | null => {
+    const savedOriginal = localStorage.getItem("storyboard_result_original");
+    if (!savedOriginal) return null;
+
+    try {
+      const parsed = JSON.parse(savedOriginal);
+      const scene = parsed.scenes?.[sceneIndex];
+      const clip = scene?.clips?.[clipIndex];
+      return clip?.[field] ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   // BgSheet Generator state (Stage 4)
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
@@ -711,6 +780,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         storyboardGenerator,
         startStoryboardGeneration,
         clearStoryboardGeneration,
+        updateClipPrompt,
+        getOriginalClipPrompt,
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,

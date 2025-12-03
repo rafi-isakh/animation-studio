@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { Loader2, Sparkles, RefreshCw, Pencil, Check, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import type { Continuity, ClipImageState, ReferenceImage } from "../types";
+import type { EditableClipField } from "../../MithrilContext";
 import { BackgroundSelector } from "./StoryboardTable";
 
 interface ClipTableRowProps {
@@ -25,6 +26,134 @@ interface ClipTableRowProps {
   onBgSelect: (refId: string | null) => void;
   onGenerateClip: () => void;
   onOpenLightbox: (base64: string, clipName: string) => void;
+  onUpdatePrompt: (field: EditableClipField, value: string) => void;
+  getOriginalPrompt: (field: EditableClipField) => string | null;
+}
+
+// Editable cell component for prompts
+function EditablePromptCell({
+  value,
+  originalValue,
+  onSave,
+  placeholderKey,
+}: {
+  value: string;
+  originalValue: string | null;
+  onSave: (newValue: string) => void;
+  placeholderKey?: string;
+}) {
+  const { language, dictionary } = useLanguage();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync editValue when value prop changes (e.g., after reset)
+  useEffect(() => {
+    if (!isEditing) {
+      setEditValue(value);
+    }
+  }, [value, isEditing]);
+
+  // Auto-focus and auto-resize textarea when entering edit mode
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    onSave(editValue);
+    setIsEditing(false);
+  };
+
+  const handleReset = () => {
+    if (originalValue !== null) {
+      onSave(originalValue);
+      setEditValue(originalValue);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setEditValue(value);
+      setIsEditing(false);
+    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      handleSave();
+    }
+  };
+
+  const hasChanges = originalValue !== null && value !== originalValue;
+
+  if (isEditing) {
+    return (
+      <div className="flex flex-col gap-2">
+        <textarea
+          ref={textareaRef}
+          value={editValue}
+          onChange={(e) => {
+            setEditValue(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = e.target.scrollHeight + "px";
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholderKey ? phrase(dictionary, placeholderKey, language) : ""}
+          className="w-full min-h-[60px] p-2 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
+        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+            title={phrase(dictionary, "storyboard_edit_save_hint", language)}
+          >
+            <Check className="w-3 h-3" />
+            {phrase(dictionary, "storyboard_edit_save", language)}
+          </button>
+          {originalValue !== null && (
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors"
+              title={phrase(dictionary, "storyboard_edit_reset_hint", language)}
+            >
+              <RotateCcw className="w-3 h-3" />
+              {phrase(dictionary, "storyboard_edit_reset", language)}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative">
+      <div className="whitespace-pre-wrap pr-6">
+        {value || <span className="text-gray-400 italic">{phrase(dictionary, "storyboard_edit_empty", language)}</span>}
+      </div>
+      <div className="absolute top-0 right-0 flex items-center gap-1">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="p-1 text-gray-400 hover:text-[#DB2777] opacity-0 group-hover:opacity-100 transition-opacity"
+          title={phrase(dictionary, "storyboard_edit_button", language)}
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+        {hasChanges && (
+          <button
+            onClick={handleReset}
+            className="p-1 text-amber-500 hover:text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity"
+            title={phrase(dictionary, "storyboard_edit_reset_hint", language)}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+      {hasChanges && (
+        <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-l -ml-2" title={phrase(dictionary, "storyboard_edit_modified", language)} />
+      )}
+    </div>
+  );
 }
 
 export default function ClipTableRow({
@@ -43,6 +172,8 @@ export default function ClipTableRow({
   onBgSelect,
   onGenerateClip,
   onOpenLightbox,
+  onUpdatePrompt,
+  getOriginalPrompt,
 }: ClipTableRowProps) {
   const { language, dictionary } = useLanguage();
 
@@ -75,7 +206,7 @@ export default function ClipTableRow({
           {isLoadingRefs ? (
             <div className="flex items-center gap-2 text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">Loading...</span>
+              <span className="text-xs">{phrase(dictionary, "storyboard_loading", language)}</span>
             </div>
           ) : availableReferences.length === 0 ? (
             <span className="text-xs text-gray-400">
@@ -158,32 +289,89 @@ export default function ClipTableRow({
         <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           {row.story}
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          {row.imagePrompt}
+
+        {/* Editable Image Prompt */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePrompt}
+            originalValue={getOriginalPrompt('imagePrompt')}
+            onSave={(newValue) => onUpdatePrompt('imagePrompt', newValue)}
+            placeholderKey="storyboard_edit_image_prompt_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          {row.videoPrompt}
+
+        {/* Editable Video Prompt */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+          <EditablePromptCell
+            value={row.videoPrompt}
+            originalValue={getOriginalPrompt('videoPrompt')}
+            onSave={(newValue) => onUpdatePrompt('videoPrompt', newValue)}
+            placeholderKey="storyboard_edit_video_prompt_placeholder"
+          />
         </td>
+
         <td className="whitespace-pre-wrap px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
           {row.soraVideoPrompt}
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-          {row.dialogue}
+
+        {/* Editable Dialogue (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+          <EditablePromptCell
+            value={row.dialogue}
+            originalValue={getOriginalPrompt('dialogue')}
+            onSave={(newValue) => onUpdatePrompt('dialogue', newValue)}
+            placeholderKey="storyboard_edit_dialogue_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-          {row.dialogueEn}
+
+        {/* Editable Dialogue (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+          <EditablePromptCell
+            value={row.dialogueEn}
+            originalValue={getOriginalPrompt('dialogueEn')}
+            onSave={(newValue) => onUpdatePrompt('dialogueEn', newValue)}
+            placeholderKey="storyboard_edit_dialogue_en_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.sfx}
+
+        {/* Editable SFX (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.sfx}
+            originalValue={getOriginalPrompt('sfx')}
+            onSave={(newValue) => onUpdatePrompt('sfx', newValue)}
+            placeholderKey="storyboard_edit_sfx_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.sfxEn}
+
+        {/* Editable SFX (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.sfxEn}
+            originalValue={getOriginalPrompt('sfxEn')}
+            onSave={(newValue) => onUpdatePrompt('sfxEn', newValue)}
+            placeholderKey="storyboard_edit_sfx_en_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.bgm}
+
+        {/* Editable BGM (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.bgm}
+            originalValue={getOriginalPrompt('bgm')}
+            onSave={(newValue) => onUpdatePrompt('bgm', newValue)}
+            placeholderKey="storyboard_edit_bgm_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.bgmEn}
+
+        {/* Editable BGM (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.bgmEn}
+            originalValue={getOriginalPrompt('bgmEn')}
+            onSave={(newValue) => onUpdatePrompt('bgmEn', newValue)}
+            placeholderKey="storyboard_edit_bgm_en_placeholder"
+          />
         </td>
       </tr>
     </React.Fragment>

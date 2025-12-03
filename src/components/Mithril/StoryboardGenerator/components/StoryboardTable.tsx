@@ -205,7 +205,7 @@ export default function StoryboardTable({
   voicePrompts,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
-  const { customApiKey } = useMithril();
+  const { customApiKey, updateClipPrompt, getOriginalClipPrompt } = useMithril();
 
   // Load references from hook
   const {
@@ -895,6 +895,8 @@ export default function StoryboardTable({
                       onBgSelect={(refId) => handleBgSelect(sceneIndex, clipIndex, refId)}
                       onGenerateClip={() => generateClipImage(sceneIndex, clipIndex, row)}
                       onOpenLightbox={(base64, clipName) => setLightboxImage({ base64, clipName })}
+                      onUpdatePrompt={(field, value) => updateClipPrompt(sceneIndex, clipIndex, field, value)}
+                      getOriginalPrompt={(field) => getOriginalClipPrompt(sceneIndex, clipIndex, field)}
                     />
                   );
                 })}

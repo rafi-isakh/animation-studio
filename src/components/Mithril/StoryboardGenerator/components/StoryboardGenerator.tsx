@@ -331,6 +331,7 @@ export default function StoryboardGenerator() {
     try {
       // Collect data from localStorage
       const storyboardResult = localStorage.getItem("storyboard_result");
+      const storyboardResultOriginal = localStorage.getItem("storyboard_result_original");
       const storyboardSceneImagesMetadata = localStorage.getItem(STORAGE_KEY);
 
       // Collect images from IndexedDB
@@ -340,6 +341,7 @@ export default function StoryboardGenerator() {
         version: "1.0",
         savedAt: Date.now(),
         storyboardResult: storyboardResult ? JSON.parse(storyboardResult) : null,
+        storyboardResultOriginal: storyboardResultOriginal ? JSON.parse(storyboardResultOriginal) : null,
         storyboardSceneImagesMetadata: storyboardSceneImagesMetadata ? JSON.parse(storyboardSceneImagesMetadata) : null,
         storyboardSceneImages,
       };
@@ -397,6 +399,13 @@ export default function StoryboardGenerator() {
       // Restore localStorage data
       if (sessionData.storyboardResult) {
         localStorage.setItem("storyboard_result", JSON.stringify(sessionData.storyboardResult));
+      }
+      // Restore original values for reset functionality
+      if (sessionData.storyboardResultOriginal) {
+        localStorage.setItem("storyboard_result_original", JSON.stringify(sessionData.storyboardResultOriginal));
+      } else if (sessionData.storyboardResult) {
+        // Fallback: if no original saved (old session format), use storyboardResult as original
+        localStorage.setItem("storyboard_result_original", JSON.stringify(sessionData.storyboardResult));
       }
       if (sessionData.storyboardSceneImagesMetadata) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData.storyboardSceneImagesMetadata));

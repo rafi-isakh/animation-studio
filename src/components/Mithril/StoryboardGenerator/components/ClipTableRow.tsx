@@ -35,14 +35,15 @@ function EditablePromptCell({
   originalValue,
   onSave,
   onReset,
-  placeholder,
+  placeholderKey,
 }: {
   value: string;
   originalValue: string | null;
   onSave: (newValue: string) => void;
   onReset: () => void;
-  placeholder?: string;
+  placeholderKey?: string;
 }) {
+  const { language, dictionary } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -99,26 +100,26 @@ function EditablePromptCell({
             e.target.style.height = e.target.scrollHeight + "px";
           }}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholderKey ? phrase(dictionary, placeholderKey, language) : ""}
           className="w-full min-h-[60px] p-2 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
         />
         <div className="flex items-center gap-2">
           <button
             onClick={handleSave}
             className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-            title="Save (Ctrl+Enter)"
+            title={phrase(dictionary, "storyboard_edit_save_hint", language)}
           >
             <Check className="w-3 h-3" />
-            Save
+            {phrase(dictionary, "storyboard_edit_save", language)}
           </button>
           {originalValue !== null && (
             <button
               onClick={handleReset}
               className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors"
-              title="Reset to original"
+              title={phrase(dictionary, "storyboard_edit_reset_hint", language)}
             >
               <RotateCcw className="w-3 h-3" />
-              Reset
+              {phrase(dictionary, "storyboard_edit_reset", language)}
             </button>
           )}
         </div>
@@ -129,13 +130,13 @@ function EditablePromptCell({
   return (
     <div className="group relative">
       <div className="whitespace-pre-wrap pr-6">
-        {value || <span className="text-gray-400 italic">Empty</span>}
+        {value || <span className="text-gray-400 italic">{phrase(dictionary, "storyboard_edit_empty", language)}</span>}
       </div>
       <div className="absolute top-0 right-0 flex items-center gap-1">
         <button
           onClick={() => setIsEditing(true)}
           className="p-1 text-gray-400 hover:text-[#DB2777] opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Edit"
+          title={phrase(dictionary, "storyboard_edit_button", language)}
         >
           <Pencil className="w-3.5 h-3.5" />
         </button>
@@ -143,14 +144,14 @@ function EditablePromptCell({
           <button
             onClick={handleReset}
             className="p-1 text-amber-500 hover:text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity"
-            title="Reset to original"
+            title={phrase(dictionary, "storyboard_edit_reset_hint", language)}
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
       {hasChanges && (
-        <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-l -ml-2" title="Modified" />
+        <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-l -ml-2" title={phrase(dictionary, "storyboard_edit_modified", language)} />
       )}
     </div>
   );
@@ -206,7 +207,7 @@ export default function ClipTableRow({
           {isLoadingRefs ? (
             <div className="flex items-center gap-2 text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">Loading...</span>
+              <span className="text-xs">{phrase(dictionary, "storyboard_loading", language)}</span>
             </div>
           ) : availableReferences.length === 0 ? (
             <span className="text-xs text-gray-400">
@@ -302,7 +303,7 @@ export default function ClipTableRow({
                 onUpdatePrompt('imagePrompt', original);
               }
             }}
-            placeholder="Enter image prompt..."
+            placeholderKey="storyboard_edit_image_prompt_placeholder"
           />
         </td>
 
@@ -318,7 +319,7 @@ export default function ClipTableRow({
                 onUpdatePrompt('videoPrompt', original);
               }
             }}
-            placeholder="Enter video prompt..."
+            placeholderKey="storyboard_edit_video_prompt_placeholder"
           />
         </td>
 

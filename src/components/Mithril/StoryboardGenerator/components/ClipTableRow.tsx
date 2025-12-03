@@ -6,6 +6,7 @@ import { Loader2, Sparkles, RefreshCw, Pencil, Check, RotateCcw } from "lucide-r
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import type { Continuity, ClipImageState, ReferenceImage } from "../types";
+import type { EditableClipField } from "../../MithrilContext";
 import { BackgroundSelector } from "./StoryboardTable";
 
 interface ClipTableRowProps {
@@ -25,8 +26,8 @@ interface ClipTableRowProps {
   onBgSelect: (refId: string | null) => void;
   onGenerateClip: () => void;
   onOpenLightbox: (base64: string, clipName: string) => void;
-  onUpdatePrompt: (field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn', value: string) => void;
-  getOriginalPrompt: (field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn') => string | null;
+  onUpdatePrompt: (field: EditableClipField, value: string) => void;
+  getOriginalPrompt: (field: EditableClipField) => string | null;
 }
 
 // Editable cell component for prompts
@@ -34,13 +35,11 @@ function EditablePromptCell({
   value,
   originalValue,
   onSave,
-  onReset,
   placeholderKey,
 }: {
   value: string;
   originalValue: string | null;
   onSave: (newValue: string) => void;
-  onReset: () => void;
   placeholderKey?: string;
 }) {
   const { language, dictionary } = useLanguage();
@@ -71,7 +70,7 @@ function EditablePromptCell({
 
   const handleReset = () => {
     if (originalValue !== null) {
-      onReset();
+      onSave(originalValue);
       setEditValue(originalValue);
     }
     setIsEditing(false);
@@ -297,12 +296,6 @@ export default function ClipTableRow({
             value={row.imagePrompt}
             originalValue={getOriginalPrompt('imagePrompt')}
             onSave={(newValue) => onUpdatePrompt('imagePrompt', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('imagePrompt');
-              if (original !== null) {
-                onUpdatePrompt('imagePrompt', original);
-              }
-            }}
             placeholderKey="storyboard_edit_image_prompt_placeholder"
           />
         </td>
@@ -313,12 +306,6 @@ export default function ClipTableRow({
             value={row.videoPrompt}
             originalValue={getOriginalPrompt('videoPrompt')}
             onSave={(newValue) => onUpdatePrompt('videoPrompt', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('videoPrompt');
-              if (original !== null) {
-                onUpdatePrompt('videoPrompt', original);
-              }
-            }}
             placeholderKey="storyboard_edit_video_prompt_placeholder"
           />
         </td>
@@ -333,10 +320,6 @@ export default function ClipTableRow({
             value={row.dialogue}
             originalValue={getOriginalPrompt('dialogue')}
             onSave={(newValue) => onUpdatePrompt('dialogue', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('dialogue');
-              if (original !== null) onUpdatePrompt('dialogue', original);
-            }}
             placeholderKey="storyboard_edit_dialogue_placeholder"
           />
         </td>
@@ -347,10 +330,6 @@ export default function ClipTableRow({
             value={row.dialogueEn}
             originalValue={getOriginalPrompt('dialogueEn')}
             onSave={(newValue) => onUpdatePrompt('dialogueEn', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('dialogueEn');
-              if (original !== null) onUpdatePrompt('dialogueEn', original);
-            }}
             placeholderKey="storyboard_edit_dialogue_en_placeholder"
           />
         </td>
@@ -361,10 +340,6 @@ export default function ClipTableRow({
             value={row.sfx}
             originalValue={getOriginalPrompt('sfx')}
             onSave={(newValue) => onUpdatePrompt('sfx', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('sfx');
-              if (original !== null) onUpdatePrompt('sfx', original);
-            }}
             placeholderKey="storyboard_edit_sfx_placeholder"
           />
         </td>
@@ -375,10 +350,6 @@ export default function ClipTableRow({
             value={row.sfxEn}
             originalValue={getOriginalPrompt('sfxEn')}
             onSave={(newValue) => onUpdatePrompt('sfxEn', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('sfxEn');
-              if (original !== null) onUpdatePrompt('sfxEn', original);
-            }}
             placeholderKey="storyboard_edit_sfx_en_placeholder"
           />
         </td>
@@ -389,10 +360,6 @@ export default function ClipTableRow({
             value={row.bgm}
             originalValue={getOriginalPrompt('bgm')}
             onSave={(newValue) => onUpdatePrompt('bgm', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('bgm');
-              if (original !== null) onUpdatePrompt('bgm', original);
-            }}
             placeholderKey="storyboard_edit_bgm_placeholder"
           />
         </td>
@@ -403,10 +370,6 @@ export default function ClipTableRow({
             value={row.bgmEn}
             originalValue={getOriginalPrompt('bgmEn')}
             onSave={(newValue) => onUpdatePrompt('bgmEn', newValue)}
-            onReset={() => {
-              const original = getOriginalPrompt('bgmEn');
-              if (original !== null) onUpdatePrompt('bgmEn', original);
-            }}
             placeholderKey="storyboard_edit_bgm_en_placeholder"
           />
         </td>

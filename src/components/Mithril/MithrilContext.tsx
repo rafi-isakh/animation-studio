@@ -8,6 +8,9 @@ import { clearBgImagesOnly, clearCharacterImagesOnly, clearStoryboardSceneImages
 
 const TOTAL_STAGES = 7;
 
+// Editable clip field type (shared across components)
+export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+
 // Types for Story Analyzer
 // interface StoryAnalyzerState {
 //   isLoading: boolean;
@@ -119,8 +122,8 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
-  updateClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn', value: string) => void;
-  getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn') => string | null;
+  updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
+  getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 
   // BgSheet Generator (Stage 5)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -451,7 +454,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const updateClipPrompt = useCallback((
     sceneIndex: number,
     clipIndex: number,
-    field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn',
+    field: EditableClipField,
     value: string
   ) => {
     setStoryboardGenerator(prev => {
@@ -488,7 +491,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const getOriginalClipPrompt = useCallback((
     sceneIndex: number,
     clipIndex: number,
-    field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn'
+    field: EditableClipField
   ): string | null => {
     const savedOriginal = localStorage.getItem("storyboard_result_original");
     if (!savedOriginal) return null;

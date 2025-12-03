@@ -119,8 +119,8 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
-  updateClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt', value: string) => void;
-  getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt') => string | null;
+  updateClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn', value: string) => void;
+  getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn') => string | null;
 
   // BgSheet Generator (Stage 5)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -447,11 +447,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     clearStageResult(5);
   }, [clearStageResult]);
 
-  // Update a specific clip's prompt (imagePrompt or videoPrompt)
+  // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((
     sceneIndex: number,
     clipIndex: number,
-    field: 'imagePrompt' | 'videoPrompt',
+    field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn',
     value: string
   ) => {
     setStoryboardGenerator(prev => {
@@ -488,7 +488,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const getOriginalClipPrompt = useCallback((
     sceneIndex: number,
     clipIndex: number,
-    field: 'imagePrompt' | 'videoPrompt'
+    field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn'
   ): string | null => {
     const savedOriginal = localStorage.getItem("storyboard_result_original");
     if (!savedOriginal) return null;

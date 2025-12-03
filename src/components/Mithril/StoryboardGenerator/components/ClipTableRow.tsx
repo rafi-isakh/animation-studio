@@ -25,8 +25,8 @@ interface ClipTableRowProps {
   onBgSelect: (refId: string | null) => void;
   onGenerateClip: () => void;
   onOpenLightbox: (base64: string, clipName: string) => void;
-  onUpdatePrompt: (field: 'imagePrompt' | 'videoPrompt', value: string) => void;
-  getOriginalPrompt: (field: 'imagePrompt' | 'videoPrompt') => string | null;
+  onUpdatePrompt: (field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn', value: string) => void;
+  getOriginalPrompt: (field: 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn') => string | null;
 }
 
 // Editable cell component for prompts
@@ -326,23 +326,89 @@ export default function ClipTableRow({
         <td className="whitespace-pre-wrap px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
           {row.soraVideoPrompt}
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-          {row.dialogue}
+
+        {/* Editable Dialogue (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+          <EditablePromptCell
+            value={row.dialogue}
+            originalValue={getOriginalPrompt('dialogue')}
+            onSave={(newValue) => onUpdatePrompt('dialogue', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('dialogue');
+              if (original !== null) onUpdatePrompt('dialogue', original);
+            }}
+            placeholderKey="storyboard_edit_dialogue_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
-          {row.dialogueEn}
+
+        {/* Editable Dialogue (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+          <EditablePromptCell
+            value={row.dialogueEn}
+            originalValue={getOriginalPrompt('dialogueEn')}
+            onSave={(newValue) => onUpdatePrompt('dialogueEn', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('dialogueEn');
+              if (original !== null) onUpdatePrompt('dialogueEn', original);
+            }}
+            placeholderKey="storyboard_edit_dialogue_en_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.sfx}
+
+        {/* Editable SFX (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.sfx}
+            originalValue={getOriginalPrompt('sfx')}
+            onSave={(newValue) => onUpdatePrompt('sfx', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('sfx');
+              if (original !== null) onUpdatePrompt('sfx', original);
+            }}
+            placeholderKey="storyboard_edit_sfx_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.sfxEn}
+
+        {/* Editable SFX (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.sfxEn}
+            originalValue={getOriginalPrompt('sfxEn')}
+            onSave={(newValue) => onUpdatePrompt('sfxEn', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('sfxEn');
+              if (original !== null) onUpdatePrompt('sfxEn', original);
+            }}
+            placeholderKey="storyboard_edit_sfx_en_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.bgm}
+
+        {/* Editable BGM (Ko) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.bgm}
+            originalValue={getOriginalPrompt('bgm')}
+            onSave={(newValue) => onUpdatePrompt('bgm', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('bgm');
+              if (original !== null) onUpdatePrompt('bgm', original);
+            }}
+            placeholderKey="storyboard_edit_bgm_placeholder"
+          />
         </td>
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
-          {row.bgmEn}
+
+        {/* Editable BGM (En) */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
+          <EditablePromptCell
+            value={row.bgmEn}
+            originalValue={getOriginalPrompt('bgmEn')}
+            onSave={(newValue) => onUpdatePrompt('bgmEn', newValue)}
+            onReset={() => {
+              const original = getOriginalPrompt('bgmEn');
+              if (original !== null) onUpdatePrompt('bgmEn', original);
+            }}
+            placeholderKey="storyboard_edit_bgm_en_placeholder"
+          />
         </td>
       </tr>
     </React.Fragment>

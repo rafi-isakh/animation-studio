@@ -32,13 +32,13 @@ const Loader: React.FC<LoaderProps> = ({ message }) => (
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function SoraVideoGenerator() {
-  const { setStageResult } = useMithril();
+  const { setStageResult, currentStage } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
   // Loading state
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const hasLoadedRef = useRef(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Clip data
   const [clips, setClips] = useState<SoraVideoClip[]>([]);
@@ -68,22 +68,33 @@ export default function SoraVideoGenerator() {
     };
   }, []);
 
-  // Load storyboard data and NanoBanana images on mount
+  // Load storyboard data and NanoBanana images when entering this stage
+  // Re-loads when navigating back to this stage to pick up any edited prompts
   useEffect(() => {
-    if (hasLoadedRef.current) return;
+    // Reset loaded state when leaving this stage so we reload on next visit
+    if (currentStage !== 6) {
+      setHasLoaded(false);
+      return;
+    }
+
+    // Already loaded for this stage visit
+    if (hasLoaded) return;
 
     const loadData = async () => {
+      setIsLoadingData(true);
       try {
         // 1. Load storyboard result from localStorage
         const storyboardRaw = localStorage.getItem("storyboard_result");
         if (!storyboardRaw) {
           setIsLoadingData(false);
+          setHasLoaded(true);
           return;
         }
 
         const storyboardData = JSON.parse(storyboardRaw) as { scenes: Scene[] };
         if (!storyboardData.scenes || storyboardData.scenes.length === 0) {
           setIsLoadingData(false);
+          setHasLoaded(true);
           return;
         }
 
@@ -150,7 +161,7 @@ export default function SoraVideoGenerator() {
           setIsSaved(true);
         }
 
-        hasLoadedRef.current = true;
+        setHasLoaded(true);
       } catch (err) {
         console.error("Error loading data:", err);
         toast({
@@ -164,7 +175,7 @@ export default function SoraVideoGenerator() {
     };
 
     loadData();
-  }, [toast, dictionary, language]);
+  }, [currentStage, hasLoaded, toast, dictionary, language]);
 
   // Auto-save helper (silent, no toast)
   const autoSave = useCallback((updatedClips: SoraVideoClip[]) => {

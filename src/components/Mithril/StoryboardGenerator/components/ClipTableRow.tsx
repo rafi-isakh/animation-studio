@@ -8,6 +8,16 @@ import { phrase } from "@/utils/phrases";
 import type { Continuity, ClipImageState, ReferenceImage } from "../types";
 import type { EditableClipField } from "../../MithrilContext";
 import { BackgroundSelector } from "./StoryboardTable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/shadcnUI/AlertDialog";
 
 interface ClipTableRowProps {
   row: Continuity;
@@ -279,9 +289,31 @@ export default function ClipTableRow({
             )}
 
             {clipState?.error && (
-              <span className="text-xs text-red-500 max-w-[180px] truncate" title={clipState.error}>
-                {clipState.error}
-              </span>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <span
+                    className="text-xs text-red-500 max-w-[180px] truncate cursor-pointer hover:underline"
+                    title={phrase(dictionary, "storyboard_click_to_view_error", language) || "Click to view full error"}
+                  >
+                    {clipState.error}
+                  </span>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="z-[2500] bg-white dark:bg-[#211F21] border-none">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-red-500">
+                      {phrase(dictionary, "storyboard_generation_error", language) || "Generation Error"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="max-h-[300px] overflow-y-auto whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                      {clipState.error}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogAction>
+                      {phrase(dictionary, "dismiss", language) || "Dismiss"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </td>

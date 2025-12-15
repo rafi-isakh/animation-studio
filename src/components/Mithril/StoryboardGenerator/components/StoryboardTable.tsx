@@ -448,11 +448,20 @@ export default function StoryboardTable({
         }),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || "Failed to generate image");
+        const text = await response.text();
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorJson = JSON.parse(text);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          // Response is not JSON, use the text directly if available
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
+
+      const result = await response.json();
 
       // Update state with generated image
       setClipImageStates(prev => {

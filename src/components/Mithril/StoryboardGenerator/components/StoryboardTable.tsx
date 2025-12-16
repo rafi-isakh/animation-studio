@@ -146,30 +146,17 @@ export const BackgroundSelector = React.memo(function BackgroundSelector({
   );
 });
 
-// Memoized character selection item
-// Uses native img with lazy loading for better performance
-const CharacterSelectionItem = React.memo(function CharacterSelectionItem({
-  charId,
+// Memoized character display item (display-only, non-interactive)
+// Characters are automatically matched by name in the image prompt
+const CharacterDisplayItem = React.memo(function CharacterDisplayItem({
   characterName,
   objectUrl,
-  isSelected,
-  onToggle,
 }: {
-  charId: string;
   characterName: string;
   objectUrl: string;
-  isSelected: boolean;
-  onToggle: (charId: string) => void;
 }) {
   return (
-    <button
-      onClick={() => onToggle(charId)}
-      className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-        isSelected
-          ? "border-[#DB2777] ring-2 ring-[#DB2777]/30"
-          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-      }`}
-    >
+    <div className="relative rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-600">
       <div className="aspect-square relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -178,20 +165,13 @@ const CharacterSelectionItem = React.memo(function CharacterSelectionItem({
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {isSelected && (
-          <div className="absolute top-1 right-1 w-5 h-5 bg-[#DB2777] rounded-full flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          </div>
-        )}
       </div>
       <div className="p-1.5 bg-white dark:bg-gray-700 text-center">
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate block">
           {characterName}
         </span>
       </div>
-    </button>
+    </div>
   );
 });
 
@@ -224,9 +204,6 @@ export default function StoryboardTable({
   // Aspect ratio for generated images
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
 
-  // Selected character IDs for generation
-  const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
-
   // Clip image states: Map<"sceneIdx-clipIdx", ClipImageState>
   const [clipImageStates, setClipImageStates] = useState<Map<string, ClipImageState>>(new Map());
 
@@ -235,13 +212,6 @@ export default function StoryboardTable({
 
   // Lightbox modal state for viewing images in full size
   const [lightboxImage, setLightboxImage] = useState<{ base64: string; clipName: string } | null>(null);
-
-  // Auto-select all characters by default when they load
-  useEffect(() => {
-    if (availableCharacters.length > 0 && selectedCharacterIds.size === 0) {
-      setSelectedCharacterIds(new Set(availableCharacters.map(c => c.id)));
-    }
-  }, [availableCharacters, selectedCharacterIds.size]);
 
   // Initialize clip image states when data changes or saved images are loaded
   useEffect(() => {
@@ -619,19 +589,6 @@ export default function StoryboardTable({
     };
   }, [characterObjectUrls]);
 
-  // Toggle character selection
-  const toggleCharacterSelection = useCallback((charId: string) => {
-    setSelectedCharacterIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(charId)) {
-        newSet.delete(charId);
-      } else {
-        newSet.add(charId);
-      }
-      return newSet;
-    });
-  }, []);
-
   const clipHeaders = [
     phrase(dictionary, "table_clip", language),
     phrase(dictionary, "table_length", language),
@@ -705,10 +662,10 @@ export default function StoryboardTable({
       {/* Reference Images from Character Sheet Generator */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          {phrase(dictionary, "storyboard_char_reference", language) || "Reference Images from Character Sheet Generator"}
+          {phrase(dictionary, "storyboard_char_reference", language) || "Available Character References"}
         </label>
         <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
-          {phrase(dictionary, "storyboard_char_reference_hint", language) || "Select character references to use for all scene image generations"}
+          {phrase(dictionary, "storyboard_char_reference_hint", language) || "Characters are automatically matched by name in the image prompt"}
         </p>
 
         {availableCharacters.length === 0 ? (
@@ -718,22 +675,13 @@ export default function StoryboardTable({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {availableCharacters.map((char) => (
-              <CharacterSelectionItem
+              <CharacterDisplayItem
                 key={char.id}
-                charId={char.id}
                 characterName={char.characterName}
                 objectUrl={characterObjectUrls.get(char.id) || ""}
-                isSelected={selectedCharacterIds.has(char.id)}
-                onToggle={toggleCharacterSelection}
               />
             ))}
           </div>
-        )}
-
-        {selectedCharacterIds.size > 0 && (
-          <p className="mt-2 text-xs text-[#DB2777]">
-            {selectedCharacterIds.size} {phrase(dictionary, "storyboard_chars_selected", language) || "character(s) selected"}
-          </p>
         )}
       </div>
 

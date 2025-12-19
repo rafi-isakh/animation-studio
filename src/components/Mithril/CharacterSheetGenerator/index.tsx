@@ -591,10 +591,15 @@ export default function CharacterSheetGenerator() {
         localStorage.setItem("character_sheet_result", JSON.stringify(sessionData.characterSheetResult));
       }
 
+      // Clear existing IndexedDB images before restoring
+      await clearCharacterImagesOnly();
+
       // Restore IndexedDB images
       if (sessionData.characterImages && Array.isArray(sessionData.characterImages)) {
         for (const img of sessionData.characterImages) {
-          await saveCharacterImage(img);
+          if (img.base64) {
+            await saveCharacterImage(img);
+          }
         }
       }
 

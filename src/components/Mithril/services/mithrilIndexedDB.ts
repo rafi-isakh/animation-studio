@@ -201,26 +201,48 @@ export const clearAllData = async (): Promise<void> => {
 // Clear only background images (preserves NanoBanana images)
 export const clearBgImagesOnly = async (): Promise<void> => {
   const database = await getDB();
-  const transaction = database.transaction([STORE_NAME], "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
 
-  return new Promise((resolve, reject) => {
+  // Phase 1: Collect all keys to delete (read-only transaction)
+  const keysToDelete: IDBValidKey[] = await new Promise((resolve, reject) => {
+    const readTransaction = database.transaction([STORE_NAME], "readonly");
+    const store = readTransaction.objectStore(STORE_NAME);
+    const keys: IDBValidKey[] = [];
     const request = store.openCursor();
 
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
         if (cursor.value.type === "bg_image") {
-          cursor.delete();
+          keys.push(cursor.key);
         }
         cursor.continue();
       }
     };
 
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => {
-      console.error("Error clearing bg images from MithrilDB:", transaction.error);
-      reject(transaction.error);
+    readTransaction.oncomplete = () => resolve(keys);
+    readTransaction.onerror = () => {
+      console.error("Error reading bg images from MithrilDB:", readTransaction.error);
+      reject(readTransaction.error);
+    };
+  });
+
+  if (keysToDelete.length === 0) {
+    return;
+  }
+
+  // Phase 2: Delete all collected keys (readwrite transaction)
+  return new Promise((resolve, reject) => {
+    const writeTransaction = database.transaction([STORE_NAME], "readwrite");
+    const store = writeTransaction.objectStore(STORE_NAME);
+
+    keysToDelete.forEach((key) => {
+      store.delete(key);
+    });
+
+    writeTransaction.oncomplete = () => resolve();
+    writeTransaction.onerror = () => {
+      console.error("Error clearing bg images from MithrilDB:", writeTransaction.error);
+      reject(writeTransaction.error);
     };
   });
 };
@@ -427,26 +449,48 @@ export const deleteCharacterImage = async (id: string): Promise<void> => {
 // Clear only character images (preserves BG and NanoBanana images)
 export const clearCharacterImagesOnly = async (): Promise<void> => {
   const database = await getDB();
-  const transaction = database.transaction([STORE_NAME], "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
 
-  return new Promise((resolve, reject) => {
+  // Phase 1: Collect all keys to delete (read-only transaction)
+  const keysToDelete: IDBValidKey[] = await new Promise((resolve, reject) => {
+    const readTransaction = database.transaction([STORE_NAME], "readonly");
+    const store = readTransaction.objectStore(STORE_NAME);
+    const keys: IDBValidKey[] = [];
     const request = store.openCursor();
 
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
         if (cursor.value.type === "character_image") {
-          cursor.delete();
+          keys.push(cursor.key);
         }
         cursor.continue();
       }
     };
 
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => {
-      console.error("Error clearing character images from MithrilDB:", transaction.error);
-      reject(transaction.error);
+    readTransaction.oncomplete = () => resolve(keys);
+    readTransaction.onerror = () => {
+      console.error("Error reading character images from MithrilDB:", readTransaction.error);
+      reject(readTransaction.error);
+    };
+  });
+
+  if (keysToDelete.length === 0) {
+    return;
+  }
+
+  // Phase 2: Delete all collected keys (readwrite transaction)
+  return new Promise((resolve, reject) => {
+    const writeTransaction = database.transaction([STORE_NAME], "readwrite");
+    const store = writeTransaction.objectStore(STORE_NAME);
+
+    keysToDelete.forEach((key) => {
+      store.delete(key);
+    });
+
+    writeTransaction.oncomplete = () => resolve();
+    writeTransaction.onerror = () => {
+      console.error("Error clearing character images from MithrilDB:", writeTransaction.error);
+      reject(writeTransaction.error);
     };
   });
 };
@@ -525,26 +569,48 @@ export const getAllStoryboardSceneImages = async (): Promise<StoryboardSceneImag
 // Clear only storyboard scene images
 export const clearStoryboardSceneImagesOnly = async (): Promise<void> => {
   const database = await getDB();
-  const transaction = database.transaction([STORE_NAME], "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
 
-  return new Promise((resolve, reject) => {
+  // Phase 1: Collect all keys to delete (read-only transaction)
+  const keysToDelete: IDBValidKey[] = await new Promise((resolve, reject) => {
+    const readTransaction = database.transaction([STORE_NAME], "readonly");
+    const store = readTransaction.objectStore(STORE_NAME);
+    const keys: IDBValidKey[] = [];
     const request = store.openCursor();
 
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
         if (cursor.value.type === "storyboard_scene_image") {
-          cursor.delete();
+          keys.push(cursor.key);
         }
         cursor.continue();
       }
     };
 
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => {
-      console.error("Error clearing storyboard scene images from MithrilDB:", transaction.error);
-      reject(transaction.error);
+    readTransaction.oncomplete = () => resolve(keys);
+    readTransaction.onerror = () => {
+      console.error("Error reading storyboard scene images from MithrilDB:", readTransaction.error);
+      reject(readTransaction.error);
+    };
+  });
+
+  if (keysToDelete.length === 0) {
+    return;
+  }
+
+  // Phase 2: Delete all collected keys (readwrite transaction)
+  return new Promise((resolve, reject) => {
+    const writeTransaction = database.transaction([STORE_NAME], "readwrite");
+    const store = writeTransaction.objectStore(STORE_NAME);
+
+    keysToDelete.forEach((key) => {
+      store.delete(key);
+    });
+
+    writeTransaction.oncomplete = () => resolve();
+    writeTransaction.onerror = () => {
+      console.error("Error clearing storyboard scene images from MithrilDB:", writeTransaction.error);
+      reject(writeTransaction.error);
     };
   });
 };

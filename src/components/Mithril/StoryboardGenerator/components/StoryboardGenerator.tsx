@@ -22,6 +22,7 @@ import { uploadFileToDrive } from "../services";
 import {
   getAllStoryboardSceneImages,
   saveStoryboardSceneImage,
+  clearStoryboardSceneImagesOnly,
 } from "../../services/mithrilIndexedDB";
 import type { SplitResult } from "../types";
 
@@ -411,10 +412,15 @@ export default function StoryboardGenerator() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData.storyboardSceneImagesMetadata));
       }
 
+      // Clear existing IndexedDB images before restoring
+      await clearStoryboardSceneImagesOnly();
+
       // Restore IndexedDB images
       if (sessionData.storyboardSceneImages && Array.isArray(sessionData.storyboardSceneImages)) {
         for (const img of sessionData.storyboardSceneImages) {
-          await saveStoryboardSceneImage(img);
+          if (img.base64) {
+            await saveStoryboardSceneImage(img);
+          }
         }
       }
 

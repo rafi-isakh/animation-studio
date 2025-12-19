@@ -864,10 +864,15 @@ export default function BgSheetGenerator() {
         localStorage.setItem("bg_sheet_result", JSON.stringify(sessionData.bgSheetResult));
       }
 
+      // Clear existing IndexedDB images before restoring
+      await clearBgImagesOnly();
+
       // Restore IndexedDB images
       if (sessionData.bgImages && Array.isArray(sessionData.bgImages)) {
         for (const img of sessionData.bgImages) {
-          await saveBgImage(img);
+          if (img.base64) {
+            await saveBgImage(img);
+          }
         }
       }
 

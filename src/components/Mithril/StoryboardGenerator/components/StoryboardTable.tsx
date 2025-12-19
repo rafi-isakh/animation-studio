@@ -16,6 +16,7 @@ import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata,
 import { useReferenceImages } from "../hooks/useReferenceImages";
 import LightboxModal from "./LightboxModal";
 import ClipTableRow from "./ClipTableRow";
+import { compressImage } from "../utils/imageUtils";
 
 const STORAGE_KEY = "storyboard_scene_images_metadata";
 
@@ -398,6 +399,17 @@ export default function StoryboardTable({
         .map(char => availableCharacters.find(ac => ac.characterId === char.id))
         .filter((ref): ref is CharacterReferenceImage => ref !== undefined);
 
+      // Compress reference images to reduce payload size
+      const compressedBg = selectedRef
+        ? await compressImage(selectedRef.base64, selectedRef.mimeType)
+        : null;
+
+      const compressedCharacters = await Promise.all(
+        matchedCharacterRefs.map(char =>
+          compressImage(char.base64, char.mimeType)
+        )
+      );
+
       const response = await fetch("/api/nano_banana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -405,14 +417,8 @@ export default function StoryboardTable({
           prompt: fullPrompt,
           aspectRatio,
           references: {
-            backgrounds: selectedRef ? [{
-              base64: selectedRef.base64,
-              mimeType: selectedRef.mimeType,
-            }] : [],
-            characters: matchedCharacterRefs.map(char => ({
-              base64: char.base64,
-              mimeType: char.mimeType,
-            })),
+            backgrounds: compressedBg ? [compressedBg] : [],
+            characters: compressedCharacters,
           },
           customApiKey: customApiKey || undefined,
         }),

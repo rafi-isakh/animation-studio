@@ -7,6 +7,17 @@ export const dynamic = 'force-dynamic';
 const BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME;
 const MITHRIL_S3_FOLDER = process.env.MITHRIL_S3_FOLDER;
 
+interface BgImageMetadata {
+  id: string;
+  type: string;
+  mimeType: string;
+  bgId: string;
+  angle: string;
+  createdAt: number;
+  s3Key?: string;
+  base64?: string;
+}
+
 export async function GET() {
   try {
     // Validate environment variables
@@ -17,31 +28,73 @@ export async function GET() {
       );
     }
 
-    // S3 key: folder/bgsheet_session.json
-    const key = `${MITHRIL_S3_FOLDER}/bgsheet_session.json`;
-
-    // Fetch from S3
-    const command = new GetObjectCommand({
+    // 1. Load metadata JSON
+    const metadataKey = `${MITHRIL_S3_FOLDER}/bgsheet_session.json`;
+    const metadataCommand = new GetObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: key,
+      Key: metadataKey,
     });
 
-    const response = await s3Client.send(command);
+    const metadataResponse = await s3Client.send(metadataCommand);
 
-    if (!response.Body) {
+    if (!metadataResponse.Body) {
       return NextResponse.json(
         { error: "No session found" },
         { status: 404 }
       );
     }
 
-    // Convert stream to string
-    const bodyContents = await response.Body.transformToString();
+    const bodyContents = await metadataResponse.Body.transformToString();
     const sessionData = JSON.parse(bodyContents);
 
+    // 2. Load each image from S3 (if they have s3Key)
+    const bgImages: BgImageMetadata[] = sessionData.bgImages || [];
+    const imagesWithData = await Promise.all(
+      bgImages.map(async (img: BgImageMetadata) => {
+        // Backwards compatibility: if no s3Key, image might have inline base64 (old format)
+        if (!img.s3Key) {
+          return img;
+        }
+
+        try {
+          const imageCommand = new GetObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: img.s3Key,
+          });
+
+          const imageResponse = await s3Client.send(imageCommand);
+
+          if (!imageResponse.Body) {
+            console.error(`No body for image ${img.s3Key}`);
+            return { ...img, base64: "", s3Key: undefined };
+          }
+
+          const imageBuffer = await imageResponse.Body.transformToByteArray();
+          const base64 = Buffer.from(imageBuffer).toString("base64");
+
+          return {
+            id: img.id,
+            type: img.type,
+            mimeType: img.mimeType,
+            bgId: img.bgId,
+            angle: img.angle,
+            createdAt: img.createdAt,
+            base64,
+          };
+        } catch (err) {
+          console.error(`Failed to load image ${img.s3Key}:`, err);
+          return { ...img, base64: "", s3Key: undefined };
+        }
+      })
+    );
+
+    // 3. Return complete session with images
     return NextResponse.json({
       success: true,
-      sessionData,
+      sessionData: {
+        ...sessionData,
+        bgImages: imagesWithData,
+      },
     });
   } catch (error: unknown) {
     // Check if it's a "NoSuchKey" error (file doesn't exist)

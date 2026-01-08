@@ -5,13 +5,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 
-const APPLE_ISSUER_ID = process.env.APPLE_ISSUER_ID!;
-const APPLE_KEY_ID = process.env.APPLE_KEY_ID!;
-const APPLE_PRIVATE_KEY = process.env.APPLE_PRIVATE_KEY!.replace(/\\n/g, '\n');
+const APPLE_ISSUER_ID = process.env.APPLE_ISSUER_ID;
+const APPLE_KEY_ID = process.env.APPLE_KEY_ID;
+const APPLE_PRIVATE_KEY_RAW = process.env.APPLE_PRIVATE_KEY;
+const APPLE_PRIVATE_KEY = APPLE_PRIVATE_KEY_RAW ? APPLE_PRIVATE_KEY_RAW.replace(/\\n/g, '\n') : undefined;
 
 console.log('APPLE_ISSUER_ID', APPLE_ISSUER_ID)
 console.log('APPLE_KEY_ID', APPLE_KEY_ID)
-console.log('APPLE_PRIVATE_KEY', APPLE_PRIVATE_KEY)
+console.log('APPLE_PRIVATE_KEY', Boolean(APPLE_PRIVATE_KEY))
 
 function generateJWT(): string {
   const now = Math.floor(Date.now() / 1000);
@@ -22,6 +23,10 @@ function generateJWT(): string {
     aud: 'appstoreconnect-v1',
     bid: 'com.toonyz.mobile'
   };
+
+  if (!APPLE_ISSUER_ID || !APPLE_KEY_ID || !APPLE_PRIVATE_KEY) {
+    throw new Error('Missing Apple configuration: APPLE_ISSUER_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY are required');
+  }
 
   return jwt.sign(payload, APPLE_PRIVATE_KEY, {
     algorithm: 'ES256',

@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
+import { getChapter } from "../services/firestore";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -105,6 +107,7 @@ export default function CharacterSheetGenerator() {
   const { setStageResult, characterSheetGenerator, startCharacterSheetAnalysis, clearCharacterSheetAnalysis, setCharacterSheetResult, customApiKey } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+  const { currentProjectId } = useProject();
   const { isAnalyzing, error: analysisError, result: contextResult } = characterSheetGenerator;
 
   // State from Stage 1
@@ -148,15 +151,24 @@ export default function CharacterSheetGenerator() {
     };
   }, []);
 
-  // Load text from localStorage (from Stage 1)
+  // Load chapter from Firestore (from Stage 1)
   useEffect(() => {
-    const savedContent = localStorage.getItem("chapter");
-    const savedFileName = localStorage.getItem("chapter_filename");
-    if (savedContent) {
-      setOriginalText(savedContent);
-      setFileName(savedFileName || "uploaded_file.txt");
-    }
-  }, []);
+    const loadChapter = async () => {
+      if (!currentProjectId) return;
+
+      try {
+        const chapter = await getChapter(currentProjectId);
+        if (chapter) {
+          setOriginalText(chapter.content);
+          setFileName(chapter.filename);
+        }
+      } catch (err) {
+        console.error("Error loading chapter from Firestore:", err);
+      }
+    };
+
+    loadChapter();
+  }, [currentProjectId]);
 
   // Hydrate from context result on mount only (run once)
   useEffect(() => {

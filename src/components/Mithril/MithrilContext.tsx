@@ -233,10 +233,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Load story splitter data
       const storySplitsData = await getStorySplits(currentProjectId);
       if (storySplitsData) {
+        const splitResult = { parts: storySplitsData.parts };
         setStorySplitter(prev => ({
           ...prev,
-          result: { parts: storySplitsData.parts },
+          result: splitResult,
         }));
+        // Also set stageResult for components that read from it
+        setStageResults(prev => ({ ...prev, 2: splitResult }));
       }
 
       // Load character sheet data

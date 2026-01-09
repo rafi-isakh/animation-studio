@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { useProject } from "@/contexts/ProjectContext";
+import { getChapter, saveChapter, deleteChapter } from "./services/firestore";
 
 // List of available sample files in public/samples folder with thumbnails
 const SAMPLE_FILES = [
@@ -61,29 +63,50 @@ const SAMPLE_FILES = [
 
 export default function UploadManager() {
   const { language, dictionary } = useLanguage();
+  const { currentProjectId } = useProject();
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load from localStorage on mount
+  // Load from Firestore on mount
   useEffect(() => {
-    const savedContent = localStorage.getItem("chapter");
-    const savedFileName = localStorage.getItem("chapter_filename");
-    if (savedContent) {
-      setFileContent(savedContent);
-      setFileName(savedFileName || "Previously selected file");
-
-      // Find and set the matching option
-      const matchingFile = SAMPLE_FILES.find((f) => f.name === savedFileName);
-      if (matchingFile) {
-        setSelectedFile(matchingFile.path);
+    const loadChapter = async () => {
+      if (!currentProjectId) {
+        setIsInitialLoading(false);
+        return;
       }
-    }
-  }, []);
 
-  const handleFileSelect = async (file: (typeof SAMPLE_FILES)[0]) => {
+      try {
+        const chapter = await getChapter(currentProjectId);
+        if (chapter) {
+          setFileContent(chapter.content);
+          setFileName(chapter.filename);
+
+          // Find and set the matching option
+          const matchingFile = SAMPLE_FILES.find((f) => f.name === chapter.filename);
+          if (matchingFile) {
+            setSelectedFile(matchingFile.path);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading chapter from Firestore:", err);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadChapter();
+  }, [currentProjectId]);
+
+  const handleFileSelect = useCallback(async (file: (typeof SAMPLE_FILES)[0]) => {
+    if (!currentProjectId) {
+      setError("No project selected. Please go back to project list.");
+      return;
+    }
+
     setSelectedFile(file.path);
     setError(null);
     setIsLoading(true);
@@ -96,8 +119,12 @@ export default function UploadManager() {
       const content = await response.text();
       setFileContent(content);
       setFileName(file.name);
-      localStorage.setItem("chapter", content);
-      localStorage.setItem("chapter_filename", file.name);
+
+      // Save to Firestore
+      await saveChapter(currentProjectId, {
+        content,
+        filename: file.name,
+      });
     } catch (err) {
       console.error("Error loading file:", err);
       setError("Failed to load the selected file. Please try again.");
@@ -106,16 +133,31 @@ export default function UploadManager() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentProjectId]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(async () => {
     setFileContent(null);
     setFileName(null);
     setSelectedFile("");
     setError(null);
-    localStorage.removeItem("chapter");
-    localStorage.removeItem("chapter_filename");
-  };
+
+    if (currentProjectId) {
+      try {
+        await deleteChapter(currentProjectId);
+      } catch (err) {
+        console.error("Error deleting chapter from Firestore:", err);
+      }
+    }
+  }, [currentProjectId]);
+
+  // Show loading state while fetching initial data
+  if (isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DB2777]"></div>
+      </div>
+    );
+  }
 
   return (
     <div>

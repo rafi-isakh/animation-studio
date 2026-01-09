@@ -5,10 +5,11 @@ import { useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Dictionary, Language } from "@/components/Types";
-import { useToast } from "@/hooks/use-toast";
+import { useProject } from "@/contexts/ProjectContext";
+import { getChapter } from "./services/firestore";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Download, Trash2, CloudUpload, CloudDownload } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 
 const defaultGuidelines = `클리프행어는 궁금증과 기대감을 폭발시키는 장면으로서, 다음 중 하나를 반드시 충족한다.
 
@@ -38,29 +39,40 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
 export default function StorySplitter() {
   const { setStageResult, storySplitter, startStorySplit, clearStorySplit } = useMithril();
   const { language, dictionary } = useLanguage();
-  const { toast } = useToast();
+  const { currentProjectId } = useProject();
 
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const numParts = 12;
   const [guidelines, setGuidelines] = useState<string>(defaultGuidelines);
-
-  // S3 states
-  const [isSavingToS3, setIsSavingToS3] = useState(false);
-  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
 
   // Use state from context
   const { isLoading, error, result: splitResult } = storySplitter;
 
-  // Load text from localStorage (from Stage 1)
+  // Load chapter from Firestore
   useEffect(() => {
-    const savedContent = localStorage.getItem("chapter");
-    const savedFileName = localStorage.getItem("chapter_filename");
-    if (savedContent) {
-      setOriginalText(savedContent);
-      setFileName(savedFileName || "uploaded_file.txt");
-    }
-  }, []);
+    const loadChapter = async () => {
+      if (!currentProjectId) {
+        setIsInitialLoading(false);
+        return;
+      }
+
+      try {
+        const chapter = await getChapter(currentProjectId);
+        if (chapter) {
+          setOriginalText(chapter.content);
+          setFileName(chapter.filename);
+        }
+      } catch (err) {
+        console.error("Error loading chapter from Firestore:", err);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadChapter();
+  }, [currentProjectId]);
 
   // Sync splitResult to stageResult when it changes
   useEffect(() => {
@@ -87,105 +99,14 @@ export default function StorySplitter() {
     saveAs(content, zipFileName);
   }, [splitResult, fileName]);
 
-  // Save session to S3
-  const handleSaveToS3 = useCallback(async () => {
-    setIsSavingToS3(true);
-
-    try {
-      // Collect data from localStorage
-      const chapter = localStorage.getItem("chapter");
-      const chapterFilename = localStorage.getItem("chapter_filename");
-      const storySplitterResult = localStorage.getItem("story_splitter_result");
-
-      const sessionData = {
-        version: "1.0",
-        savedAt: Date.now(),
-        chapter,
-        chapterFilename,
-        storySplitterResult: storySplitterResult ? JSON.parse(storySplitterResult) : null,
-        guidelines,
-      };
-
-      const response = await fetch("/api/mithril_session/storysplitter/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionData }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save to S3");
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "storysplitter_toast_s3_saved", language),
-      });
-    } catch (error) {
-      console.error("Error saving to S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "storysplitter_toast_s3_error", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingToS3(false);
-    }
-  }, [toast, dictionary, language, guidelines]);
-
-  // Load session from S3
-  const handleLoadFromS3 = useCallback(async () => {
-    setIsLoadingFromS3(true);
-
-    try {
-      const response = await fetch("/api/mithril_session/storysplitter/load");
-
-      if (response.status === 404) {
-        toast({
-          title: phrase(dictionary, "sora_toast_error", language),
-          description: phrase(dictionary, "storysplitter_toast_s3_no_session", language),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load from S3");
-      }
-
-      const { sessionData } = await response.json();
-
-      // Restore localStorage data
-      if (sessionData.chapter) {
-        localStorage.setItem("chapter", sessionData.chapter);
-      }
-      if (sessionData.chapterFilename) {
-        localStorage.setItem("chapter_filename", sessionData.chapterFilename);
-      }
-      if (sessionData.storySplitterResult) {
-        localStorage.setItem("story_splitter_result", JSON.stringify(sessionData.storySplitterResult));
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "storysplitter_toast_s3_loaded", language),
-      });
-
-      // Save current stage to sessionStorage before reload
-      sessionStorage.setItem("mithril_restore_stage", "2");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error loading from S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "storysplitter_toast_s3_no_session", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingFromS3(false);
-    }
-  }, [toast, dictionary, language]);
+  // Show loading state while fetching initial data
+  if (isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DB2777]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -242,8 +163,8 @@ export default function StorySplitter() {
         </div>
       </div>
 
-      {/* Generate Button and S3 Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      {/* Generate Button */}
+      <div className="flex items-center justify-center">
         <button
           onClick={handleGenerate}
           disabled={isLoading || !originalText}
@@ -251,34 +172,6 @@ export default function StorySplitter() {
         >
           {isLoading ? phrase(dictionary, "storysplitter_analyzing", language) : phrase(dictionary, "storysplitter_split_story", language)}
         </button>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleSaveToS3}
-            disabled={isSavingToS3 || isLoading}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isSavingToS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudUpload className="w-5 h-5" />
-            )}
-            {isSavingToS3 ? phrase(dictionary, "storysplitter_saving_to_s3", language) : phrase(dictionary, "storysplitter_save_to_s3", language)}
-          </button>
-
-          <button
-            onClick={handleLoadFromS3}
-            disabled={isLoadingFromS3 || isLoading}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isLoadingFromS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudDownload className="w-5 h-5" />
-            )}
-            {isLoadingFromS3 ? phrase(dictionary, "storysplitter_loading_from_s3", language) : phrase(dictionary, "storysplitter_load_from_s3", language)}
-          </button>
-        </div>
       </div>
 
       {/* Error Display */}

@@ -21,6 +21,7 @@ import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
 import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
+import { ProjectProvider } from "@/contexts/ProjectContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { headers } from 'next/headers';
 import UserProviderServer from "@/contexts/UserProviderServer";
@@ -146,6 +147,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                             <MobileMenuProvider>
                                                 <SearchProvider>
                                                     <CreateMediaProvider>
+                                                        <ProjectProvider>
                                                         <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                                                             <Suspense>
                                                                 <NavigationEvents />
@@ -166,6 +168,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                                                 <BottomNavigationBar />
                                                             </div>
                                                         </div>
+                                                        </ProjectProvider>
                                                     </CreateMediaProvider>
                                                 </SearchProvider>
                                             </MobileMenuProvider>

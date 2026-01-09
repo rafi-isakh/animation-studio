@@ -6,7 +6,8 @@ export interface Character {
   personality: string;
   backgroundStory: string;
   imagePrompt: string;
-  imageBase64: string;
+  imageBase64: string;  // For newly generated images (before S3 upload)
+  imageUrl?: string;    // For S3 URLs (after upload or when loaded)
   isGenerating: boolean;
 }
 

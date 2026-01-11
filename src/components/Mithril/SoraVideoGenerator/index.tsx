@@ -14,9 +14,15 @@ import type {
   SoraVideoSubmitResponse,
   SoraVideoStatusResponse,
 } from "./types";
-import { ASPECT_RATIOS, STORAGE_KEY } from "./types";
+import { ASPECT_RATIOS } from "./types";
 import type { Scene } from "../StoryboardGenerator/types";
-import { getNanoBananaImageBySceneClip } from "../services/mithrilIndexedDB";
+import {
+  getVideoMeta,
+  getVideoClips,
+  saveVideoMeta,
+  updateVideoClipStatus,
+  clearVideo,
+} from "../services/firestore";
 
 interface LoaderProps {
   message: string;
@@ -32,7 +38,7 @@ const Loader: React.FC<LoaderProps> = ({ message }) => (
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function SoraVideoGenerator() {
-  const { setStageResult, currentStage } = useMithril();
+  const { setStageResult, currentStage, getStageResult, currentProjectId } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
@@ -66,8 +72,7 @@ export default function SoraVideoGenerator() {
     };
   }, []);
 
-  // Load storyboard data and NanoBanana images when entering this stage
-  // Re-loads when navigating back to this stage to pick up any edited prompts
+  // Load storyboard data from context and video status from Firestore
   useEffect(() => {
     // Reset loaded state when leaving this stage so we reload on next visit
     if (currentStage !== 6) {
@@ -81,32 +86,35 @@ export default function SoraVideoGenerator() {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        // 1. Load storyboard result from localStorage
-        const storyboardRaw = localStorage.getItem("storyboard_result");
-        if (!storyboardRaw) {
+        // 1. Load storyboard result from context (stage 5)
+        const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
+        if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
           setIsLoadingData(false);
           setHasLoaded(true);
           return;
         }
 
-        const storyboardData = JSON.parse(storyboardRaw) as { scenes: Scene[] };
-        if (!storyboardData.scenes || storyboardData.scenes.length === 0) {
-          setIsLoadingData(false);
-          setHasLoaded(true);
-          return;
-        }
+        // 2. Load any previously saved video metadata and clips from Firestore
+        let savedVideoMeta: { aspectRatio?: AspectRatio } | null = null;
+        let savedVideoClips: Array<{
+          sceneIndex: number;
+          clipIndex: number;
+          videoRef?: string | null;
+          jobId?: string | null;
+          s3FileName?: string | null;
+          status?: string;
+          error?: string;
+        }> = [];
 
-        // 2. Load any previously saved Sora results
-        const savedResultRaw = localStorage.getItem(STORAGE_KEY);
-        let savedResult: SoraVideoResultMetadata | null = null;
-        if (savedResultRaw) {
+        if (currentProjectId) {
           try {
-            savedResult = JSON.parse(savedResultRaw);
-            if (savedResult?.aspectRatio) {
-              setAspectRatio(savedResult.aspectRatio);
+            savedVideoMeta = await getVideoMeta(currentProjectId);
+            savedVideoClips = await getVideoClips(currentProjectId);
+            if (savedVideoMeta?.aspectRatio) {
+              setAspectRatio(savedVideoMeta.aspectRatio);
             }
           } catch {
-            // Ignore parse errors
+            // Ignore errors, start fresh
           }
         }
 
@@ -116,9 +124,12 @@ export default function SoraVideoGenerator() {
         storyboardData.scenes.forEach((scene, sceneIndex) => {
           scene.clips.forEach((clip, clipIndex) => {
             // Check if we have saved status for this clip
-            const savedClip = savedResult?.clips.find(
+            const savedClip = savedVideoClips.find(
               (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
             );
+
+            // Get storyboard image URL (S3 URL from imageRef)
+            const imageUrl = clip.imageRef || null;
 
             allClips.push({
               clipIndex,
@@ -127,35 +138,18 @@ export default function SoraVideoGenerator() {
               videoPrompt: clip.videoPrompt,
               soraVideoPrompt: clip.soraVideoPrompt,
               length: clip.length,
-              imageBase64: null, // Will be loaded from IndexedDB below
-              videoUrl: savedClip?.videoUrl || null,
+              imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
+              videoUrl: savedClip?.videoRef || null,
               jobId: savedClip?.jobId || null,
               s3FileName: savedClip?.s3FileName || null,
-              status: savedClip?.status || "pending",
+              status: (savedClip?.status as SoraVideoClip["status"]) || "pending",
               error: savedClip?.error,
             });
           });
         });
 
-        // 4. Load NanoBanana images from IndexedDB for each clip
-        for (let i = 0; i < allClips.length; i++) {
-          const clip = allClips[i];
-          try {
-            const imageBase64 = await getNanoBananaImageBySceneClip(
-              clip.sceneIndex,
-              clip.clipIndex
-            );
-            if (imageBase64) {
-              allClips[i].imageBase64 = imageBase64;
-            }
-          } catch (err) {
-            // Silently continue if image not found - will use text-to-video
-            console.warn(`No NanoBanana image found for scene ${clip.sceneIndex}, clip ${clip.clipIndex}`);
-          }
-        }
-
         setClips(allClips);
-        if (savedResult) {
+        if (savedVideoClips.length > 0) {
           setIsSaved(true);
         }
 
@@ -173,11 +167,26 @@ export default function SoraVideoGenerator() {
     };
 
     loadData();
-  }, [currentStage, hasLoaded, toast, dictionary, language]);
+  }, [currentStage, hasLoaded, currentProjectId, getStageResult, toast, dictionary, language]);
 
-  // Auto-save helper (silent, no toast)
-  const autoSave = useCallback((updatedClips: SoraVideoClip[]) => {
+  // Auto-save helper - saves to Firestore (silent, no toast)
+  const autoSave = useCallback(async (updatedClips: SoraVideoClip[]) => {
+    if (!currentProjectId) return;
+
     try {
+      // Update each clip status in Firestore
+      for (const clip of updatedClips) {
+        if (clip.status === "completed" && clip.videoUrl) {
+          const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
+          await updateVideoClipStatus(currentProjectId, clipId, {
+            videoRef: clip.videoUrl,
+            s3FileName: clip.s3FileName,
+            status: clip.status,
+          });
+        }
+      }
+
+      // Update context
       const metadata: SoraVideoResultMetadata = {
         clips: updatedClips.map((c) => ({
           clipIndex: c.clipIndex,
@@ -191,14 +200,12 @@ export default function SoraVideoGenerator() {
         aspectRatio,
         createdAt: Date.now(),
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
       setStageResult(7, metadata);
       setIsSaved(true);
     } catch (err) {
       console.error("Error auto-saving:", err);
     }
-  }, [aspectRatio, setStageResult]);
+  }, [currentProjectId, aspectRatio, setStageResult]);
 
   // Generate a single clip
   const generateClip = useCallback(
@@ -367,11 +374,29 @@ export default function SoraVideoGenerator() {
     });
   }, [toast, dictionary, language]);
 
-  // Save results to localStorage
+  // Save results to Firestore
   const handleSave = useCallback(async () => {
+    if (!currentProjectId) return;
+
     setIsSaving(true);
 
     try {
+      // Save video metadata (aspect ratio)
+      await saveVideoMeta(currentProjectId, aspectRatio);
+
+      // Save each clip status to Firestore
+      for (const clip of clips) {
+        const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
+        await updateVideoClipStatus(currentProjectId, clipId, {
+          videoRef: clip.videoUrl,
+          jobId: clip.jobId,
+          s3FileName: clip.s3FileName,
+          status: clip.status,
+          error: clip.error,
+        });
+      }
+
+      // Update context
       const metadata: SoraVideoResultMetadata = {
         clips: clips.map((c) => ({
           clipIndex: c.clipIndex,
@@ -385,8 +410,6 @@ export default function SoraVideoGenerator() {
         aspectRatio,
         createdAt: Date.now(),
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
       setStageResult(7, metadata);
       setIsSaved(true);
 
@@ -404,9 +427,9 @@ export default function SoraVideoGenerator() {
     } finally {
       setIsSaving(false);
     }
-  }, [clips, aspectRatio, setStageResult, toast, dictionary, language]);
+  }, [currentProjectId, clips, aspectRatio, setStageResult, toast, dictionary, language]);
 
-  // Clear all results and delete videos from S3
+  // Clear all results and delete videos from S3 and Firestore
   const handleClear = useCallback(async () => {
     setIsClearing(true);
 
@@ -429,6 +452,15 @@ export default function SoraVideoGenerator() {
       }
     }
 
+    // Clear from Firestore
+    if (currentProjectId) {
+      try {
+        await clearVideo(currentProjectId);
+      } catch (err) {
+        console.error("Error clearing video data from Firestore:", err);
+      }
+    }
+
     // Clear local state
     setClips((prev) =>
       prev.map((c) => ({
@@ -440,10 +472,9 @@ export default function SoraVideoGenerator() {
         error: undefined,
       }))
     );
-    localStorage.removeItem(STORAGE_KEY);
     setIsSaved(false);
     setIsClearing(false);
-  }, [clips]);
+  }, [clips, currentProjectId]);
 
   // Download all videos as a ZIP
   const handleDownloadAll = useCallback(async () => {

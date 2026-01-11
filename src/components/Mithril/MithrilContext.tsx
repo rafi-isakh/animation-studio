@@ -112,6 +112,9 @@ interface MithrilContextProps {
   // Loading state
   isLoading: boolean;
 
+  // Current project ID
+  currentProjectId: string | null;
+
   // Navigation
   currentStage: number;
   setCurrentStage: (stage: number) => void;
@@ -874,6 +877,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         // Loading state
         isLoading,
+        // Current project ID
+        currentProjectId,
         // Navigation
         currentStage,
         setCurrentStage,

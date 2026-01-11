@@ -6,7 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter } from "../services/firestore";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground } from "../services/firestore";
+import { uploadBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -19,7 +20,6 @@ import {
 } from "lucide-react";
 import BgSheetImageEditor from "./BgSheetImageEditor";
 import type { Background, BgSheetResultMetadata } from "./types";
-import { saveBgImage, getBgImage, clearBgImagesOnly, getAllBgImages } from "../services/mithrilIndexedDB";
 
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -224,35 +224,31 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    const hydrateFromContext = async () => {
+    const hydrateFromContext = () => {
       setIsLoadingData(true);
       try {
-        // Reconstruct backgrounds with images from IndexedDB
-        const backgroundsWithImages: Background[] = await Promise.all(
-          contextResult.backgrounds.map(async (bgMeta) => {
-            const images = await Promise.all(
-              bgMeta.images.map(async (imgMeta) => {
-                let imageBase64 = "";
-                if (imgMeta.imageId) {
-                  const dbImage = await getBgImage(imgMeta.imageId);
-                  imageBase64 = dbImage?.base64 || "";
-                }
-                return {
-                  angle: imgMeta.angle,
-                  prompt: imgMeta.prompt,
-                  imageBase64,
-                  isGenerating: false,
-                };
-              })
-            );
-            return {
-              id: bgMeta.id,
-              name: bgMeta.name,
-              description: bgMeta.description,
-              images,
-            };
-          })
-        );
+        // Reconstruct backgrounds with S3 URLs from context
+        const backgroundsWithImages: Background[] = contextResult.backgrounds.map((bgMeta) => ({
+          id: bgMeta.id,
+          name: bgMeta.name,
+          description: bgMeta.description,
+          // Ensure images array is always populated with all angles
+          images: bgMeta.images && bgMeta.images.length > 0
+            ? bgMeta.images.map((imgMeta) => ({
+                angle: imgMeta.angle,
+                prompt: imgMeta.prompt,
+                imageBase64: "",  // No base64 when loading from S3
+                imageUrl: imgMeta.imageId || undefined,  // imageId contains S3 URL
+                isGenerating: false,
+              }))
+            : BACKGROUND_ANGLES.map((angle) => ({
+                angle,
+                prompt: "",
+                imageBase64: "",
+                imageUrl: undefined,
+                isGenerating: false,
+              })),
+        }));
 
         // Mark as hydrated BEFORE setting state to prevent re-runs
         hasHydratedRef.current = true;
@@ -280,49 +276,62 @@ export default function BgSheetGenerator() {
     }
   };
 
-  // Auto-save a single image to IndexedDB and update localStorage metadata + context
+  // Auto-save a single image to S3 and update Firestore + context
   const autoSaveImage = useCallback(async (
     bgId: string,
     angle: string,
     imageBase64: string,
     prompt: string
   ) => {
+    if (!currentProjectId) return;
+
     try {
-      // 1. Save image to IndexedDB
-      const imageId = `bg_${bgId}_${angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
-      await saveBgImage({
-        id: imageId,
-        type: "bg_image",
-        base64: imageBase64,
-        mimeType: "image/jpeg",
-        bgId: bgId,
-        angle: angle,
-        createdAt: Date.now(),
+      // 1. Upload image to S3
+      const imageUrl = await uploadBackgroundImage(currentProjectId, bgId, angle, imageBase64);
+
+      // 2. Update Firestore
+      await updateBackgroundAngleImage(currentProjectId, bgId, angle, imageUrl, prompt);
+
+      // 3. Update local state with S3 URL (with cache-busting)
+      const imageUrlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
+      setBackgrounds((prev) =>
+        prev.map((bg) =>
+          bg.id === bgId
+            ? {
+                ...bg,
+                images: bg.images.map((img) =>
+                  img.angle === angle
+                    ? { ...img, imageUrl: imageUrlWithCacheBust, imageBase64: "" }
+                    : img
+                ),
+              }
+            : bg
+        )
+      );
+
+      // 4. Update context state so navigation works
+      setBackgrounds((currentBgs) => {
+        const metadata: BgSheetResultMetadata = {
+          backgrounds: currentBgs.map((bg) => ({
+            id: bg.id,
+            name: bg.name,
+            description: bg.description,
+            images: bg.images.map((img) => ({
+              angle: img.angle,
+              prompt: img.prompt,
+              imageId: img.imageUrl || "",  // S3 URL stored as imageId
+            })),
+          })),
+          styleKeyword,
+          backgroundBasePrompt,
+        };
+        setBgSheetResult(metadata);
+        return currentBgs;
       });
-
-      // 2. Update localStorage metadata
-      const existingMeta = localStorage.getItem("bg_sheet_result");
-      if (existingMeta) {
-        const meta = JSON.parse(existingMeta) as BgSheetResultMetadata;
-        const bgIndex = meta.backgrounds.findIndex((bg) => bg.id === bgId);
-        if (bgIndex !== -1) {
-          const imgIndex = meta.backgrounds[bgIndex].images.findIndex(
-            (img) => img.angle === angle
-          );
-          if (imgIndex !== -1) {
-            meta.backgrounds[bgIndex].images[imgIndex].imageId = imageId;
-            meta.backgrounds[bgIndex].images[imgIndex].prompt = prompt;
-          }
-        }
-        localStorage.setItem("bg_sheet_result", JSON.stringify(meta));
-
-        // 3. Update context state so navigation works without manual save
-        setBgSheetResult(meta);
-      }
     } catch (error) {
       console.error("Auto-save failed for image:", error);
     }
-  }, [setBgSheetResult]);
+  }, [currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");
@@ -354,6 +363,34 @@ export default function BgSheetGenerator() {
     const background = backgrounds.find((b) => b.id === id);
     if (!background) return;
 
+    // Ensure images array exists and has all angles
+    if (!background.images || background.images.length === 0) {
+      // Initialize images array with all angles if missing
+      setBackgrounds((prev) =>
+        prev.map((bg) =>
+          bg.id === id
+            ? {
+                ...bg,
+                images: BACKGROUND_ANGLES.map((angle) => ({
+                  angle,
+                  prompt: "",
+                  imageBase64: "",
+                  imageUrl: undefined,
+                  isGenerating: false,
+                })),
+              }
+            : bg
+        )
+      );
+      // Re-fetch the background after updating
+      const updatedBackground = backgrounds.find((b) => b.id === id);
+      if (!updatedBackground?.images?.length) {
+        // Wait for state update and retry
+        setTimeout(() => handleGenerateBackgroundSheet(id), 100);
+        return;
+      }
+    }
+
     // Create new AbortController for this generation session
     abortControllerRef.current?.abort(); // Cancel any previous generation
     const controller = new AbortController();
@@ -361,9 +398,11 @@ export default function BgSheetGenerator() {
     const signal = controller.signal;
 
     let referenceDescription = background.description;
+    const firstImage = background.images?.[0];
+    const hasFirstImage = firstImage?.imageBase64 || firstImage?.imageUrl;
 
     // Generate first image if not exists
-    if (!background.images[0].imageBase64) {
+    if (!hasFirstImage) {
       const firstImageIdx = 0;
       const imageInfo = background.images[firstImageIdx];
 
@@ -481,32 +520,36 @@ export default function BgSheetGenerator() {
         );
       }
     } else {
-      // Analyze existing first image for consistency
-      try {
-        const consistencyResponse = await fetch(
-          "/api/generate_bg_sheet/analyze-consistency",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ imageBase64: background.images[0].imageBase64 }),
-            signal,
-          }
-        );
+      // Analyze existing first image for consistency (only if we have base64)
+      const firstImageBase64 = background.images[0]?.imageBase64;
+      if (firstImageBase64) {
+        try {
+          const consistencyResponse = await fetch(
+            "/api/generate_bg_sheet/analyze-consistency",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageBase64: firstImageBase64 }),
+              signal,
+            }
+          );
 
-        const consistencyData = await consistencyResponse.json();
-        if (consistencyData.analysis) {
-          referenceDescription = consistencyData.analysis;
+          const consistencyData = await consistencyResponse.json();
+          if (consistencyData.analysis) {
+            referenceDescription = consistencyData.analysis;
+          }
+        } catch (e: unknown) {
+          if (e instanceof Error && e.name === "AbortError") return;
+          console.error("Failed to analyze consistency:", e);
         }
-      } catch (e: unknown) {
-        if (e instanceof Error && e.name === "AbortError") return;
-        console.error("Failed to analyze consistency:", e);
       }
+      // If no base64 (S3 URL only), we'll use the background description for consistency
     }
 
-    // Generate remaining images
+    // Generate remaining images (skip those with base64 or S3 URL)
     const remainingIndices = background.images
       .map((img, idx) => ({ img, idx }))
-      .filter((item) => !item.img.imageBase64 && item.idx !== 0);
+      .filter((item) => !item.img.imageBase64 && !item.img.imageUrl && item.idx !== 0);
 
     for (const { img, idx } of remainingIndices) {
       setBackgrounds((prevBgs) =>
@@ -603,7 +646,9 @@ export default function BgSheetGenerator() {
 
   const handleGenerateAll = async () => {
     for (const bg of backgrounds) {
-      const needsGeneration = bg.images.some((img) => !img.imageBase64);
+      // Check if images array exists and if any image needs generation
+      const needsGeneration = !bg.images || bg.images.length === 0 ||
+        bg.images.some((img) => !img.imageBase64 && !img.imageUrl);
       if (needsGeneration) {
         await handleGenerateBackgroundSheet(bg.id);
       }
@@ -735,48 +780,56 @@ export default function BgSheetGenerator() {
   };
 
   const handleSave = useCallback(async () => {
+    if (!currentProjectId) return;
+
     setIsSaving(true);
     try {
-      // 1. Save all images to IndexedDB
-      for (const bg of backgrounds) {
-        for (const img of bg.images) {
-          if (img.imageBase64) {
-            const imageId = `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
-            await saveBgImage({
-              id: imageId,
-              type: "bg_image",
-              base64: img.imageBase64,
-              mimeType: "image/jpeg",
-              bgId: bg.id,
-              angle: img.angle,
-              createdAt: Date.now(),
-            });
+      // 1. Upload any remaining base64 images to S3
+      const updatedBackgrounds = [...backgrounds];
+      for (let bgIndex = 0; bgIndex < updatedBackgrounds.length; bgIndex++) {
+        const bg = updatedBackgrounds[bgIndex];
+        for (let imgIndex = 0; imgIndex < bg.images.length; imgIndex++) {
+          const img = bg.images[imgIndex];
+          if (img.imageBase64 && !img.imageUrl) {
+            // Upload to S3
+            const imageUrl = await uploadBackgroundImage(currentProjectId, bg.id, img.angle, img.imageBase64);
+            await updateBackgroundAngleImage(currentProjectId, bg.id, img.angle, imageUrl, img.prompt);
+            // Update local state with S3 URL
+            updatedBackgrounds[bgIndex].images[imgIndex] = {
+              ...img,
+              imageUrl: `${imageUrl}?t=${Date.now()}`,
+              imageBase64: "",
+            };
           }
         }
       }
+      setBackgrounds(updatedBackgrounds);
 
-      // 2. Create metadata (without base64)
+      // 2. Save settings to Firestore
+      await saveBgSheetSettings(currentProjectId, {
+        styleKeyword,
+        backgroundBasePrompt,
+      });
+
+      // 3. Create metadata for context
       const metadata: BgSheetResultMetadata = {
-        backgrounds: backgrounds.map((bg) => ({
+        backgrounds: updatedBackgrounds.map((bg) => ({
           id: bg.id,
           name: bg.name,
           description: bg.description,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
-            imageId: img.imageBase64
-              ? `bg_${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`
-              : "",
+            imageId: img.imageUrl || "",  // S3 URL stored as imageId
           })),
         })),
         styleKeyword,
         backgroundBasePrompt,
       };
 
-      // 3. Save metadata to localStorage (small, won't exceed limit)
-      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
+      // 4. Update context
       setStageResult(4, metadata);
-      setBgSheetResult(metadata); // Update context so navigation uses new values
+      setBgSheetResult(metadata);
       setIsSaved(true);
       toast({
         variant: "success",
@@ -793,7 +846,7 @@ export default function BgSheetGenerator() {
     } finally {
       setIsSaving(false);
     }
-  }, [backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast, dictionary, language]);
+  }, [currentProjectId, backgrounds, styleKeyword, backgroundBasePrompt, setStageResult, setBgSheetResult, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
@@ -972,10 +1025,9 @@ export default function BgSheetGenerator() {
                 <span>{phrase(dictionary, "bgsheet_export_csv", language)}</span>
               </button>
               <button
-                onClick={async () => {
+                onClick={() => {
                   setBackgrounds([]);
                   clearBgSheetAnalysis();
-                  await clearBgImagesOnly();
                 }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
@@ -1020,58 +1072,84 @@ export default function BgSheetGenerator() {
 
                 {/* Image Grid */}
                 <div className="grid grid-cols-2 gap-2">
-                  {bg.images.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="group relative bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 aspect-video"
-                    >
-                      {img.imageBase64 ? (
-                        <>
-                          <img
-                            src={`data:image/jpeg;base64,${img.imageBase64}`}
-                            alt={img.angle}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                            <button
-                              onClick={() =>
-                                downloadImage(
-                                  img.imageBase64,
-                                  `${bg.name}_${img.angle}.jpg`
-                                )
-                              }
-                              className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
-                              title={phrase(dictionary, "download", language)}
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleEditImage(bg.id, idx, img.imageBase64)
-                              }
-                              className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
-                              title={phrase(dictionary, "edit", language)}
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
+                  {(bg.images && bg.images.length > 0 ? bg.images : BACKGROUND_ANGLES.map((angle) => ({
+                    angle,
+                    prompt: "",
+                    imageBase64: "",
+                    imageUrl: undefined,
+                    isGenerating: false,
+                  }))).map((img, idx) => {
+                    const hasImage = img.imageBase64 || img.imageUrl;
+                    const imageSrc = img.imageBase64
+                      ? `data:image/jpeg;base64,${img.imageBase64}`
+                      : img.imageUrl;
+
+                    return (
+                      <div
+                        key={idx}
+                        className="group relative bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 aspect-video"
+                      >
+                        {hasImage ? (
+                          <>
+                            <img
+                              src={imageSrc}
+                              alt={img.angle}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Hover overlay for edit/download */}
+                            {!img.isGenerating && (
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
+                                {img.imageBase64 && (
+                                  <button
+                                    onClick={() =>
+                                      downloadImage(
+                                        img.imageBase64,
+                                        `${bg.name}_${img.angle}.jpg`
+                                      )
+                                    }
+                                    className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
+                                    title={phrase(dictionary, "download", language)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    handleEditImage(bg.id, idx, img.imageBase64 || img.imageUrl || "")
+                                  }
+                                  className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
+                                  title={phrase(dictionary, "edit", language)}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                            {/* Loading overlay for regeneration */}
+                            {img.isGenerating && (
+                              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm">
+                                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
+                                <span className="mt-2 text-xs text-white">{phrase(dictionary, "bgsheet_generating", language)}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : img.isGenerating ? (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
+                            <span className="mt-2 text-xs text-gray-400">{phrase(dictionary, "bgsheet_generating", language)}</span>
                           </div>
-                        </>
-                      ) : img.isGenerating ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs p-2 text-center">
+                            {img.angle}
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
+                          <span className="text-[10px] font-medium text-white">
+                            {img.angle}
+                          </span>
                         </div>
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs p-2 text-center">
-                          {img.angle}
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
-                        <span className="text-[10px] font-medium text-white">
-                          {img.angle}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

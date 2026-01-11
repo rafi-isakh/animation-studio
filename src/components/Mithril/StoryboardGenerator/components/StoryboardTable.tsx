@@ -10,15 +10,14 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { saveStoryboardSceneImage } from "../../services/mithrilIndexedDB";
+import { uploadStoryboardImage } from "../../services/s3";
+import { updateClipImage } from "../../services/firestore";
 import { useMithril } from "../../MithrilContext";
-import type { Scene, VoicePrompt, ClipImageState, StoryboardSceneImagesMetadata, CharacterReferenceImage } from "../types";
+import type { Scene, VoicePrompt, ClipImageState, CharacterReferenceImage } from "../types";
 import { useReferenceImages } from "../hooks/useReferenceImages";
 import LightboxModal from "./LightboxModal";
 import ClipTableRow from "./ClipTableRow";
 import { compressImage } from "../utils/imageUtils";
-
-const STORAGE_KEY = "storyboard_scene_images_metadata";
 
 // Memoized background dropdown item to prevent re-renders
 // Uses native img with lazy loading for better performance
@@ -186,7 +185,7 @@ export default function StoryboardTable({
   voicePrompts,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
-  const { customApiKey, updateClipPrompt, getOriginalClipPrompt } = useMithril();
+  const { customApiKey, updateClipPrompt, getOriginalClipPrompt, currentProjectId } = useMithril();
 
   // Load references from hook
   const {
@@ -258,26 +257,6 @@ export default function StoryboardTable({
   // Get clip key
   const getClipKey = (sceneIdx: number, clipIdx: number) => `${sceneIdx}-${clipIdx}`;
 
-  // Save metadata to localStorage whenever clipImageStates changes
-  const saveMetadataToLocalStorage = useCallback((states: Map<string, ClipImageState>) => {
-    const clips = Array.from(states.entries()).map(([key, state]) => {
-      const [sceneIdx, clipIdx] = key.split("-").map(Number);
-      return {
-        clipKey: key,
-        clipName: `${sceneIdx + 1}.${clipIdx + 1}`,
-        selectedBgId: state.selectedBgId,
-        hasGeneratedImage: !!state.generatedImageBase64,
-      };
-    });
-
-    const metadata: StoryboardSceneImagesMetadata = {
-      clips,
-      updatedAt: Date.now(),
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
-  }, []);
-
   // Handle background selection for a clip
   // Links all clips with the same non-empty backgroundId - selecting BG for one updates all
   // Clips with empty backgroundId are treated independently
@@ -317,12 +296,9 @@ export default function StoryboardTable({
         });
       }
 
-      // Save to localStorage
-      saveMetadataToLocalStorage(newMap);
-
       return newMap;
     });
-  }, [data, saveMetadataToLocalStorage]);
+  }, [data]);
 
   // Generate image for a single clip
   const generateClipImage = useCallback(async (
@@ -439,36 +415,32 @@ export default function StoryboardTable({
 
       const result = await response.json();
 
-      // Update state with generated image
+      // Upload generated image to S3 and update Firestore
+      let imageUrl = result.imageBase64;  // Default to base64 if S3 upload fails
+      if (currentProjectId) {
+        try {
+          const s3Url = await uploadStoryboardImage(currentProjectId, sceneIdx, clipIdx, result.imageBase64);
+          await updateClipImage(currentProjectId, sceneIdx, clipIdx, s3Url);
+          imageUrl = `${s3Url}?t=${Date.now()}`; // Add cache-busting
+        } catch (err) {
+          console.error("Failed to upload storyboard image to S3:", err);
+          // Continue with base64 image in local state
+        }
+      }
+
+      // Update state with generated image (S3 URL or base64)
       setClipImageStates(prev => {
         const newMap = new Map(prev);
         const current = newMap.get(key)!;
         newMap.set(key, {
           ...current,
-          generatedImageBase64: result.imageBase64,
+          generatedImageBase64: imageUrl,
+          isS3Url: imageUrl !== result.imageBase64, // Mark as S3 URL if upload succeeded
           isGenerating: false,
           error: null,
         });
 
-        // Save metadata to localStorage
-        saveMetadataToLocalStorage(newMap);
-
         return newMap;
-      });
-
-      // Auto-save to IndexedDB with clip name (e.g., "1.1", "2.3")
-      const clipName = `${sceneIdx + 1}.${clipIdx + 1}`;
-      await saveStoryboardSceneImage({
-        id: `scene_${clipName}`,
-        type: "storyboard_scene_image",
-        base64: result.imageBase64,
-        mimeType: "image/jpeg",
-        sceneIndex: sceneIdx,
-        clipIndex: clipIdx,
-        clipName,
-        imagePrompt: fullPrompt,
-        selectedBgId: state?.selectedBgId || "",
-        createdAt: Date.now(),
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -483,7 +455,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, saveMetadataToLocalStorage]);
+  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, currentProjectId]);
 
   // Check if all clips have backgrounds selected (or don't need one)
   const allBgSelected = useMemo(() => {
@@ -554,6 +526,11 @@ export default function StoryboardTable({
     return { totalClips: total, selectedCount: selected, generatedCount: generated };
   }, [data, clipImageStates]);
 
+  // Helper to check if string is an S3/HTTP URL
+  const isS3Url = useCallback((str: string): boolean => {
+    return str.startsWith('http://') || str.startsWith('https://');
+  }, []);
+
   // Convert base64 to Object URL (much faster than data URIs for rendering)
   const base64ToObjectUrl = useCallback((base64: string, mimeType: string): string => {
     const byteCharacters = atob(base64);
@@ -566,32 +543,47 @@ export default function StoryboardTable({
     return URL.createObjectURL(blob);
   }, []);
 
-  // Pre-compute Object URLs for background references (one-time decode cost)
+  // Pre-compute URLs for background references (S3 URLs used directly, base64 converted)
   const referenceObjectUrls = useMemo(() => {
     return new Map(availableReferences.map(ref => [
       ref.id,
-      base64ToObjectUrl(ref.base64, ref.mimeType)
+      // If ref.base64 is actually an S3 URL, use it directly; otherwise convert
+      ref.isS3Url || isS3Url(ref.base64)
+        ? ref.base64
+        : base64ToObjectUrl(ref.base64, ref.mimeType)
     ]));
-  }, [availableReferences, base64ToObjectUrl]);
+  }, [availableReferences, base64ToObjectUrl, isS3Url]);
 
-  // Pre-compute Object URLs for character references
+  // Pre-compute URLs for character references (S3 URLs used directly, base64 converted)
   const characterObjectUrls = useMemo(() => {
     return new Map(availableCharacters.map(char => [
       char.id,
-      base64ToObjectUrl(char.base64, char.mimeType)
+      // If char.base64 is actually an S3 URL, use it directly; otherwise convert
+      char.isS3Url || isS3Url(char.base64)
+        ? char.base64
+        : base64ToObjectUrl(char.base64, char.mimeType)
     ]));
-  }, [availableCharacters, base64ToObjectUrl]);
+  }, [availableCharacters, base64ToObjectUrl, isS3Url]);
 
   // Cleanup Object URLs on unmount or when references change
+  // Only revoke URLs that are Object URLs (not S3 URLs)
   useEffect(() => {
     return () => {
-      referenceObjectUrls.forEach(url => URL.revokeObjectURL(url));
+      referenceObjectUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, [referenceObjectUrls]);
 
   useEffect(() => {
     return () => {
-      characterObjectUrls.forEach(url => URL.revokeObjectURL(url));
+      characterObjectUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, [characterObjectUrls]);
 

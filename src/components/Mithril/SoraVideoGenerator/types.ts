@@ -25,7 +25,7 @@ export interface SoraVideoClip {
   error?: string;
 }
 
-// Metadata stored in localStorage (without large binary data)
+// Metadata stored in Firestore (videos stored in S3)
 export interface SoraVideoResultMetadata {
   clips: {
     clipIndex: number;
@@ -61,5 +61,3 @@ export interface SoraVideoStatusResponse {
   error?: string;
 }
 
-// Storage key
-export const STORAGE_KEY = "sora_video_result";

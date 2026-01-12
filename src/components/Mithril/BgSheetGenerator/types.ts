@@ -21,11 +21,11 @@ export interface BgSheetResult {
   backgroundBasePrompt: string;
 }
 
-// Metadata types for localStorage (without base64 data)
+// Metadata types for Firestore (without base64 data - images stored in S3)
 export interface GeneratedImageMetadata {
   angle: string;
   prompt: string;
-  imageId: string; // Reference to IndexedDB image ID
+  imageId: string; // Reference to S3 image
 }
 
 export interface BackgroundMetadata {

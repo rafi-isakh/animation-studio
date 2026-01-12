@@ -7,7 +7,6 @@ import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
-import Stage6Content from "./Stage6Content";
 import SoraVideoGenerator from "./SoraVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";

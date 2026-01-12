@@ -3,12 +3,35 @@ import sharp from "sharp";
 
 export const maxDuration = 300; // Allow up to 5 minutes for job submission
 
+// Check if string is a URL
+function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://');
+}
+
+// Fetch image from URL and return as base64
+async function fetchImageAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image from URL: ${response.status}`);
+  }
+  const buffer = await response.arrayBuffer();
+  return Buffer.from(buffer).toString('base64');
+}
+
 // Resize image to exact Sora dimensions
 async function resizeImageToSoraDimensions(
-  base64: string,
+  imageInput: string,
   width: number,
   height: number
 ): Promise<string> {
+  // Handle both S3 URLs and base64 strings
+  let base64: string;
+  if (isUrl(imageInput)) {
+    base64 = await fetchImageAsBase64(imageInput);
+  } else {
+    base64 = imageInput;
+  }
+
   const buffer = Buffer.from(base64, "base64");
   const resized = await sharp(buffer)
     .resize(width, height, { fit: "cover" })

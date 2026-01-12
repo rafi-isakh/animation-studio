@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  getAllBgImages,
-  getAllCharacterImages,
-  getAllStoryboardSceneImages,
-} from "../../services/mithrilIndexedDB";
-import type { ReferenceImage, CharacterReferenceImage, ClipImageState, StoryboardSceneImagesMetadata } from "../types";
+import { useMithril } from "../../MithrilContext";
+import type { ReferenceImage, CharacterReferenceImage, ClipImageState } from "../types";
 import type { CharacterSheetResultMetadata } from "../../CharacterSheetGenerator/types";
-
-const STORAGE_KEY = "storyboard_scene_images_metadata";
+import type { BgSheetResultMetadata } from "../../BgSheetGenerator/types";
 
 interface UseReferenceImagesResult {
   availableReferences: ReferenceImage[];
@@ -20,6 +15,7 @@ interface UseReferenceImagesResult {
 }
 
 export function useReferenceImages(): UseReferenceImagesResult {
+  const { getStageResult } = useMithril();
   const [availableReferences, setAvailableReferences] = useState<ReferenceImage[]>([]);
   const [availableCharacters, setAvailableCharacters] = useState<CharacterReferenceImage[]>([]);
   const [characterMetadata, setCharacterMetadata] = useState<CharacterSheetResultMetadata | null>(null);
@@ -29,105 +25,63 @@ export function useReferenceImages(): UseReferenceImagesResult {
   useEffect(() => {
     const loadReferences = async () => {
       try {
-        // Load background images
-        const allBgImages = await getAllBgImages();
+        // Load background images from context (S3 URLs)
+        const bgSheetResult = getStageResult(4) as BgSheetResultMetadata | null;
 
-        // Get background names from localStorage
-        const bgSheetResult = localStorage.getItem("bg_sheet_result");
-        let bgNameMap: Record<string, string> = {};
+        if (bgSheetResult?.backgrounds) {
+          const references: ReferenceImage[] = [];
 
-        if (bgSheetResult) {
-          try {
-            const parsed = JSON.parse(bgSheetResult);
-            parsed.backgrounds?.forEach((bg: { id: string; name: string }) => {
-              bgNameMap[bg.id] = bg.name;
+          bgSheetResult.backgrounds.forEach((bg) => {
+            bg.images?.forEach((img) => {
+              // imageId contains S3 URL
+              if (img.imageId) {
+                const refId = `${bg.id}_${img.angle.replace(/ /g, "_").replace(/[()]/g, "")}`;
+                references.push({
+                  id: refId,
+                  bgId: bg.id,
+                  bgName: bg.name,
+                  angle: img.angle,
+                  // For S3 URLs, we store the URL instead of base64
+                  // The URL will be used directly for display
+                  // For API calls, we'll fetch and convert on-demand
+                  base64: img.imageId,  // S3 URL (used for display)
+                  mimeType: "image/webp",  // Default for S3 images
+                  isS3Url: true,  // Flag to indicate this is an S3 URL, not base64
+                });
+              }
             });
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        const references: ReferenceImage[] = allBgImages.map((img) => ({
-          id: img.id,
-          bgId: img.bgId,
-          bgName: bgNameMap[img.bgId] || `Background ${img.bgId.slice(0, 6)}`,
-          angle: img.angle,
-          base64: img.base64,
-          mimeType: img.mimeType,
-        }));
-
-        setAvailableReferences(references);
-
-        // Load character images
-        const allCharImages = await getAllCharacterImages();
-
-        // Get character names from localStorage and store full metadata
-        const charSheetResult = localStorage.getItem("character_sheet_result");
-        let charNameMap: Record<string, string> = {};
-
-        if (charSheetResult) {
-          try {
-            const parsed = JSON.parse(charSheetResult) as CharacterSheetResultMetadata;
-            parsed.characters?.forEach((char) => {
-              charNameMap[char.id] = char.name;
-            });
-            // Store full metadata for smart character matching
-            setCharacterMetadata(parsed);
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        const characters: CharacterReferenceImage[] = allCharImages.map((img) => ({
-          id: img.id,
-          characterId: img.characterId,
-          characterName: charNameMap[img.characterId] || `Character ${img.characterId.slice(0, 6)}`,
-          base64: img.base64,
-          mimeType: img.mimeType,
-        }));
-
-        setAvailableCharacters(characters);
-
-        // Load metadata from localStorage
-        const savedMetadataJson = localStorage.getItem(STORAGE_KEY);
-        let metadataMap = new Map<string, { selectedBgId: string | null; hasGeneratedImage: boolean }>();
-
-        if (savedMetadataJson) {
-          try {
-            const metadata: StoryboardSceneImagesMetadata = JSON.parse(savedMetadataJson);
-            metadata.clips.forEach((clip) => {
-              metadataMap.set(clip.clipKey, {
-                selectedBgId: clip.selectedBgId,
-                hasGeneratedImage: clip.hasGeneratedImage,
-              });
-            });
-          } catch {
-            // Ignore parse errors
-          }
-        }
-
-        // Load images from IndexedDB
-        const savedSceneImagesFromDB = await getAllStoryboardSceneImages();
-        const imagesMap = new Map<string, string>();
-        savedSceneImagesFromDB.forEach((img) => {
-          const key = `${img.sceneIndex}-${img.clipIndex}`;
-          imagesMap.set(key, img.base64);
-        });
-
-        // Combine metadata and images
-        const savedStatesMap = new Map<string, ClipImageState>();
-        metadataMap.forEach((meta, key) => {
-          savedStatesMap.set(key, {
-            selectedBgId: meta.selectedBgId,
-            generatedImageBase64: meta.hasGeneratedImage ? (imagesMap.get(key) || null) : null,
-            isGenerating: false,
-            error: null,
           });
-        });
 
-        if (savedStatesMap.size > 0) {
-          setSavedSceneImages(savedStatesMap);
+          setAvailableReferences(references);
         }
+
+        // Load character images from context (S3 URLs)
+        const charSheetResult = getStageResult(3) as CharacterSheetResultMetadata | null;
+
+        if (charSheetResult?.characters) {
+          setCharacterMetadata(charSheetResult);
+
+          const characters: CharacterReferenceImage[] = charSheetResult.characters
+            .filter((char) => char.imageId)  // Only characters with images
+            .map((char) => ({
+              id: `char_${char.id}`,
+              characterId: char.id,
+              characterName: char.name,
+              // imageId contains S3 URL
+              base64: char.imageId || "",  // S3 URL (used for display)
+              mimeType: "image/webp",  // Default for S3 images
+              isS3Url: true,  // Flag to indicate this is an S3 URL, not base64
+            }));
+
+          setAvailableCharacters(characters);
+        }
+
+        // Load saved scene images from context (storyboard stage)
+        // Note: Scene images are saved to clips with imageRef field
+        // This will be populated when storyboard data is loaded
+        // For now, we'll start with empty state - the StoryboardTable will handle loading from Firestore
+        setSavedSceneImages(new Map());
+
       } catch (err) {
         console.error("Error loading reference images:", err);
       } finally {
@@ -136,7 +90,7 @@ export function useReferenceImages(): UseReferenceImagesResult {
     };
 
     loadReferences();
-  }, []);
+  }, [getStageResult]);
 
   return {
     availableReferences,

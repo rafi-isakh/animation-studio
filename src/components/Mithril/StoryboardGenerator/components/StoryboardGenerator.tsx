@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download,
   CloudUpload,
-  CloudDownload,
   Settings,
   ChevronDown,
   ChevronUp,
@@ -19,14 +18,7 @@ import {
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import { uploadFileToDrive } from "../services";
-import {
-  getAllStoryboardSceneImages,
-  saveStoryboardSceneImage,
-  clearStoryboardSceneImagesOnly,
-} from "../../services/mithrilIndexedDB";
 import type { SplitResult } from "../types";
-
-const STORAGE_KEY = "storyboard_scene_images_metadata";
 
 interface LoaderProps {
   dictionary: Dictionary;
@@ -117,8 +109,6 @@ export default function StoryboardGenerator() {
 
   // Local UI state (not lifted to context)
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
-  const [isSavingToS3, setIsSavingToS3] = useState(false);
-  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
 
   // UI state
   const [showDriveSettings, setShowDriveSettings] = useState(false);
@@ -325,125 +315,6 @@ export default function StoryboardGenerator() {
     }
   }, [scenes, selectedPartIndex, toast, dictionary, language]);
 
-  // Save session to S3
-  const handleSaveToS3 = useCallback(async () => {
-    setIsSavingToS3(true);
-
-    try {
-      // Collect data from localStorage
-      const storyboardResult = localStorage.getItem("storyboard_result");
-      const storyboardResultOriginal = localStorage.getItem("storyboard_result_original");
-      const storyboardSceneImagesMetadata = localStorage.getItem(STORAGE_KEY);
-
-      // Collect images from IndexedDB
-      const storyboardSceneImages = await getAllStoryboardSceneImages();
-
-      const sessionData = {
-        version: "1.0",
-        savedAt: Date.now(),
-        storyboardResult: storyboardResult ? JSON.parse(storyboardResult) : null,
-        storyboardResultOriginal: storyboardResultOriginal ? JSON.parse(storyboardResultOriginal) : null,
-        storyboardSceneImagesMetadata: storyboardSceneImagesMetadata ? JSON.parse(storyboardSceneImagesMetadata) : null,
-        storyboardSceneImages,
-      };
-
-      const response = await fetch("/api/mithril_session/storyboard/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionData }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save to S3");
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "storyboard_toast_s3_saved", language),
-      });
-    } catch (error) {
-      console.error("Error saving to S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "storyboard_toast_s3_no_data", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingToS3(false);
-    }
-  }, [toast, dictionary, language]);
-
-  // Load session from S3
-  const handleLoadFromS3 = useCallback(async () => {
-    setIsLoadingFromS3(true);
-
-    try {
-      const response = await fetch("/api/mithril_session/storyboard/load");
-
-      if (response.status === 404) {
-        toast({
-          title: phrase(dictionary, "sora_toast_error", language),
-          description: phrase(dictionary, "storyboard_toast_s3_no_session", language),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load from S3");
-      }
-
-      const { sessionData } = await response.json();
-
-      // Restore localStorage data
-      if (sessionData.storyboardResult) {
-        localStorage.setItem("storyboard_result", JSON.stringify(sessionData.storyboardResult));
-      }
-      // Restore original values for reset functionality
-      if (sessionData.storyboardResultOriginal) {
-        localStorage.setItem("storyboard_result_original", JSON.stringify(sessionData.storyboardResultOriginal));
-      } else if (sessionData.storyboardResult) {
-        // Fallback: if no original saved (old session format), use storyboardResult as original
-        localStorage.setItem("storyboard_result_original", JSON.stringify(sessionData.storyboardResult));
-      }
-      if (sessionData.storyboardSceneImagesMetadata) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData.storyboardSceneImagesMetadata));
-      }
-
-      // Clear existing IndexedDB images before restoring
-      await clearStoryboardSceneImagesOnly();
-
-      // Restore IndexedDB images
-      if (sessionData.storyboardSceneImages && Array.isArray(sessionData.storyboardSceneImages)) {
-        for (const img of sessionData.storyboardSceneImages) {
-          if (img.base64) {
-            await saveStoryboardSceneImage(img);
-          }
-        }
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "storyboard_toast_s3_loaded", language),
-      });
-
-      // Save current stage to sessionStorage before reload so we return to the same stage
-      sessionStorage.setItem("mithril_restore_stage", "5");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error loading from S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "storyboard_toast_s3_no_session", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingFromS3(false);
-    }
-  }, [toast, dictionary, language]);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -619,34 +490,6 @@ export default function StoryboardGenerator() {
           <Settings className="w-5 h-5" />
           {phrase(dictionary, "storyboard_drive_settings", language)}
         </button>
-
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            onClick={handleSaveToS3}
-            disabled={isSavingToS3 || isGenerating}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isSavingToS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudUpload className="w-5 h-5" />
-            )}
-            {isSavingToS3 ? phrase(dictionary, "storyboard_saving_to_s3", language) : phrase(dictionary, "storyboard_save_to_s3", language)}
-          </button>
-
-          <button
-            onClick={handleLoadFromS3}
-            disabled={isLoadingFromS3 || isGenerating}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isLoadingFromS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudDownload className="w-5 h-5" />
-            )}
-            {isLoadingFromS3 ? phrase(dictionary, "storyboard_loading_from_s3", language) : phrase(dictionary, "storyboard_load_from_s3", language)}
-          </button>
-        </div>
       </div>
 
       {/* Drive Settings Panel */}

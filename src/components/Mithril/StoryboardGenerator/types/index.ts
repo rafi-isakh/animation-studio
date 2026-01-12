@@ -13,12 +13,14 @@ export interface Continuity {
   accumulatedTime: string;
   backgroundPrompt: string;
   backgroundId: string;
+  imageRef?: string; // S3 URL for generated storyboard image
 }
 
 // Scene image generation state per clip
 export interface ClipImageState {
   selectedBgId: string | null; // Selected background reference ID from BgSheet
-  generatedImageBase64: string | null; // Generated scene image
+  generatedImageBase64: string | null; // Generated scene image (base64 or S3 URL)
+  isS3Url?: boolean; // Flag to indicate if generatedImageBase64 is actually an S3 URL
   isGenerating: boolean;
   error: string | null;
 }
@@ -62,8 +64,9 @@ export interface ReferenceImage {
   bgId: string;
   bgName: string;
   angle: string;
-  base64: string;
+  base64: string;  // Can be base64 data or S3 URL (check isS3Url flag)
   mimeType: string;
+  isS3Url?: boolean;  // Flag to indicate if base64 is actually an S3 URL
 }
 
 // Character reference image from CharacterSheet
@@ -71,6 +74,7 @@ export interface CharacterReferenceImage {
   id: string;
   characterId: string;
   characterName: string;
-  base64: string;
+  base64: string;  // Can be base64 data or S3 URL (check isS3Url flag)
   mimeType: string;
+  isS3Url?: boolean;  // Flag to indicate if base64 is actually an S3 URL
 }

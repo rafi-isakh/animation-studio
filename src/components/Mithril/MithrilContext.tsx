@@ -4,20 +4,42 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
-import { clearBgImagesOnly, clearCharacterImagesOnly, clearStoryboardSceneImagesOnly } from "./services/mithrilIndexedDB";
+import { useProject } from "@/contexts/ProjectContext";
+
+// Firestore services
+import {
+  getMetadata,
+  updateCurrentStage as updateCurrentStageFirestore,
+  updateCustomApiKey as updateCustomApiKeyFirestore,
+  getStorySplits,
+  saveStorySplits,
+  deleteStorySplits,
+  getCharacterSheetSettings,
+  getCharacters,
+  saveCharacterSheetSettings,
+  saveCharacter,
+  clearCharacterSheet,
+  getBgSheetSettings,
+  getBackgrounds,
+  saveBgSheetSettings,
+  saveBackground,
+  clearBgSheet,
+  getStoryboardMeta,
+  getScenes,
+  getClips,
+  getVoicePrompts,
+  saveStoryboardMeta,
+  saveScene,
+  saveClip,
+  saveVoicePrompts,
+  updateClipField as updateClipFieldFirestore,
+  clearStoryboard,
+} from "./services/firestore";
 
 const TOTAL_STAGES = 7;
 
 // Editable clip field type (shared across components)
 export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
-
-// Types for Story Analyzer
-// interface StoryAnalyzerState {
-//   isLoading: boolean;
-//   error: string | null;
-//   progressMessage: string;
-//   summary: string;
-// }
 
 // Types for Story Splitter
 interface SplitResult {
@@ -87,6 +109,12 @@ interface GenerateStoryboardParams {
 
 // Types for shared state
 interface MithrilContextProps {
+  // Loading state
+  isLoading: boolean;
+
+  // Current project ID
+  currentProjectId: string | null;
+
   // Navigation
   currentStage: number;
   setCurrentStage: (stage: number) => void;
@@ -108,11 +136,6 @@ interface MithrilContextProps {
   customApiKey: string;
   setCustomApiKey: (key: string) => void;
 
-  // Story Analyzer (Stage 2)
-  // storyAnalyzer: StoryAnalyzerState;
-  // startStoryAnalysis: (conditions: string, analysisType: "plot" | "episode") => Promise<void>;
-  // clearStoryAnalysis: () => void;
-
   // Story Splitter (Stage 2)
   storySplitter: StorySplitterState;
   startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
@@ -125,54 +148,35 @@ interface MithrilContextProps {
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 
-  // BgSheet Generator (Stage 5)
+  // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
   startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
   clearBgSheetAnalysis: () => void;
   setBgSheetResult: (result: BgSheetResultMetadata) => void;
 
-  // Character Sheet Generator (Stage 4)
+  // Character Sheet Generator (Stage 3)
   characterSheetGenerator: CharacterSheetGeneratorState;
   startCharacterSheetAnalysis: (text: string, styleKeyword: string, characterBasePrompt: string) => Promise<Character[]>;
   clearCharacterSheetAnalysis: () => void;
   setCharacterSheetResult: (result: CharacterSheetResultMetadata) => void;
+
+  // Reload data from Firestore
+  reloadFromFirestore: () => Promise<void>;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
 
 export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { currentProjectId } = useProject();
+
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+
   // Navigation state
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStageState] = useState(1);
 
-  // Restore stage from sessionStorage after S3 load reload
-  useEffect(() => {
-    const savedStage = sessionStorage.getItem("mithril_restore_stage");
-    if (savedStage) {
-      sessionStorage.removeItem("mithril_restore_stage");
-      setCurrentStage(parseInt(savedStage, 10));
-    }
-  }, []);
-
-  // Custom API Key state (persisted to localStorage)
+  // Custom API Key state
   const [customApiKey, setCustomApiKeyState] = useState<string>("");
-
-  // Hydrate customApiKey from localStorage on mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem("mithril_custom_api_key");
-    if (savedApiKey) {
-      setCustomApiKeyState(savedApiKey);
-    }
-  }, []);
-
-  // Wrapper to persist API key to localStorage
-  const setCustomApiKey = useCallback((key: string) => {
-    setCustomApiKeyState(key);
-    if (key) {
-      localStorage.setItem("mithril_custom_api_key", key);
-    } else {
-      localStorage.removeItem("mithril_custom_api_key");
-    }
-  }, []);
 
   // File management state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -180,33 +184,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Stage results state
   const [stageResults, setStageResults] = useState<Record<number, unknown>>({});
 
-  // Story Analyzer state (Stage 2)
-  // const [storyAnalyzer, setStoryAnalyzer] = useState<StoryAnalyzerState>({
-  //   isLoading: false,
-  //   error: null,
-  //   progressMessage: "",
-  //   summary: "",
-  // });
-
   // Story Splitter state (Stage 2)
   const [storySplitter, setStorySplitter] = useState<StorySplitterState>({
     isLoading: false,
     error: null,
     result: null,
   });
-
-  // Hydrate storySplitter from localStorage on mount
-  useEffect(() => {
-    const savedResult = localStorage.getItem("story_splitter_result");
-    if (savedResult) {
-      try {
-        const parsed = JSON.parse(savedResult);
-        setStorySplitter(prev => ({ ...prev, result: parsed }));
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  }, []);
 
   // Storyboard Generator state (Stage 5)
   const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
@@ -216,28 +199,186 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     voicePrompts: [],
   });
 
-  // Hydrate storyboardGenerator from localStorage on mount
-  useEffect(() => {
-    const savedResult = localStorage.getItem("storyboard_result");
-    if (savedResult) {
-      try {
-        const parsed = JSON.parse(savedResult);
+  // Original storyboard for reset functionality
+  const [originalStoryboard, setOriginalStoryboard] = useState<{ scenes: Scene[]; voicePrompts: VoicePrompt[] } | null>(null);
+
+  // BgSheet Generator state (Stage 4)
+  const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+    result: null,
+  });
+
+  // Character Sheet Generator state (Stage 3)
+  const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+    result: null,
+  });
+
+  // Load data from Firestore when projectId changes
+  const loadFromFirestore = useCallback(async () => {
+    if (!currentProjectId) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Load project metadata (currentStage, customApiKey)
+      const metadata = await getMetadata(currentProjectId);
+      if (metadata) {
+        setCurrentStageState(metadata.currentStage || 1);
+        setCustomApiKeyState(metadata.customApiKey || "");
+      }
+
+      // Load story splitter data
+      const storySplitsData = await getStorySplits(currentProjectId);
+      if (storySplitsData) {
+        const splitResult = { parts: storySplitsData.parts };
+        setStorySplitter(prev => ({
+          ...prev,
+          result: splitResult,
+        }));
+        // Also set stageResult for components that read from it
+        setStageResults(prev => ({ ...prev, 2: splitResult }));
+      }
+
+      // Load character sheet data
+      const charSettings = await getCharacterSheetSettings(currentProjectId);
+      const characters = await getCharacters(currentProjectId);
+      if (charSettings || characters.length > 0) {
+        const metadata: CharacterSheetResultMetadata = {
+          styleKeyword: charSettings?.styleKeyword || "",
+          characterBasePrompt: charSettings?.characterBasePrompt || "",
+          characters: characters.map(char => ({
+            id: char.id,
+            name: char.name,
+            appearance: char.appearance,
+            clothing: char.clothing,
+            personality: char.personality,
+            backgroundStory: char.backgroundStory,
+            imageId: char.imageRef, // Use imageRef as imageId for compatibility
+            imagePrompt: char.imagePrompt,
+          })),
+        };
+        setCharacterSheetGenerator(prev => ({ ...prev, result: metadata }));
+        // Also set stageResult for components that read from it (e.g., useReferenceImages)
+        setStageResults(prev => ({ ...prev, 3: metadata }));
+      }
+
+      // Load background sheet data
+      const bgSettings = await getBgSheetSettings(currentProjectId);
+      const backgrounds = await getBackgrounds(currentProjectId);
+      if (bgSettings || backgrounds.length > 0) {
+        const metadata: BgSheetResultMetadata = {
+          styleKeyword: bgSettings?.styleKeyword || "",
+          backgroundBasePrompt: bgSettings?.backgroundBasePrompt || "",
+          backgrounds: backgrounds.map(bg => ({
+            id: bg.id,
+            name: bg.name,
+            description: bg.description,
+            images: bg.angles.map(angle => ({
+              angle: angle.angle,
+              prompt: angle.prompt,
+              imageId: angle.imageRef, // Use imageRef as imageId for compatibility
+            })),
+          })),
+        };
+        setBgSheetGenerator(prev => ({ ...prev, result: metadata }));
+        // Also set stageResult for components that read from it (e.g., useReferenceImages)
+        setStageResults(prev => ({ ...prev, 4: metadata }));
+      }
+
+      // Load storyboard data
+      const storyboardMeta = await getStoryboardMeta(currentProjectId);
+      if (storyboardMeta) {
+        const scenes = await getScenes(currentProjectId);
+        const voicePrompts = await getVoicePrompts(currentProjectId);
+
+        // Load clips for each scene
+        const scenesWithClips: Scene[] = await Promise.all(
+          scenes.map(async (scene) => {
+            const clips = await getClips(currentProjectId, scene.sceneIndex);
+            return {
+              sceneTitle: scene.sceneTitle,
+              clips: clips.map(clip => ({
+                story: clip.story,
+                imagePrompt: clip.imagePrompt,
+                videoPrompt: clip.videoPrompt,
+                soraVideoPrompt: clip.soraVideoPrompt,
+                backgroundPrompt: clip.backgroundPrompt,
+                backgroundId: clip.backgroundId,
+                dialogue: clip.dialogue,
+                dialogueEn: clip.dialogueEn,
+                sfx: clip.sfx,
+                sfxEn: clip.sfxEn,
+                bgm: clip.bgm,
+                bgmEn: clip.bgmEn,
+                length: clip.length,
+                accumulatedTime: clip.accumulatedTime,
+                imageRef: clip.imageRef, // S3 URL for storyboard image
+              })),
+            };
+          })
+        );
+
+        const storyboardData = {
+          scenes: scenesWithClips,
+          voicePrompts: voicePrompts.map(vp => ({
+            promptKo: vp.promptKo,
+            promptEn: vp.promptEn,
+          })),
+        };
+
         setStoryboardGenerator(prev => ({
           ...prev,
-          scenes: parsed.scenes || [],
-          voicePrompts: parsed.voicePrompts || [],
+          scenes: scenesWithClips,
+          voicePrompts: storyboardData.voicePrompts,
         }));
 
-        // If no original exists yet, save the current as original (for reset functionality)
-        const savedOriginal = localStorage.getItem("storyboard_result_original");
-        if (!savedOriginal) {
-          localStorage.setItem("storyboard_result_original", savedResult);
-        }
-      } catch {
-        // Ignore parse errors
+        // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
+        setStageResults(prev => ({ ...prev, 5: storyboardData }));
+
+        // Store original for reset functionality
+        setOriginalStoryboard(storyboardData);
+      }
+    } catch (error) {
+      console.error("Error loading data from Firestore:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentProjectId]);
+
+  // Load data when projectId changes
+  useEffect(() => {
+    loadFromFirestore();
+  }, [loadFromFirestore]);
+
+  // Wrapper for setCurrentStage that also updates Firestore
+  const setCurrentStage = useCallback(async (stage: number) => {
+    setCurrentStageState(stage);
+    if (currentProjectId) {
+      try {
+        await updateCurrentStageFirestore(currentProjectId, stage);
+      } catch (error) {
+        console.error("Error updating current stage in Firestore:", error);
       }
     }
-  }, []);
+  }, [currentProjectId]);
+
+  // Wrapper for setCustomApiKey that also updates Firestore
+  const setCustomApiKey = useCallback(async (key: string) => {
+    setCustomApiKeyState(key);
+    if (currentProjectId) {
+      try {
+        await updateCustomApiKeyFirestore(currentProjectId, key);
+      } catch (error) {
+        console.error("Error updating custom API key in Firestore:", error);
+      }
+    }
+  }, [currentProjectId]);
 
   // Helper to clear specific stage results
   const clearStageResult = useCallback((stage: number) => {
@@ -247,74 +388,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return next;
     });
   }, []);
-
-  // Story Analyzer methods
-  // const startStoryAnalysis = useCallback(async (conditions: string, analysisType: "plot" | "episode") => {
-  //   const fileContent = localStorage.getItem("chapter");
-
-  //   if (!fileContent) {
-  //     setStoryAnalyzer(prev => ({
-  //       ...prev,
-  //       error: "Please upload a text file in Stage 1 first.",
-  //     }));
-  //     return;
-  //   }
-
-  //   setStoryAnalyzer({
-  //     isLoading: true,
-  //     error: null,
-  //     progressMessage: "Analyzing story...",
-  //     summary: "",
-  //   });
-
-  //   try {
-  //     const response = await fetch("/api/analyze_story", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         novelText: fileContent,
-  //         conditions,
-  //         analysisType,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (!response.ok) {
-  //       throw new Error(data.error || "Failed to analyze story");
-  //     }
-
-  //     // Save to localStorage
-  //     localStorage.setItem("story_analysis", data.result);
-
-  //     setStoryAnalyzer({
-  //       isLoading: false,
-  //       error: null,
-  //       progressMessage: "",
-  //       summary: data.result,
-  //     });
-  //   } catch (e) {
-  //     setStoryAnalyzer(prev => ({
-  //       ...prev,
-  //       isLoading: false,
-  //       progressMessage: "",
-  //       error: e instanceof Error ? e.message : "An unknown error occurred.",
-  //     }));
-  //   }
-  // }, []);
-
-  // const clearStoryAnalysis = useCallback(() => {
-  //   localStorage.removeItem("story_analysis");
-  //   setStoryAnalyzer({
-  //     isLoading: false,
-  //     error: null,
-  //     progressMessage: "",
-  //     summary: "",
-  //   });
-  //   clearStageResult(2);
-  // }, [clearStageResult]);
 
   // Story Splitter methods
   const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
@@ -331,8 +404,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       result: null,
     });
-
-    localStorage.removeItem("story_splitter_result");
 
     try {
       const response = await fetch("/api/split_story", {
@@ -355,8 +426,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       const result = { parts: data.parts };
 
-      // Save to localStorage
-      localStorage.setItem("story_splitter_result", JSON.stringify(result));
+      // Save to Firestore
+      if (currentProjectId) {
+        await saveStorySplits(currentProjectId, {
+          guidelines,
+          parts: data.parts,
+        });
+      }
 
       setStorySplitter({
         isLoading: false,
@@ -372,17 +448,25 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: errorMessage,
       }));
     }
-  }, []);
+  }, [currentProjectId]);
 
-  const clearStorySplit = useCallback(() => {
-    localStorage.removeItem("story_splitter_result");
+  const clearStorySplit = useCallback(async () => {
     setStorySplitter({
       isLoading: false,
       error: null,
       result: null,
     });
+
+    if (currentProjectId) {
+      try {
+        await deleteStorySplits(currentProjectId);
+      } catch (error) {
+        console.error("Error deleting story splits from Firestore:", error);
+      }
+    }
+
     clearStageResult(2);
-  }, [clearStageResult]);
+  }, [currentProjectId, clearStageResult]);
 
   // Storyboard Generator methods
   const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
@@ -401,8 +485,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       voicePrompts: [],
     });
 
-    localStorage.removeItem("storyboard_result");
-
     try {
       const response = await fetch("/api/generate_storyboard", {
         method: "POST",
@@ -415,9 +497,42 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
 
-      // Save to localStorage (both current and original for reset functionality)
-      localStorage.setItem("storyboard_result", JSON.stringify(result));
-      localStorage.setItem("storyboard_result_original", JSON.stringify(result));
+      // Save to Firestore
+      if (currentProjectId) {
+        await saveStoryboardMeta(currentProjectId);
+
+        // Save voice prompts
+        await saveVoicePrompts(currentProjectId, data.voicePrompts);
+
+        // Save scenes and clips
+        for (let sceneIndex = 0; sceneIndex < data.scenes.length; sceneIndex++) {
+          const scene = data.scenes[sceneIndex];
+          await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+
+          for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+            const clip = scene.clips[clipIndex];
+            await saveClip(currentProjectId, sceneIndex, clipIndex, {
+              story: clip.story || "",
+              imagePrompt: clip.imagePrompt || "",
+              videoPrompt: clip.videoPrompt || "",
+              soraVideoPrompt: clip.soraVideoPrompt || "",
+              backgroundPrompt: clip.backgroundPrompt || "",
+              backgroundId: clip.backgroundId || "",
+              dialogue: clip.dialogue || "",
+              dialogueEn: clip.dialogueEn || "",
+              sfx: clip.sfx || "",
+              sfxEn: clip.sfxEn || "",
+              bgm: clip.bgm || "",
+              bgmEn: clip.bgmEn || "",
+              length: clip.length || "",
+              accumulatedTime: clip.accumulatedTime || "",
+            });
+          }
+        }
+      }
+
+      // Store original for reset functionality
+      setOriginalStoryboard(result);
 
       setStoryboardGenerator({
         isGenerating: false,
@@ -434,21 +549,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: errorMessage,
       }));
     }
-  }, []);
+  }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {
-    localStorage.removeItem("storyboard_result");
-    localStorage.removeItem("storyboard_result_original");
-    localStorage.removeItem("storyboard_scene_images_metadata");
     setStoryboardGenerator({
       isGenerating: false,
       error: null,
       scenes: [],
       voicePrompts: [],
     });
-    await clearStoryboardSceneImagesOnly();
+    setOriginalStoryboard(null);
+
+    if (currentProjectId) {
+      try {
+        await clearStoryboard(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing storyboard from Firestore:", error);
+      }
+    }
+
     clearStageResult(5);
-  }, [clearStageResult]);
+  }, [currentProjectId, clearStageResult]);
 
   // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((
@@ -477,15 +598,19 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scene.clips = clips;
       newScenes[sceneIndex] = scene;
 
-      // Persist to localStorage
-      localStorage.setItem("storyboard_result", JSON.stringify({
-        scenes: newScenes,
-        voicePrompts: prev.voicePrompts,
-      }));
+      // Persist to Firestore
+      if (currentProjectId) {
+        updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, field, value)
+          .catch(error => console.error("Error updating clip in Firestore:", error));
+
+        // Also update soraVideoPrompt
+        updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'soraVideoPrompt', clip.soraVideoPrompt)
+          .catch(error => console.error("Error updating soraVideoPrompt in Firestore:", error));
+      }
 
       return { ...prev, scenes: newScenes };
     });
-  }, []);
+  }, [currentProjectId]);
 
   // Get the original AI-generated prompt value for reset functionality
   const getOriginalClipPrompt = useCallback((
@@ -493,38 +618,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     clipIndex: number,
     field: EditableClipField
   ): string | null => {
-    const savedOriginal = localStorage.getItem("storyboard_result_original");
-    if (!savedOriginal) return null;
+    if (!originalStoryboard) return null;
 
-    try {
-      const parsed = JSON.parse(savedOriginal);
-      const scene = parsed.scenes?.[sceneIndex];
-      const clip = scene?.clips?.[clipIndex];
-      return clip?.[field] ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  // BgSheet Generator state (Stage 4)
-  const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
-    isAnalyzing: false,
-    error: null,
-    result: null,
-  });
-
-  // Hydrate bgSheetGenerator from localStorage on mount
-  useEffect(() => {
-    const savedResult = localStorage.getItem("bg_sheet_result");
-    if (savedResult) {
-      try {
-        const parsed = JSON.parse(savedResult);
-        setBgSheetGenerator(prev => ({ ...prev, result: parsed }));
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  }, []);
+    const scene = originalStoryboard.scenes?.[sceneIndex];
+    const clip = scene?.clips?.[clipIndex];
+    return clip?.[field] ?? null;
+  }, [originalStoryboard]);
 
   // BgSheet Generator methods
   const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
@@ -563,8 +662,24 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         })),
       }));
 
-      // Auto-save to localStorage
-      const metadata = {
+      // Save to Firestore
+      if (currentProjectId) {
+        await saveBgSheetSettings(currentProjectId, {
+          styleKeyword,
+          backgroundBasePrompt,
+        });
+
+        // Save each background
+        for (const bg of backgroundsWithImages) {
+          await saveBackground(currentProjectId, {
+            name: bg.name,
+            description: bg.description,
+            angles: [],
+          });
+        }
+      }
+
+      const metadata: BgSheetResultMetadata = {
         backgrounds: backgroundsWithImages.map((bg) => ({
           id: bg.id,
           name: bg.name,
@@ -578,7 +693,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         styleKeyword,
         backgroundBasePrompt,
       };
-      localStorage.setItem("bg_sheet_result", JSON.stringify(metadata));
 
       setBgSheetGenerator({
         isAnalyzing: false,
@@ -596,7 +710,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       }));
       return [];
     }
-  }, []);
+  }, [currentProjectId]);
 
   const clearBgSheetAnalysis = useCallback(async () => {
     setBgSheetGenerator({
@@ -604,33 +718,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       result: null,
     });
-    localStorage.removeItem("bg_sheet_result");
-    await clearBgImagesOnly();
+
+    if (currentProjectId) {
+      try {
+        await clearBgSheet(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing bg sheet from Firestore:", error);
+      }
+    }
+
     clearStageResult(4);
-  }, [clearStageResult]);
+  }, [currentProjectId, clearStageResult]);
 
   const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
     setBgSheetGenerator(prev => ({ ...prev, result }));
-  }, []);
-
-  // Character Sheet Generator state (Stage 4)
-  const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
-    isAnalyzing: false,
-    error: null,
-    result: null,
-  });
-
-  // Hydrate characterSheetGenerator from localStorage on mount
-  useEffect(() => {
-    const savedResult = localStorage.getItem("character_sheet_result");
-    if (savedResult) {
-      try {
-        const parsed = JSON.parse(savedResult);
-        setCharacterSheetGenerator(prev => ({ ...prev, result: parsed }));
-      } catch {
-        // Ignore parse errors
-      }
-    }
   }, []);
 
   // Character Sheet Generator methods
@@ -667,7 +768,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         isGenerating: false,
       }));
 
-      // Auto-save to localStorage
+      // Save to Firestore
+      if (currentProjectId) {
+        await saveCharacterSheetSettings(currentProjectId, {
+          styleKeyword,
+          characterBasePrompt,
+        });
+
+        // Save each character
+        for (const char of charactersWithImages) {
+          await saveCharacter(currentProjectId, {
+            name: char.name,
+            appearance: char.appearance,
+            clothing: char.clothing,
+            personality: char.personality,
+            backgroundStory: char.backgroundStory,
+            imageRef: "",
+            imagePrompt: "",
+          });
+        }
+      }
+
       const metadata: CharacterSheetResultMetadata = {
         characters: charactersWithImages.map((char) => ({
           id: char.id,
@@ -682,7 +803,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         styleKeyword,
         characterBasePrompt,
       };
-      localStorage.setItem("character_sheet_result", JSON.stringify(metadata));
 
       setCharacterSheetGenerator({
         isAnalyzing: false,
@@ -700,7 +820,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       }));
       return [];
     }
-  }, []);
+  }, [currentProjectId]);
 
   const clearCharacterSheetAnalysis = useCallback(async () => {
     setCharacterSheetGenerator({
@@ -708,27 +828,34 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       result: null,
     });
-    localStorage.removeItem("character_sheet_result");
-    await clearCharacterImagesOnly();
+
+    if (currentProjectId) {
+      try {
+        await clearCharacterSheet(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing character sheet from Firestore:", error);
+      }
+    }
+
     clearStageResult(3);
-  }, [clearStageResult]);
+  }, [currentProjectId, clearStageResult]);
 
   const setCharacterSheetResult = useCallback((result: CharacterSheetResultMetadata) => {
     setCharacterSheetGenerator(prev => ({ ...prev, result }));
   }, []);
 
   // Navigation methods
-  const goToNextStage = () => {
+  const goToNextStage = useCallback(() => {
     if (currentStage < TOTAL_STAGES) {
       setCurrentStage(currentStage + 1);
     }
-  };
+  }, [currentStage, setCurrentStage]);
 
-  const goToPreviousStage = () => {
+  const goToPreviousStage = useCallback(() => {
     if (currentStage > 1) {
       setCurrentStage(currentStage - 1);
     }
-  };
+  }, [currentStage, setCurrentStage]);
 
   // File management methods
   const addFile = (file: File) => {
@@ -748,9 +875,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     return stageResults[stage];
   }, [stageResults]);
 
+  // Reload data from Firestore
+  const reloadFromFirestore = useCallback(async () => {
+    await loadFromFirestore();
+  }, [loadFromFirestore]);
+
   return (
     <MithrilContext.Provider
       value={{
+        // Loading state
+        isLoading,
+        // Current project ID
+        currentProjectId,
         // Navigation
         currentStage,
         setCurrentStage,
@@ -768,10 +904,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Custom API Key
         customApiKey,
         setCustomApiKey,
-        // Story Analyzer
-        // storyAnalyzer,
-        // startStoryAnalysis,
-        // clearStoryAnalysis,
         // Story Splitter
         storySplitter,
         startStorySplit,
@@ -792,6 +924,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         startCharacterSheetAnalysis,
         clearCharacterSheetAnalysis,
         setCharacterSheetResult,
+        // Reload
+        reloadFromFirestore,
       }}
     >
       {children}

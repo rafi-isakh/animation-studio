@@ -5,7 +5,7 @@ import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Check, Trash2, Download, CloudUpload, CloudDownload } from "lucide-react";
+import { Sparkles, StopCircle, Save, Trash2, Download } from "lucide-react";
 import ClipCard from "./ClipCard";
 import type {
   SoraVideoClip,
@@ -14,9 +14,15 @@ import type {
   SoraVideoSubmitResponse,
   SoraVideoStatusResponse,
 } from "./types";
-import { ASPECT_RATIOS, STORAGE_KEY } from "./types";
+import { ASPECT_RATIOS } from "./types";
 import type { Scene } from "../StoryboardGenerator/types";
-import { getNanoBananaImageBySceneClip } from "../services/mithrilIndexedDB";
+import {
+  getVideoMeta,
+  getVideoClips,
+  saveVideoMeta,
+  updateVideoClipStatus,
+  clearVideo,
+} from "../services/firestore";
 
 interface LoaderProps {
   message: string;
@@ -32,7 +38,7 @@ const Loader: React.FC<LoaderProps> = ({ message }) => (
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function SoraVideoGenerator() {
-  const { setStageResult, currentStage } = useMithril();
+  const { setStageResult, currentStage, getStageResult, currentProjectId, isLoading: isContextLoading } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
@@ -50,8 +56,6 @@ export default function SoraVideoGenerator() {
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
-  const [isSavingToS3, setIsSavingToS3] = useState(false);
-  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
   const shouldStopRef = useRef(false);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -68,8 +72,7 @@ export default function SoraVideoGenerator() {
     };
   }, []);
 
-  // Load storyboard data and NanoBanana images when entering this stage
-  // Re-loads when navigating back to this stage to pick up any edited prompts
+  // Load storyboard data from context and video status from Firestore
   useEffect(() => {
     // Reset loaded state when leaving this stage so we reload on next visit
     if (currentStage !== 6) {
@@ -77,38 +80,44 @@ export default function SoraVideoGenerator() {
       return;
     }
 
+    // Wait for MithrilContext to finish loading from Firestore
+    if (isContextLoading) return;
+
     // Already loaded for this stage visit
     if (hasLoaded) return;
 
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        // 1. Load storyboard result from localStorage
-        const storyboardRaw = localStorage.getItem("storyboard_result");
-        if (!storyboardRaw) {
+        // 1. Load storyboard result from context (stage 5)
+        const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
+        if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
           setIsLoadingData(false);
           setHasLoaded(true);
           return;
         }
 
-        const storyboardData = JSON.parse(storyboardRaw) as { scenes: Scene[] };
-        if (!storyboardData.scenes || storyboardData.scenes.length === 0) {
-          setIsLoadingData(false);
-          setHasLoaded(true);
-          return;
-        }
+        // 2. Load any previously saved video metadata and clips from Firestore
+        let savedVideoMeta: { aspectRatio?: AspectRatio } | null = null;
+        let savedVideoClips: Array<{
+          sceneIndex: number;
+          clipIndex: number;
+          videoRef?: string | null;
+          jobId?: string | null;
+          s3FileName?: string | null;
+          status?: string;
+          error?: string;
+        }> = [];
 
-        // 2. Load any previously saved Sora results
-        const savedResultRaw = localStorage.getItem(STORAGE_KEY);
-        let savedResult: SoraVideoResultMetadata | null = null;
-        if (savedResultRaw) {
+        if (currentProjectId) {
           try {
-            savedResult = JSON.parse(savedResultRaw);
-            if (savedResult?.aspectRatio) {
-              setAspectRatio(savedResult.aspectRatio);
+            savedVideoMeta = await getVideoMeta(currentProjectId);
+            savedVideoClips = await getVideoClips(currentProjectId);
+            if (savedVideoMeta?.aspectRatio) {
+              setAspectRatio(savedVideoMeta.aspectRatio);
             }
           } catch {
-            // Ignore parse errors
+            // Ignore errors, start fresh
           }
         }
 
@@ -118,9 +127,12 @@ export default function SoraVideoGenerator() {
         storyboardData.scenes.forEach((scene, sceneIndex) => {
           scene.clips.forEach((clip, clipIndex) => {
             // Check if we have saved status for this clip
-            const savedClip = savedResult?.clips.find(
+            const savedClip = savedVideoClips.find(
               (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
             );
+
+            // Get storyboard image URL (S3 URL from imageRef)
+            const imageUrl = clip.imageRef || null;
 
             allClips.push({
               clipIndex,
@@ -129,35 +141,18 @@ export default function SoraVideoGenerator() {
               videoPrompt: clip.videoPrompt,
               soraVideoPrompt: clip.soraVideoPrompt,
               length: clip.length,
-              imageBase64: null, // Will be loaded from IndexedDB below
-              videoUrl: savedClip?.videoUrl || null,
+              imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
+              videoUrl: savedClip?.videoRef || null,
               jobId: savedClip?.jobId || null,
               s3FileName: savedClip?.s3FileName || null,
-              status: savedClip?.status || "pending",
+              status: (savedClip?.status as SoraVideoClip["status"]) || "pending",
               error: savedClip?.error,
             });
           });
         });
 
-        // 4. Load NanoBanana images from IndexedDB for each clip
-        for (let i = 0; i < allClips.length; i++) {
-          const clip = allClips[i];
-          try {
-            const imageBase64 = await getNanoBananaImageBySceneClip(
-              clip.sceneIndex,
-              clip.clipIndex
-            );
-            if (imageBase64) {
-              allClips[i].imageBase64 = imageBase64;
-            }
-          } catch (err) {
-            // Silently continue if image not found - will use text-to-video
-            console.warn(`No NanoBanana image found for scene ${clip.sceneIndex}, clip ${clip.clipIndex}`);
-          }
-        }
-
         setClips(allClips);
-        if (savedResult) {
+        if (savedVideoClips.length > 0) {
           setIsSaved(true);
         }
 
@@ -175,11 +170,28 @@ export default function SoraVideoGenerator() {
     };
 
     loadData();
-  }, [currentStage, hasLoaded, toast, dictionary, language]);
+  }, [currentStage, hasLoaded, currentProjectId, getStageResult, isContextLoading, toast, dictionary, language]);
 
-  // Auto-save helper (silent, no toast)
-  const autoSave = useCallback((updatedClips: SoraVideoClip[]) => {
+  // Auto-save helper - saves to Firestore (silent, no toast)
+  const autoSave = useCallback(async (updatedClips: SoraVideoClip[]) => {
+    if (!currentProjectId) return;
+
     try {
+      // Update each clip status in Firestore
+      for (const clip of updatedClips) {
+        if (clip.status === "completed" && clip.videoUrl) {
+          const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
+          await updateVideoClipStatus(currentProjectId, clipId, {
+            sceneIndex: clip.sceneIndex,
+            clipIndex: clip.clipIndex,
+            videoRef: clip.videoUrl,
+            s3FileName: clip.s3FileName,
+            status: clip.status,
+          });
+        }
+      }
+
+      // Update context
       const metadata: SoraVideoResultMetadata = {
         clips: updatedClips.map((c) => ({
           clipIndex: c.clipIndex,
@@ -193,14 +205,12 @@ export default function SoraVideoGenerator() {
         aspectRatio,
         createdAt: Date.now(),
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
       setStageResult(7, metadata);
       setIsSaved(true);
     } catch (err) {
       console.error("Error auto-saving:", err);
     }
-  }, [aspectRatio, setStageResult]);
+  }, [currentProjectId, aspectRatio, setStageResult]);
 
   // Generate a single clip
   const generateClip = useCallback(
@@ -369,11 +379,31 @@ export default function SoraVideoGenerator() {
     });
   }, [toast, dictionary, language]);
 
-  // Save results to localStorage
+  // Save results to Firestore
   const handleSave = useCallback(async () => {
+    if (!currentProjectId) return;
+
     setIsSaving(true);
 
     try {
+      // Save video metadata (aspect ratio)
+      await saveVideoMeta(currentProjectId, aspectRatio);
+
+      // Save each clip status to Firestore
+      for (const clip of clips) {
+        const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
+        await updateVideoClipStatus(currentProjectId, clipId, {
+          sceneIndex: clip.sceneIndex,
+          clipIndex: clip.clipIndex,
+          videoRef: clip.videoUrl,
+          jobId: clip.jobId,
+          s3FileName: clip.s3FileName,
+          status: clip.status,
+          error: clip.error,
+        });
+      }
+
+      // Update context
       const metadata: SoraVideoResultMetadata = {
         clips: clips.map((c) => ({
           clipIndex: c.clipIndex,
@@ -387,8 +417,6 @@ export default function SoraVideoGenerator() {
         aspectRatio,
         createdAt: Date.now(),
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadata));
       setStageResult(7, metadata);
       setIsSaved(true);
 
@@ -406,9 +434,9 @@ export default function SoraVideoGenerator() {
     } finally {
       setIsSaving(false);
     }
-  }, [clips, aspectRatio, setStageResult, toast, dictionary, language]);
+  }, [currentProjectId, clips, aspectRatio, setStageResult, toast, dictionary, language]);
 
-  // Clear all results and delete videos from S3
+  // Clear all results and delete videos from S3 and Firestore
   const handleClear = useCallback(async () => {
     setIsClearing(true);
 
@@ -431,6 +459,15 @@ export default function SoraVideoGenerator() {
       }
     }
 
+    // Clear from Firestore
+    if (currentProjectId) {
+      try {
+        await clearVideo(currentProjectId);
+      } catch (err) {
+        console.error("Error clearing video data from Firestore:", err);
+      }
+    }
+
     // Clear local state
     setClips((prev) =>
       prev.map((c) => ({
@@ -442,10 +479,9 @@ export default function SoraVideoGenerator() {
         error: undefined,
       }))
     );
-    localStorage.removeItem(STORAGE_KEY);
     setIsSaved(false);
     setIsClearing(false);
-  }, [clips]);
+  }, [clips, currentProjectId]);
 
   // Download all videos as a ZIP
   const handleDownloadAll = useCallback(async () => {
@@ -508,120 +544,6 @@ export default function SoraVideoGenerator() {
       setIsDownloadingZip(false);
     }
   }, [clips, toast, dictionary, language]);
-
-  // Save session to S3
-  const handleSaveToS3 = useCallback(async () => {
-    setIsSavingToS3(true);
-
-    try {
-      // Get current session data from localStorage
-      const sessionData = localStorage.getItem(STORAGE_KEY);
-
-      if (!sessionData) {
-        toast({
-          title: phrase(dictionary, "sora_toast_error", language),
-          description: phrase(dictionary, "sora_toast_s3_no_data", language),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch("/api/mithril_session/sora/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionData: JSON.parse(sessionData) }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save to S3");
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "sora_toast_s3_saved", language),
-      });
-    } catch (error) {
-      console.error("Error saving to S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "sora_toast_s3_no_data", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingToS3(false);
-    }
-  }, [toast, dictionary, language]);
-
-  // Load session from S3
-  const handleLoadFromS3 = useCallback(async () => {
-    setIsLoadingFromS3(true);
-
-    try {
-      const response = await fetch("/api/mithril_session/sora/load");
-
-      if (response.status === 404) {
-        toast({
-          title: phrase(dictionary, "sora_toast_error", language),
-          description: phrase(dictionary, "sora_toast_s3_no_session", language),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load from S3");
-      }
-
-      const { sessionData } = await response.json();
-
-      // Save to localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
-
-      // Update local state from loaded data
-      if (sessionData.aspectRatio) {
-        setAspectRatio(sessionData.aspectRatio);
-      }
-
-      // Update clips with loaded data
-      setClips((prevClips) =>
-        prevClips.map((clip) => {
-          const savedClip = sessionData.clips?.find(
-            (c: { sceneIndex: number; clipIndex: number }) =>
-              c.sceneIndex === clip.sceneIndex && c.clipIndex === clip.clipIndex
-          );
-          if (savedClip) {
-            return {
-              ...clip,
-              videoUrl: savedClip.videoUrl || null,
-              jobId: savedClip.jobId || null,
-              s3FileName: savedClip.s3FileName || null,
-              status: savedClip.status || "pending",
-              error: savedClip.error,
-            };
-          }
-          return clip;
-        })
-      );
-
-      setIsSaved(true);
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "sora_toast_s3_loaded", language),
-      });
-    } catch (error) {
-      console.error("Error loading from S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "sora_toast_s3_no_session", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingFromS3(false);
-    }
-  }, [toast, dictionary, language]);
 
   // Stats
   const completedCount = clips.filter((c) => c.status === "completed").length;
@@ -780,32 +702,6 @@ export default function SoraVideoGenerator() {
                 <span>{phrase(dictionary, "storysplitter_clear", language)}</span>
               </>
             )}
-          </button>
-
-          <button
-            onClick={handleSaveToS3}
-            disabled={isSavingToS3 || isGeneratingAll}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
-          >
-            {isSavingToS3 ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudUpload size={16} />
-            )}
-            <span>{isSavingToS3 ? phrase(dictionary, "sora_saving_to_s3", language) : phrase(dictionary, "sora_save_to_s3", language)}</span>
-          </button>
-
-          <button
-            onClick={handleLoadFromS3}
-            disabled={isLoadingFromS3 || isGeneratingAll}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
-          >
-            {isLoadingFromS3 ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudDownload size={16} />
-            )}
-            <span>{isLoadingFromS3 ? phrase(dictionary, "sora_loading_from_s3", language) : phrase(dictionary, "sora_load_from_s3", language)}</span>
           </button>
         </div>
       </div>

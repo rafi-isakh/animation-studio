@@ -4,7 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
+import { getChapter, updateCharacterImage, saveCharacterSheetSettings } from "../services/firestore";
+import { uploadCharacterImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -14,12 +17,9 @@ import {
   Save,
   FileDown,
   Trash2,
-  CloudUpload,
-  CloudDownload,
 } from "lucide-react";
 import CharacterSheetImageEditor from "./CharacterSheetImageEditor";
 import type { Character, CharacterSheetResultMetadata } from "./types";
-import { saveCharacterImage, getCharacterImage, clearCharacterImagesOnly, getAllCharacterImages } from "../services/mithrilIndexedDB";
 
 interface LoaderProps {
   dictionary: Dictionary;
@@ -107,6 +107,7 @@ export default function CharacterSheetGenerator() {
   const { setStageResult, characterSheetGenerator, startCharacterSheetAnalysis, clearCharacterSheetAnalysis, setCharacterSheetResult, customApiKey } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+  const { currentProjectId } = useProject();
   const { isAnalyzing, error: analysisError, result: contextResult } = characterSheetGenerator;
 
   // State from Stage 1
@@ -119,10 +120,6 @@ export default function CharacterSheetGenerator() {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
-
-  // S3 states
-  const [isSavingToS3, setIsSavingToS3] = useState(false);
-  const [isLoadingFromS3, setIsLoadingFromS3] = useState(false);
 
   // Use ref to track hydration to avoid triggering re-renders
   const hasHydratedRef = useRef<boolean>(false);
@@ -154,15 +151,24 @@ export default function CharacterSheetGenerator() {
     };
   }, []);
 
-  // Load text from localStorage (from Stage 1)
+  // Load chapter from Firestore (from Stage 1)
   useEffect(() => {
-    const savedContent = localStorage.getItem("chapter");
-    const savedFileName = localStorage.getItem("chapter_filename");
-    if (savedContent) {
-      setOriginalText(savedContent);
-      setFileName(savedFileName || "uploaded_file.txt");
-    }
-  }, []);
+    const loadChapter = async () => {
+      if (!currentProjectId) return;
+
+      try {
+        const chapter = await getChapter(currentProjectId);
+        if (chapter) {
+          setOriginalText(chapter.content);
+          setFileName(chapter.filename);
+        }
+      } catch (err) {
+        console.error("Error loading chapter from Firestore:", err);
+      }
+    };
+
+    loadChapter();
+  }, [currentProjectId]);
 
   // Hydrate from context result on mount only (run once)
   useEffect(() => {
@@ -177,46 +183,29 @@ export default function CharacterSheetGenerator() {
       return;
     }
 
-    const hydrateFromContext = async () => {
-      setIsLoadingData(true);
-      try {
-        // Reconstruct characters with images from IndexedDB
-        const charactersWithImages: Character[] = await Promise.all(
-          contextResult.characters.map(async (charMeta) => {
-            let imageBase64 = "";
-            if (charMeta.imageId) {
-              const dbImage = await getCharacterImage(charMeta.imageId);
-              imageBase64 = dbImage?.base64 || "";
-            }
-            return {
-              id: charMeta.id,
-              name: charMeta.name,
-              appearance: charMeta.appearance,
-              clothing: charMeta.clothing,
-              personality: charMeta.personality,
-              backgroundStory: charMeta.backgroundStory,
-              imagePrompt: charMeta.imagePrompt,
-              imageBase64,
-              isGenerating: false,
-            };
-          })
-        );
+    // Reconstruct characters with S3 image URLs from context
+    // Note: imageId now contains the S3 URL (set from Firestore imageRef)
+    const charactersWithImages: Character[] = contextResult.characters.map((charMeta) => ({
+      id: charMeta.id,
+      name: charMeta.name,
+      appearance: charMeta.appearance,
+      clothing: charMeta.clothing,
+      personality: charMeta.personality,
+      backgroundStory: charMeta.backgroundStory,
+      imagePrompt: charMeta.imagePrompt,
+      imageBase64: "",  // No base64 when loading from S3
+      imageUrl: charMeta.imageId || undefined,  // imageId contains S3 URL
+      isGenerating: false,
+    }));
 
-        // Mark as hydrated BEFORE setting state to prevent re-runs
-        hasHydratedRef.current = true;
+    // Mark as hydrated BEFORE setting state to prevent re-runs
+    hasHydratedRef.current = true;
 
-        setCharacters(charactersWithImages);
-        setStyleKeyword(contextResult.styleKeyword);
-        setCharacterBasePrompt(contextResult.characterBasePrompt);
-        setIsSaved(true);
-      } catch {
-        // Ignore errors
-        hasHydratedRef.current = true;
-      }
-      setIsLoadingData(false);
-    };
-
-    hydrateFromContext();
+    setCharacters(charactersWithImages);
+    setStyleKeyword(contextResult.styleKeyword);
+    setCharacterBasePrompt(contextResult.characterBasePrompt);
+    setIsSaved(true);
+    setIsLoadingData(false);
   }, [contextResult]);
 
   const handleReferenceImageChange = (
@@ -228,42 +217,57 @@ export default function CharacterSheetGenerator() {
     }
   };
 
-  // Auto-save a single image to IndexedDB and update localStorage metadata + context
+  // Auto-save a single image to S3 and update Firestore + context
   const autoSaveImage = useCallback(async (
     characterId: string,
     imageBase64: string,
     prompt: string
   ) => {
+    if (!currentProjectId) {
+      console.error("No project ID available for auto-save");
+      return;
+    }
+
     try {
-      // 1. Save image to IndexedDB
-      const imageId = `char_${characterId}`;
-      await saveCharacterImage({
-        id: imageId,
-        type: "character_image",
-        base64: imageBase64,
-        mimeType: "image/jpeg",
-        characterId: characterId,
-        createdAt: Date.now(),
-      });
+      // 1. Upload image to S3
+      const imageUrl = await uploadCharacterImage(currentProjectId, characterId, imageBase64);
 
-      // 2. Update localStorage metadata
-      const existingMeta = localStorage.getItem("character_sheet_result");
-      if (existingMeta) {
-        const meta = JSON.parse(existingMeta) as CharacterSheetResultMetadata;
-        const charIndex = meta.characters.findIndex((c) => c.id === characterId);
-        if (charIndex !== -1) {
-          meta.characters[charIndex].imageId = imageId;
-          meta.characters[charIndex].imagePrompt = prompt;
-        }
-        localStorage.setItem("character_sheet_result", JSON.stringify(meta));
+      // 2. Update Firestore with S3 URL
+      await updateCharacterImage(currentProjectId, characterId, imageUrl, prompt);
 
-        // 3. Update context state so navigation works without manual save
-        setCharacterSheetResult(meta);
-      }
+      // 3. Update local state with S3 URL (add cache-busting param for regeneration)
+      const imageUrlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
+      setCharacters((prev) =>
+        prev.map((c) =>
+          c.id === characterId ? { ...c, imageUrl: imageUrlWithCacheBust, imageBase64: "" } : c
+        )
+      );
+
+      // 4. Update context state so navigation works without manual save
+      const updatedMeta: CharacterSheetResultMetadata = {
+        characters: characters.map((char) => ({
+          id: char.id,
+          name: char.name,
+          appearance: char.appearance,
+          clothing: char.clothing,
+          personality: char.personality,
+          backgroundStory: char.backgroundStory,
+          imageId: char.id === characterId ? imageUrl : (char.imageUrl || ""),
+          imagePrompt: char.id === characterId ? prompt : char.imagePrompt,
+        })),
+        styleKeyword,
+        characterBasePrompt,
+      };
+      setCharacterSheetResult(updatedMeta);
     } catch (error) {
       console.error("Auto-save failed for image:", error);
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "charsheet_toast_save_failed", language),
+        description: error instanceof Error ? error.message : "Failed to save image",
+      });
     }
-  }, [setCharacterSheetResult]);
+  }, [currentProjectId, characters, styleKeyword, characterBasePrompt, setCharacterSheetResult, toast, dictionary, language]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");
@@ -360,7 +364,7 @@ export default function CharacterSheetGenerator() {
 
   const handleGenerateAll = async () => {
     for (const char of characters) {
-      if (!char.imageBase64) {
+      if (!char.imageBase64 && !char.imageUrl) {
         await handleGenerateCharacterSheet(char.id);
       }
     }
@@ -461,24 +465,36 @@ export default function CharacterSheetGenerator() {
   };
 
   const handleSave = useCallback(async () => {
+    if (!currentProjectId) {
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "charsheet_toast_save_failed", language),
+        description: "No project selected",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // 1. Save all images to IndexedDB
+      // 1. Upload any remaining base64 images to S3
       for (const char of characters) {
-        if (char.imageBase64) {
-          const imageId = `char_${char.id}`;
-          await saveCharacterImage({
-            id: imageId,
-            type: "character_image",
-            base64: char.imageBase64,
-            mimeType: "image/jpeg",
-            characterId: char.id,
-            createdAt: Date.now(),
-          });
+        if (char.imageBase64 && !char.imageUrl) {
+          const imageUrl = await uploadCharacterImage(currentProjectId, char.id, char.imageBase64);
+          await updateCharacterImage(currentProjectId, char.id, imageUrl, char.imagePrompt);
+          // Update local state
+          setCharacters((prev) =>
+            prev.map((c) => (c.id === char.id ? { ...c, imageUrl, imageBase64: "" } : c))
+          );
         }
       }
 
-      // 2. Create metadata (without base64)
+      // 2. Save settings to Firestore
+      await saveCharacterSheetSettings(currentProjectId, {
+        styleKeyword,
+        characterBasePrompt,
+      });
+
+      // 3. Create metadata for context
       const metadata: CharacterSheetResultMetadata = {
         characters: characters.map((char) => ({
           id: char.id,
@@ -487,17 +503,15 @@ export default function CharacterSheetGenerator() {
           clothing: char.clothing,
           personality: char.personality,
           backgroundStory: char.backgroundStory,
-          imageId: char.imageBase64 ? `char_${char.id}` : "",
+          imageId: char.imageUrl || "",
           imagePrompt: char.imagePrompt,
         })),
         styleKeyword,
         characterBasePrompt,
       };
 
-      // 3. Save metadata to localStorage (small, won't exceed limit)
-      localStorage.setItem("character_sheet_result", JSON.stringify(metadata));
       setStageResult(3, metadata);
-      setCharacterSheetResult(metadata); // Update context so navigation uses new values
+      setCharacterSheetResult(metadata);
       setIsSaved(true);
       toast({
         variant: "success",
@@ -509,119 +523,12 @@ export default function CharacterSheetGenerator() {
       toast({
         variant: "destructive",
         title: phrase(dictionary, "charsheet_toast_save_failed", language),
-        description: phrase(dictionary, "charsheet_toast_save_failed_desc", language),
+        description: error instanceof Error ? error.message : phrase(dictionary, "charsheet_toast_save_failed_desc", language),
       });
     } finally {
       setIsSaving(false);
     }
-  }, [characters, styleKeyword, characterBasePrompt, setStageResult, setCharacterSheetResult, toast, dictionary, language]);
-
-  // Save session to S3
-  const handleSaveToS3 = useCallback(async () => {
-    setIsSavingToS3(true);
-
-    try {
-      // Collect data from localStorage
-      const characterSheetResult = localStorage.getItem("character_sheet_result");
-
-      // Collect images from IndexedDB
-      const characterImages = await getAllCharacterImages();
-
-      const sessionData = {
-        version: "1.0",
-        savedAt: Date.now(),
-        characterSheetResult: characterSheetResult ? JSON.parse(characterSheetResult) : null,
-        characterImages,
-        styleKeyword,
-        characterBasePrompt,
-      };
-
-      const response = await fetch("/api/mithril_session/charactersheet/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionData }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save to S3");
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "charsheet_toast_s3_saved", language),
-      });
-    } catch (error) {
-      console.error("Error saving to S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "charsheet_toast_s3_error", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingToS3(false);
-    }
-  }, [toast, dictionary, language, styleKeyword, characterBasePrompt]);
-
-  // Load session from S3
-  const handleLoadFromS3 = useCallback(async () => {
-    setIsLoadingFromS3(true);
-
-    try {
-      const response = await fetch("/api/mithril_session/charactersheet/load");
-
-      if (response.status === 404) {
-        toast({
-          title: phrase(dictionary, "sora_toast_error", language),
-          description: phrase(dictionary, "charsheet_toast_s3_no_session", language),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load from S3");
-      }
-
-      const { sessionData } = await response.json();
-
-      // Restore localStorage data
-      if (sessionData.characterSheetResult) {
-        localStorage.setItem("character_sheet_result", JSON.stringify(sessionData.characterSheetResult));
-      }
-
-      // Clear existing IndexedDB images before restoring
-      await clearCharacterImagesOnly();
-
-      // Restore IndexedDB images
-      if (sessionData.characterImages && Array.isArray(sessionData.characterImages)) {
-        for (const img of sessionData.characterImages) {
-          if (img.base64) {
-            await saveCharacterImage(img);
-          }
-        }
-      }
-
-      toast({
-        title: phrase(dictionary, "sora_toast_success", language),
-        description: phrase(dictionary, "charsheet_toast_s3_loaded", language),
-      });
-
-      // Save current stage to sessionStorage before reload
-      sessionStorage.setItem("mithril_restore_stage", "3");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error loading from S3:", error);
-      toast({
-        title: phrase(dictionary, "sora_toast_error", language),
-        description: error instanceof Error ? error.message : phrase(dictionary, "charsheet_toast_s3_no_session", language),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingFromS3(false);
-    }
-  }, [toast, dictionary, language]);
+  }, [currentProjectId, characters, styleKeyword, characterBasePrompt, setStageResult, setCharacterSheetResult, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
@@ -742,37 +649,6 @@ export default function CharacterSheetGenerator() {
         </div>
       )}
 
-      {/* S3 Buttons - always show when not loading data */}
-      {!isLoadingData && (
-        <div className="flex justify-center gap-2">
-          <button
-            onClick={handleSaveToS3}
-            disabled={isSavingToS3 || isAnalyzing}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isSavingToS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudUpload className="w-5 h-5" />
-            )}
-            {isSavingToS3 ? phrase(dictionary, "charsheet_saving_to_s3", language) : phrase(dictionary, "charsheet_save_to_s3", language)}
-          </button>
-
-          <button
-            onClick={handleLoadFromS3}
-            disabled={isLoadingFromS3}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isLoadingFromS3 ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CloudDownload className="w-5 h-5" />
-            )}
-            {isLoadingFromS3 ? phrase(dictionary, "charsheet_loading_from_s3", language) : phrase(dictionary, "charsheet_load_from_s3", language)}
-          </button>
-        </div>
-      )}
-
       {/* Error Display */}
       {!isLoadingData && error && (
         <div
@@ -831,10 +707,10 @@ export default function CharacterSheetGenerator() {
                 <span>{phrase(dictionary, "charsheet_export_csv", language)}</span>
               </button>
               <button
-                onClick={async () => {
+                onClick={() => {
                   setCharacters([]);
                   clearCharacterSheetAnalysis();
-                  await clearCharacterImagesOnly();
+                  // S3 images are deleted via clearCharacterSheetAnalysis in MithrilContext
                 }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
@@ -852,36 +728,60 @@ export default function CharacterSheetGenerator() {
               >
                 {/* Image Section */}
                 <div className="relative aspect-video bg-gray-200 dark:bg-gray-800 group">
-                  {char.imageBase64 ? (
+                  {(char.imageBase64 || char.imageUrl) ? (
                     <>
                       <img
-                        src={`data:image/jpeg;base64,${char.imageBase64}`}
+                        src={char.imageBase64 ? `data:image/jpeg;base64,${char.imageBase64}` : char.imageUrl}
                         alt={char.name}
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                        <button
-                          onClick={() =>
-                            downloadImage(
-                              char.imageBase64,
-                              `${char.name}_sheet.jpg`
-                            )
-                          }
-                          className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
-                          title={phrase(dictionary, "download", language)}
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleEditImage(char.id, char.imageBase64)
-                          }
-                          className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
-                          title={phrase(dictionary, "edit", language)}
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                      </div>
+                      {/* Loading overlay for regeneration */}
+                      {char.isGenerating && (
+                        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DB2777]"></div>
+                          <span className="mt-2 text-sm text-white">
+                            {phrase(dictionary, "charsheet_generating", language)}
+                          </span>
+                        </div>
+                      )}
+                      {/* Hover overlay for actions (only when not generating) */}
+                      {!char.isGenerating && (
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
+                          {char.imageBase64 && (
+                            <button
+                              onClick={() =>
+                                downloadImage(
+                                  char.imageBase64,
+                                  `${char.name}_sheet.jpg`
+                                )
+                              }
+                              className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
+                              title={phrase(dictionary, "download", language)}
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
+                          {char.imageUrl && !char.imageBase64 && (
+                            <a
+                              href={char.imageUrl}
+                              download={`${char.name}_sheet.jpg`}
+                              className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
+                              title={phrase(dictionary, "download", language)}
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          )}
+                          <button
+                            onClick={() =>
+                              handleEditImage(char.id, char.imageBase64 || char.imageUrl || "")
+                            }
+                            className="p-1.5 bg-[#DB2777] hover:bg-[#BE185D] rounded-full text-white shadow-lg"
+                            title={phrase(dictionary, "edit", language)}
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </>
                   ) : char.isGenerating ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -932,7 +832,7 @@ export default function CharacterSheetGenerator() {
                     className="w-full mt-2 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Sparkles className="w-4 h-4" />
-                    {char.imageBase64
+                    {(char.imageBase64 || char.imageUrl)
                       ? phrase(dictionary, "charsheet_regenerate_sheet", language)
                       : phrase(dictionary, "charsheet_generate_sheet", language)}
                   </button>

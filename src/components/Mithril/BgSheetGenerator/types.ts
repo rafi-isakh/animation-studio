@@ -2,7 +2,8 @@
 export interface GeneratedImage {
   angle: string;
   prompt: string;
-  imageBase64: string;
+  imageBase64: string;  // For newly generated images (before S3 upload)
+  imageUrl?: string;    // For S3 URLs (after upload or when loaded)
   isGenerating: boolean;
 }
 

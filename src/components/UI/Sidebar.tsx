@@ -49,7 +49,7 @@ export function GlobalSidebar() {
         href="/"
         type="link"
       />
-      <SidebarItem
+      {/* <SidebarItem
         icon={<TvMinimalPlay />}
         text={phrase(dictionary, "sidebar_shorts", language)}
         active={pathname.startsWith('/shorts')}
@@ -88,7 +88,7 @@ export function GlobalSidebar() {
         alert={false}
         href="/my_library"
         type="link"
-      />
+      /> */}
       <SidebarItem
         icon={<PencilLine />}
         text={phrase(dictionary, "sidebar_mithril", language)}

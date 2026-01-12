@@ -6,6 +6,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import type { SoraVideoClip, ClipStatus } from "./types";
 
+// Helper to check if string is a URL
+function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://');
+}
+
 interface ClipCardProps {
   clip: SoraVideoClip;
   onGenerate: (clipIndex: number, sceneIndex: number) => void;
@@ -64,9 +69,9 @@ export default function ClipCard({ clip, onGenerate, isGeneratingAll }: ClipCard
             preload="metadata"
           />
         ) : imageBase64 ? (
-          // Show NanoBanana image
+          // Show storyboard image (S3 URL or base64)
           <Image
-            src={`data:image/jpeg;base64,${imageBase64}`}
+            src={isUrl(imageBase64) ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`}
             alt={`Clip ${sceneIndex + 1}-${clipIndex + 1}`}
             fill
             className="object-cover"

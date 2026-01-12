@@ -48,6 +48,14 @@ export default function BgSheetImageEditor({
     "#F59E0B",
   ];
 
+  // Helper to determine if string is a URL or base64
+  const getImageSrc = (imageData: string): string => {
+    if (imageData.startsWith("http://") || imageData.startsWith("https://")) {
+      return imageData; // S3 URL
+    }
+    return `data:image/jpeg;base64,${imageData}`; // Base64
+  };
+
   useEffect(() => {
     if (isOpen && canvasRef.current) {
       const canvas = canvasRef.current;
@@ -60,13 +68,14 @@ export default function BgSheetImageEditor({
 
       if (initialImage) {
         const img = new window.Image();
+        img.crossOrigin = "anonymous"; // Required for S3 URLs to allow canvas export
         img.onload = () => {
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
           saveToHistory();
         };
-        img.src = `data:image/jpeg;base64,${initialImage}`;
+        img.src = getImageSrc(initialImage);
       } else {
         canvas.width = 1280;
         canvas.height = 720;
@@ -180,12 +189,13 @@ export default function BgSheetImageEditor({
     if (canvas && ctx) {
       if (initialImage) {
         const img = new window.Image();
+        img.crossOrigin = "anonymous"; // Required for S3 URLs
         img.onload = () => {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0);
           saveToHistory();
         };
-        img.src = `data:image/jpeg;base64,${initialImage}`;
+        img.src = getImageSrc(initialImage);
       } else {
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);

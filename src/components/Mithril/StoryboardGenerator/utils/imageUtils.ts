@@ -1,6 +1,17 @@
+// Check if URL is an S3 URL that needs proxying
+function isS3Url(url: string): boolean {
+  return url.includes('s3.amazonaws.com') || url.includes('s3.ap-northeast-2.amazonaws.com');
+}
+
 // Fetch an image from URL (S3 or any URL) and convert to base64
+// Uses a server-side proxy for S3 URLs to avoid CORS issues
 async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
-  const response = await fetch(url);
+  // Use proxy for S3 URLs to avoid CORS
+  const fetchUrl = isS3Url(url)
+    ? `/api/mithril/s3/proxy?url=${encodeURIComponent(url)}`
+    : url;
+
+  const response = await fetch(fetchUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.status}`);
   }

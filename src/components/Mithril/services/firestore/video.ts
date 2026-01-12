@@ -2,16 +2,10 @@ import {
   doc,
   getDoc,
   setDoc,
-  deleteDoc,
   collection,
   getDocs,
-  updateDoc,
   writeBatch,
   Timestamp,
-  query,
-  orderBy,
-  UpdateData,
-  DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
 import {
@@ -68,15 +62,32 @@ export async function saveVideoMeta(
 
 /**
  * Get all video clips
+ * Note: We fetch all documents without orderBy to handle legacy documents
+ * that may not have sceneIndex/clipIndex fields. Sorting is done in memory.
  */
 export async function getVideoClips(projectId: string): Promise<VideoClipDocument[]> {
   const collectionRef = getVideoClipsCollection(projectId);
-  const q = query(collectionRef, orderBy('sceneIndex'), orderBy('clipIndex'));
-  const snapshot = await getDocs(q);
+  const snapshot = await getDocs(collectionRef);
 
-  return snapshot.docs.map((doc) => ({
-    ...doc.data(),
-  })) as VideoClipDocument[];
+  const clips = snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    // Extract sceneIndex and clipIndex from document ID if not in data
+    // Document ID format: "{sceneIndex}_{clipIndex}"
+    const [sceneIndexStr, clipIndexStr] = docSnapshot.id.split('_');
+    return {
+      ...data,
+      sceneIndex: data.sceneIndex ?? parseInt(sceneIndexStr, 10),
+      clipIndex: data.clipIndex ?? parseInt(clipIndexStr, 10),
+    };
+  }) as VideoClipDocument[];
+
+  // Sort in memory by sceneIndex, then clipIndex
+  return clips.sort((a, b) => {
+    if (a.sceneIndex !== b.sceneIndex) {
+      return a.sceneIndex - b.sceneIndex;
+    }
+    return a.clipIndex - b.clipIndex;
+  });
 }
 
 /**
@@ -104,6 +115,7 @@ export async function saveVideoClip(
 
 /**
  * Update video clip status
+ * Uses setDoc with merge to create the document if it doesn't exist
  */
 export async function updateVideoClipStatus(
   projectId: string,
@@ -111,7 +123,8 @@ export async function updateVideoClipStatus(
   updates: UpdateVideoClipInput
 ): Promise<void> {
   const docRef = getVideoClipRef(projectId, clipId);
-  await updateDoc(docRef, updates as UpdateData<DocumentData>);
+  // Use setDoc with merge to handle both create and update cases
+  await setDoc(docRef, updates, { merge: true });
 }
 
 /**

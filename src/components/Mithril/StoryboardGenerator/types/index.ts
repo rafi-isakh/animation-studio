@@ -13,6 +13,7 @@ export interface Continuity {
   accumulatedTime: string;
   backgroundPrompt: string;
   backgroundId: string;
+  imageRef?: string; // S3 URL for generated storyboard image
 }
 
 // Scene image generation state per clip

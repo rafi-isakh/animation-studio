@@ -276,6 +276,8 @@ export interface SaveVideoClipInput {
 }
 
 export interface UpdateVideoClipInput {
+  sceneIndex?: number;
+  clipIndex?: number;
   videoRef?: string | null;
   jobId?: string | null;
   s3FileName?: string | null;

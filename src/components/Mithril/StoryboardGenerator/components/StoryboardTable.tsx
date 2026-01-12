@@ -221,15 +221,25 @@ export default function StoryboardTable({
     setClipImageStates(prevStates => {
       const newStates = new Map<string, ClipImageState>();
       data.forEach((scene, sceneIdx) => {
-        scene.clips.forEach((_, clipIdx) => {
+        scene.clips.forEach((clip, clipIdx) => {
           const key = `${sceneIdx}-${clipIdx}`;
-          // Priority: existing state (if has image) > saved from IndexedDB > existing state > empty state
+          // Priority: existing state (if has image) > clip.imageRef from Firestore > saved state > existing state > empty state
           const existingState = prevStates.get(key);
           const savedState = savedSceneImages.get(key);
 
           // If existing state has a generated image, keep it
           if (existingState?.generatedImageBase64) {
             newStates.set(key, existingState);
+          }
+          // If clip has imageRef from Firestore (S3 URL), use it
+          else if (clip.imageRef) {
+            newStates.set(key, {
+              selectedBgId: existingState?.selectedBgId || null,
+              generatedImageBase64: clip.imageRef,
+              isS3Url: true,
+              isGenerating: false,
+              error: null,
+            });
           }
           // Otherwise, use saved state if available
           else if (savedState) {

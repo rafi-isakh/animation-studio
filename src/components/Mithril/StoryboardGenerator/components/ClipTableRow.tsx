@@ -8,6 +8,7 @@ import { phrase } from "@/utils/phrases";
 import type { Continuity, ClipImageState, ReferenceImage } from "../types";
 import type { EditableClipField } from "../../MithrilContext";
 import { BackgroundSelector } from "./StoryboardTable";
+import { isUrl } from "../utils/imageUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -253,7 +254,9 @@ export default function ClipTableRow({
                   className={`relative rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#DB2777] transition-all ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}
                 >
                   <Image
-                    src={`data:image/jpeg;base64,${clipState.generatedImageBase64}`}
+                    src={isUrl(clipState.generatedImageBase64)
+                      ? clipState.generatedImageBase64
+                      : `data:image/jpeg;base64,${clipState.generatedImageBase64}`}
                     alt="Generated"
                     fill
                     className="object-cover"

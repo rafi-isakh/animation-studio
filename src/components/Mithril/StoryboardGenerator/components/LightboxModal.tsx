@@ -5,6 +5,7 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { isUrl } from "../utils/imageUtils";
 
 interface LightboxModalProps {
   image: { base64: string; clipName: string };
@@ -14,6 +15,11 @@ interface LightboxModalProps {
 
 export default function LightboxModal({ image, aspectRatio, onClose }: LightboxModalProps) {
   const { language, dictionary } = useLanguage();
+
+  // Handle both S3 URLs and base64 strings
+  const imageSrc = isUrl(image.base64)
+    ? image.base64
+    : `data:image/jpeg;base64,${image.base64}`;
 
   return (
     <div
@@ -44,7 +50,7 @@ export default function LightboxModal({ image, aspectRatio, onClose }: LightboxM
             style={{ aspectRatio: aspectRatio.replace(":", "/") }}
           >
             <Image
-              src={`data:image/jpeg;base64,${image.base64}`}
+              src={imageSrc}
               alt={`Clip ${image.clipName}`}
               fill
               className="object-contain"

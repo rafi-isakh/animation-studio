@@ -264,6 +264,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           })),
         };
         setCharacterSheetGenerator(prev => ({ ...prev, result: metadata }));
+        // Also set stageResult for components that read from it (e.g., useReferenceImages)
+        setStageResults(prev => ({ ...prev, 3: metadata }));
       }
 
       // Load background sheet data
@@ -285,6 +287,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           })),
         };
         setBgSheetGenerator(prev => ({ ...prev, result: metadata }));
+        // Also set stageResult for components that read from it (e.g., useReferenceImages)
+        setStageResults(prev => ({ ...prev, 4: metadata }));
       }
 
       // Load storyboard data
@@ -314,6 +318,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 bgmEn: clip.bgmEn,
                 length: clip.length,
                 accumulatedTime: clip.accumulatedTime,
+                imageRef: clip.imageRef, // S3 URL for storyboard image
               })),
             };
           })
@@ -332,6 +337,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           scenes: scenesWithClips,
           voicePrompts: storyboardData.voicePrompts,
         }));
+
+        // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
+        setStageResults(prev => ({ ...prev, 5: storyboardData }));
 
         // Store original for reset functionality
         setOriginalStoryboard(storyboardData);

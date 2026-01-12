@@ -38,7 +38,7 @@ const Loader: React.FC<LoaderProps> = ({ message }) => (
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function SoraVideoGenerator() {
-  const { setStageResult, currentStage, getStageResult, currentProjectId } = useMithril();
+  const { setStageResult, currentStage, getStageResult, currentProjectId, isLoading: isContextLoading } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
@@ -79,6 +79,9 @@ export default function SoraVideoGenerator() {
       setHasLoaded(false);
       return;
     }
+
+    // Wait for MithrilContext to finish loading from Firestore
+    if (isContextLoading) return;
 
     // Already loaded for this stage visit
     if (hasLoaded) return;
@@ -167,7 +170,7 @@ export default function SoraVideoGenerator() {
     };
 
     loadData();
-  }, [currentStage, hasLoaded, currentProjectId, getStageResult, toast, dictionary, language]);
+  }, [currentStage, hasLoaded, currentProjectId, getStageResult, isContextLoading, toast, dictionary, language]);
 
   // Auto-save helper - saves to Firestore (silent, no toast)
   const autoSave = useCallback(async (updatedClips: SoraVideoClip[]) => {
@@ -179,6 +182,8 @@ export default function SoraVideoGenerator() {
         if (clip.status === "completed" && clip.videoUrl) {
           const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
           await updateVideoClipStatus(currentProjectId, clipId, {
+            sceneIndex: clip.sceneIndex,
+            clipIndex: clip.clipIndex,
             videoRef: clip.videoUrl,
             s3FileName: clip.s3FileName,
             status: clip.status,
@@ -388,6 +393,8 @@ export default function SoraVideoGenerator() {
       for (const clip of clips) {
         const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
         await updateVideoClipStatus(currentProjectId, clipId, {
+          sceneIndex: clip.sceneIndex,
+          clipIndex: clip.clipIndex,
           videoRef: clip.videoUrl,
           jobId: clip.jobId,
           s3FileName: clip.s3FileName,

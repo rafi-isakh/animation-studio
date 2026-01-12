@@ -154,9 +154,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                                             <Suspense>
                                                                 <NavigationEvents />
                                                             </Suspense>
-                                                            <Suspense>
+                                                            {/* <Suspense>
                                                                 <Header isLoggedIn={isLoggedIn} />
-                                                            </Suspense>
+                                                            </Suspense> */}
                                                             <Margin>
                                                                 <div className="pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
                                                                     {children}

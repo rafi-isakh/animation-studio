@@ -29,6 +29,7 @@ import {
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
 const VIDEO_API_URL = '/api/mithril/s3/video';
+const CLEAR_PROJECT_API_URL = '/api/mithril/s3/clear-project';
 
 // ============================================================================
 // Character Images
@@ -326,8 +327,8 @@ export async function clearAllProjectFiles(projectId: string): Promise<number> {
     projectId,
   };
 
-  const response = await fetch(VIDEO_API_URL, {
-    method: 'PUT', // Using PUT for clear-project action
+  const response = await fetch(CLEAR_PROJECT_API_URL, {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   });

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/shadcnUI/Button';
 import { Plus, Folder, Trash2, Calendar } from 'lucide-react';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
+import { clearAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
 
@@ -41,13 +42,25 @@ export default function ProjectListPage() {
   async function handleDeleteProject(e: React.MouseEvent, projectId: string) {
     e.stopPropagation();
 
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this project? This will permanently delete all data including images and videos.')) {
       return;
     }
 
     try {
       setDeletingId(projectId);
+
+      // 1. Delete all S3 files (images and videos)
+      try {
+        const deletedCount = await clearAllProjectFiles(projectId);
+        console.log(`Deleted ${deletedCount} S3 files for project ${projectId}`);
+      } catch (s3Error) {
+        console.error('Failed to delete S3 files:', s3Error);
+        // Continue with Firestore deletion even if S3 cleanup fails
+      }
+
+      // 2. Delete Firestore data (project + subcollections)
       await deleteProject(projectId);
+
       setProjects(projects.filter(p => p.id !== projectId));
     } catch (error) {
       console.error('Failed to delete project:', error);

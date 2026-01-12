@@ -100,13 +100,77 @@ export async function updateCurrentStage(
 }
 
 /**
- * Delete a project and all its subcollections
- * Note: Firestore doesn't automatically delete subcollections,
- * so we need to delete them manually or use a Cloud Function
+ * Helper to delete all documents in a collection
+ */
+async function deleteCollection(
+  collectionRef: ReturnType<typeof collection>
+): Promise<number> {
+  const snapshot = await getDocs(collectionRef);
+  const deletePromises = snapshot.docs.map((docSnapshot) => deleteDoc(docSnapshot.ref));
+  await Promise.all(deletePromises);
+  return snapshot.docs.length;
+}
+
+/**
+ * Delete a project and all its data
+ * Firestore doesn't automatically delete subcollections,
+ * so we delete them manually in the correct order (deepest first)
+ *
+ * Structure:
+ * projects/{projectId}/
+ * ├── chapter/data
+ * ├── storySplits/data
+ * ├── characterSheet/settings
+ * ├── characterSheet/settings/characters/{charId}
+ * ├── bgSheet/settings
+ * ├── bgSheet/settings/backgrounds/{bgId}
+ * ├── storyboard/data
+ * ├── storyboard/voicePrompts
+ * ├── storyboard/data/scenes/scene_{idx}
+ * ├── storyboard/video
+ * └── storyboard/video/clips/{clipId}
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  // For now, just delete the project document
-  // TODO: Add cascade delete for subcollections (chapter, storySplits, etc.)
-  const docRef = doc(db, PROJECTS_COLLECTION, projectId);
-  await deleteDoc(docRef);
+  const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+
+  // 1. Delete deepest nested collections first
+  // Characters subcollection: characterSheet/settings/characters/*
+  await deleteCollection(
+    collection(db, PROJECTS_COLLECTION, projectId, 'characterSheet', 'settings', 'characters')
+  ).catch(() => {});
+
+  // Backgrounds subcollection: bgSheet/settings/backgrounds/*
+  await deleteCollection(
+    collection(db, PROJECTS_COLLECTION, projectId, 'bgSheet', 'settings', 'backgrounds')
+  ).catch(() => {});
+
+  // Storyboard scenes: storyboard/data/scenes/*
+  await deleteCollection(
+    collection(db, PROJECTS_COLLECTION, projectId, 'storyboard', 'data', 'scenes')
+  ).catch(() => {});
+
+  // Video clips: storyboard/video/clips/*
+  await deleteCollection(
+    collection(db, PROJECTS_COLLECTION, projectId, 'storyboard', 'video', 'clips')
+  ).catch(() => {});
+
+  // 2. Delete stage documents (with correct paths)
+  const stageDocRefs = [
+    doc(db, PROJECTS_COLLECTION, projectId, 'chapter', 'data'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'storySplits', 'data'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'characterSheet', 'settings'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'bgSheet', 'settings'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'storyboard', 'data'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'storyboard', 'voicePrompts'),
+    doc(db, PROJECTS_COLLECTION, projectId, 'storyboard', 'video'),
+  ];
+
+  await Promise.all(
+    stageDocRefs.map((docRef) =>
+      deleteDoc(docRef).catch(() => {}) // Ignore errors if document doesn't exist
+    )
+  );
+
+  // 3. Finally, delete the project document itself
+  await deleteDoc(projectRef);
 }

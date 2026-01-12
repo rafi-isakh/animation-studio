@@ -81,6 +81,7 @@ export async function getBackgrounds(projectId: string): Promise<BackgroundDocum
 
 /**
  * Save a new background
+ * Returns the auto-generated Firestore document ID
  */
 export async function saveBackground(
   projectId: string,

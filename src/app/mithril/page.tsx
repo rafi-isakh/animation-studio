@@ -1,5 +1,5 @@
 import Mithril from '@/components/Mithril/Mithril';
-import PasscodeGate from '@/components/Mithril/PasscodeGate';
+import { MithrilAuthGate } from '@/components/Mithril/auth';
 import MithrilProjectLoader from '@/components/Mithril/MithrilProjectLoader';
 import { Suspense } from 'react';
 
@@ -12,13 +12,13 @@ const MithrilPage = async ({ searchParams }: MithrilPageProps) => {
     const projectId = params.project;
 
     return (
-        <PasscodeGate>
+        <MithrilAuthGate>
             <Suspense fallback={<div className="p-8">Loading...</div>}>
                 <MithrilProjectLoader projectId={projectId}>
                     <Mithril />
                 </MithrilProjectLoader>
             </Suspense>
-        </PasscodeGate>
+        </MithrilAuthGate>
     );
 };
 

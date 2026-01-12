@@ -4,19 +4,28 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, LogOut } from 'lucide-react';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
+import { useMithrilAuth } from './auth/MithrilAuthContext';
 
 export default function ProjectListPage() {
   const router = useRouter();
   const { setCurrentProject } = useProject();
+  const { user, logout } = useMithrilAuth();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await logout();
+    router.push('/mithril/login');
+  }
 
   useEffect(() => {
     loadProjects();
@@ -103,10 +112,26 @@ export default function ProjectListPage() {
             Create and manage your story-to-video projects
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          New Project
-        </Button>
+        <div className="flex items-center gap-3">
+          {user && (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {user.email}
+            </span>
+          )}
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Project
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </Button>
+        </div>
       </div>
 
       {loading ? (

@@ -185,7 +185,7 @@ export default function StoryboardTable({
   voicePrompts,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
-  const { customApiKey, updateClipPrompt, getOriginalClipPrompt, currentProjectId } = useMithril();
+  const { customApiKey, updateClipPrompt, updateClipImageRef, getOriginalClipPrompt, currentProjectId } = useMithril();
 
   // Load references from hook
   const {
@@ -432,6 +432,8 @@ export default function StoryboardTable({
           const s3Url = await uploadStoryboardImage(currentProjectId, sceneIdx, clipIdx, result.imageBase64);
           await updateClipImage(currentProjectId, sceneIdx, clipIdx, s3Url);
           imageUrl = `${s3Url}?t=${Date.now()}`; // Add cache-busting
+          // Update context's scenes state so Stage 6 sees the new image immediately
+          updateClipImageRef(sceneIdx, clipIdx, s3Url);
         } catch (err) {
           console.error("Failed to upload storyboard image to S3:", err);
           // Continue with base64 image in local state
@@ -465,7 +467,7 @@ export default function StoryboardTable({
         return newMap;
       });
     }
-  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, currentProjectId]);
+  }, [clipImageStates, availableReferences, availableCharacters, characterMetadata, stylePrompt, aspectRatio, currentProjectId, updateClipImageRef]);
 
   // Check if all clips have backgrounds selected (or don't need one)
   const allBgSelected = useMemo(() => {

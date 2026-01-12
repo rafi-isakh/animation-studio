@@ -82,6 +82,7 @@ interface BgSheetBackground {
     angle: string;
     prompt: string;
     imageBase64: string;
+    imageUrl?: string;  // S3 URL after upload
     isGenerating: boolean;
   }[];
 }
@@ -146,6 +147,7 @@ interface MithrilContextProps {
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   clearStoryboardGeneration: () => void;
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
+  updateClipImageRef: (sceneIndex: number, clipIndex: number, imageRef: string) => void;
   getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 
   // BgSheet Generator (Stage 4)
@@ -612,6 +614,30 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, [currentProjectId]);
 
+  // Update a specific clip's imageRef (S3 URL) and sync to stageResults
+  const updateClipImageRef = useCallback((
+    sceneIndex: number,
+    clipIndex: number,
+    imageRef: string
+  ) => {
+    setStoryboardGenerator(prev => {
+      const newScenes = [...prev.scenes];
+      const scene = { ...newScenes[sceneIndex] };
+      const clips = [...scene.clips];
+      clips[clipIndex] = { ...clips[clipIndex], imageRef };
+      scene.clips = clips;
+      newScenes[sceneIndex] = scene;
+
+      // Also update stageResults so Stage 6 can access the images immediately
+      setStageResults(prevResults => ({
+        ...prevResults,
+        5: { scenes: newScenes, voicePrompts: prev.voicePrompts }
+      }));
+
+      return { ...prev, scenes: newScenes };
+    });
+  }, []);
+
   // Get the original AI-generated prompt value for reset functionality
   const getOriginalClipPrompt = useCallback((
     sceneIndex: number,
@@ -651,9 +677,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "API request failed");
 
-      const backgroundsWithImages: BgSheetBackground[] = data.backgrounds.map((b: { name: string; description: string }) => ({
+      // Create backgrounds without IDs first
+      const backgroundsFromApi = data.backgrounds.map((b: { name: string; description: string }) => ({
         ...b,
-        id: crypto.randomUUID(),
         images: BACKGROUND_ANGLES.map((angle) => ({
           angle,
           prompt: "",
@@ -662,21 +688,31 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         })),
       }));
 
-      // Save to Firestore
+      // Save to Firestore and get back the Firestore document IDs
+      let backgroundsWithImages: BgSheetBackground[] = [];
       if (currentProjectId) {
         await saveBgSheetSettings(currentProjectId, {
           styleKeyword,
           backgroundBasePrompt,
         });
 
-        // Save each background
-        for (const bg of backgroundsWithImages) {
-          await saveBackground(currentProjectId, {
-            name: bg.name,
-            description: bg.description,
-            angles: [],
-          });
-        }
+        // Save each background and capture the Firestore ID
+        backgroundsWithImages = await Promise.all(
+          backgroundsFromApi.map(async (bg: Omit<BgSheetBackground, 'id'>) => {
+            const firestoreId = await saveBackground(currentProjectId, {
+              name: bg.name,
+              description: bg.description,
+              angles: [],
+            });
+            return { ...bg, id: firestoreId };
+          })
+        );
+      } else {
+        // Fallback to client-side UUIDs if no project (shouldn't happen)
+        backgroundsWithImages = backgroundsFromApi.map((bg: Omit<BgSheetBackground, 'id'>) => ({
+          ...bg,
+          id: crypto.randomUUID(),
+        }));
       }
 
       const metadata: BgSheetResultMetadata = {
@@ -760,33 +796,43 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "API request failed");
 
-      const charactersWithImages: Character[] = data.characters.map((c: { name: string; appearance: string; clothing: string; personality: string; backgroundStory: string }) => ({
+      // Create characters without IDs first
+      const charactersFromApi = data.characters.map((c: { name: string; appearance: string; clothing: string; personality: string; backgroundStory: string }) => ({
         ...c,
-        id: crypto.randomUUID(),
         imagePrompt: "",
         imageBase64: "",
         isGenerating: false,
       }));
 
-      // Save to Firestore
+      // Save to Firestore and get back the Firestore document IDs
+      let charactersWithImages: Character[] = [];
       if (currentProjectId) {
         await saveCharacterSheetSettings(currentProjectId, {
           styleKeyword,
           characterBasePrompt,
         });
 
-        // Save each character
-        for (const char of charactersWithImages) {
-          await saveCharacter(currentProjectId, {
-            name: char.name,
-            appearance: char.appearance,
-            clothing: char.clothing,
-            personality: char.personality,
-            backgroundStory: char.backgroundStory,
-            imageRef: "",
-            imagePrompt: "",
-          });
-        }
+        // Save each character and capture the Firestore ID
+        charactersWithImages = await Promise.all(
+          charactersFromApi.map(async (char: Omit<Character, 'id'>) => {
+            const firestoreId = await saveCharacter(currentProjectId, {
+              name: char.name,
+              appearance: char.appearance,
+              clothing: char.clothing,
+              personality: char.personality,
+              backgroundStory: char.backgroundStory,
+              imageRef: "",
+              imagePrompt: "",
+            });
+            return { ...char, id: firestoreId };
+          })
+        );
+      } else {
+        // Fallback to client-side UUIDs if no project (shouldn't happen)
+        charactersWithImages = charactersFromApi.map((c: Omit<Character, 'id'>) => ({
+          ...c,
+          id: crypto.randomUUID(),
+        }));
       }
 
       const metadata: CharacterSheetResultMetadata = {
@@ -913,6 +959,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         startStoryboardGeneration,
         clearStoryboardGeneration,
         updateClipPrompt,
+        updateClipImageRef,
         getOriginalClipPrompt,
         // BgSheet Generator
         bgSheetGenerator,

@@ -173,6 +173,10 @@ export default function BgSheetGenerator() {
   );
   const [referenceImageName, setReferenceImageName] = useState<string>("");
 
+  // Refs to avoid stale closures in async callbacks
+  const styleKeywordRef = useRef(styleKeyword);
+  const backgroundBasePromptRef = useRef(backgroundBasePrompt);
+
   // Editor state
   const [editingTarget, setEditingTarget] = useState<{
     bgId: string;
@@ -191,6 +195,15 @@ export default function BgSheetGenerator() {
       abortControllerRef.current?.abort();
     };
   }, []);
+
+  // Keep refs in sync with state for use in async callbacks
+  useEffect(() => {
+    styleKeywordRef.current = styleKeyword;
+  }, [styleKeyword]);
+
+  useEffect(() => {
+    backgroundBasePromptRef.current = backgroundBasePrompt;
+  }, [backgroundBasePrompt]);
 
   // Load chapter from Firestore (from Stage 1)
   useEffect(() => {
@@ -309,7 +322,7 @@ export default function BgSheetGenerator() {
         )
       );
 
-      // 4. Update context state so navigation works
+      // 4. Update context state so navigation works (using refs to avoid stale closures)
       setBackgrounds((currentBgs) => {
         const metadata: BgSheetResultMetadata = {
           backgrounds: currentBgs.map((bg) => ({
@@ -322,16 +335,18 @@ export default function BgSheetGenerator() {
               imageId: img.imageUrl || "",  // S3 URL stored as imageId
             })),
           })),
-          styleKeyword,
-          backgroundBasePrompt,
+          styleKeyword: styleKeywordRef.current,
+          backgroundBasePrompt: backgroundBasePromptRef.current,
         };
         setBgSheetResult(metadata);
+        // Also update stageResults so useReferenceImages can access the data
+        setStageResult(4, metadata);
         return currentBgs;
       });
     } catch (error) {
       console.error("Auto-save failed for image:", error);
     }
-  }, [currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult]);
+  }, [currentProjectId, setBgSheetResult, setStageResult]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");
@@ -341,12 +356,28 @@ export default function BgSheetGenerator() {
 
     if (result.length > 0) {
       setBackgrounds(result);
-      setStageResult(4, { backgrounds: result, styleKeyword, backgroundBasePrompt });
+      // Convert to BgSheetResultMetadata format for stageResult
+      const metadata: BgSheetResultMetadata = {
+        backgrounds: result.map((bg) => ({
+          id: bg.id,
+          name: bg.name,
+          description: bg.description,
+          images: bg.images.map((img) => ({
+            angle: img.angle,
+            prompt: img.prompt,
+            imageId: img.imageUrl || "",  // Use imageUrl as imageId
+          })),
+        })),
+        styleKeyword,
+        backgroundBasePrompt,
+      };
+      setStageResult(4, metadata);
+      setBgSheetResult(metadata);
       setIsSaved(true);
     } else if (analysisError) {
       setError(analysisError);
     }
-  }, [originalText, styleKeyword, backgroundBasePrompt, startBgSheetAnalysis, setStageResult, analysisError]);
+  }, [originalText, styleKeyword, backgroundBasePrompt, startBgSheetAnalysis, setStageResult, setBgSheetResult, analysisError]);
 
   const updateBackground = (
     id: string,

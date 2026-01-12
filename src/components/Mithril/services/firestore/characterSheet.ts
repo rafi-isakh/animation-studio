@@ -80,6 +80,7 @@ export async function getCharacters(projectId: string): Promise<CharacterDocumen
 
 /**
  * Save a new character
+ * Returns the auto-generated Firestore document ID
  */
 export async function saveCharacter(
   projectId: string,

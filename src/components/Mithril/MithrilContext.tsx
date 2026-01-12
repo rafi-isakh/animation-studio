@@ -82,6 +82,7 @@ interface BgSheetBackground {
     angle: string;
     prompt: string;
     imageBase64: string;
+    imageUrl?: string;  // S3 URL after upload
     isGenerating: boolean;
   }[];
 }

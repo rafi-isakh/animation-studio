@@ -2,33 +2,14 @@
 import { Analytics } from "@vercel/analytics/react"
 import '@/styles/globals.css';
 import { Metadata } from 'next'
-import { DeviceProvider } from '@/contexts/DeviceContext';
-import { MobileMenuProvider } from '@/contexts/MobileMenuContext';
-import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { ReactNode, Suspense, useEffect } from 'react';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { UserProvider } from '@/contexts/UserContext';
-import Header from '@/components/Header';
-import { SearchProvider } from '@/contexts/SearchContext';
-import Margin from '@/components/Margin';
-import RegisterSW from '@/components/RegisterSW';
-import { NavigationEvents } from '@/components/NewUserNavigation';
-import BottomNavigationBar from '@/components/UI/BottomNavigation';
-import { GlobalSidebar } from '@/components/UI/Sidebar';
-import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
+import { ReactNode } from 'react';
 import LanguageSetter from "@/components/LanguageSetter";
-import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
-import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { MithrilAuthProvider } from "@/components/Mithril/auth";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import { headers } from 'next/headers';
-import UserProviderServer from "@/contexts/UserProviderServer";
-import WebnovelsProviderServer from "@/contexts/WebnovelsProviderServer";
-import { SessionProvider } from 'next-auth/react';
-import Script from "next/script";
+import MithrilSidebar from "@/components/Mithril/MithrilSidebar";
 
 interface RootLayoutProps {
     children: ReactNode;
@@ -67,59 +48,7 @@ export const metadata: Metadata = {
     }
 }
 
-interface RootLayoutProps {
-    children: ReactNode;
-}
-
-export async function getUserSession() {
-    const headersList = headers();
-    const protocol = headersList.get('x-forwarded-proto') || 'https';
-    const host = headersList.get('host');
-
-    const url = `${protocol}://${host}/api/user_session`;
-
-    const res = await fetch(url, {
-        headers: {
-            cookie: headersList.get('cookie') || '',
-        },
-        cache: 'no-store',
-    });
-
-    if (!res.ok) {
-        return null;
-    }
-
-    const data = await res.json();
-    return data;
-}
-
-export async function getWebnovelsMetadata() {
-    const headersList = headers();
-    const protocol = headersList.get('x-forwarded-proto') || 'https';
-    const host = headersList.get('host');
-
-    const url = `${protocol}://${host}/api/get_webnovels_metadata`;
-    const response = await fetch(url,
-        {
-            next: {
-                tags: ['webnovels']
-            }
-        }
-    );
-    if (!response.ok) {
-        console.error("Failed to fetch webnovels metadata", response.status);
-        return [];
-    }
-    const data = await response.json();
-    return data;
-}
-
-export default async function RootLayout({ children }: RootLayoutProps) {
-    const session = await auth();
-    const isLoggedIn = !!session?.user;
-    const user = await getUserSession();
-    const webnovelsMetadata = await getWebnovelsMetadata();
-
+export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en" translate="no" suppressHydrationWarning>
             <head>
@@ -127,65 +56,30 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
                 />
-                <Script
-                    id="hubspot-script"
-                    src="//js-na2.hs-scripts.com/243784961.js"
-                    strategy="afterInteractive"
-                    />
             </head>
-            <body className={`antialiased dark`}>
+            <body className="antialiased dark">
                 <GoogleAnalytics />
-                <RegisterSW />
-                <SessionProvider session={session}>
-                    <ToastProvider>
+                <ToastProvider>
                     <LanguageProvider>
                         <LanguageSetter />
-                        <WebnovelsProviderServer webnovelsMetadata={webnovelsMetadata}>
-                            <ThemeProvider>
-                                <AuthProvider>
-                                    <UserProviderServer user={user}>
-                                        <DeviceProvider>
-                                            <MobileMenuProvider>
-                                                <SearchProvider>
-                                                    <CreateMediaProvider>
-                                                        <MithrilAuthProvider>
-                                                        <ProjectProvider>
-                                                        <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                                                            <Suspense>
-                                                                <NavigationEvents />
-                                                            </Suspense>
-                                                            {/* <Suspense>
-                                                                <Header isLoggedIn={isLoggedIn} />
-                                                            </Suspense> */}
-                                                            <Margin>
-                                                                <div className="pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                                                                    {children}
-                                                                </div>
-                                                                <Analytics />
-                                                            </Margin>
-                                                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                                                                <GlobalSidebar />
-                                                            </div>
-                                                            <div className="block md:hidden z-[99]">
-                                                                <BottomNavigationBar />
-                                                            </div>
-                                                        </div>
-                                                        </ProjectProvider>
-                                                        </MithrilAuthProvider>
-                                                    </CreateMediaProvider>
-                                                </SearchProvider>
-                                            </MobileMenuProvider>
-                                        </DeviceProvider>
-                                    </UserProviderServer>
-                                </AuthProvider>
-                            </ThemeProvider>
-                        </WebnovelsProviderServer>
+                        <MithrilAuthProvider>
+                            <ProjectProvider>
+                                <div className="relative font-pretendard pretendard-jp pretendard-std">
+                                    {/* Sidebar - hidden on mobile */}
+                                    <div className="hidden md:block">
+                                        <MithrilSidebar />
+                                    </div>
+                                    {/* Main content with left padding for sidebar on desktop */}
+                                    <div className="md:pl-[72px]">
+                                        {children}
+                                    </div>
+                                    <Analytics />
+                                </div>
+                            </ProjectProvider>
+                        </MithrilAuthProvider>
                     </LanguageProvider>
                 </ToastProvider>
-                </SessionProvider>
-                <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
-                <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
             </body>
-        </html >
+        </html>
     );
 }

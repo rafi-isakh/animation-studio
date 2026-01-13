@@ -133,10 +133,6 @@ export default function CharacterSheetGenerator() {
   );
   const [referenceImageName, setReferenceImageName] = useState<string>("");
 
-  // Refs to avoid stale closures in async callbacks
-  const styleKeywordRef = useRef(styleKeyword);
-  const characterBasePromptRef = useRef(characterBasePrompt);
-
   // Editor state
   const [editingTarget, setEditingTarget] = useState<{
     characterId: string;
@@ -154,15 +150,6 @@ export default function CharacterSheetGenerator() {
       abortControllerRef.current?.abort();
     };
   }, []);
-
-  // Keep refs in sync with state for use in async callbacks
-  useEffect(() => {
-    styleKeywordRef.current = styleKeyword;
-  }, [styleKeyword]);
-
-  useEffect(() => {
-    characterBasePromptRef.current = characterBasePrompt;
-  }, [characterBasePrompt]);
 
   // Load chapter from Firestore (from Stage 1)
   useEffect(() => {
@@ -248,35 +235,30 @@ export default function CharacterSheetGenerator() {
       // 2. Update Firestore with S3 URL
       await updateCharacterImage(currentProjectId, characterId, imageUrl, prompt);
 
-      // 3. Update local state with S3 URL and context (using functional update to get current state)
+      // 3. Update local state with S3 URL (add cache-busting param for regeneration)
       const imageUrlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
-      setCharacters((currentCharacters) => {
-        const updatedCharacters = currentCharacters.map((c) =>
+      setCharacters((prev) =>
+        prev.map((c) =>
           c.id === characterId ? { ...c, imageUrl: imageUrlWithCacheBust, imageBase64: "" } : c
-        );
+        )
+      );
 
-        // 4. Update context state so navigation works without manual save
-        // Use refs to avoid stale closure values
-        const updatedMeta: CharacterSheetResultMetadata = {
-          characters: updatedCharacters.map((char) => ({
-            id: char.id,
-            name: char.name,
-            appearance: char.appearance,
-            clothing: char.clothing,
-            personality: char.personality,
-            backgroundStory: char.backgroundStory,
-            imageId: char.id === characterId ? imageUrl : (char.imageUrl || ""),
-            imagePrompt: char.id === characterId ? prompt : char.imagePrompt,
-          })),
-          styleKeyword: styleKeywordRef.current,
-          characterBasePrompt: characterBasePromptRef.current,
-        };
-        setCharacterSheetResult(updatedMeta);
-        // Also update stageResults so useReferenceImages can access the data
-        setStageResult(3, updatedMeta);
-
-        return updatedCharacters;
-      });
+      // 4. Update context state so navigation works without manual save
+      const updatedMeta: CharacterSheetResultMetadata = {
+        characters: characters.map((char) => ({
+          id: char.id,
+          name: char.name,
+          appearance: char.appearance,
+          clothing: char.clothing,
+          personality: char.personality,
+          backgroundStory: char.backgroundStory,
+          imageId: char.id === characterId ? imageUrl : (char.imageUrl || ""),
+          imagePrompt: char.id === characterId ? prompt : char.imagePrompt,
+        })),
+        styleKeyword,
+        characterBasePrompt,
+      };
+      setCharacterSheetResult(updatedMeta);
     } catch (error) {
       console.error("Auto-save failed for image:", error);
       toast({
@@ -285,7 +267,7 @@ export default function CharacterSheetGenerator() {
         description: error instanceof Error ? error.message : "Failed to save image",
       });
     }
-  }, [currentProjectId, setCharacterSheetResult, setStageResult, toast, dictionary, language]);
+  }, [currentProjectId, characters, styleKeyword, characterBasePrompt, setCharacterSheetResult, toast, dictionary, language]);
 
   const handleAnalyze = useCallback(async () => {
     setError("");
@@ -295,28 +277,12 @@ export default function CharacterSheetGenerator() {
 
     if (result.length > 0) {
       setCharacters(result);
-      // Convert to CharacterSheetResultMetadata format for stageResult
-      const metadata: CharacterSheetResultMetadata = {
-        characters: result.map((char) => ({
-          id: char.id,
-          name: char.name,
-          appearance: char.appearance,
-          clothing: char.clothing,
-          personality: char.personality,
-          backgroundStory: char.backgroundStory,
-          imageId: char.imageUrl || "",  // Use imageUrl as imageId
-          imagePrompt: char.imagePrompt,
-        })),
-        styleKeyword,
-        characterBasePrompt,
-      };
-      setStageResult(3, metadata);
-      setCharacterSheetResult(metadata);
+      setStageResult(3, { characters: result, styleKeyword, characterBasePrompt });
       setIsSaved(true);
     } else if (analysisError) {
       setError(analysisError);
     }
-  }, [originalText, styleKeyword, characterBasePrompt, startCharacterSheetAnalysis, setStageResult, setCharacterSheetResult, analysisError]);
+  }, [originalText, styleKeyword, characterBasePrompt, startCharacterSheetAnalysis, setStageResult, analysisError]);
 
   const updateCharacter = (
     id: string,

@@ -116,11 +116,14 @@ export default function StoryboardGenerator() {
 
   // Load split parts from context on mount
   useEffect(() => {
-    const contextResult = getStageResult(2) as SplitResult | undefined;
+    const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
     if (contextResult?.parts && Array.isArray(contextResult.parts)) {
-      setSplitParts(contextResult.parts);
+      // Handle both PartWithAnalysis objects and plain strings
+      const texts = contextResult.parts.map((part) =>
+        typeof part === "string" ? part : part.text
+      );
+      setSplitParts(texts);
     }
-
   }, [getStageResult]);
 
   // Sync context results to stage results for other components
@@ -356,7 +359,7 @@ export default function StoryboardGenerator() {
                 {phrase(dictionary, "storysplitter_part", language)} {selectedPartIndex + 1} {phrase(dictionary, "storyboard_part_preview", language)}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {splitParts[selectedPartIndex]?.length.toLocaleString()}{" "}
+                {(splitParts[selectedPartIndex]?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>

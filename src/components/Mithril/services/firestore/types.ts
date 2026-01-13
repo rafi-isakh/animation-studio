@@ -284,3 +284,46 @@ export interface UpdateVideoClipInput {
   status?: VideoStatus;
   error?: string;
 }
+
+// ============================================
+// Mithril User Authentication
+// ============================================
+
+export type MithrilUserRole = 'admin' | 'user';
+
+export interface MithrilUser {
+  id: string;
+  email: string;
+  passwordHash: string;
+  role: MithrilUserRole;
+  displayName: string;
+  createdAt: Timestamp;
+  createdBy: string;
+  lastLoginAt: Timestamp | null;
+  isActive: boolean;
+}
+
+export interface MithrilSession {
+  id: string;
+  userId: string;
+  email: string;
+  role: MithrilUserRole;
+  displayName: string;
+  expiresAt: Timestamp;
+  createdAt: Timestamp;
+}
+
+export interface MithrilUserPublic {
+  id: string;
+  email: string;
+  role: MithrilUserRole;
+  displayName: string;
+}
+
+export interface CreateMithrilUserInput {
+  email: string;
+  password: string;
+  role: MithrilUserRole;
+  displayName: string;
+  createdBy: string;
+}

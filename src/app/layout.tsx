@@ -22,6 +22,7 @@ import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
 import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
+import { MithrilAuthProvider } from "@/components/Mithril/auth";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { headers } from 'next/headers';
 import UserProviderServer from "@/contexts/UserProviderServer";
@@ -147,14 +148,15 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                             <MobileMenuProvider>
                                                 <SearchProvider>
                                                     <CreateMediaProvider>
+                                                        <MithrilAuthProvider>
                                                         <ProjectProvider>
                                                         <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                                                             <Suspense>
                                                                 <NavigationEvents />
                                                             </Suspense>
-                                                            <Suspense>
+                                                            {/* <Suspense>
                                                                 <Header isLoggedIn={isLoggedIn} />
-                                                            </Suspense>
+                                                            </Suspense> */}
                                                             <Margin>
                                                                 <div className="pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
                                                                     {children}
@@ -169,6 +171,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                                             </div>
                                                         </div>
                                                         </ProjectProvider>
+                                                        </MithrilAuthProvider>
                                                     </CreateMediaProvider>
                                                 </SearchProvider>
                                             </MobileMenuProvider>

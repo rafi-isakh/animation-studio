@@ -585,7 +585,7 @@ choose_pictures,영상화할 그림을 고르세요,,Choose pictures to make a v
 storysplitter_title,클리프행어 스토리 분할기,,Cliffhanger Story Splitter
 storysplitter_subtitle,AI가 스토리를 분할하기 위한 최적의 클리프행어 지점을 찾습니다,,AI finds optimal cliffhanger points to split your story
 storysplitter_upload_file_first,먼저 Stage 1에서 텍스트 파일을 업로드해 주세요.,,Please upload a text file in Stage 1 first.
-storysplitter_ai_guidelines,AI 가이드라인 (선택사항),,AI Guidelines (Optional)
+storysplitter_ai_guidelines,AI 가이드라인,,AI Guidelines
 storysplitter_analyzing,분석 중...,,Analyzing...
 storysplitter_split_story,스토리 분할,,Split Story
 storysplitter_ai_analyzing,AI가 최적의 분할 지점을 분석하고 있습니다...,,AI is analyzing the best split points...
@@ -922,3 +922,8 @@ bgsheet_toast_s3_no_session,저장된 배경 시트 세션이 없습니다,,No s
 bgsheet_toast_s3_error,배경 시트 S3 저장에 실패했습니다,,Failed to save background sheet to S3
 mithril_gemini_api_key,이미지 생성용 키,, API Key for Image Generation
 mithril_gemini_api_key_placeholder, API 키 입력...,,Enter API key...
+storysplitter_num_parts,파트 수,,Number of Parts
+storysplitter_genre_fantasy,판타지,,Fantasy
+storysplitter_genre_romance,로맨스,,Romance
+storysplitter_genre_custom,커스텀,,Custom
+storysplitter_guidelines_placeholder,장르를 선택하거나 직접 클리프행어 규칙을 입력하세요...,,Select a genre or type your custom cliffhanger rules...

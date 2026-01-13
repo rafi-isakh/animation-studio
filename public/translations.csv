@@ -927,3 +927,12 @@ storysplitter_genre_fantasy,판타지,,Fantasy
 storysplitter_genre_romance,로맨스,,Romance
 storysplitter_genre_custom,커스텀,,Custom
 storysplitter_guidelines_placeholder,장르를 선택하거나 직접 클리프행어 규칙을 입력하세요...,,Select a genre or type your custom cliffhanger rules...
+storysplitter_cliffhanger_analysis,클리프행어 분석,,Cliffhanger Analysis
+storysplitter_key_points,핵심 포인트,,Key Points
+storysplitter_beginning,BEGINNING / 도입부 훅,,BEGINNING / Opening Hook
+storysplitter_middle,MIDDLE / 중반부,,MIDDLE / Midpoint
+storysplitter_ending,ENDING / 절단신공,,ENDING / Cliffhanger
+storysplitter_analysis_strategy,분석 전략,,Analysis Strategy
+storysplitter_no_analysis,클리프행어 분석이 없습니다.,,No cliffhanger analysis available.
+storysplitter_check_download,다운로드한 파일에서 전체 스크립트를 확인하세요.,,Please check the downloaded file for the full script.
+storysplitter_view_text,텍스트 보기,,View Text

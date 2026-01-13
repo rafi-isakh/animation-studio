@@ -42,8 +42,18 @@ const TOTAL_STAGES = 7;
 export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
 
 // Types for Story Splitter
+interface Cliffhanger {
+  sentence: string;
+  reason: string;
+}
+
+interface PartWithAnalysis {
+  text: string;
+  cliffhangers: Cliffhanger[];
+}
+
 interface SplitResult {
-  parts: string[];
+  parts: PartWithAnalysis[];
 }
 
 interface StorySplitterState {
@@ -237,8 +247,22 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Load story splitter data
       const storySplitsData = await getStorySplits(currentProjectId);
-      if (storySplitsData) {
-        const splitResult = { parts: storySplitsData.parts };
+      if (storySplitsData && storySplitsData.parts) {
+        // Handle backward compatibility: old format was string[], new format is PartWithAnalysis[]
+        // Cast to unknown first to handle both formats
+        const rawParts = storySplitsData.parts as unknown as (string | PartWithAnalysis)[];
+        const normalizedParts = rawParts.map((part) => {
+          // If part is a string (old format), convert to new format
+          if (typeof part === 'string') {
+            return { text: part, cliffhangers: [] };
+          }
+          // If part is already in new format, ensure cliffhangers array exists
+          return {
+            text: part.text || '',
+            cliffhangers: part.cliffhangers || [],
+          };
+        });
+        const splitResult = { parts: normalizedParts };
         setStorySplitter(prev => ({
           ...prev,
           result: splitResult,

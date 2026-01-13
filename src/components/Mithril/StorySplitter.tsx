@@ -125,7 +125,7 @@ export default function StorySplitter() {
   const [originalText, setOriginalText] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [numParts, setNumParts] = useState<number>(12);
+  const [numParts, setNumParts] = useState<number>(8);
   const [selectedGenre, setSelectedGenre] = useState<string>("fantasy");
   const [guidelines, setGuidelines] = useState<string>(GENRE_PRESETS.fantasy);
 
@@ -173,7 +173,7 @@ export default function StorySplitter() {
     splitResult.parts.forEach((part, index) => {
       const baseFileName = fileName.replace(".txt", "") || "script";
       const partFileName = `${baseFileName}_part_${index + 1}.txt`;
-      zip.file(partFileName, part);
+      zip.file(partFileName, part.text);
     });
 
     const content = await zip.generateAsync({ type: "blob" });
@@ -323,15 +323,15 @@ export default function StorySplitter() {
 
       {/* Results */}
       {splitResult && !isLoading && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {phrase(dictionary, "storysplitter_split_results", language)} ({splitResult.parts.length} {phrase(dictionary, "storysplitter_parts", language)})
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              {phrase(dictionary, "storysplitter_cliffhanger_analysis", language)} ({splitResult.parts.length} {phrase(dictionary, "storysplitter_parts", language)})
             </h3>
             <div className="flex gap-2">
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>{phrase(dictionary, "storysplitter_download_zip", language)}</span>
@@ -346,23 +346,97 @@ export default function StorySplitter() {
             </div>
           </div>
 
-          <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
             {splitResult.parts.map((part, index) => (
               <div
                 key={index}
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
+                className="bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                <h4 className="font-bold text-[#DB2777] mb-2">
-                  {phrase(dictionary, "storysplitter_part", language)} {index + 1}
-                </h4>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {part.length > 500 ? `${part.slice(0, 500)}...` : part}
-                </p>
-                {part.length > 500 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    ... {(part.length - 500).toLocaleString()} {phrase(dictionary, "storysplitter_more_chars", language)}
-                  </p>
-                )}
+                {/* Part Header */}
+                <div className="p-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 flex justify-between items-center">
+                  <h4 className="font-bold text-xl text-[#DB2777]">
+                    {phrase(dictionary, "storysplitter_part", language)} {index + 1}
+                  </h4>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded-full">
+                    {part.cliffhangers?.length || 0} {phrase(dictionary, "storysplitter_key_points", language)}
+                  </div>
+                </div>
+
+                {/* Cliffhanger Analysis */}
+                <div className="p-5 grid gap-4">
+                  {part.cliffhangers && part.cliffhangers.length > 0 ? (
+                    part.cliffhangers.map((cliff, idx) => {
+                      let positionLabel = `Point ${idx + 1}`;
+                      let borderClass = "border-gray-400";
+                      let titleColor = "text-gray-500";
+                      let bgClass = "bg-gray-50 dark:bg-gray-700";
+
+                      if (idx === 0) {
+                        positionLabel = phrase(dictionary, "storysplitter_beginning", language);
+                        borderClass = "border-blue-500";
+                        titleColor = "text-blue-500";
+                        bgClass = "bg-blue-50 dark:bg-blue-900/20";
+                      } else if (idx === 1) {
+                        positionLabel = phrase(dictionary, "storysplitter_middle", language);
+                        borderClass = "border-yellow-500";
+                        titleColor = "text-yellow-600 dark:text-yellow-400";
+                        bgClass = "bg-yellow-50 dark:bg-yellow-900/20";
+                      } else if (idx === 2) {
+                        positionLabel = phrase(dictionary, "storysplitter_ending", language);
+                        borderClass = "border-red-500";
+                        titleColor = "text-red-500";
+                        bgClass = "bg-red-50 dark:bg-red-900/20";
+                      }
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`${bgClass} p-4 rounded-lg border-l-4 ${borderClass}`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`text-xs font-bold uppercase tracking-widest ${titleColor}`}>
+                              {positionLabel}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 dark:text-gray-200 font-medium text-base leading-relaxed mb-3 border-l-2 border-gray-300 dark:border-gray-600 pl-4 py-1 italic">
+                            &ldquo;{cliff.sentence}&rdquo;
+                          </p>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                            <span className="font-bold text-gray-500 dark:text-gray-500 block mb-1 uppercase text-[10px] tracking-wide">
+                              {phrase(dictionary, "storysplitter_analysis_strategy", language)}
+                            </span>
+                            {cliff.reason}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center text-gray-500 dark:text-gray-400 py-6">
+                      <p>{phrase(dictionary, "storysplitter_no_analysis", language)}</p>
+                      <p className="text-sm mt-1">{phrase(dictionary, "storysplitter_check_download", language)}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Text Preview */}
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-2">
+                      <span className="group-open:rotate-90 transition-transform">▶</span>
+                      {phrase(dictionary, "storysplitter_view_text", language)} ({part.text.length.toLocaleString()} {phrase(dictionary, "chars", language)})
+                    </summary>
+                    <div className="mt-3 max-h-40 overflow-y-auto">
+                      <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
+                        {part.text.length > 1000 ? `${part.text.slice(0, 1000)}...` : part.text}
+                      </pre>
+                      {part.text.length > 1000 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                          ... {(part.text.length - 1000).toLocaleString()} {phrase(dictionary, "storysplitter_more_chars", language)}
+                        </p>
+                      )}
+                    </div>
+                  </details>
+                </div>
               </div>
             ))}
           </div>

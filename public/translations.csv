@@ -585,7 +585,7 @@ choose_pictures,영상화할 그림을 고르세요,,Choose pictures to make a v
 storysplitter_title,클리프행어 스토리 분할기,,Cliffhanger Story Splitter
 storysplitter_subtitle,AI가 스토리를 분할하기 위한 최적의 클리프행어 지점을 찾습니다,,AI finds optimal cliffhanger points to split your story
 storysplitter_upload_file_first,먼저 Stage 1에서 텍스트 파일을 업로드해 주세요.,,Please upload a text file in Stage 1 first.
-storysplitter_ai_guidelines,AI 가이드라인 (선택사항),,AI Guidelines (Optional)
+storysplitter_ai_guidelines,AI 가이드라인,,AI Guidelines
 storysplitter_analyzing,분석 중...,,Analyzing...
 storysplitter_split_story,스토리 분할,,Split Story
 storysplitter_ai_analyzing,AI가 최적의 분할 지점을 분석하고 있습니다...,,AI is analyzing the best split points...
@@ -720,6 +720,12 @@ upload_error,선택한 파일을 불러오지 못했습니다. 다시 시도해 
 upload_clear,지우기,,Clear
 upload_characters,자,,characters
 upload_more_characters,자 더 있음,,more characters
+upload_dropzone_title,파일을 여기에 끌어다 놓으세요,,Drag and drop your file here
+upload_dropzone_subtitle,또는 클릭하여 파일 선택,,or click to browse
+upload_dropzone_hint,.txt 파일만 지원 (최대 5MB),,Only .txt files supported (max 5MB)
+upload_invalid_file_type,텍스트 파일(.txt)만 업로드할 수 있습니다,,Please upload a text file (.txt)
+upload_file_too_large,파일이 너무 큽니다 (최대 5MB),,File is too large (max 5MB)
+upload_or_select_sample,또는 샘플에서 선택,,Or select from samples
 nano_title,Nano Banana 이미지 생성기,,Nano Banana Image Creator
 nano_saved,저장됨,,Saved
 nano_style_prompt,스타일 프롬프트,,Style Prompt
@@ -916,3 +922,17 @@ bgsheet_toast_s3_no_session,저장된 배경 시트 세션이 없습니다,,No s
 bgsheet_toast_s3_error,배경 시트 S3 저장에 실패했습니다,,Failed to save background sheet to S3
 mithril_gemini_api_key,이미지 생성용 키,, API Key for Image Generation
 mithril_gemini_api_key_placeholder, API 키 입력...,,Enter API key...
+storysplitter_num_parts,파트 수,,Number of Parts
+storysplitter_genre_fantasy,판타지,,Fantasy
+storysplitter_genre_romance,로맨스,,Romance
+storysplitter_genre_custom,커스텀,,Custom
+storysplitter_guidelines_placeholder,장르를 선택하거나 직접 클리프행어 규칙을 입력하세요...,,Select a genre or type your custom cliffhanger rules...
+storysplitter_cliffhanger_analysis,클리프행어 분석,,Cliffhanger Analysis
+storysplitter_key_points,핵심 포인트,,Key Points
+storysplitter_beginning,BEGINNING / 도입부 훅,,BEGINNING / Opening Hook
+storysplitter_middle,MIDDLE / 중반부,,MIDDLE / Midpoint
+storysplitter_ending,ENDING / 절단신공,,ENDING / Cliffhanger
+storysplitter_analysis_strategy,분석 전략,,Analysis Strategy
+storysplitter_no_analysis,클리프행어 분석이 없습니다.,,No cliffhanger analysis available.
+storysplitter_check_download,다운로드한 파일에서 전체 스크립트를 확인하세요.,,Please check the downloaded file for the full script.
+storysplitter_view_text,텍스트 보기,,View Text

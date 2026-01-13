@@ -37,9 +37,19 @@ export interface ChapterDocument {
 // Story Splits (Stage 2)
 // ============================================
 
+export interface CliffhangerDocument {
+  sentence: string;
+  reason: string;
+}
+
+export interface PartWithAnalysisDocument {
+  text: string;
+  cliffhangers: CliffhangerDocument[];
+}
+
 export interface StorySplitsDocument {
   guidelines: string;
-  parts: string[];
+  parts: PartWithAnalysisDocument[];
   generatedAt: Timestamp;
 }
 
@@ -181,7 +191,7 @@ export interface SaveChapterInput {
 
 export interface SaveStorySplitsInput {
   guidelines: string;
-  parts: string[];
+  parts: PartWithAnalysisDocument[];
 }
 
 export interface SaveCharacterSheetSettingsInput {

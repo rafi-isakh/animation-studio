@@ -38,3 +38,6 @@ next-env.d.ts
 *storybook.log
 .env
 .qodo
+
+# references
+/references

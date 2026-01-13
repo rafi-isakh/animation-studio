@@ -7,6 +7,26 @@ interface StorySpitterRequest {
   numParts: number;
 }
 
+interface Cliffhanger {
+  sentence: string;
+  reason: string;
+}
+
+interface PartWithAnalysis {
+  text: string;
+  cliffhangers: Cliffhanger[];
+}
+
+interface SplitResponse {
+  cliffhangerSentences: string[];
+  partAnalysis: {
+    cliffhangers: {
+      sentence: string;
+      reason: string;
+    }[];
+  }[];
+}
+
 async function generateContentWithRetry(
   ai: GoogleGenAI,
   params: Parameters<GoogleGenAI["models"]["generateContent"]>[0],
@@ -49,7 +69,7 @@ async function splitTextWithCliffhangers(
   text: string,
   guidelines: string,
   numParts: number
-): Promise<string[]> {
+): Promise<PartWithAnalysis[]> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
@@ -58,19 +78,27 @@ async function splitTextWithCliffhangers(
   const ai = new GoogleGenAI({ apiKey });
 
   const systemInstruction = `
-당신은 텍스트 분할을 위한 AI 분석 도구입니다. 당신의 임무는 주어진 텍스트에서 사용자가 요청한 파트의 개수(${numParts}개)에 맞춰, 각 파트(마지막 파트 제외)를 마무리할 **마지막 문장**을 찾아내는 것입니다.
+당신은 텍스트 분할 및 클리프행어 분석을 위한 AI 도구입니다. 당신의 임무는 두 가지입니다:
+
+**임무 1: 텍스트 분할**
+주어진 텍스트를 ${numParts}개의 파트로 나누기 위해, 각 파트(마지막 파트 제외)를 마무리할 **마지막 문장**을 찾아내세요.
+
+**임무 2: 클리프행어 분석**
+각 파트에서 3개의 핵심 클리프행어 포인트를 분석하세요:
+1. BEGINNING (도입부 훅) - 파트 초반에서 독자를 끌어들이는 문장
+2. MIDDLE (중반부) - 파트 중간에서 긴장감을 유지하는 문장
+3. ENDING (절단면) - 파트 끝에서 다음 파트로 이어지는 클리프행어 문장
 
 **절대적인 규칙:**
-1. 당신은 반드시 ${numParts - 1}개의 문장을 찾아야 합니다. 이 문장들은 각 파트의 끝을 장식할 클리프행어가 됩니다.
-2. 반환하는 JSON 객체의 "cliffhangerSentences" 배열에는 **정확히 ${numParts - 1}개**의 문자열 요소가 포함되어야 합니다. 이 규칙은 다른 모든 지시사항보다 우선합니다.
-3. 각 문장은 원본 텍스트에 있는 문장과 **정확히 일치**해야 합니다. 단어, 구두점, 띄어쓰기 등을 절대 변경하지 마십시오.
+1. "cliffhangerSentences" 배열에는 **정확히 ${numParts - 1}개**의 문장이 포함되어야 합니다.
+2. "partAnalysis" 배열에는 **정확히 ${numParts}개**의 파트 분석이 포함되어야 합니다.
+3. 각 파트 분석에는 **정확히 3개**의 클리프행어가 포함되어야 합니다 (BEGINNING, MIDDLE, ENDING 순서).
+4. 모든 문장은 원본 텍스트에 있는 문장과 **정확히 일치**해야 합니다. 단어, 구두점, 띄어쓰기 등을 절대 변경하지 마십시오.
+5. 각 클리프행어의 "reason"은 왜 이 문장이 해당 위치에서 효과적인 클리프행어인지 한국어로 간결하게 설명해야 합니다.
 
-**부차적인 목표 (위의 규칙을 만족하는 선에서):**
-1. 선택된 문장들을 기준으로 텍스트를 나눴을 때, 각 파트의 분량이 가능한 한 균등하도록 해주세요.
-2. 선택된 각 문장은 그 자체로 다음 내용에 대한 궁금증을 강력하게 유발하는 훌륭한 클리프행어여야 합니다.
-
-**출력 형식:**
-다른 설명 없이, "cliffhangerSentences" 키 하나만을 가진 단일 JSON 객체만 반환해야 합니다. "cliffhangerSentences"의 값은 원본 텍스트에서 추출한 **정확히 ${numParts - 1}개**의 문장(문자열)을 담은 배열이어야 합니다.
+**부차적인 목표:**
+1. 각 파트의 분량이 가능한 한 균등하도록 해주세요.
+2. 선택된 각 문장은 그 자체로 다음 내용에 대한 궁금증을 유발하는 훌륭한 클리프행어여야 합니다.
 
 사용자 가이드라인: ${guidelines || "추가 가이드라인 없음."}
 `;
@@ -78,7 +106,7 @@ async function splitTextWithCliffhangers(
   try {
     const response = await generateContentWithRetry(ai, {
       model: "gemini-2.5-pro",
-      contents: `다음 전체 스크립트를 ${numParts}개의 파트로 나눌 것입니다. 각 파트의 경계가 될 ${numParts - 1}개의 클리프행어 문장을 찾아주세요:\n\n---\n${text}\n---`,
+      contents: `다음 전체 스크립트를 ${numParts}개의 파트로 나누고, 각 파트의 클리프행어를 분석해주세요:\n\n---\n${text}\n---`,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
@@ -92,8 +120,36 @@ async function splitTextWithCliffhangers(
                 type: Type.STRING,
               },
             },
+            partAnalysis: {
+              type: Type.ARRAY,
+              description: `An array of exactly ${numParts} part analyses. Each analysis contains 3 cliffhangers (BEGINNING, MIDDLE, ENDING).`,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  cliffhangers: {
+                    type: Type.ARRAY,
+                    description: "Array of exactly 3 cliffhangers: BEGINNING, MIDDLE, ENDING in order.",
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        sentence: {
+                          type: Type.STRING,
+                          description: "The exact sentence from the source text.",
+                        },
+                        reason: {
+                          type: Type.STRING,
+                          description: "Korean explanation of why this sentence is an effective cliffhanger at this position.",
+                        },
+                      },
+                      required: ["sentence", "reason"],
+                    },
+                  },
+                },
+                required: ["cliffhangers"],
+              },
+            },
           },
-          required: ["cliffhangerSentences"],
+          required: ["cliffhangerSentences", "partAnalysis"],
         },
       },
     });
@@ -103,7 +159,7 @@ async function splitTextWithCliffhangers(
       throw new Error("Empty response from Gemini API");
     }
 
-    let result;
+    let result: SplitResponse;
     try {
       result = JSON.parse(responseText);
     } catch (parseError: unknown) {
@@ -114,7 +170,8 @@ async function splitTextWithCliffhangers(
       );
     }
 
-    const cliffhangerSentences = result.cliffhangerSentences as string[];
+    const cliffhangerSentences = result.cliffhangerSentences;
+    const partAnalysis = result.partAnalysis;
 
     if (
       !Array.isArray(cliffhangerSentences) ||
@@ -131,7 +188,8 @@ async function splitTextWithCliffhangers(
       );
     }
 
-    const parts: string[] = [];
+    // Split the text into parts
+    const textParts: string[] = [];
     let remainingText = text;
 
     for (const sentence of cliffhangerSentences) {
@@ -149,19 +207,28 @@ async function splitTextWithCliffhangers(
 
       const splitPoint = index + searchSentence.length;
       const part = remainingText.substring(0, splitPoint);
-      parts.push(part.trim());
+      textParts.push(part.trim());
       remainingText = remainingText.substring(splitPoint);
     }
 
-    parts.push(remainingText.trim());
+    textParts.push(remainingText.trim());
 
-    if (parts.length !== numParts) {
+    if (textParts.length !== numParts) {
       throw new Error(
-        `The final number of parts after splitting does not match the expected count. Expected: ${numParts}, Actual: ${parts.length}`
+        `The final number of parts after splitting does not match the expected count. Expected: ${numParts}, Actual: ${textParts.length}`
       );
     }
 
-    return parts;
+    // Combine text parts with analysis
+    const partsWithAnalysis: PartWithAnalysis[] = textParts.map((text, index) => {
+      const analysis = partAnalysis[index];
+      return {
+        text,
+        cliffhangers: analysis?.cliffhangers || [],
+      };
+    });
+
+    return partsWithAnalysis;
   } catch (error: unknown) {
     console.error("Error calling Gemini API:", error);
     const errorMessage = String(error);

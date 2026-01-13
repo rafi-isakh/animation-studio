@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import { Upload } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useProject } from "@/contexts/ProjectContext";
 import { getChapter, saveChapter, deleteChapter } from "./services/firestore";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // List of available sample files in public/samples folder with thumbnails
 const SAMPLE_FILES = [
@@ -70,6 +73,8 @@ export default function UploadManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load from Firestore on mount
   useEffect(() => {
@@ -150,6 +155,85 @@ export default function UploadManager() {
     }
   }, [currentProjectId]);
 
+  // Process uploaded file
+  const processFile = useCallback(async (file: File) => {
+    if (!currentProjectId) {
+      setError("No project selected. Please go back to project list.");
+      return;
+    }
+
+    // Validate file type
+    if (!file.name.endsWith(".txt") && file.type !== "text/plain") {
+      setError(phrase(dictionary, "upload_invalid_file_type", language));
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(phrase(dictionary, "upload_file_too_large", language));
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const content = e.target?.result as string;
+      const name = file.name.replace(/\.txt$/i, "");
+
+      setFileContent(content);
+      setFileName(name);
+      setSelectedFile(""); // Clear sample selection
+
+      // Save to Firestore
+      try {
+        await saveChapter(currentProjectId, {
+          content,
+          filename: name,
+        });
+      } catch (err) {
+        console.error("Error saving to Firestore:", err);
+      }
+
+      setIsLoading(false);
+    };
+    reader.onerror = () => {
+      setError(phrase(dictionary, "upload_error", language));
+      setIsLoading(false);
+    };
+    reader.readAsText(file);
+  }, [currentProjectId, dictionary, language]);
+
+  // Drag event handlers
+  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  }, [processFile]);
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0]);
+    }
+    // Reset input value to allow re-uploading the same file
+    e.target.value = "";
+  }, [processFile]);
+
   // Show loading state while fetching initial data
   if (isInitialLoading) {
     return (
@@ -168,7 +252,60 @@ export default function UploadManager() {
         {phrase(dictionary, "upload_subtitle", language)}
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Drag and Drop Zone */}
+        <div
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
+            dragActive
+              ? "border-[#DB2777] bg-[#DB2777]/5"
+              : "border-gray-300 dark:border-gray-600 hover:border-[#DB2777] hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          }`}
+        >
+          <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors ${
+            dragActive ? "text-[#DB2777]" : "text-gray-400"
+          }`} />
+          <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+            {phrase(dictionary, "upload_dropzone_title", language)}
+            <span className={`font-semibold transition-colors ${
+              dragActive ? "text-[#DB2777]" : "text-gray-700 dark:text-gray-300"
+            }`}>
+              {phrase(dictionary, "upload_dropzone_subtitle", language)}
+            </span>{" "}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {phrase(dictionary, "upload_dropzone_hint", language)}
+          </p>
+          {fileName && !selectedFile && (
+            <p className="mt-2 text-sm text-green-500 dark:text-green-400 font-semibold">
+              {fileName}
+            </p>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".txt,text/plain"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-3 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+              {phrase(dictionary, "upload_or_select_sample", language)}
+            </span>
+          </div>
+        </div>
+
         {/* Thumbnail Grid Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -257,7 +394,7 @@ export default function UploadManager() {
         {error && (
           <div className="p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-lg">
             <p className="text-red-700 dark:text-red-300 text-sm">
-              {phrase(dictionary, "upload_error", language)}
+              {error}
             </p>
           </div>
         )}

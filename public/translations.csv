@@ -720,6 +720,12 @@ upload_error,선택한 파일을 불러오지 못했습니다. 다시 시도해 
 upload_clear,지우기,,Clear
 upload_characters,자,,characters
 upload_more_characters,자 더 있음,,more characters
+upload_dropzone_title,파일을 여기에 끌어다 놓으세요,,Drag and drop your file here
+upload_dropzone_subtitle,또는 클릭하여 파일 선택,,or click to browse
+upload_dropzone_hint,.txt 파일만 지원 (최대 5MB),,Only .txt files supported (max 5MB)
+upload_invalid_file_type,텍스트 파일(.txt)만 업로드할 수 있습니다,,Please upload a text file (.txt)
+upload_file_too_large,파일이 너무 큽니다 (최대 5MB),,File is too large (max 5MB)
+upload_or_select_sample,또는 샘플에서 선택,,Or select from samples
 nano_title,Nano Banana 이미지 생성기,,Nano Banana Image Creator
 nano_saved,저장됨,,Saved
 nano_style_prompt,스타일 프롬프트,,Style Prompt

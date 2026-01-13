@@ -72,6 +72,33 @@ export default function SoraVideoGenerator() {
     };
   }, []);
 
+  // Get storyboard data from context
+  const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
+
+  // Sync clip images when storyboard data changes (e.g., after image generation in Stage 5)
+  useEffect(() => {
+    if (currentStage !== 6 || !hasLoaded || clips.length === 0) return;
+    if (!storyboardData?.scenes) return;
+
+    // Check if any clip images have changed
+    let hasChanges = false;
+    const updatedClips = clips.map(clip => {
+      const scene = storyboardData.scenes[clip.sceneIndex];
+      const storyboardClip = scene?.clips[clip.clipIndex];
+      const newImageUrl = storyboardClip?.imageRef || null;
+
+      if (newImageUrl && newImageUrl !== clip.imageBase64) {
+        hasChanges = true;
+        return { ...clip, imageBase64: newImageUrl };
+      }
+      return clip;
+    });
+
+    if (hasChanges) {
+      setClips(updatedClips);
+    }
+  }, [storyboardData, currentStage, hasLoaded, clips]);
+
   // Load storyboard data from context and video status from Firestore
   useEffect(() => {
     // Reset loaded state when leaving this stage so we reload on next visit

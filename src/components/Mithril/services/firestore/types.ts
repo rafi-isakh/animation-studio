@@ -135,6 +135,7 @@ export interface ClipDocument {
   story: string;
   // Prompts
   imagePrompt: string;
+  imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;
@@ -242,6 +243,7 @@ export interface SaveSceneInput {
 export interface SaveClipInput {
   story: string;
   imagePrompt: string;
+  imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;
@@ -261,6 +263,7 @@ export interface SaveClipInput {
 export interface UpdateClipInput {
   story?: string;
   imagePrompt?: string;
+  imagePromptEnd?: string;
   videoPrompt?: string;
   soraVideoPrompt?: string;
   backgroundPrompt?: string;

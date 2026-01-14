@@ -824,13 +824,13 @@ export default function StoryboardGenerator() {
           {phrase(dictionary, "storyboard_csv_import", language)}
         </button>
 
-        <button
+        {/* <button
           onClick={() => setShowDriveSettings(!showDriveSettings)}
           className="flex items-center gap-2 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
         >
           <Settings className="w-5 h-5" />
           {phrase(dictionary, "storyboard_drive_settings", language)}
-        </button>
+        </button> */}
       </div>
 
       {/* Drive Settings Panel */}

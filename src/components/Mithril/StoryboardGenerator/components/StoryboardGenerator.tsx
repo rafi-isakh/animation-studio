@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useMithril } from "../../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -15,9 +15,12 @@ import {
   Sparkles,
   Trash2,
   FileJson,
+  SplitSquareHorizontal,
+  Upload,
 } from "lucide-react";
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
+import GenrePresets, { type GenrePreset } from "./GenrePresets";
 import { uploadFileToDrive } from "../services";
 import type { SplitResult } from "../types";
 
@@ -41,11 +44,16 @@ export default function StoryboardGenerator() {
     getStageResult,
     storyboardGenerator,
     startStoryboardGeneration,
+    splitStartEndFrames,
+    importStoryboard,
     clearStoryboardGeneration,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+
+  // File input ref for JSON import
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Default conditions
   const defaultConditions = useMemo(
@@ -198,7 +206,8 @@ export default function StoryboardGenerator() {
       "Background ID",
       "Background Prompt",
       "Story",
-      "Image Prompt",
+      "Image Prompt (Start)",
+      "Image Prompt (End)",
       "Video Prompt",
       "Sora Video Prompt",
       "Dialogue (Ko)",
@@ -222,6 +231,7 @@ export default function StoryboardGenerator() {
             `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
             `"${clip.story.replace(/"/g, '""')}"`,
             `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
             `"${clip.videoPrompt.replace(/"/g, '""')}"`,
             `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
             `"${clip.dialogue.replace(/"/g, '""')}"`,
@@ -242,6 +252,18 @@ export default function StoryboardGenerator() {
     link.download = `storyboard_part${selectedPartIndex + 1}.csv`;
     link.click();
   }, [scenes, selectedPartIndex]);
+
+  const handleApplyPreset = useCallback((preset: GenrePreset) => {
+    setStoryCondition(preset.story);
+    setImageCondition(preset.image);
+    setVideoCondition(preset.video);
+    setSoundCondition(preset.sound);
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "storyboard_preset_applied", language),
+      description: phrase(dictionary, preset.nameKey, language),
+    });
+  }, [toast, dictionary, language]);
 
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
@@ -305,7 +327,8 @@ export default function StoryboardGenerator() {
         "Background ID",
         "Background Prompt",
         "Story",
-        "Image Prompt",
+        "Image Prompt (Start)",
+        "Image Prompt (End)",
         "Video Prompt",
         "Sora Video Prompt",
         "Dialogue (Ko)",
@@ -329,6 +352,7 @@ export default function StoryboardGenerator() {
               `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
               `"${clip.story.replace(/"/g, '""')}"`,
               `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+              `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
               `"${clip.videoPrompt.replace(/"/g, '""')}"`,
               `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
               `"${clip.dialogue.replace(/"/g, '""')}"`,
@@ -367,6 +391,59 @@ export default function StoryboardGenerator() {
       setIsSavingToDrive(false);
     }
   }, [scenes, selectedPartIndex, toast, dictionary, language]);
+
+  const handleImportJSON = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+
+        // Validate the JSON structure
+        if (!data.scenes || !Array.isArray(data.scenes) || data.scenes.length === 0) {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_import_invalid", language),
+          });
+          return;
+        }
+
+        // Import the storyboard
+        await importStoryboard(data.scenes, data.voicePrompts || []);
+
+        // Also restore conditions if available
+        if (data.conditions) {
+          if (data.conditions.storyCondition) setStoryCondition(data.conditions.storyCondition);
+          if (data.conditions.imageCondition) setImageCondition(data.conditions.imageCondition);
+          if (data.conditions.videoCondition) setVideoCondition(data.conditions.videoCondition);
+          if (data.conditions.soundCondition) setSoundCondition(data.conditions.soundCondition);
+          if (data.conditions.imageGuide) setImageGuide(data.conditions.imageGuide);
+          if (data.conditions.videoGuide) setVideoGuide(data.conditions.videoGuide);
+        }
+
+        toast({
+          variant: "success",
+          title: phrase(dictionary, "storyboard_import_success", language),
+          description: `${data.scenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${data.scenes.reduce((acc: number, s: { clips: unknown[] }) => acc + s.clips.length, 0)} ${phrase(dictionary, "storyboard_clips", language)}`,
+        });
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+          description: phrase(dictionary, "storyboard_import_failed", language),
+        });
+      }
+    };
+
+    reader.readAsText(file);
+
+    // Reset the file input so the same file can be imported again
+    event.target.value = "";
+  }, [importStoryboard, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
@@ -447,6 +524,11 @@ export default function StoryboardGenerator() {
 
         {showConditions && (
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
+            {/* Genre Presets */}
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <GenrePresets onApply={handleApplyPreset} />
+            </div>
+
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {phrase(dictionary, "storyboard_story_conditions", language)}
@@ -536,6 +618,23 @@ export default function StoryboardGenerator() {
           {isGenerating ? phrase(dictionary, "storyboard_generating", language) : phrase(dictionary, "storyboard_generate", language)}
         </button>
 
+        {/* Hidden file input for JSON import */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".json"
+          onChange={handleImportJSON}
+          className="hidden"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isGenerating}
+          className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Upload className="w-5 h-5" />
+          {phrase(dictionary, "storyboard_json_import", language)}
+        </button>
+
         <button
           onClick={() => setShowDriveSettings(!showDriveSettings)}
           className="flex items-center gap-2 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
@@ -588,13 +687,28 @@ export default function StoryboardGenerator() {
                 {phrase(dictionary, "storyboard_json_download", language)}
               </button>
               <button
+                onClick={async () => {
+                  await splitStartEndFrames();
+                  toast({
+                    variant: "success",
+                    title: phrase(dictionary, "storyboard_split_complete", language),
+                    description: phrase(dictionary, "storyboard_split_description", language),
+                  });
+                }}
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SplitSquareHorizontal className="w-4 h-4" />
+                {phrase(dictionary, "storyboard_split_frames", language)}
+              </button>
+              {/* <button
                 onClick={handleSaveToDrive}
                 disabled={isSavingToDrive}
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CloudUpload className="w-4 h-4" />
                 {isSavingToDrive ? phrase(dictionary, "storyboard_saving", language) : phrase(dictionary, "storyboard_save_to_drive", language)}
-              </button>
+              </button> */}
               {scenes.length > 0 && (
                 <button
                   onClick={clearStoryboardGeneration}

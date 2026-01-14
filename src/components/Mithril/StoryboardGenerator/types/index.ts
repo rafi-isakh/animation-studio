@@ -1,6 +1,7 @@
 export interface Continuity {
   story: string;
   imagePrompt: string;
+  imagePromptEnd?: string; // End frame prompt for Vidu (motion-heavy clips only)
   videoPrompt: string;
   soraVideoPrompt: string;
   dialogue: string;

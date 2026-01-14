@@ -39,7 +39,7 @@ import {
 const TOTAL_STAGES = 7;
 
 // Editable clip field type (shared across components)
-export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
 
 // Types for Story Splitter
 interface Cliffhanger {
@@ -334,6 +334,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               clips: clips.map(clip => ({
                 story: clip.story,
                 imagePrompt: clip.imagePrompt,
+                imagePromptEnd: clip.imagePromptEnd,
                 videoPrompt: clip.videoPrompt,
                 soraVideoPrompt: clip.soraVideoPrompt,
                 backgroundPrompt: clip.backgroundPrompt,

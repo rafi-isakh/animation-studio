@@ -952,3 +952,5 @@ storyboard_import_success,불러오기 완료,,Import Successful
 storyboard_import_description,스토리보드 데이터를 성공적으로 불러왔습니다,,Storyboard data has been successfully imported
 storyboard_import_invalid,잘못된 JSON 형식입니다. scenes와 voicePrompts가 필요합니다,,Invalid JSON format. scenes and voicePrompts are required
 storyboard_import_failed,불러오기 실패,,Import Failed
+storyboard_csv_import,CSV 불러오기,,Import CSV
+storyboard_csv_import_invalid,잘못된 CSV 형식입니다. 필수 헤더가 필요합니다,,Invalid CSV format. Required headers are missing

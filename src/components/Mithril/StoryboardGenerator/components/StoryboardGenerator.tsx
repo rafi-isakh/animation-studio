@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   FileJson,
+  FileSpreadsheet,
   SplitSquareHorizontal,
   Upload,
 } from "lucide-react";
@@ -22,7 +23,49 @@ import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import GenrePresets, { type GenrePreset } from "./GenrePresets";
 import { uploadFileToDrive } from "../services";
-import type { SplitResult } from "../types";
+import type { SplitResult, Scene, Continuity } from "../types";
+
+/**
+ * Parse CSV text into a 2D array, handling quoted fields properly
+ */
+function parseCSV(text: string): string[][] {
+  const result: string[][] = [];
+  let row: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      row.push(current);
+      current = "";
+    } else if ((char === "\r" || char === "\n") && !inQuotes) {
+      if (current !== "" || row.length > 0) {
+        row.push(current);
+        result.push(row);
+        row = [];
+        current = "";
+      }
+      if (char === "\r" && nextChar === "\n") i++;
+    } else {
+      current += char;
+    }
+  }
+  if (current !== "" || row.length > 0) {
+    row.push(current);
+    result.push(row);
+  }
+  return result;
+}
 
 interface LoaderProps {
   dictionary: Dictionary;
@@ -52,8 +95,9 @@ export default function StoryboardGenerator() {
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
-  // File input ref for JSON import
+  // File input refs for imports
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
 
   // Default conditions
   const defaultConditions = useMemo(
@@ -445,6 +489,134 @@ export default function StoryboardGenerator() {
     event.target.value = "";
   }, [importStoryboard, toast, dictionary, language]);
 
+  const handleCSVImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        if (!text) return;
+
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_csv_import_invalid", language),
+          });
+          return;
+        }
+
+        const header = rows[0].map((h) => h.trim());
+
+        // Find column indices by header name (supports both Korean and English)
+        const findIdx = (names: string[]) => {
+          let found = header.findIndex((h) => names.some((n) => h === n));
+          if (found !== -1) return found;
+          return header.findIndex((h) =>
+            names.some((n) => h.toLowerCase().includes(n.toLowerCase()))
+          );
+        };
+
+        const idx = {
+          scene: findIdx(["Scene", "씬", "시나리오"]),
+          clip: findIdx(["Clip", "클립", "번호"]),
+          length: findIdx(["Length", "길이", "시간"]),
+          accTime: findIdx(["Accumulated", "누적"]),
+          bgId: findIdx(["Background ID", "배경 ID"]),
+          bgPrompt: findIdx(["Background Prompt", "배경 프롬프트"]),
+          story: findIdx(["Story", "스토리", "내용"]),
+          imgStart: findIdx(["Image Prompt (Start)", "이미지 프롬프트 (Start)", "Image Prompt", "이미지 프롬프트"]),
+          imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
+          video: findIdx(["Video Prompt", "비디오 프롬프트"]),
+          sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
+          dialogue: findIdx(["Dialogue (Ko)", "대사 (Ko)", "대사"]),
+          dialogueEn: findIdx(["Dialogue (En)", "대사 (En)"]),
+          sfx: findIdx(["SFX (Ko)", "효과음 (Ko)", "효과음"]),
+          sfxEn: findIdx(["SFX (En)", "효과음 (En)"]),
+          bgm: findIdx(["BGM (Ko)", "배경음악 (Ko)", "배경음악"]),
+          bgmEn: findIdx(["BGM (En)", "배경음악 (En)"]),
+        };
+
+        const parsedScenes: Scene[] = [];
+        let currentScene: Scene | null = null;
+        let lastSceneLabel = "";
+
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i];
+          if (cols.length < 2) continue;
+
+          const getVal = (index: number) => {
+            if (index < 0 || index >= cols.length) return "";
+            return cols[index];
+          };
+
+          const sceneLabel = getVal(idx.scene);
+
+          const clip: Continuity = {
+            length: getVal(idx.length),
+            accumulatedTime: getVal(idx.accTime),
+            backgroundId: getVal(idx.bgId),
+            backgroundPrompt: getVal(idx.bgPrompt),
+            story: getVal(idx.story),
+            imagePrompt: getVal(idx.imgStart),
+            imagePromptEnd: getVal(idx.imgEnd) || undefined,
+            videoPrompt: getVal(idx.video),
+            soraVideoPrompt: getVal(idx.sora),
+            dialogue: getVal(idx.dialogue),
+            dialogueEn: getVal(idx.dialogueEn),
+            sfx: getVal(idx.sfx),
+            sfxEn: getVal(idx.sfxEn),
+            bgm: getVal(idx.bgm),
+            bgmEn: getVal(idx.bgmEn),
+          };
+
+          if (!currentScene || (sceneLabel && sceneLabel !== lastSceneLabel)) {
+            lastSceneLabel = sceneLabel;
+            const label = sceneLabel || `Scene ${parsedScenes.length + 1}`;
+            const sceneTitle = label.includes(": ") ? label.split(": ").slice(1).join(": ") : label;
+            currentScene = {
+              sceneTitle,
+              clips: [clip],
+            };
+            parsedScenes.push(currentScene);
+          } else {
+            currentScene.clips.push(clip);
+          }
+        }
+
+        if (parsedScenes.length > 0) {
+          await importStoryboard(parsedScenes, []);
+          const totalClips = parsedScenes.reduce((acc, s) => acc + s.clips.length, 0);
+          toast({
+            variant: "success",
+            title: phrase(dictionary, "storyboard_import_success", language),
+            description: `${parsedScenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${totalClips} ${phrase(dictionary, "storyboard_clips", language)}`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_csv_import_invalid", language),
+          });
+        }
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+          description: phrase(dictionary, "storyboard_import_failed", language),
+        });
+      }
+    };
+
+    reader.readAsText(file);
+
+    // Reset the file input so the same file can be imported again
+    event.target.value = "";
+  }, [importStoryboard, toast, dictionary, language]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -631,8 +803,25 @@ export default function StoryboardGenerator() {
           disabled={isGenerating}
           className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Upload className="w-5 h-5" />
+          <FileJson className="w-5 h-5" />
           {phrase(dictionary, "storyboard_json_import", language)}
+        </button>
+
+        {/* Hidden file input for CSV import */}
+        <input
+          type="file"
+          ref={csvFileInputRef}
+          accept=".csv"
+          onChange={handleCSVImport}
+          className="hidden"
+        />
+        <button
+          onClick={() => csvFileInputRef.current?.click()}
+          disabled={isGenerating}
+          className="flex items-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FileSpreadsheet className="w-5 h-5" />
+          {phrase(dictionary, "storyboard_csv_import", language)}
         </button>
 
         <button

@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Sparkles,
   Trash2,
+  FileJson,
 } from "lucide-react";
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
@@ -241,6 +242,55 @@ export default function StoryboardGenerator() {
     link.download = `storyboard_part${selectedPartIndex + 1}.csv`;
     link.click();
   }, [scenes, selectedPartIndex]);
+
+  const handleDownloadJSON = useCallback(() => {
+    if (scenes.length === 0) return;
+
+    const exportData = {
+      scenes,
+      voicePrompts,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        partIndex: selectedPartIndex + 1,
+        totalScenes: scenes.length,
+        totalClips: scenes.reduce((acc, s) => acc + s.clips.length, 0),
+      },
+      conditions: {
+        storyCondition,
+        imageCondition,
+        videoCondition,
+        soundCondition,
+        imageGuide,
+        videoGuide,
+      },
+    };
+
+    const jsonContent = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `storyboard_part${selectedPartIndex + 1}.json`;
+    link.click();
+
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "storyboard_toast_json_downloaded", language),
+      description: `${scenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${scenes.reduce((acc, s) => acc + s.clips.length, 0)} ${phrase(dictionary, "storyboard_clips", language)}`,
+    });
+  }, [
+    scenes,
+    voicePrompts,
+    selectedPartIndex,
+    storyCondition,
+    imageCondition,
+    videoCondition,
+    soundCondition,
+    imageGuide,
+    videoGuide,
+    toast,
+    dictionary,
+    language,
+  ]);
 
   const handleSaveToDrive = useCallback(async () => {
     if (scenes.length === 0) return;
@@ -529,6 +579,13 @@ export default function StoryboardGenerator() {
               >
                 <Download className="w-4 h-4" />
                 {phrase(dictionary, "storyboard_csv_download", language)}
+              </button>
+              <button
+                onClick={handleDownloadJSON}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <FileJson className="w-4 h-4" />
+                {phrase(dictionary, "storyboard_json_download", language)}
               </button>
               <button
                 onClick={handleSaveToDrive}

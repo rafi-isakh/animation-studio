@@ -619,6 +619,8 @@ storyboard_generated,생성된 스토리보드,,Generated Storyboard
 storyboard_scenes,씬,,Scenes
 storyboard_clips,클립,,Clips
 storyboard_csv_download,CSV 다운로드,,CSV Download
+storyboard_json_download,JSON 다운로드,,JSON Download
+storyboard_toast_json_downloaded,JSON 다운로드 완료,,JSON Downloaded
 storyboard_saving,저장 중...,,Saving...
 storyboard_save_to_drive,드라이브에 저장,,Save to Drive
 storyboard_toast_no_parts,분할된 파트가 없습니다. Stage 2 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 2 (Story Splitter) first.

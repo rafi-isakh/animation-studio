@@ -15,6 +15,24 @@ interface StoryboardRequest {
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 2000;
 
+const IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles";
+
+function appendSuffix(prompt: string): string {
+  if (!prompt) return prompt;
+  const trimmed = prompt.trim();
+  const suffixLower = IMAGE_PROMPT_SUFFIX.toLowerCase();
+  const promptLower = trimmed.toLowerCase();
+
+  // Check if suffix is already included (with or without period)
+  if (promptLower.endsWith(suffixLower) || promptLower.endsWith(suffixLower + '.')) {
+    return trimmed;
+  }
+
+  // Connect naturally based on punctuation
+  const connector = (trimmed.endsWith('.') || trimmed.endsWith(',')) ? " " : ", ";
+  return `${trimmed}${connector}${IMAGE_PROMPT_SUFFIX}`;
+}
+
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -39,14 +57,41 @@ async function generateStoryboardWithRetry(
 
   const prompt = `
     다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 100개의 클립으로 구성된, 정확히 3분(180초) 분량의 애니메이션 콘티를 제작해 주세요.
-    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다. 각 클립은 1~2초 길이여야 합니다.
+    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다.
+
+    **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
+    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오. 대사가 있는 경우, "1~2초 역동성 규칙"은 **무시**하고 아래 규칙이 **최우선**입니다.
+
+    | dialogueEn 단어 수 | 할당 시간 | 비고 |
+    | :--- | :--- | :--- |
+    | **0 ~ 5 단어** | **2초** | 짧은 감탄사, 단답 |
+    | **6 단어 이상** | **4초** | **최대 길이**. 만약 4초 안에 대사를 다 칠 수 없을 정도로 길다면, **반드시 대사를 쪼개어 B-roll 클립과 함께 여러 클립으로 나누세요.** |
+
+    **[경고]** 8초, 10초 등 **4초를 초과하는 길이는 절대 허용되지 않습니다.** 긴 문장은 반드시 끊어서 여러 클립으로 배치하세요.
+
+    **[실패 예시 - 절대 따라하지 마시오]**
+    - 대사: "In the course of repeating my life nearly a hundred times... (약 20단어)"
+    - 잘못된 설정: "8초" (X) -> 4초 초과 불가능.
+    - **올바른 설정: 클립 1(4초, 말하는 모습) + 클립 2(4초, 회상 장면 B-roll)로 나누어 대사를 분배함.**
+
+    **[기본 규칙]**
+    - **대사가 없는 액션/반응 클립**: 1초 또는 2초 (역동성 유지).
 
     **[가장 중요한 규칙]**
-    - 하나의 클립은 반드시 하나의 단일 동작이나 정지된 장면만을 묘사해야 합니다. 'A가 문을 연다'와 'B가 방으로 들어온다'와 같은 연속적인 동작은 **절대로** 하나의 클립에 포함될 수 없으며, 반드시 별개의 클립으로 분리해야 합니다. 이를 위해 클립 길이를 1초로 설정하더라도 이 규칙을 준수해야 합니다.
+    - 하나의 클립은 반드시 하나의 단일 동작이나 정지된 장면만을 묘사해야 합니다. 'A가 문을 연다'와 'B가 방으로 들어온다'와 같은 연속적인 동작은 **절대로** 하나의 클립에 포함될 수 없으며, 반드시 별개의 클립으로 분리해야 합니다.
     - 출력은 반드시 유효한 JSON 객체여야 하며, 'scenes'와 'voicePrompts'라는 두 개의 키를 가져야 합니다.
     - 'scenes' 키의 값은 각 객체가 단일 '씬'을 나타내는 객체 배열이어야 합니다. 각 '씬' 객체는 "sceneTitle"과 "clips" 키를 가져야 합니다.
     - 'clips' 키의 값은 각 객체가 단일 클립을 나타내는 객체 배열이어야 하며, 각 클립 객체는 "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "dialogue", "dialogueEn", "sfx", "sfxEn", "bgm", "bgmEn", "length", "accumulatedTime", "backgroundPrompt", "backgroundId" 키를 가져야 합니다.
     - 'voicePrompts' 키의 값은 주요 캐릭터들의 보이스 프롬프트가 포함된 객체 배열이어야 합니다. 각 객체는 'promptKo' (한국어 버전)와 'promptEn' (영어 버전) 키를 가져야 합니다. 이 프롬프트는 ElevenLabs에서 사용될 것이며, 각 캐릭터의 성격, 특성을 반영하고 참고할 만한 실제 인물의 목소리를 추천해야 합니다. **원문에서 언급된 모든 주요 캐릭터를 포함해야 합니다.** **참고 인물을 추천할 때, 'promptKo'에는 한국인을, 'promptEn'에는 미국인을 추천해야 합니다.**
+
+    **[전체 콘티 공통 연출 가이드라인 (필수 적용)]**
+    1. **동적/정적 밸런스 (33% vs 66%)**:
+       - 전체 클립 중 약 **33%**는 캐릭터가 걷거나 뛰거나 액션을 취하는 등 움직임이 있는 **동적인 클립**으로 구성하세요.
+       - 나머지 **66%**는 카메라 무빙이 없거나 미세한, 캐릭터가 대화를 하거나 가만히 서 있는 **정적인 클립**으로 구성하세요.
+    2. **긴 대사 처리 (B-roll 활용 및 4초 제한)**:
+       - 어떠한 경우에도 클립 당 4초를 넘기지 마세요.
+       - 대사가 4초 안에 끝나지 않는 길이라면, 반드시 문장을 적절히 잘라 다음 클립으로 넘기되, 이어지는 클립은 **B-roll (인서트 컷)**로 설정하세요.
+       - **중요**: B-roll 클립일지라도 \`dialogue\` 필드에는 이어지는 대사가 들어가야 하지만, **\`videoPrompt\`와 \`soraVideoPrompt\`에는 말하는 모습 대신 인서트 컷(소품, 풍경, 듣는 사람의 반응 등)에 대한 묘사**가 들어가야 합니다.
 
     각 필드에 대해 다음의 구체적인 지침을 따라주세요:
 
@@ -58,74 +103,104 @@ async function generateStoryboardWithRetry(
         - **지침: 위의 '[가장 중요한 규칙]'에 따라, 원본 텍스트를 바탕으로 하나의 단일하고 구체적인 장면(1~2초)을 묘사합니다.**
 
     3.  **backgroundId**:
-        - 형식: "#-#" (예: 1-1, 1-2, 2-1).
+        - 형식: "#-#[ -#]" (예: 1-1, 1-2, 1-1-1, 1-2-1).
         - **첫 번째 숫자 (Background Number)**: 배경(backgroundPrompt)이 바뀔 때마다 1씩 증가합니다. 첫 번째 배경은 1로 시작합니다. 예: 첫 번째 장소(1-X), 두 번째 장소(2-X).
         - **두 번째 숫자 (Shot Type)**: 다음 1~9 중 하나를 선택하여 적용합니다. 씬 내에서 연속적으로 같은 번호를 사용하지 말고 다양하게 변주하세요.
+        - **세 번째 숫자 (Variation Index)**: **[필수 - 유니크 ID 규칙]**: 만약 씬 내에서 동일한 'Background Number-Shot Type' 조합이 다시 사용될 경우(예: 1-1이 쓰이고 나중에 또 1-1 앵글이 필요한 경우), 두 번째 등장부터는 반드시 뒤에 -1, -2, -3... 순서로 숫자를 덧붙여 **고유한 ID**를 생성해야 합니다. (예: 1-1 (최초) -> 1-1-1 (두번째) -> 1-1-2 (세번째)). 이는 같은 앵글 안에서도 미세한 연출 차이(Variation)를 주기 위함입니다.
+          **중요: 대사(Dialogue)가 오가는 장면에서는 3, 4번(Close-up)에만 의존하지 말고, 7번과 8번(Over the shoulder shot)을 동등한 비율로 적극적으로 사용하여 단조로움을 피하세요.**
           - **1**: Full shot (두 인물이 대화하거나 배경 소개. 인물이 있다면 측면/정면 랜덤)
           - **2**: Full shot from below (긴장감 강조. 인물이 있다면 측면/정면 랜덤)
           - **3**: Close-up (주요 캐릭터 A)
           - **4**: Close-up (주요 캐릭터 B)
           - **5**: Medium shot (제3자 무리 관전 혹은 2명 이상 이동 시)
           - **6**: Bird's eye view (배경 다양성 확보, 혹은 2명 이상 다양한 샷)
-          - **7**: Over the shoulder shot from behind (캐릭터 A의 등 뒤에서 B를 봄, 긴장감)
-          - **8**: Over the shoulder shot from behind (캐릭터 B의 등 뒤에서 A를 봄, 긴장감)
+          - **7**: Over the shoulder shot from behind (캐릭터 A의 등 뒤에서 B를 봄. 대화 장면에서 적극 활용)
+          - **8**: Over the shoulder shot from behind (캐릭터 B의 등 뒤에서 A를 봄. 대화 장면에서 적극 활용)
           - **9**: Close up of hand/feet (손/발/걸음 강조. 소매나 신발 묘사 포함)
         - **예외**: 배경이 보이지 않을 정도의 **Extreme close-up(눈만 보임 등)**이나 **Macro shot(물건 초접사)**인 경우, 이 필드를 빈 문자열 ""로 비워둡니다.
 
     4.  **imagePrompt**:
         - 반드시 영어로 작성해야 합니다.
         - **중요**: 이 프롬프트는 **backgroundId**의 두 번째 숫자에 해당하는 샷 키워드를 **반드시** 포함해야 합니다.
-          - ID가 X-1이면: "Full shot..."
-          - ID가 X-2이면: "Full shot from below..."
-          - ID가 X-3/X-4이면: "Close-up of [CharacterName]..."
-          - ID가 X-5이면: "Medium shot..."
-          - ID가 X-6이면: "Bird's eye view..."
-          - ID가 X-7/X-8이면: "Over the shoulder shot from behind [CharacterName]..."
-          - ID가 X-9이면: "Close up of [hand/foot]..."
         - 규칙: ${imageCondition}
-        - 통합할 가이드 프롬프트: ${imageGuide || "없음"}
+        - 통합할 가이드 프롬프트: ${imageGuide || '없음'}
         - **[필수 지침]**:
           **'story'에 묘사된 단일 장면을 나타내는 '하나의' 정지 이미지를 영어로 상세히 묘사합니다. 이 프롬프트는 '[Image N]'과 같은 분할 형식을 포함해서는 안 됩니다.**
           **각 프롬프트는 '캐릭터(인물)', '핵심 행동/표정/자세', '배경', '구도(카메라 앵글)'를 명확하고 구체적으로 포함해야 합니다. 캐릭터는 'Baby'나 'Mother'와 같은 일반적인 명칭이 아닌, 원본 텍스트에 나오는 실제 이름(예: Arel, Rifana)을 사용해야 합니다. 이 프롬프트는 나노바나나(gemini-2.5-flash-image) 모델에 최적화되어야 합니다.**
+        - **[Entity & Object Naming - IMPORTANT (Applies ONLY to imagePrompt)]:**
+          1. **[Uppercase IDs]:** 1클립 이상 지속적으로 등장하거나, Start/End 프레임에 모두 등장하거나, 상태가 변화하는 모든 **캐릭터, 생명체(Mobs), 조연(Extras), 주요 아이템**은 반드시 **대문자(UPPERCASE)**로 표기하십시오. (예: KNIGHT, DRAGON, CHEST FULL OF COINS).
+          2. **[Material Integration]:** 물체의 재질(Material)이 중요한 경우, 'glass BOTTLE'처럼 형용사로 분리하지 말고, **'GLASS_BOTTLE'** 처럼 언더바를 사용하여 하나의 대문자 ID로 통합하십시오.
+          3. **[Quantifiable Objects Only]:** 셀 수 있는 구체적인 사물(Countable Nouns)만 대문자 ID로 만드십시오. 셀 수 없는 명사(예: juice, water, smoke)는 대문자 ID로 표기하지 마십시오. 단, 용기에 담긴 경우 용기 ID를 사용하십시오 (예: GLASS_OF_JUICE).
+          4. **[Crowd Exception]:** 일반적인 군중(crowd, people)은 대문자 ID를 사용하지 않고 소문자로 표기합니다. (예: 'crowd', not 'CROWD'). 단, 특정 역할이 있는 고유 집단(예: ROYAL_GUARDS)은 대문자로 표기합니다.
+          5. **[No Punctuation]:** ID 내에 **아포스트로피(')나 따옴표(")**를 절대 포함하지 마십시오.
+          6. **[Naming Convention for Relations/Possessions]:** 소유격('s)이나 "and" 같은 연결사를 통한 모호한 명명을 사용하지 마십시오. 특정 캐릭터와 연관된 인물(시녀, 탈것 등)이나 아이템은 언더바(_)를 사용하여 대문자로 명확히 구분하십시오.
+             - 예: 'KANIA and KANIA'S SERVANT' (X) -> 'KANIA, KANIA_SERVANT' (O)
+             - 예: 'AREL'S HORSE' (X) -> 'AREL_HORSE' (O)
+             - 예: 'KANIA'S SWORD' (X) -> 'KANIA_SWORD' (O)
+          7. **[No Visual Descriptors with Names]:** 캐릭터 이름 앞뒤에 외형적 묘사나 직함(Title)을 절대 붙이지 마십시오. 외형은 캐릭터 시트에서 처리됩니다. 오직 정확한 '대문자 캐릭터 이름'만 사용하십시오. (예: 'Princess KANIA' (X) -> 'KANIA' (O) / 'Beautiful RIFANA' (X) -> 'RIFANA' (O)).
+          8. **[Action & Interaction Specifics]:**
+             - **전투/액션**: 단순히 'fights'나 'attacks'로 뭉뚱그리지 말고, **어떤 무기(대문자 아이템)**를 사용하여 어떤 공격을 가하는지 구체적으로 서술하십시오. (예: 'KANIA skillfully swings KANIA_SWORD' (O) vs 'KANIA fights' (X)).
+             - **탑승(Riding)**: 단순히 'on horses'라고 하지 말고, **누가 어떤 탈것(대문자 ID)**을 타고 있는지 각각 명시하십시오. (예: 'AREL rides AREL_HORSE along with KANIA riding KANIA_HORSE' (O) vs 'AREL and KANIA on their horses' (X)).
 
     5.  **videoPrompt**:
         - 반드시 영어로 작성해야 합니다.
         - 규칙: ${videoCondition}
-        - 통합할 가이드 프롬프트: ${videoGuide || "없음"}
+        - 통합할 가이드 프롬프트: ${videoGuide || '없음'}
         - **지침: 'story'에 묘사된 단일 동작을 기반으로 한 비디오 클립을 영어로 묘사합니다. 'imagePrompt'와 달리, 캐릭터의 실제 이름 대신 'the baby', 'the nanny'와 같이 역할이나 상태를 나타내는 설명적인 명사구를 사용해야 합니다. 대사가 포함된 클립의 경우, 'the character speaks'와 같이 말하는 동작을 명확히 포함해야 합니다. 대사가 2초 이상 지속될 경우 'speaks continuously'와 같이 지속성을 표현해야 합니다. (예: "A door bursts open violently.")**
+        - **[B-roll 적용]: 상단 '전체 콘티 공통 연출 가이드라인'에 따라 대사가 길어질 경우, 화자가 아닌 관련 B-roll(풍경, 소품 등)을 묘사하세요.**
 
-    6.  **soraVideoPrompt**:
-        - 빈 문자열 ""로 남겨두세요. (이 필드는 후처리 과정에서 자동으로 생성됩니다.)
-
-    7.  **dialogue**:
+    6.  **dialogue**:
         - 한국어로 작성합니다.
         - **규칙**: ${soundCondition}
         - **지침**: 캐릭터의 **대사**나 **내레이션**이 있는 경우에만 작성합니다. 대사가 없는 클립은 반드시 빈 문자열 ""로 둡니다.
         - 형식: '캐릭터이름: [감정] "대사내용"' 또는 '내레이션: [어조] "내용"'. (예: '리파나: [놀라며] "이럴 수가!"')
 
-    8.  **dialogueEn**:
+    7.  **dialogueEn**:
         - 'dialogue' 필드의 영어 번역본입니다. 대사가 없으면 빈 문자열 ""로 둡니다.
 
-    9.  **sfx**:
+    8.  **sfx**:
         - 한국어로 작성합니다.
         - **규칙**: ${soundCondition}
         - **지침**: **효과음(SFX)**만 작성합니다. 없으면 빈 문자열 ""로 둡니다.
-        - 형식: (소리 묘사). (예: '(천둥 소리)', '(문이 닫히는 소리)')
+        - 형식: 소리 묘사. (예: '천둥 소리', '문이 닫히는 소리'). **괄호 ()를 절대 사용하지 마십시오.**
 
-    10. **sfxEn**:
+    9.  **sfxEn**:
         - 'sfx' 필드의 영어 번역본입니다. 없으면 빈 문자열 ""로 둡니다.
+        - **괄호 ()를 절대 사용하지 마십시오.**
 
-    11. **bgm**:
+    10. **bgm**:
         - 한국어로 작성합니다.
         - **규칙**: ${soundCondition}
         - **지침**: **배경음악(BGM)**만 작성합니다. 없으면 빈 문자열 ""로 둡니다.
         - 형식: (분위기/장르). (예: '(긴장감 넘치는 음악)', '(평화로운 피아노 선율)')
 
-    12. **bgmEn**:
+    11. **bgmEn**:
         - 'bgm' 필드의 영어 번역본입니다. 없으면 빈 문자열 ""로 둡니다.
 
+    12. **soraVideoPrompt**:
+        - 반드시 영어로 작성해야 합니다.
+        - **지침**: 이 필드는 Sora 비디오 생성 AI에 바로 입력될 프롬프트입니다.
+        - **[순서]**: 이 필드는 반드시 \`dialogueEn\`, \`sfxEn\`, \`bgmEn\` 값이 모두 생성된 **후에** 생성되어야 하며, 그 값들을 반영해야 합니다.
+        - **[Visual 구성]**: 인물의 이름(예: Arel, Rifana)을 **절대 사용하지 마십시오**. 대신, (Image Prompt)에서처럼 해당 인물의 외형, 의상, 특징을 구체적인 키워드로 묘사해야 합니다 (예: "a silver-haired young man in a suit"). (Video Prompt)의 카메라 무빙이나 연출 키워드도 포함하세요.
+        - **[B-roll 적용]**: 긴 대사 구간의 B-roll 클립인 경우, 대사는 오디오로 들리지만 화면은 소품이나 풍경이어야 하므로 비주얼 묘사에 인물이 말하는 모습을 제외하세요.
+        - **[Audio 반영 필수]**:
+          1. 비디오 묘사가 끝난 후 **줄바꿈**을 두 번 합니다.
+          2. \`dialogueEn\` 필드가 비어있지 않다면, 그 내용에서 **대사 내용**과 **감정**을 추출하여 다음 형식을 반드시 프롬프트 끝에 추가합니다:
+             \`The [character description] says [emotion], "[dialogue content]"\`
+             *(주의: \`dialogueEn\`에 있는 '캐릭터 이름'을 그대로 쓰지 말고, 반드시 외형 묘사(description)로 바꿔야 합니다.)*
+          3. \`sfxEn\` 필드가 비어있지 않다면 다음 줄에 추가: \`sfx: [sfxEn content]\`
+          4. \`bgmEn\` 필드가 비어있다면 다음 줄에 추가: \`bgm: [bgmEn content]\`
+          5. 해당 필드가 비어있다면 그 줄은 생략합니다.
+
+          *(예시)*:
+          A dramatic snap zoom into a five-year-old boy's eyes. They widen in sheer horror, the pupils constricting. The lighting becomes harsh and dramatic.
+
+          The young boy says shocked, "N-no way...."
+          sfx: Dramatic sting, like a thunderclap
+
     13. **length**:
-        - 클립의 길이를 "1초", "2초" 형식으로 표시합니다. (1~2초 사이)
+        - 클립의 길이를 "1초", "2초", "4초" 등의 형식으로 표시합니다.
+        - **지침: 대사가 있는 경우, 반드시 위 '클립 길이 계산 규칙'을 따르십시오. 최대 길이는 4초입니다.**
 
     14. **accumulatedTime**:
         - 이전 클립까지의 누적 시간에 현재 클립의 길이를 더한 값을 "MM:SS" 형식으로 표시합니다. 예: "00:03", "00:07", "01:25"
@@ -166,7 +241,8 @@ async function generateStoryboardWithRetry(
                   videoPrompt: { type: Type.STRING },
                   soraVideoPrompt: {
                     type: Type.STRING,
-                    description: "Leave empty. Auto-generated.",
+                    description:
+                      "Visual description (no names) + camera moves + dialogue/sfx/bgm info appended at the end.",
                   },
                   dialogue: {
                     type: Type.STRING,
@@ -180,11 +256,13 @@ async function generateStoryboardWithRetry(
                   },
                   sfx: {
                     type: Type.STRING,
-                    description: "Sound effects in Korean. Empty if none.",
+                    description:
+                      "Sound effects in Korean. No parentheses. Empty if none.",
                   },
                   sfxEn: {
                     type: Type.STRING,
-                    description: "Sound effects in English. Empty if none.",
+                    description:
+                      "Sound effects in English. No parentheses. Empty if none.",
                   },
                   bgm: {
                     type: Type.STRING,
@@ -196,13 +274,17 @@ async function generateStoryboardWithRetry(
                     description:
                       "Background music description in English. Empty if none.",
                   },
-                  length: { type: Type.STRING },
+                  length: {
+                    type: Type.STRING,
+                    description:
+                      "Duration. Max 4 seconds. Split dialogue if longer.",
+                  },
                   accumulatedTime: { type: Type.STRING },
                   backgroundPrompt: { type: Type.STRING },
                   backgroundId: {
                     type: Type.STRING,
                     description:
-                      'The ID # of the background and shot type, e.g. 1-2. Empty for extreme close-ups.',
+                      "The ID # of the background and shot type, e.g. 1-2 or 1-2-1. Empty for extreme close-ups.",
                   },
                 },
                 required: [
@@ -221,10 +303,27 @@ async function generateStoryboardWithRetry(
                   "backgroundPrompt",
                   "backgroundId",
                 ],
+                propertyOrdering: [
+                  "dialogue",
+                  "dialogueEn",
+                  "sfx",
+                  "sfxEn",
+                  "bgm",
+                  "bgmEn",
+                  "length",
+                  "accumulatedTime",
+                  "backgroundId",
+                  "backgroundPrompt",
+                  "story",
+                  "imagePrompt",
+                  "videoPrompt",
+                  "soraVideoPrompt",
+                ],
               },
             },
           },
           required: ["sceneTitle", "clips"],
+          propertyOrdering: ["sceneTitle", "clips"],
         },
       },
       voicePrompts: {
@@ -236,10 +335,12 @@ async function generateStoryboardWithRetry(
             promptEn: { type: Type.STRING },
           },
           required: ["promptKo", "promptEn"],
+          propertyOrdering: ["promptKo", "promptEn"],
         },
       },
     },
     required: ["scenes", "voicePrompts"],
+    propertyOrdering: ["scenes", "voicePrompts"],
   };
 
   let attempt = 0;
@@ -262,24 +363,18 @@ async function generateStoryboardWithRetry(
 
       const storyboardData = JSON.parse(jsonText) as GenerationResult;
 
-      // Post-process to construct Sora Prompt and append Background ID to imagePrompt
+      // Post-process: apply suffix to imagePrompt and append Background ID
       storyboardData.scenes.forEach((scene) => {
         scene.clips.forEach((clip) => {
-          // 1. Construct Sora Video Prompt (using raw imagePrompt)
-          const soraParts = [
-            clip.imagePrompt,
-            clip.videoPrompt,
-            clip.dialogueEn,
-            clip.sfxEn,
-            clip.bgmEn,
-          ].filter((part) => part && part.trim() !== "");
-
-          clip.soraVideoPrompt = soraParts.join("\n");
+          // 1. Apply suffix to imagePrompt (ensures "No vfx..." is always appended)
+          clip.imagePrompt = appendSuffix(clip.imagePrompt);
 
           // 2. Append Background ID to imagePrompt (for UI/CSV)
           if (clip.backgroundId && clip.backgroundId.trim() !== "") {
             clip.imagePrompt = `${clip.imagePrompt}\n\nBackground ID: ${clip.backgroundId}`;
           }
+
+          // Note: soraVideoPrompt is now generated inline by the model with audio info appended
         });
       });
 

@@ -608,6 +608,7 @@ export default function StoryboardTable({
     phrase(dictionary, "storyboard_generated_image", language) || "Generated Image",
     phrase(dictionary, "table_story", language),
     phrase(dictionary, "table_image_prompt", language),
+    phrase(dictionary, "table_image_prompt_end", language),
     phrase(dictionary, "table_video_prompt", language),
     phrase(dictionary, "table_sora_video_prompt", language),
     phrase(dictionary, "table_dialogue_ko", language),

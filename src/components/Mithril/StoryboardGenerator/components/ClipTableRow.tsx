@@ -335,6 +335,16 @@ export default function ClipTableRow({
           />
         </td>
 
+        {/* Editable Image Prompt End */}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptEnd || ""}
+            originalValue={getOriginalPrompt('imagePromptEnd')}
+            onSave={(newValue) => onUpdatePrompt('imagePromptEnd', newValue)}
+            placeholderKey="storyboard_edit_image_prompt_end_placeholder"
+          />
+        </td>
+
         {/* Editable Video Prompt */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell

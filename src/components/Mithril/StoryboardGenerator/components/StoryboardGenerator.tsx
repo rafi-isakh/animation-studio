@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useMithril } from "../../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -14,11 +14,58 @@ import {
   ChevronUp,
   Sparkles,
   Trash2,
+  FileJson,
+  FileSpreadsheet,
+  SplitSquareHorizontal,
+  Upload,
 } from "lucide-react";
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
+import GenrePresets, { type GenrePreset } from "./GenrePresets";
 import { uploadFileToDrive } from "../services";
-import type { SplitResult } from "../types";
+import type { SplitResult, Scene, Continuity } from "../types";
+
+/**
+ * Parse CSV text into a 2D array, handling quoted fields properly
+ */
+function parseCSV(text: string): string[][] {
+  const result: string[][] = [];
+  let row: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      row.push(current);
+      current = "";
+    } else if ((char === "\r" || char === "\n") && !inQuotes) {
+      if (current !== "" || row.length > 0) {
+        row.push(current);
+        result.push(row);
+        row = [];
+        current = "";
+      }
+      if (char === "\r" && nextChar === "\n") i++;
+    } else {
+      current += char;
+    }
+  }
+  if (current !== "" || row.length > 0) {
+    row.push(current);
+    result.push(row);
+  }
+  return result;
+}
 
 interface LoaderProps {
   dictionary: Dictionary;
@@ -40,11 +87,17 @@ export default function StoryboardGenerator() {
     getStageResult,
     storyboardGenerator,
     startStoryboardGeneration,
+    splitStartEndFrames,
+    importStoryboard,
     clearStoryboardGeneration,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+
+  // File input refs for imports
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
 
   // Default conditions
   const defaultConditions = useMemo(
@@ -197,7 +250,8 @@ export default function StoryboardGenerator() {
       "Background ID",
       "Background Prompt",
       "Story",
-      "Image Prompt",
+      "Image Prompt (Start)",
+      "Image Prompt (End)",
       "Video Prompt",
       "Sora Video Prompt",
       "Dialogue (Ko)",
@@ -221,6 +275,7 @@ export default function StoryboardGenerator() {
             `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
             `"${clip.story.replace(/"/g, '""')}"`,
             `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
             `"${clip.videoPrompt.replace(/"/g, '""')}"`,
             `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
             `"${clip.dialogue.replace(/"/g, '""')}"`,
@@ -242,6 +297,67 @@ export default function StoryboardGenerator() {
     link.click();
   }, [scenes, selectedPartIndex]);
 
+  const handleApplyPreset = useCallback((preset: GenrePreset) => {
+    setStoryCondition(preset.story);
+    setImageCondition(preset.image);
+    setVideoCondition(preset.video);
+    setSoundCondition(preset.sound);
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "storyboard_preset_applied", language),
+      description: phrase(dictionary, preset.nameKey, language),
+    });
+  }, [toast, dictionary, language]);
+
+  const handleDownloadJSON = useCallback(() => {
+    if (scenes.length === 0) return;
+
+    const exportData = {
+      scenes,
+      voicePrompts,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        partIndex: selectedPartIndex + 1,
+        totalScenes: scenes.length,
+        totalClips: scenes.reduce((acc, s) => acc + s.clips.length, 0),
+      },
+      conditions: {
+        storyCondition,
+        imageCondition,
+        videoCondition,
+        soundCondition,
+        imageGuide,
+        videoGuide,
+      },
+    };
+
+    const jsonContent = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `storyboard_part${selectedPartIndex + 1}.json`;
+    link.click();
+
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "storyboard_toast_json_downloaded", language),
+      description: `${scenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${scenes.reduce((acc, s) => acc + s.clips.length, 0)} ${phrase(dictionary, "storyboard_clips", language)}`,
+    });
+  }, [
+    scenes,
+    voicePrompts,
+    selectedPartIndex,
+    storyCondition,
+    imageCondition,
+    videoCondition,
+    soundCondition,
+    imageGuide,
+    videoGuide,
+    toast,
+    dictionary,
+    language,
+  ]);
+
   const handleSaveToDrive = useCallback(async () => {
     if (scenes.length === 0) return;
 
@@ -255,7 +371,8 @@ export default function StoryboardGenerator() {
         "Background ID",
         "Background Prompt",
         "Story",
-        "Image Prompt",
+        "Image Prompt (Start)",
+        "Image Prompt (End)",
         "Video Prompt",
         "Sora Video Prompt",
         "Dialogue (Ko)",
@@ -279,6 +396,7 @@ export default function StoryboardGenerator() {
               `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
               `"${clip.story.replace(/"/g, '""')}"`,
               `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+              `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
               `"${clip.videoPrompt.replace(/"/g, '""')}"`,
               `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
               `"${clip.dialogue.replace(/"/g, '""')}"`,
@@ -317,6 +435,187 @@ export default function StoryboardGenerator() {
       setIsSavingToDrive(false);
     }
   }, [scenes, selectedPartIndex, toast, dictionary, language]);
+
+  const handleImportJSON = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+
+        // Validate the JSON structure
+        if (!data.scenes || !Array.isArray(data.scenes) || data.scenes.length === 0) {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_import_invalid", language),
+          });
+          return;
+        }
+
+        // Import the storyboard
+        await importStoryboard(data.scenes, data.voicePrompts || []);
+
+        // Also restore conditions if available
+        if (data.conditions) {
+          if (data.conditions.storyCondition) setStoryCondition(data.conditions.storyCondition);
+          if (data.conditions.imageCondition) setImageCondition(data.conditions.imageCondition);
+          if (data.conditions.videoCondition) setVideoCondition(data.conditions.videoCondition);
+          if (data.conditions.soundCondition) setSoundCondition(data.conditions.soundCondition);
+          if (data.conditions.imageGuide) setImageGuide(data.conditions.imageGuide);
+          if (data.conditions.videoGuide) setVideoGuide(data.conditions.videoGuide);
+        }
+
+        toast({
+          variant: "success",
+          title: phrase(dictionary, "storyboard_import_success", language),
+          description: `${data.scenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${data.scenes.reduce((acc: number, s: { clips: unknown[] }) => acc + s.clips.length, 0)} ${phrase(dictionary, "storyboard_clips", language)}`,
+        });
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+          description: phrase(dictionary, "storyboard_import_failed", language),
+        });
+      }
+    };
+
+    reader.readAsText(file);
+
+    // Reset the file input so the same file can be imported again
+    event.target.value = "";
+  }, [importStoryboard, toast, dictionary, language]);
+
+  const handleCSVImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        if (!text) return;
+
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_csv_import_invalid", language),
+          });
+          return;
+        }
+
+        const header = rows[0].map((h) => h.trim());
+
+        // Find column indices by header name (supports both Korean and English)
+        const findIdx = (names: string[]) => {
+          let found = header.findIndex((h) => names.some((n) => h === n));
+          if (found !== -1) return found;
+          return header.findIndex((h) =>
+            names.some((n) => h.toLowerCase().includes(n.toLowerCase()))
+          );
+        };
+
+        const idx = {
+          scene: findIdx(["Scene", "씬", "시나리오"]),
+          clip: findIdx(["Clip", "클립", "번호"]),
+          length: findIdx(["Length", "길이", "시간"]),
+          accTime: findIdx(["Accumulated", "누적"]),
+          bgId: findIdx(["Background ID", "배경 ID"]),
+          bgPrompt: findIdx(["Background Prompt", "배경 프롬프트"]),
+          story: findIdx(["Story", "스토리", "내용"]),
+          imgStart: findIdx(["Image Prompt (Start)", "이미지 프롬프트 (Start)", "Image Prompt", "이미지 프롬프트"]),
+          imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
+          video: findIdx(["Video Prompt", "비디오 프롬프트"]),
+          sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
+          dialogue: findIdx(["Dialogue (Ko)", "대사 (Ko)", "대사"]),
+          dialogueEn: findIdx(["Dialogue (En)", "대사 (En)"]),
+          sfx: findIdx(["SFX (Ko)", "효과음 (Ko)", "효과음"]),
+          sfxEn: findIdx(["SFX (En)", "효과음 (En)"]),
+          bgm: findIdx(["BGM (Ko)", "배경음악 (Ko)", "배경음악"]),
+          bgmEn: findIdx(["BGM (En)", "배경음악 (En)"]),
+        };
+
+        const parsedScenes: Scene[] = [];
+        let currentScene: Scene | null = null;
+        let lastSceneLabel = "";
+
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i];
+          if (cols.length < 2) continue;
+
+          const getVal = (index: number) => {
+            if (index < 0 || index >= cols.length) return "";
+            return cols[index];
+          };
+
+          const sceneLabel = getVal(idx.scene);
+
+          const clip: Continuity = {
+            length: getVal(idx.length),
+            accumulatedTime: getVal(idx.accTime),
+            backgroundId: getVal(idx.bgId),
+            backgroundPrompt: getVal(idx.bgPrompt),
+            story: getVal(idx.story),
+            imagePrompt: getVal(idx.imgStart),
+            imagePromptEnd: getVal(idx.imgEnd) || undefined,
+            videoPrompt: getVal(idx.video),
+            soraVideoPrompt: getVal(idx.sora),
+            dialogue: getVal(idx.dialogue),
+            dialogueEn: getVal(idx.dialogueEn),
+            sfx: getVal(idx.sfx),
+            sfxEn: getVal(idx.sfxEn),
+            bgm: getVal(idx.bgm),
+            bgmEn: getVal(idx.bgmEn),
+          };
+
+          if (!currentScene || (sceneLabel && sceneLabel !== lastSceneLabel)) {
+            lastSceneLabel = sceneLabel;
+            const label = sceneLabel || `Scene ${parsedScenes.length + 1}`;
+            const sceneTitle = label.includes(": ") ? label.split(": ").slice(1).join(": ") : label;
+            currentScene = {
+              sceneTitle,
+              clips: [clip],
+            };
+            parsedScenes.push(currentScene);
+          } else {
+            currentScene.clips.push(clip);
+          }
+        }
+
+        if (parsedScenes.length > 0) {
+          await importStoryboard(parsedScenes, []);
+          const totalClips = parsedScenes.reduce((acc, s) => acc + s.clips.length, 0);
+          toast({
+            variant: "success",
+            title: phrase(dictionary, "storyboard_import_success", language),
+            description: `${parsedScenes.length} ${phrase(dictionary, "storyboard_scenes", language)}, ${totalClips} ${phrase(dictionary, "storyboard_clips", language)}`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+            description: phrase(dictionary, "storyboard_csv_import_invalid", language),
+          });
+        }
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
+          description: phrase(dictionary, "storyboard_import_failed", language),
+        });
+      }
+    };
+
+    reader.readAsText(file);
+
+    // Reset the file input so the same file can be imported again
+    event.target.value = "";
+  }, [importStoryboard, toast, dictionary, language]);
 
   return (
     <div className="space-y-6">
@@ -397,6 +696,11 @@ export default function StoryboardGenerator() {
 
         {showConditions && (
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
+            {/* Genre Presets */}
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <GenrePresets onApply={handleApplyPreset} />
+            </div>
+
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {phrase(dictionary, "storyboard_story_conditions", language)}
@@ -486,13 +790,47 @@ export default function StoryboardGenerator() {
           {isGenerating ? phrase(dictionary, "storyboard_generating", language) : phrase(dictionary, "storyboard_generate", language)}
         </button>
 
+        {/* Hidden file input for JSON import */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".json"
+          onChange={handleImportJSON}
+          className="hidden"
+        />
         <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isGenerating}
+          className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FileJson className="w-5 h-5" />
+          {phrase(dictionary, "storyboard_json_import", language)}
+        </button>
+
+        {/* Hidden file input for CSV import */}
+        <input
+          type="file"
+          ref={csvFileInputRef}
+          accept=".csv"
+          onChange={handleCSVImport}
+          className="hidden"
+        />
+        <button
+          onClick={() => csvFileInputRef.current?.click()}
+          disabled={isGenerating}
+          className="flex items-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FileSpreadsheet className="w-5 h-5" />
+          {phrase(dictionary, "storyboard_csv_import", language)}
+        </button>
+
+        {/* <button
           onClick={() => setShowDriveSettings(!showDriveSettings)}
           className="flex items-center gap-2 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
         >
           <Settings className="w-5 h-5" />
           {phrase(dictionary, "storyboard_drive_settings", language)}
-        </button>
+        </button> */}
       </div>
 
       {/* Drive Settings Panel */}
@@ -531,13 +869,35 @@ export default function StoryboardGenerator() {
                 {phrase(dictionary, "storyboard_csv_download", language)}
               </button>
               <button
+                onClick={handleDownloadJSON}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <FileJson className="w-4 h-4" />
+                {phrase(dictionary, "storyboard_json_download", language)}
+              </button>
+              <button
+                onClick={async () => {
+                  await splitStartEndFrames();
+                  toast({
+                    variant: "success",
+                    title: phrase(dictionary, "storyboard_split_complete", language),
+                    description: phrase(dictionary, "storyboard_split_description", language),
+                  });
+                }}
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SplitSquareHorizontal className="w-4 h-4" />
+                {phrase(dictionary, "storyboard_split_frames", language)}
+              </button>
+              {/* <button
                 onClick={handleSaveToDrive}
                 disabled={isSavingToDrive}
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CloudUpload className="w-4 h-4" />
                 {isSavingToDrive ? phrase(dictionary, "storyboard_saving", language) : phrase(dictionary, "storyboard_save_to_drive", language)}
-              </button>
+              </button> */}
               {scenes.length > 0 && (
                 <button
                   onClick={clearStoryboardGeneration}

@@ -598,7 +598,7 @@ storysplitter_more_chars,개의 문자가 더 있습니다,,more characters
 storysplitter_error,오류:,,Error:
 storyboard_title,AI 애니메이션 스토리보드 생성기,,AI Animation Storyboard Generator
 storyboard_subtitle,분할된 스토리 파트에서 상세한 애니메이션 스토리보드를 생성합니다,,Generate detailed animation storyboards from your split story parts
-storyboard_select_part,Stage 3에서 파트 선택,,Select Part from Stage 3
+storyboard_select_part,분할 결과 선택,,Select part from split results
 storyboard_part_preview,미리보기,,Preview
 storyboard_no_parts,분할된 파트가 없습니다. Stage 2 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 2 (Story Splitter) first.
 storyboard_generation_conditions,생성 조건,,Generation Conditions
@@ -619,6 +619,8 @@ storyboard_generated,생성된 스토리보드,,Generated Storyboard
 storyboard_scenes,씬,,Scenes
 storyboard_clips,클립,,Clips
 storyboard_csv_download,CSV 다운로드,,CSV Download
+storyboard_json_download,JSON 다운로드,,JSON Download
+storyboard_toast_json_downloaded,JSON 다운로드 완료,,JSON Downloaded
 storyboard_saving,저장 중...,,Saving...
 storyboard_save_to_drive,드라이브에 저장,,Save to Drive
 storyboard_toast_no_parts,분할된 파트가 없습니다. Stage 2 (스토리 분할기)를 먼저 완료하세요.,,No split parts found. Please complete Stage 2 (Story Splitter) first.
@@ -634,6 +636,7 @@ table_accumulated_time,누적 시간,,Accumulated Time
 table_background_id,배경 ID,,Background ID
 table_story,스토리,,Story
 table_image_prompt,이미지 프롬프트,,Image Prompt
+table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
 table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
@@ -885,6 +888,7 @@ storyboard_edit_button,편집,,Edit
 storyboard_edit_modified,수정됨,,Modified
 storyboard_edit_empty,비어있음,,Empty
 storyboard_edit_image_prompt_placeholder,이미지 프롬프트 입력...,,Enter image prompt...
+storyboard_edit_image_prompt_end_placeholder,이미지 프롬프트 (End) 입력...,,Enter image prompt (End)...
 storyboard_edit_video_prompt_placeholder,비디오 프롬프트 입력...,,Enter video prompt...
 storyboard_loading,로딩 중...,,Loading...
 storyboard_edit_dialogue_placeholder,대사 입력...,,Enter dialogue...
@@ -936,3 +940,19 @@ storysplitter_analysis_strategy,분석 전략,,Analysis Strategy
 storysplitter_no_analysis,클리프행어 분석이 없습니다.,,No cliffhanger analysis available.
 storysplitter_check_download,다운로드한 파일에서 전체 스크립트를 확인하세요.,,Please check the downloaded file for the full script.
 storysplitter_view_text,텍스트 보기,,View Text
+storyboard_select_preset,프리셋 선택,,Select Preset
+storyboard_preset_applied,프리셋 적용됨,,Preset Applied
+genre_modern_romance,현대 로맨스,,Modern Romance
+genre_medieval_action_fantasy,중세 액션 판타지,,Medieval Action Fantasy
+genre_modern_action_fantasy,현대 액션 판타지,,Modern Action Fantasy
+genre_select_preset,프리셋 선택,,Select Preset
+storyboard_split_frames,Start/End 프레임 분리,,Split Start/End Frames
+storyboard_split_complete,프레임 분리 완료,,Frame Split Complete
+storyboard_split_description,이미지 프롬프트가 Start/End 프레임으로 분리되었습니다,,Image prompts have been split into Start/End frames
+storyboard_json_import,JSON 불러오기,,Import JSON
+storyboard_import_success,불러오기 완료,,Import Successful
+storyboard_import_description,스토리보드 데이터를 성공적으로 불러왔습니다,,Storyboard data has been successfully imported
+storyboard_import_invalid,잘못된 JSON 형식입니다. scenes와 voicePrompts가 필요합니다,,Invalid JSON format. scenes and voicePrompts are required
+storyboard_import_failed,불러오기 실패,,Import Failed
+storyboard_csv_import,CSV 불러오기,,Import CSV
+storyboard_csv_import_invalid,잘못된 CSV 형식입니다. 필수 헤더가 필요합니다,,Invalid CSV format. Required headers are missing

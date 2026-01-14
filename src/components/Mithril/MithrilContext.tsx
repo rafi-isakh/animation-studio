@@ -39,7 +39,7 @@ import {
 const TOTAL_STAGES = 7;
 
 // Editable clip field type (shared across components)
-export type EditableClipField = 'imagePrompt' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
 
 // Types for Story Splitter
 interface Cliffhanger {
@@ -155,6 +155,8 @@ interface MithrilContextProps {
   // Storyboard Generator (Stage 5)
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
+  splitStartEndFrames: () => Promise<void>;
+  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[]) => Promise<void>;
   clearStoryboardGeneration: () => void;
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   updateClipImageRef: (sceneIndex: number, clipIndex: number, imageRef: string) => void;
@@ -332,6 +334,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               clips: clips.map(clip => ({
                 story: clip.story,
                 imagePrompt: clip.imagePrompt,
+                imagePromptEnd: clip.imagePromptEnd,
                 videoPrompt: clip.videoPrompt,
                 soraVideoPrompt: clip.soraVideoPrompt,
                 backgroundPrompt: clip.backgroundPrompt,
@@ -575,6 +578,129 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: errorMessage,
       }));
     }
+  }, [currentProjectId]);
+
+  // Split image prompts into Start/End frames for Vidu video AI
+  const splitStartEndFrames = useCallback(async () => {
+    if (storyboardGenerator.scenes.length === 0) {
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        error: "No storyboard data available. Please generate a storyboard first.",
+      }));
+      return;
+    }
+
+    setStoryboardGenerator(prev => ({
+      ...prev,
+      isGenerating: true,
+      error: null,
+    }));
+
+    try {
+      const response = await fetch("/api/split_start_end_frames", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenes: storyboardGenerator.scenes }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      // Update Firestore with new imagePrompt and imagePromptEnd values
+      if (currentProjectId) {
+        for (let sceneIndex = 0; sceneIndex < data.scenes.length; sceneIndex++) {
+          const scene = data.scenes[sceneIndex];
+          for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+            const clip = scene.clips[clipIndex];
+            await updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'imagePrompt', clip.imagePrompt || "");
+            if (clip.imagePromptEnd) {
+              await updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'imagePromptEnd', clip.imagePromptEnd);
+            }
+          }
+        }
+      }
+
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        isGenerating: false,
+        scenes: data.scenes,
+      }));
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        isGenerating: false,
+        error: errorMessage,
+      }));
+    }
+  }, [storyboardGenerator.scenes, currentProjectId]);
+
+  // Import storyboard from JSON file
+  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[]) => {
+    if (!scenes || scenes.length === 0) {
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        error: "Invalid import data: no scenes found.",
+      }));
+      return;
+    }
+
+    // Clear existing storyboard first
+    if (currentProjectId) {
+      try {
+        await clearStoryboard(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing existing storyboard:", error);
+      }
+    }
+
+    // Save imported data to Firestore
+    if (currentProjectId) {
+      try {
+        await saveStoryboardMeta(currentProjectId);
+        await saveVoicePrompts(currentProjectId, voicePrompts);
+
+        for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex++) {
+          const scene = scenes[sceneIndex];
+          await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+
+          for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+            const clip = scene.clips[clipIndex];
+            await saveClip(currentProjectId, sceneIndex, clipIndex, {
+              story: clip.story || "",
+              imagePrompt: clip.imagePrompt || "",
+              imagePromptEnd: clip.imagePromptEnd || "",
+              videoPrompt: clip.videoPrompt || "",
+              soraVideoPrompt: clip.soraVideoPrompt || "",
+              backgroundPrompt: clip.backgroundPrompt || "",
+              backgroundId: clip.backgroundId || "",
+              dialogue: clip.dialogue || "",
+              dialogueEn: clip.dialogueEn || "",
+              sfx: clip.sfx || "",
+              sfxEn: clip.sfxEn || "",
+              bgm: clip.bgm || "",
+              bgmEn: clip.bgmEn || "",
+              length: clip.length || "",
+              accumulatedTime: clip.accumulatedTime || "",
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error saving imported storyboard to Firestore:", error);
+      }
+    }
+
+    // Update state
+    setStoryboardGenerator({
+      isGenerating: false,
+      error: null,
+      scenes,
+      voicePrompts,
+    });
+
+    // Store as original for reset functionality
+    setOriginalStoryboard({ scenes, voicePrompts });
   }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {
@@ -981,6 +1107,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Storyboard Generator
         storyboardGenerator,
         startStoryboardGeneration,
+        splitStartEndFrames,
+        importStoryboard,
         clearStoryboardGeneration,
         updateClipPrompt,
         updateClipImageRef,

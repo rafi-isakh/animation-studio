@@ -21,10 +21,15 @@ import {
   DeleteVideoResponse,
   ClearProjectRequest,
   ClearProjectResponse,
+  CharacterImageSubtype,
   getCharacterImageKey,
   getBackgroundImageKey,
   getStoryboardImageKey,
   getVideoKey,
+  getCharacterProfileImageKey,
+  getCharacterMasterSheetKey,
+  getCharacterModeImageKey,
+  getStyleSlotImageKey,
 } from './types';
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
@@ -343,7 +348,270 @@ export async function clearAllProjectFiles(projectId: string): Promise<number> {
 }
 
 // ============================================================================
+// Character Sheet v2 - Profile, Master Sheet, Mode Images
+// ============================================================================
+
+/**
+ * Upload a character profile image (1:1 headshot) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadCharacterProfileImage(
+  projectId: string,
+  characterId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'profile',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload character profile image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a character profile image from S3
+ */
+export async function deleteCharacterProfileImage(
+  projectId: string,
+  characterId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'profile',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete character profile image');
+  }
+}
+
+/**
+ * Upload a character master sheet image (16:9, 4 views) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadCharacterMasterSheetImage(
+  projectId: string,
+  characterId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'mastersheet',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload character master sheet image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a character master sheet image from S3
+ */
+export async function deleteCharacterMasterSheetImage(
+  projectId: string,
+  characterId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'mastersheet',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete character master sheet image');
+  }
+}
+
+/**
+ * Upload a character mode image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadCharacterModeImage(
+  projectId: string,
+  characterId: string,
+  modeId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'mode',
+    modeId,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload character mode image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a character mode image from S3
+ */
+export async function deleteCharacterModeImage(
+  projectId: string,
+  characterId: string,
+  modeId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'character',
+    characterId,
+    characterSubtype: 'mode',
+    modeId,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete character mode image');
+  }
+}
+
+// ============================================================================
+// Style Slot Images
+// ============================================================================
+
+/**
+ * Upload a style slot image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadStyleSlotImage(
+  projectId: string,
+  slotIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'style-slot',
+    slotIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload style slot image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a style slot image from S3
+ */
+export async function deleteStyleSlotImage(
+  projectId: string,
+  slotIndex: number
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'style-slot',
+    slotIndex,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete style slot image');
+  }
+}
+
+// ============================================================================
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================
 
-export { getCharacterImageKey, getBackgroundImageKey, getStoryboardImageKey, getVideoKey };
+export {
+  getCharacterImageKey,
+  getBackgroundImageKey,
+  getStoryboardImageKey,
+  getVideoKey,
+  getCharacterProfileImageKey,
+  getCharacterMasterSheetKey,
+  getCharacterModeImageKey,
+  getStyleSlotImageKey,
+};

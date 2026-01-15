@@ -280,13 +280,30 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         const metadata: CharacterSheetResultMetadata = {
           styleKeyword: charSettings?.styleKeyword || "",
           characterBasePrompt: charSettings?.characterBasePrompt || "",
+          genre: charSettings?.genre || "fantasy",
+          styleSlots: charSettings?.styleSlots?.map(slot => ({
+            id: slot.id,
+            name: slot.name,
+            imageBase64: "",
+            imageUrl: slot.imageRef,
+          })) || [],
+          activeStyleIndex: charSettings?.activeStyleIndex ?? null,
           characters: characters.map(char => ({
             id: char.id,
             name: char.name,
+            role: char.role || "unknown",
+            isProtagonist: char.isProtagonist || false,
+            age: char.age || "",
+            gender: char.gender || "",
+            traits: char.traits || "",
             appearance: char.appearance,
             clothing: char.clothing,
             personality: char.personality,
             backgroundStory: char.backgroundStory,
+            profileImageId: char.profileImageRef || "",
+            profileImagePrompt: char.profileImagePrompt || "",
+            masterSheetImageId: char.masterSheetImageRef || char.imageRef || "",
+            masterSheetImagePrompt: char.masterSheetImagePrompt || char.imagePrompt || "",
             imageId: char.imageRef, // Use imageRef as imageId for compatibility
             imagePrompt: char.imagePrompt,
           })),
@@ -967,6 +984,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           charactersFromApi.map(async (char: Omit<Character, 'id'>) => {
             const firestoreId = await saveCharacter(currentProjectId, {
               name: char.name,
+              // Role & Identity fields
+              role: char.role || "unknown",
+              isProtagonist: char.isProtagonist || false,
+              age: char.age || "",
+              gender: char.gender || "",
+              traits: char.traits || "",
+              // Description fields
               appearance: char.appearance,
               clothing: char.clothing,
               personality: char.personality,
@@ -989,15 +1013,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         characters: charactersWithImages.map((char) => ({
           id: char.id,
           name: char.name,
+          role: char.role || "unknown",
+          isProtagonist: char.isProtagonist || false,
+          age: char.age || "",
+          gender: char.gender || "",
+          traits: char.traits || "",
           appearance: char.appearance,
           clothing: char.clothing,
           personality: char.personality,
           backgroundStory: char.backgroundStory,
+          profileImageId: "",
+          profileImagePrompt: "",
+          masterSheetImageId: "",
+          masterSheetImagePrompt: "",
           imageId: "",
           imagePrompt: "",
         })),
         styleKeyword,
         characterBasePrompt,
+        genre: "fantasy",
+        styleSlots: [],
+        activeStyleIndex: null,
       };
 
       setCharacterSheetGenerator({

@@ -8,9 +8,19 @@ export * from './types';
 
 // Image & Video operations
 export {
-  // Character images
+  // Character images (legacy)
   uploadCharacterImage,
   deleteCharacterImage,
+  // Character images (new 3-tier system)
+  uploadCharacterProfileImage,
+  deleteCharacterProfileImage,
+  uploadCharacterMasterSheetImage,
+  deleteCharacterMasterSheetImage,
+  uploadCharacterModeImage,
+  deleteCharacterModeImage,
+  // Style slot images
+  uploadStyleSlotImage,
+  deleteStyleSlotImage,
   // Background images
   uploadBackgroundImage,
   deleteBackgroundImage,

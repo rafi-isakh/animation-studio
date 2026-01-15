@@ -3,7 +3,12 @@
  *
  * S3 Key Structure:
  * mithril/{projectId}/
- * ├── characters/{characterId}.webp
+ * ├── characters/{characterId}/
+ * │   ├── profile.webp              (1:1 headshot)
+ * │   ├── mastersheet.webp          (16:9 character sheet)
+ * │   ├── legacy.webp               (backward compatibility)
+ * │   └── modes/{modeId}.webp       (mode variations)
+ * ├── style-slots/{slotIndex}.webp  (global style references)
  * ├── backgrounds/{bgId}/{angle}.webp
  * ├── storyboard/{sceneIndex}_{clipIndex}.webp
  * └── videos/{clipId}.mp4
@@ -11,17 +16,23 @@
 
 // Request/Response types for S3 API routes
 
+export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode';
+
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot';
   // For character images
   characterId?: string;
+  characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
+  modeId?: string; // For mode images
   // For background images
   bgId?: string;
   angle?: string;
   // For storyboard images
   sceneIndex?: number;
   clipIndex?: number;
+  // For style slot images
+  slotIndex?: number;
   // Image data
   base64: string;
   mimeType?: string;
@@ -36,15 +47,19 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot';
   // For character images
   characterId?: string;
+  characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
+  modeId?: string; // For mode images
   // For background images
   bgId?: string;
   angle?: string; // If not provided, deletes all angles for the bgId
   // For storyboard images
   sceneIndex?: number;
   clipIndex?: number;
+  // For style slot images
+  slotIndex?: number;
 }
 
 export interface DeleteImageResponse {
@@ -112,4 +127,57 @@ export function getVideoKey(projectId: string, clipId: string): string {
 
 export function getProjectPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/`;
+}
+
+// ============================================
+// New Key Generators for Character Sheet v2
+// ============================================
+
+/**
+ * Get S3 key for character profile image (1:1 headshot)
+ */
+export function getCharacterProfileImageKey(projectId: string, characterId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/characters/${characterId}/profile.webp`;
+}
+
+/**
+ * Get S3 key for character master sheet image (16:9, 4 views)
+ */
+export function getCharacterMasterSheetKey(projectId: string, characterId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/characters/${characterId}/mastersheet.webp`;
+}
+
+/**
+ * Get S3 key for character legacy image (backward compatibility)
+ */
+export function getCharacterLegacyImageKey(projectId: string, characterId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/characters/${characterId}/legacy.webp`;
+}
+
+/**
+ * Get S3 key for character mode image
+ */
+export function getCharacterModeImageKey(projectId: string, characterId: string, modeId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/characters/${characterId}/modes/${modeId}.webp`;
+}
+
+/**
+ * Get S3 key for style slot image
+ */
+export function getStyleSlotImageKey(projectId: string, slotIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/style-slots/${slotIndex}.webp`;
+}
+
+/**
+ * Get S3 folder prefix for character (for deleting all character images)
+ */
+export function getCharacterFolderPrefix(projectId: string, characterId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/characters/${characterId}/`;
+}
+
+/**
+ * Get S3 folder prefix for style slots (for deleting all style slots)
+ */
+export function getStyleSlotsFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/style-slots/`;
 }

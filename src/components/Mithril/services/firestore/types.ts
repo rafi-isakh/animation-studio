@@ -57,21 +57,58 @@ export interface StorySplitsDocument {
 // Character Sheet (Stage 3)
 // ============================================
 
+export interface StyleSlotDocument {
+  id: string;
+  name: string;
+  imageRef: string; // S3 URL
+}
+
 export interface CharacterSheetDocument {
   styleKeyword: string;
   characterBasePrompt: string;
+  genre: string;
+  styleSlots: StyleSlotDocument[];
+  activeStyleIndex: number | null;
   generatedAt: Timestamp;
+}
+
+export interface ModeDocument {
+  id: string;
+  characterId: string;
+  name: string;
+  description: string;
+  prompt: string;
+  imageRef: string; // S3 URL
 }
 
 export interface CharacterDocument {
   id: string;
   name: string;
+
+  // Role & Identity (v1.6 fields)
+  role: string;
+  isProtagonist: boolean;
+  age: string;
+  gender: string;
+  traits: string;
+
+  // Description fields
   appearance: string;
   clothing: string;
   personality: string;
   backgroundStory: string;
-  imageRef: string; // S3 URL
-  imagePrompt: string;
+
+  // Profile Image (1:1 headshot)
+  profileImageRef: string;
+  profileImagePrompt: string;
+
+  // Master Sheet (16:9, 4 views)
+  masterSheetImageRef: string;
+  masterSheetImagePrompt: string;
+
+  // Legacy fields for backward compatibility
+  imageRef: string; // S3 URL - maps to masterSheetImageRef
+  imagePrompt: string; // maps to masterSheetImagePrompt
 }
 
 // ============================================
@@ -198,26 +235,83 @@ export interface SaveStorySplitsInput {
 export interface SaveCharacterSheetSettingsInput {
   styleKeyword: string;
   characterBasePrompt: string;
+  genre?: string;
+  styleSlots?: StyleSlotDocument[];
+  activeStyleIndex?: number | null;
 }
 
 export interface SaveCharacterInput {
   name: string;
+
+  // Role & Identity
+  role?: string;
+  isProtagonist?: boolean;
+  age?: string;
+  gender?: string;
+  traits?: string;
+
+  // Description fields
   appearance: string;
   clothing: string;
   personality: string;
   backgroundStory: string;
+
+  // Profile image
+  profileImageRef?: string;
+  profileImagePrompt?: string;
+
+  // Master sheet image
+  masterSheetImageRef?: string;
+  masterSheetImagePrompt?: string;
+
+  // Legacy fields
   imageRef?: string;
   imagePrompt?: string;
 }
 
 export interface UpdateCharacterInput {
   name?: string;
+
+  // Role & Identity
+  role?: string;
+  isProtagonist?: boolean;
+  age?: string;
+  gender?: string;
+  traits?: string;
+
+  // Description fields
   appearance?: string;
   clothing?: string;
   personality?: string;
   backgroundStory?: string;
+
+  // Profile image
+  profileImageRef?: string;
+  profileImagePrompt?: string;
+
+  // Master sheet image
+  masterSheetImageRef?: string;
+  masterSheetImagePrompt?: string;
+
+  // Legacy fields
   imageRef?: string;
   imagePrompt?: string;
+}
+
+export interface SaveModeInput {
+  id?: string; // Optional: use this ID instead of auto-generating
+  characterId: string;
+  name: string;
+  description: string;
+  prompt: string;
+  imageRef?: string;
+}
+
+export interface UpdateModeInput {
+  name?: string;
+  description?: string;
+  prompt?: string;
+  imageRef?: string;
 }
 
 export interface SaveBgSheetSettingsInput {

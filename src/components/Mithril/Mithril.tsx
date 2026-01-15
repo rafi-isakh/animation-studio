@@ -154,8 +154,8 @@ function MithrilContent() {
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StorySplitter />}
           {currentStage === 3 && <CharacterSheetGenerator />}
-          {currentStage === 4 && <BgSheetGenerator />}
-          {currentStage === 5 && <StoryboardGenerator />}
+          {currentStage === 4 && <StoryboardGenerator />}
+          {currentStage === 5 && <BgSheetGenerator />}
           {/* Stage6Content (NanoBanana) hidden - functionality merged into Storyboard Generator */}
           {currentStage === 6 && <SoraVideoGenerator />}
         </div>

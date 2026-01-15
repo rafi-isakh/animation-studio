@@ -194,7 +194,64 @@ export interface ClipDocument {
 }
 
 // ============================================
-// Video (Stage 6)
+// ImageGen (Stage 6)
+// ============================================
+
+export type ImageGenAspectRatio = '1:1' | '16:9' | '9:16';
+export type ImageGenFrameStatus = 'pending' | 'generating' | 'completed' | 'failed';
+
+export interface ImageGenDocument {
+  stylePrompt: string;
+  aspectRatio: ImageGenAspectRatio;
+  generatedAt: Timestamp;
+}
+
+export interface ImageGenFrameDocument {
+  id: string;
+  sceneIndex: number;
+  clipIndex: number;
+  frameLabel: string;
+  frameNumber: string;
+  shotGroup: number;
+  prompt: string;
+  backgroundId: string;
+  refFrame: string;
+  imageRef: string; // S3 URL
+  status: ImageGenFrameStatus;
+  remixPrompt: string;
+  remixImageRef: string | null;
+  editedImageRef: string | null;
+}
+
+export interface SaveImageGenFrameInput {
+  sceneIndex: number;
+  clipIndex: number;
+  frameLabel: string;
+  frameNumber: string;
+  shotGroup: number;
+  prompt: string;
+  backgroundId: string;
+  refFrame: string;
+  imageRef?: string;
+  status?: ImageGenFrameStatus;
+  remixPrompt?: string;
+  remixImageRef?: string | null;
+  editedImageRef?: string | null;
+}
+
+export interface UpdateImageGenFrameInput {
+  prompt?: string;
+  backgroundId?: string;
+  refFrame?: string;
+  imageRef?: string;
+  status?: ImageGenFrameStatus;
+  remixPrompt?: string;
+  remixImageRef?: string | null;
+  editedImageRef?: string | null;
+}
+
+// ============================================
+// Video (Stage 7)
 // ============================================
 
 export type AspectRatio = '16:9' | '9:16';

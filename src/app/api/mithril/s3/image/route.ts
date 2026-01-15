@@ -10,6 +10,11 @@ import {
   getBackgroundImageKey,
   getBackgroundFolderPrefix,
   getStoryboardImageKey,
+  getStyleSlotImageKey,
+  getImageGenFrameKey,
+  getImageGenRemixKey,
+  getImageGenEditedKey,
+  getImageGenFolderPrefix,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +79,39 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
           );
         }
         s3Key = getStoryboardImageKey(projectId, sceneIndex, clipIndex);
+        break;
+      }
+      case "style-slot": {
+        const { slotIndex } = body;
+        if (slotIndex === undefined) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "slotIndex is required for style-slot images" },
+            { status: 400 }
+          );
+        }
+        s3Key = getStyleSlotImageKey(projectId, slotIndex);
+        break;
+      }
+      case "imagegen": {
+        const { frameId, imageGenSubtype } = body;
+        if (!frameId) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "frameId is required for imagegen images" },
+            { status: 400 }
+          );
+        }
+        switch (imageGenSubtype) {
+          case "remix":
+            s3Key = getImageGenRemixKey(projectId, frameId);
+            break;
+          case "edited":
+            s3Key = getImageGenEditedKey(projectId, frameId);
+            break;
+          case "frame":
+          default:
+            s3Key = getImageGenFrameKey(projectId, frameId);
+            break;
+        }
         break;
       }
       default:
@@ -184,6 +222,47 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
           );
         }
         keysToDelete = [getStoryboardImageKey(projectId, sceneIndex, clipIndex)];
+        break;
+      }
+      case "style-slot": {
+        const { slotIndex } = body;
+        if (slotIndex === undefined) {
+          return NextResponse.json(
+            { success: false, deletedKeys: [], error: "slotIndex is required for style-slot images" },
+            { status: 400 }
+          );
+        }
+        keysToDelete = [getStyleSlotImageKey(projectId, slotIndex)];
+        break;
+      }
+      case "imagegen": {
+        const { frameId, imageGenSubtype } = body;
+        if (!frameId) {
+          // Delete all imagegen images if no frameId specified
+          const prefix = getImageGenFolderPrefix(projectId);
+          const listResponse = await s3Client.send(
+            new ListObjectsV2Command({
+              Bucket: BUCKET_NAME,
+              Prefix: prefix,
+            })
+          );
+          if (listResponse.Contents) {
+            keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
+          }
+        } else {
+          switch (imageGenSubtype) {
+            case "remix":
+              keysToDelete = [getImageGenRemixKey(projectId, frameId)];
+              break;
+            case "edited":
+              keysToDelete = [getImageGenEditedKey(projectId, frameId)];
+              break;
+            case "frame":
+            default:
+              keysToDelete = [getImageGenFrameKey(projectId, frameId)];
+              break;
+          }
+        }
         break;
       }
       default:

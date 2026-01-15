@@ -22,6 +22,7 @@ import {
   ClearProjectRequest,
   ClearProjectResponse,
   CharacterImageSubtype,
+  ImageGenImageSubtype,
   getCharacterImageKey,
   getBackgroundImageKey,
   getStoryboardImageKey,
@@ -30,6 +31,9 @@ import {
   getCharacterMasterSheetKey,
   getCharacterModeImageKey,
   getStyleSlotImageKey,
+  getImageGenFrameKey,
+  getImageGenRemixKey,
+  getImageGenEditedKey,
 } from './types';
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
@@ -602,6 +606,193 @@ export async function deleteStyleSlotImage(
 }
 
 // ============================================================================
+// ImageGen Images (Stage 6)
+// ============================================================================
+
+/**
+ * Upload an imagegen frame image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadImageGenFrameImage(
+  projectId: string,
+  frameId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'frame',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload imagegen frame image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an imagegen remix image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadImageGenRemixImage(
+  projectId: string,
+  frameId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'remix',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload imagegen remix image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an imagegen edited image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadImageGenEditedImage(
+  projectId: string,
+  frameId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'edited',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload imagegen edited image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete an imagegen frame image from S3
+ */
+export async function deleteImageGenFrameImage(
+  projectId: string,
+  frameId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'frame',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete imagegen frame image');
+  }
+}
+
+/**
+ * Delete an imagegen remix image from S3
+ */
+export async function deleteImageGenRemixImage(
+  projectId: string,
+  frameId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'remix',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete imagegen remix image');
+  }
+}
+
+/**
+ * Delete an imagegen edited image from S3
+ */
+export async function deleteImageGenEditedImage(
+  projectId: string,
+  frameId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'edited',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete imagegen edited image');
+  }
+}
+
+// ============================================================================
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================
 
@@ -614,4 +805,7 @@ export {
   getCharacterMasterSheetKey,
   getCharacterModeImageKey,
   getStyleSlotImageKey,
+  getImageGenFrameKey,
+  getImageGenRemixKey,
+  getImageGenEditedKey,
 };

@@ -18,9 +18,11 @@
 
 export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode';
 
+export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
+
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -33,6 +35,9 @@ export interface UploadImageRequest {
   clipIndex?: number;
   // For style slot images
   slotIndex?: number;
+  // For imagegen images
+  frameId?: string;
+  imageGenSubtype?: ImageGenImageSubtype; // frame, remix, or edited
   // Image data
   base64: string;
   mimeType?: string;
@@ -47,7 +52,7 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -60,6 +65,9 @@ export interface DeleteImageRequest {
   clipIndex?: number;
   // For style slot images
   slotIndex?: number;
+  // For imagegen images
+  frameId?: string;
+  imageGenSubtype?: ImageGenImageSubtype; // frame, remix, or edited
 }
 
 export interface DeleteImageResponse {
@@ -180,4 +188,36 @@ export function getCharacterFolderPrefix(projectId: string, characterId: string)
  */
 export function getStyleSlotsFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/style-slots/`;
+}
+
+// ============================================
+// ImageGen (Stage 6) Key Generators
+// ============================================
+
+/**
+ * Get S3 key for imagegen frame image
+ */
+export function getImageGenFrameKey(projectId: string, frameId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/${frameId}.webp`;
+}
+
+/**
+ * Get S3 key for imagegen remix image
+ */
+export function getImageGenRemixKey(projectId: string, frameId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/${frameId}_remix.webp`;
+}
+
+/**
+ * Get S3 key for imagegen edited image
+ */
+export function getImageGenEditedKey(projectId: string, frameId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/${frameId}_edited.webp`;
+}
+
+/**
+ * Get S3 folder prefix for imagegen (for deleting all imagegen images)
+ */
+export function getImageGenFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/`;
 }

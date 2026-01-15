@@ -34,6 +34,9 @@ import {
   saveVoicePrompts,
   updateClipField as updateClipFieldFirestore,
   clearStoryboard,
+  // ImageGen (Stage 6)
+  getImageGenMeta,
+  getImageGenFrames,
 } from "./services/firestore";
 
 const TOTAL_STAGES = 7;
@@ -389,6 +392,36 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
         // Store original for reset functionality
         setOriginalStoryboard(storyboardData);
+      }
+
+      // Load ImageGen data (Stage 6)
+      const imageGenMeta = await getImageGenMeta(currentProjectId);
+      if (imageGenMeta) {
+        const imageGenFrames = await getImageGenFrames(currentProjectId);
+        const imageGenData = {
+          settings: {
+            stylePrompt: imageGenMeta.stylePrompt,
+            aspectRatio: imageGenMeta.aspectRatio,
+          },
+          frames: imageGenFrames.map(frame => ({
+            id: frame.id,
+            sceneIndex: frame.sceneIndex,
+            clipIndex: frame.clipIndex,
+            frameLabel: frame.frameLabel,
+            frameNumber: frame.frameNumber,
+            shotGroup: frame.shotGroup,
+            prompt: frame.prompt,
+            backgroundId: frame.backgroundId,
+            refFrame: frame.refFrame,
+            imageRef: frame.imageRef,
+            status: frame.status,
+            remixPrompt: frame.remixPrompt,
+            remixImageRef: frame.remixImageRef,
+            editedImageRef: frame.editedImageRef,
+          })),
+          createdAt: imageGenMeta.generatedAt?.toMillis() || Date.now(),
+        };
+        setStageResults(prev => ({ ...prev, 6: imageGenData }));
       }
     } catch (error) {
       console.error("Error loading data from Firestore:", error);

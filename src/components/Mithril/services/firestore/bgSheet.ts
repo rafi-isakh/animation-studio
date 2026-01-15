@@ -113,23 +113,26 @@ export async function updateBackground(
 
 /**
  * Update a specific angle's image
+ * Creates the background document if it doesn't exist (upsert behavior)
  */
 export async function updateBackgroundAngleImage(
   projectId: string,
   bgId: string,
   angle: string,
   imageRef: string,
-  prompt: string
+  prompt: string,
+  bgName?: string,
+  bgDescription?: string
 ): Promise<void> {
   const docRef = getBackgroundRef(projectId, bgId);
   const docSnap = await getDoc(docRef);
 
-  if (!docSnap.exists()) {
-    throw new Error('Background not found');
-  }
+  let angles: BackgroundAngleImage[] = [];
 
-  const data = docSnap.data() as BackgroundDocument;
-  const angles = data.angles || [];
+  if (docSnap.exists()) {
+    const data = docSnap.data() as BackgroundDocument;
+    angles = data.angles || [];
+  }
 
   // Find and update or add the angle
   const existingIndex = angles.findIndex((a) => a.angle === angle);
@@ -145,7 +148,12 @@ export async function updateBackgroundAngleImage(
     angles.push(newAngle);
   }
 
-  await updateDoc(docRef, { angles });
+  // Use setDoc with merge to create or update the document
+  await setDoc(docRef, {
+    name: bgName || `Background ${bgId}`,
+    description: bgDescription || '',
+    angles,
+  }, { merge: true });
 }
 
 /**

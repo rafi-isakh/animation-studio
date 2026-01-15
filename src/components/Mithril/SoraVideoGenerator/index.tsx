@@ -15,7 +15,8 @@ import type {
   SoraVideoStatusResponse,
 } from "./types";
 import { ASPECT_RATIOS } from "./types";
-import type { Scene } from "../StoryboardGenerator/types";
+import type { Scene, Continuity } from "../StoryboardGenerator/types";
+import type { ImageGenFrame } from "../ImageGenerator/types";
 import {
   getVideoMeta,
   getVideoClips,
@@ -72,20 +73,33 @@ export default function SoraVideoGenerator() {
     };
   }, []);
 
-  // Get storyboard data from context
+  // Get data from context
   const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
+  const imageGenData = getStageResult(6) as {
+    settings: { stylePrompt: string; aspectRatio: string };
+    frames: Array<{
+      id: string;
+      sceneIndex: number;
+      clipIndex: number;
+      frameLabel: string;
+      imageRef: string | null;
+      status: string;
+    }>;
+  } | null;
 
-  // Sync clip images when storyboard data changes (e.g., after image generation in Stage 5)
+  // Sync clip images when ImageGen data changes
   useEffect(() => {
-    if (currentStage !== 6 || !hasLoaded || clips.length === 0) return;
-    if (!storyboardData?.scenes) return;
+    if (currentStage !== 7 || !hasLoaded || clips.length === 0) return;
+    if (!imageGenData?.frames) return;
 
     // Check if any clip images have changed
     let hasChanges = false;
     const updatedClips = clips.map(clip => {
-      const scene = storyboardData.scenes[clip.sceneIndex];
-      const storyboardClip = scene?.clips[clip.clipIndex];
-      const newImageUrl = storyboardClip?.imageRef || null;
+      // Find matching frame from ImageGen (match by sceneIndex and clipIndex)
+      const matchingFrame = imageGenData.frames.find(
+        f => f.sceneIndex === clip.sceneIndex && f.clipIndex === clip.clipIndex
+      );
+      const newImageUrl = matchingFrame?.imageRef || null;
 
       if (newImageUrl && newImageUrl !== clip.imageBase64) {
         hasChanges = true;
@@ -97,12 +111,12 @@ export default function SoraVideoGenerator() {
     if (hasChanges) {
       setClips(updatedClips);
     }
-  }, [storyboardData, currentStage, hasLoaded, clips]);
+  }, [imageGenData, currentStage, hasLoaded, clips]);
 
   // Load storyboard data from context and video status from Firestore
   useEffect(() => {
     // Reset loaded state when leaving this stage so we reload on next visit
-    if (currentStage !== 6) {
+    if (currentStage !== 7) {
       setHasLoaded(false);
       return;
     }
@@ -116,15 +130,33 @@ export default function SoraVideoGenerator() {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        // 1. Load storyboard result from context (stage 5)
-        const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
-        if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
+        // 1. Load ImageGen result from context (stage 6)
+        const imageGenResult = getStageResult(6) as {
+          settings: { stylePrompt: string; aspectRatio: string };
+          frames: Array<{
+            id: string;
+            sceneIndex: number;
+            clipIndex: number;
+            frameLabel: string;
+            imageRef: string | null;
+            status: string;
+          }>;
+        } | null;
+
+        // 2. Load storyboard result from context (stage 5) for video prompts
+        const storyboardResult = getStageResult(5) as { scenes: Scene[] } | null;
+
+        console.log("[SoraVideo] Stage 6 (ImageGen) result:", imageGenResult);
+        console.log("[SoraVideo] Stage 5 (Storyboard) result:", storyboardResult);
+
+        if (!imageGenResult?.frames || imageGenResult.frames.length === 0) {
+          console.log("[SoraVideo] No ImageGen frames found, showing empty state");
           setIsLoadingData(false);
           setHasLoaded(true);
           return;
         }
 
-        // 2. Load any previously saved video metadata and clips from Firestore
+        // 3. Load any previously saved video metadata and clips from Firestore
         let savedVideoMeta: { aspectRatio?: AspectRatio } | null = null;
         let savedVideoClips: Array<{
           sceneIndex: number;
@@ -148,34 +180,58 @@ export default function SoraVideoGenerator() {
           }
         }
 
-        // 3. Build clips array from storyboard scenes
+        // 4. Build clips array from ImageGen frames + storyboard video prompts
         const allClips: SoraVideoClip[] = [];
 
-        storyboardData.scenes.forEach((scene, sceneIndex) => {
-          scene.clips.forEach((clip, clipIndex) => {
-            // Check if we have saved status for this clip
-            const savedClip = savedVideoClips.find(
-              (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
-            );
+        // Group frames by sceneIndex and clipIndex (to handle A/B frames)
+        const framesByClip = new Map<string, typeof imageGenResult.frames>();
+        imageGenResult.frames.forEach(frame => {
+          const key = `${frame.sceneIndex}-${frame.clipIndex}`;
+          if (!framesByClip.has(key)) {
+            framesByClip.set(key, []);
+          }
+          framesByClip.get(key)!.push(frame);
+        });
 
-            // Get storyboard image URL (S3 URL from imageRef)
-            const imageUrl = clip.imageRef || null;
+        // Create one video clip per unique sceneIndex-clipIndex combination
+        framesByClip.forEach((frames, key) => {
+          const [sceneIndexStr, clipIndexStr] = key.split('-');
+          const sceneIndex = parseInt(sceneIndexStr, 10);
+          const clipIndex = parseInt(clipIndexStr, 10);
 
-            allClips.push({
-              clipIndex,
-              sceneIndex,
-              sceneTitle: scene.sceneTitle,
-              videoPrompt: clip.videoPrompt,
-              soraVideoPrompt: clip.soraVideoPrompt,
-              length: clip.length,
-              imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
-              videoUrl: savedClip?.videoRef || null,
-              jobId: savedClip?.jobId || null,
-              s3FileName: savedClip?.s3FileName || null,
-              status: (savedClip?.status as SoraVideoClip["status"]) || "pending",
-              error: savedClip?.error,
-            });
+          // Get video prompts from storyboard
+          const scene = storyboardResult?.scenes?.[sceneIndex];
+          const storyboardClip = scene?.clips?.[clipIndex];
+
+          // Check if we have saved status for this clip
+          const savedClip = savedVideoClips.find(
+            (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
+          );
+
+          // Use the first frame's image (usually frame A)
+          const primaryFrame = frames[0];
+          const imageUrl = primaryFrame?.imageRef || null;
+
+          allClips.push({
+            clipIndex,
+            sceneIndex,
+            sceneTitle: scene?.sceneTitle || `Scene ${sceneIndex + 1}`,
+            videoPrompt: storyboardClip?.videoPrompt || "",
+            soraVideoPrompt: storyboardClip?.soraVideoPrompt || "",
+            length: storyboardClip?.length || "4초",
+            imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
+            videoUrl: savedClip?.videoRef || null,
+            jobId: savedClip?.jobId || null,
+            s3FileName: savedClip?.s3FileName || null,
+            status: (savedClip?.status as SoraVideoClip["status"]) || "pending",
+            error: savedClip?.error,
           });
+        });
+
+        // Sort by sceneIndex, then clipIndex
+        allClips.sort((a, b) => {
+          if (a.sceneIndex !== b.sceneIndex) return a.sceneIndex - b.sceneIndex;
+          return a.clipIndex - b.clipIndex;
         });
 
         setClips(allClips);
@@ -592,7 +648,7 @@ export default function SoraVideoGenerator() {
             {phrase(dictionary, "sora_title", language)}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            {phrase(dictionary, "sora_no_storyboard", language)}
+            No images found. Please generate and save images in Stage 6 (Image Generator) first.
           </p>
         </div>
       </div>

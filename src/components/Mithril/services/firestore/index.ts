@@ -28,5 +28,8 @@ export * from './bgSheet';
 // Stage 5: Storyboard
 export * from './storyboard';
 
-// Stage 6: Video
+// Stage 6: ImageGen
+export * from './imageGen';
+
+// Stage 7: Video
 export * from './video';

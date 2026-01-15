@@ -7,6 +7,7 @@ import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
+import ImageGenerator from "./ImageGenerator";
 import SoraVideoGenerator from "./SoraVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -42,8 +43,8 @@ function MithrilContent() {
       { id: 3, label: phrase(dictionary, "mithril_stage3", language) },
       { id: 4, label: phrase(dictionary, "mithril_stage4", language) },
       { id: 5, label: phrase(dictionary, "mithril_stage5", language) },
-      // Stage 6 (NanoBanana) hidden - functionality merged into Storyboard Generator
-      { id: 6, label: phrase(dictionary, "mithril_stage7", language) }, // Sora Video Generator
+      { id: 6, label: phrase(dictionary, "mithril_stage6", language)},
+      { id: 7, label: phrase(dictionary, "mithril_stage7", language) }, // Sora Video Generator
     ],
     [dictionary, language]
   );
@@ -119,8 +120,8 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         {/* Gemini API Key - Top Right, outside container */}
-        {(currentStage === 3 || currentStage === 4 || currentStage === 5) && (
-          <div className={`w-full flex justify-end mb-4 ${currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"}`}>
+        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6) && (
+          <div className={`w-full flex justify-end mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
             <div className="w-full max-w-sm">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                 <Key className="w-4 h-4" />
@@ -148,7 +149,7 @@ function MithrilContent() {
 
         <div
           className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
-            currentStage === 5 ? "max-w-[95%]" : "max-w-6xl"
+            currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"
           }`}
         >
           {currentStage === 1 && <UploadManager />}
@@ -156,8 +157,8 @@ function MithrilContent() {
           {currentStage === 3 && <CharacterSheetGenerator />}
           {currentStage === 4 && <StoryboardGenerator />}
           {currentStage === 5 && <BgSheetGenerator />}
-          {/* Stage6Content (NanoBanana) hidden - functionality merged into Storyboard Generator */}
-          {currentStage === 6 && <SoraVideoGenerator />}
+          {currentStage === 6 && <ImageGenerator />}
+          {currentStage === 7 && <SoraVideoGenerator />}
         </div>
       </div>
 

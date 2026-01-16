@@ -25,7 +25,6 @@ import {
   FileUp,
   Package,
   FileJson,
-  FileText,
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -272,7 +271,7 @@ const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> =
     } else if (!bgIdRaw && lastBgPrefix && (bgPrompt || storyboardContext)) {
       // Implicit row for previous BG (row with empty ID but has data)
       bgPrefix = lastBgPrefix;
-      fullId = `${bgPrefix}-?`;
+      fullId = `${bgPrefix}-x`;
     } else {
       continue; // Skip rows without valid Background ID
     }
@@ -340,7 +339,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -1227,16 +1226,10 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
   // Set reference image and analyze it for spatial elements
   const handleSetReferenceImage = async (bgId: string, base64: string) => {
-    // Set the reference image immediately
-    setBackgrounds(bgs => bgs.map(bg => {
-      if (bg.id !== bgId) return bg;
-      const newImages = [...bg.images];
-      // Also set as first image if empty
-      if (newImages.length > 0 && !newImages[0].imageBase64 && !newImages[0].imageUrl) {
-        newImages[0] = { ...newImages[0], imageBase64: base64 };
-      }
-      return { ...bg, referenceImageBase64: base64, images: newImages };
-    }));
+    // Set the reference image only (don't auto-populate first view)
+    setBackgrounds(bgs => bgs.map(bg =>
+      bg.id === bgId ? { ...bg, referenceImageBase64: base64 } : bg
+    ));
     setIsSaved(false);
 
     // Analyze reference image for spatial elements
@@ -1328,21 +1321,37 @@ Image Cost: $${currentImageCost.toFixed(4)}
       return;
     }
 
-    // If we only have URL, fetch and convert to base64
+    // If we only have URL, load via Image element with crossOrigin to avoid CORS issues
     if (imageUrl) {
       try {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          // Remove the data URL prefix to get pure base64
-          const base64Data = result.split(",")[1];
-          if (base64Data) {
-            handleSetReferenceImage(bgId, base64Data);
+        const img = new window.Image();
+        img.crossOrigin = "anonymous"; // Required for S3 URLs to allow canvas export
+
+        img.onload = () => {
+          // Use canvas to extract base64 from the loaded image
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const base64Data = canvas.toDataURL("image/jpeg").split(",")[1];
+            if (base64Data) {
+              handleSetReferenceImage(bgId, base64Data);
+            }
           }
         };
-        reader.readAsDataURL(blob);
+
+        img.onerror = () => {
+          console.error("Failed to load image for reference");
+          toast({
+            variant: "destructive",
+            title: "Failed to set reference",
+            description: "Could not load the image",
+          });
+        };
+
+        img.src = imageUrl;
       } catch (error) {
         console.error("Failed to fetch image for reference:", error);
         toast({
@@ -1588,12 +1597,13 @@ Image Cost: $${currentImageCost.toFixed(4)}
       )
     );
 
-    // Use planned prompt if available, otherwise generate one
+    // Use existing prompt first, then planned prompt, then auto-generate
     const plannedPromptIndex = BACKGROUND_ANGLES.indexOf(imageInfo.angle);
     const plannedPrompt = background.plannedPrompts?.[plannedPromptIndex];
 
     const detailedAngleInstruction = angleToDetailedPrompt[imageInfo.angle] || imageInfo.angle;
-    const prompt = plannedPrompt ||
+    const prompt = imageInfo.prompt ||
+      plannedPrompt ||
       `${backgroundBasePrompt} ${detailedAngleInstruction} of ${background.name}. Description: ${background.description}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
 
     // Update prompt in state
@@ -1838,6 +1848,103 @@ Image Cost: $${currentImageCost.toFixed(4)}
     reader.readAsText(file);
     e.target.value = ""; // Reset input
   }, [toast, dictionary, language]);
+
+  // Storyboard Import handler - imports backgrounds from storyboard data
+  const handleImportFromStoryboard = useCallback(() => {
+    const { scenes } = storyboardGenerator;
+
+    if (!scenes || scenes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+        description: phrase(dictionary, "bgsheet_no_storyboard", language) || "No storyboard data available. Please generate a storyboard first.",
+      });
+      return;
+    }
+
+    // Parse storyboard clips to extract backgrounds
+    // Map: background prefix (e.g., "1", "2") -> { name, description, views }
+    const bgMap = new Map<string, { name: string; description: string; views: { angle: string; csvContext: string }[] }>();
+    const bgOrder: string[] = [];
+
+    for (const scene of scenes) {
+      for (const clip of scene.clips) {
+        const bgIdRaw = clip.backgroundId?.trim() || "";
+        const bgPrompt = clip.backgroundPrompt?.trim() || "";
+        const imagePrompt = clip.imagePrompt?.trim() || "";
+
+        if (!bgIdRaw) continue;
+
+        // Extract background prefix (e.g., "1" from "1-1", "1-2")
+        const match = bgIdRaw.match(/^(\d+)/);
+        if (!match) continue;
+
+        const bgPrefix = match[1];
+        const bgName = `Background ${bgPrefix}`;
+
+        if (!bgMap.has(bgName)) {
+          bgMap.set(bgName, {
+            name: bgName,
+            description: "",
+            views: [],
+          });
+          bgOrder.push(bgName);
+        }
+
+        const bgData = bgMap.get(bgName)!;
+
+        // Update description if we have a better one (longer)
+        if (bgPrompt && bgPrompt.length > bgData.description.length) {
+          bgData.description = bgPrompt;
+        }
+
+        // Add view for this clip
+        bgData.views.push({
+          angle: bgIdRaw,
+          csvContext: imagePrompt,
+        });
+      }
+    }
+
+    if (bgMap.size === 0) {
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+        description: phrase(dictionary, "bgsheet_no_backgrounds_found", language) || "No backgrounds found in storyboard",
+      });
+      return;
+    }
+
+    // Create backgrounds from parsed data
+    const newBackgrounds: Background[] = bgOrder.map(bgName => {
+      const bgData = bgMap.get(bgName)!;
+      return {
+        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: bgData.name,
+        description: bgData.description,
+        images: bgData.views.map(view => ({
+          angle: view.angle,
+          prompt: "",
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isActive: true,
+          isFinalized: false,
+          characterPrompt: "",
+          csvContext: view.csvContext,
+        })),
+      };
+    });
+
+    setBackgrounds(newBackgrounds);
+    setIsSaved(false);
+
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
+      description: `${newBackgrounds.length} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported from storyboard"}`,
+    });
+  }, [storyboardGenerator, toast, dictionary, language]);
 
   // JSON Project Export handler
   const handleJsonExport = useCallback(() => {
@@ -2193,16 +2300,23 @@ Image Cost: $${currentImageCost.toFixed(4)}
         </div>
       ))}
 
-      {/* Analyze Button & Import Options - only show when no results */}
-      {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
+      {/* Import from Storyboard & Import Options - only show when no results */}
+      {!isLoadingData && !isAnalyzing && backgrounds.length === 0 && (
         <div className="flex flex-col items-center gap-3">
+          {/* Primary: Import from Storyboard */}
           <button
-            onClick={handleAnalyze}
-            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+            onClick={handleImportFromStoryboard}
+            disabled={!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0}
+            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
-            {phrase(dictionary, "bgsheet_analyze_text", language)}
+            {phrase(dictionary, "bgsheet_import_storyboard", language) || "Import from Storyboard"}
           </button>
+          {(!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0) && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {phrase(dictionary, "bgsheet_no_storyboard_hint", language) || "Generate a storyboard first to import backgrounds"}
+            </p>
+          )}
           <div className="flex gap-2">
             <span className="text-xs text-gray-400 dark:text-gray-500 self-center">
               {phrase(dictionary, "bgsheet_or_import", language) || "or import:"}
@@ -2412,7 +2526,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                                     {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
                                   </button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto space-y-1.5">
+                                <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                   {bg.plannedPrompts.map((prompt, idx) => (
                                     <div key={idx} className="flex gap-2 items-start">
                                       <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-5 shrink-0 pt-1">
@@ -2668,7 +2782,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                                 }`}
                                 title={img.isPromptOpen ? "Hide prompt" : "Show prompt"}
                               >
-                                <FileText className="w-3 h-3" />
+                                <Pencil className="w-3 h-3" />
                               </button>
                             )}
                             {/* Finalize Button */}
@@ -2693,6 +2807,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                               value={img.characterPrompt || ""}
                               onChange={(e) => handleUpdateCharacterPrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-gray-50 dark:bg-gray-600 border border-yellow-500/20 rounded p-1.5 text-[10px] text-yellow-700 dark:text-yellow-200 min-h-[40px] focus:outline-none focus:border-yellow-500/50 resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                               placeholder={phrase(dictionary, "bgsheet_scene_notes", language) || "Scene details..."}
                             />
                           </div>
@@ -2705,6 +2820,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                               value={img.prompt || ""}
                               onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[50px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                               placeholder={phrase(dictionary, "bgsheet_prompt_placeholder", language) || "Enter prompt..."}
                             />
                             <button

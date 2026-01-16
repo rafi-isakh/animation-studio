@@ -110,16 +110,30 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 flex-1">
           {character.isProtagonist && (
-            <Crown className="w-5 h-5 text-yellow-500" />
+            <Crown className="w-5 h-5 text-yellow-500 flex-shrink-0" />
           )}
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-            {character.name}
-          </h2>
-          <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded capitalize">
-            {character.role}
-          </span>
+          <input
+            type="text"
+            value={character.name}
+            onChange={(e) => onUpdateField("name", e.target.value)}
+            disabled={disabled}
+            placeholder="Character name"
+            className="text-xl font-bold text-gray-800 dark:text-gray-200 bg-transparent border-b-2 border-transparent hover:border-gray-300 focus:border-[#DB2777] focus:outline-none transition-colors px-1 py-0.5 min-w-0 flex-1 max-w-xs"
+          />
+          <select
+            value={character.role}
+            onChange={(e) => onUpdateField("role", e.target.value)}
+            disabled={disabled}
+            className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 border-0 rounded capitalize focus:ring-[#DB2777] focus:outline-none cursor-pointer"
+          >
+            <option value="unknown">Unknown</option>
+            <option value="protagonist">Protagonist</option>
+            <option value="antagonist">Antagonist</option>
+            <option value="supporting">Supporting</option>
+            <option value="minor">Minor</option>
+          </select>
         </div>
       </div>
 

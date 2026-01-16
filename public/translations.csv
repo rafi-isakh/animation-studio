@@ -925,6 +925,27 @@ bgsheet_toast_s3_saved,배경 시트가 S3에 저장되었습니다,,Background 
 bgsheet_toast_s3_loaded,S3에서 배경 시트를 불러왔습니다. 페이지를 새로고침합니다.,,Background sheet loaded from S3. Refreshing page.
 bgsheet_toast_s3_no_session,저장된 배경 시트 세션이 없습니다,,No saved background sheet session found
 bgsheet_toast_s3_error,배경 시트 S3 저장에 실패했습니다,,Failed to save background sheet to S3
+bgsheet_import_storyboard,스토리보드에서 가져오기,,Import from Storyboard
+bgsheet_no_storyboard_hint,먼저 스토리보드를 생성하여 배경을 가져오세요,,Generate a storyboard first to import backgrounds
+bgsheet_no_storyboard,스토리보드 데이터가 없습니다. 먼저 스토리보드를 생성하세요.,,No storyboard data available. Please generate a storyboard first.
+bgsheet_no_backgrounds_found,스토리보드에서 배경을 찾을 수 없습니다,,No backgrounds found in storyboard
+bgsheet_or_import,또는 가져오기:,,or import:
+bgsheet_import_csv,CSV,,CSV
+bgsheet_import_json,JSON,,JSON
+bgsheet_export_json,JSON 내보내기,,Export JSON
+bgsheet_download_zip,ZIP,,ZIP
+bgsheet_import_success,가져오기 성공,,Import Successful
+bgsheet_import_failed,가져오기 실패,,Import Failed
+bgsheet_no_data_found,CSV에서 유효한 데이터를 찾을 수 없습니다,,No valid data found in CSV
+bgsheet_backgrounds_imported,개 배경 가져옴,,backgrounds imported
+bgsheet_active_frames,활성 프레임,,active frames
+bgsheet_invalid_json,잘못된 JSON 파일 형식입니다,,Invalid JSON file format
+bgsheet_export_success,내보내기 성공,,Export Successful
+bgsheet_project_exported,프로젝트가 JSON으로 내보내졌습니다,,Project exported as JSON
+bgsheet_no_images,이미지 없음,,No Images
+bgsheet_no_images_to_download,다운로드할 이미지가 없습니다,,No images available to download
+bgsheet_download_success,다운로드 시작,,Download Started
+bgsheet_images_in_zip,개 이미지 ZIP에 포함,,images in ZIP
 mithril_gemini_api_key,이미지 생성용 키,, API Key for Image Generation
 mithril_gemini_api_key_placeholder, API 키 입력...,,Enter API key...
 storysplitter_num_parts,파트 수,,Number of Parts

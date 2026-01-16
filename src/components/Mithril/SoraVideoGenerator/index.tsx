@@ -826,7 +826,7 @@ export default function SoraVideoGenerator() {
       )}
 
       {/* Clip Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto p-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto p-1 scrollbar-hide">
         {clips.map((clip) => (
           <ClipCard
             key={`${clip.sceneIndex}-${clip.clipIndex}`}

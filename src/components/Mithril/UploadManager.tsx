@@ -417,7 +417,7 @@ export default function UploadManager() {
               {fileContent.length.toLocaleString()}{" "}
               {phrase(dictionary, "upload_characters", language)}
             </p>
-            <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-600">
+            <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-600 scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
                 {fileContent.slice(0, 1000)}
                 {fileContent.length > 1000 && (

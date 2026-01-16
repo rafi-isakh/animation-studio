@@ -220,7 +220,7 @@ export default function StorySplitter() {
               {originalText.length.toLocaleString()} {phrase(dictionary, "chars", language)}
             </span>
           </div>
-          <div className="max-h-24 overflow-y-auto">
+          <div className="max-h-24 overflow-y-auto scrollbar-hide">
             <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
               {originalText.slice(0, 300)}
               {originalText.length > 300 && "..."}
@@ -290,7 +290,7 @@ export default function StorySplitter() {
                 setSelectedGenre("custom");
               }
             }}
-            className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
+            className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none scrollbar-hide"
             placeholder={phrase(dictionary, "storysplitter_guidelines_placeholder", language)}
           />
         </div>
@@ -346,7 +346,7 @@ export default function StorySplitter() {
             </div>
           </div>
 
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide">
             {splitResult.parts.map((part, index) => (
               <div
                 key={index}
@@ -425,15 +425,10 @@ export default function StorySplitter() {
                       <span className="group-open:rotate-90 transition-transform">▶</span>
                       {phrase(dictionary, "storysplitter_view_text", language)} ({part.text.length.toLocaleString()} {phrase(dictionary, "chars", language)})
                     </summary>
-                    <div className="mt-3 max-h-40 overflow-y-auto">
+                    <div className="mt-3 max-h-96 overflow-y-auto scrollbar-hide">
                       <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                        {part.text.length > 1000 ? `${part.text.slice(0, 1000)}...` : part.text}
+                        {part.text}
                       </pre>
-                      {part.text.length > 1000 && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                          ... {(part.text.length - 1000).toLocaleString()} {phrase(dictionary, "storysplitter_more_chars", language)}
-                        </p>
-                      )}
                     </div>
                   </details>
                 </div>

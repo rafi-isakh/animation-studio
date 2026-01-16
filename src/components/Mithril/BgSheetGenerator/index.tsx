@@ -2285,7 +2285,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
               {originalText.length.toLocaleString()} {phrase(dictionary, "chars", language)}
             </span>
           </div>
-          <div className="max-h-24 overflow-y-auto">
+          <div className="max-h-24 overflow-y-auto scrollbar-hide">
             <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
               {originalText.slice(0, 300)}
               {originalText.length > 300 && "..."}
@@ -2444,7 +2444,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
           </div>
 
           {/* Background Cards */}
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1 scrollbar-hide">
             {backgrounds.map((bg) => (
               <div
                 key={bg.id}

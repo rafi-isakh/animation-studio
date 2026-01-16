@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
@@ -185,12 +186,49 @@ const MithrilContext = createContext<MithrilContextProps | undefined>(undefined)
 
 export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentProjectId } = useProject();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
 
   // Navigation state
   const [currentStage, setCurrentStageState] = useState(1);
+
+  // Track if we've initialized from URL to avoid overwriting with Firestore value
+  const initializedFromUrl = useRef(false);
+
+  // Track if we're programmatically changing the URL (to avoid infinite loops)
+  const isUpdatingUrl = useRef(false);
+
+  // Initialize stage from URL on mount
+  useEffect(() => {
+    const stageParam = searchParams.get('stage');
+    if (stageParam) {
+      const stage = parseInt(stageParam, 10);
+      if (!isNaN(stage) && stage >= 1 && stage <= TOTAL_STAGES) {
+        initializedFromUrl.current = true;
+        setCurrentStageState(stage);
+      }
+    }
+  }, []); // Only run on mount
+
+  // Sync stage when URL changes (browser back/forward)
+  useEffect(() => {
+    const stageParam = searchParams.get('stage');
+    if (stageParam && !isUpdatingUrl.current) {
+      const stage = parseInt(stageParam, 10);
+      if (!isNaN(stage) && stage >= 1 && stage <= TOTAL_STAGES && stage !== currentStage) {
+        setCurrentStageState(stage);
+        // Also update Firestore
+        if (currentProjectId) {
+          updateCurrentStageFirestore(currentProjectId, stage).catch(error => {
+            console.error("Error updating current stage in Firestore:", error);
+          });
+        }
+      }
+    }
+  }, [searchParams, currentProjectId]); // Note: currentStage intentionally omitted to avoid loops
 
   // Custom API Key state
   const [customApiKey, setCustomApiKeyState] = useState<string>("");
@@ -246,7 +284,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Load project metadata (currentStage, customApiKey)
       const metadata = await getMetadata(currentProjectId);
       if (metadata) {
-        setCurrentStageState(metadata.currentStage || 1);
+        // Only set stage from Firestore if URL didn't specify one
+        if (!initializedFromUrl.current) {
+          setCurrentStageState(metadata.currentStage || 1);
+        }
         setCustomApiKeyState(metadata.customApiKey || "");
       }
 
@@ -436,9 +477,21 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     loadFromFirestore();
   }, [loadFromFirestore]);
 
-  // Wrapper for setCurrentStage that also updates Firestore
+  // Wrapper for setCurrentStage that also updates Firestore and URL
   const setCurrentStage = useCallback(async (stage: number) => {
     setCurrentStageState(stage);
+
+    // Update URL with new stage (using router.push for browser history)
+    const projectId = searchParams.get('project');
+    if (projectId) {
+      isUpdatingUrl.current = true;
+      router.push(`/mithril?project=${projectId}&stage=${stage}`, { scroll: false });
+      // Reset flag after a short delay to allow the URL update to complete
+      setTimeout(() => {
+        isUpdatingUrl.current = false;
+      }, 100);
+    }
+
     if (currentProjectId) {
       try {
         await updateCurrentStageFirestore(currentProjectId, stage);
@@ -446,7 +499,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         console.error("Error updating current stage in Firestore:", error);
       }
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, router, searchParams]);
 
   // Wrapper for setCustomApiKey that also updates Firestore
   const setCustomApiKey = useCallback(async (key: string) => {

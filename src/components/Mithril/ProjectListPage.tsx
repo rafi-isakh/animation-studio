@@ -45,7 +45,8 @@ export default function ProjectListPage() {
 
   function handleProjectClick(project: ProjectMetadata) {
     setCurrentProject(project);
-    router.push(`/mithril?project=${project.id}`);
+    const stage = project.currentStage || 1;
+    router.push(`/mithril?project=${project.id}&stage=${stage}`);
   }
 
   async function handleDeleteProject(e: React.MouseEvent, projectId: string) {
@@ -98,9 +99,10 @@ export default function ProjectListPage() {
     1: 'Upload',
     2: 'Story Split',
     3: 'Characters',
-    4: 'Backgrounds',
-    5: 'Storyboard',
-    6: 'Videos',
+    4: 'Storyboard',
+    5: 'Backgrounds',
+    6: 'Image Clips',
+    7: 'Videos',
   };
 
   return (

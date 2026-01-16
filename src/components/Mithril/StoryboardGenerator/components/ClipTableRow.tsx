@@ -1,42 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { Loader2, Sparkles, RefreshCw, Pencil, Check, RotateCcw } from "lucide-react";
+import { Pencil, Check, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import type { Continuity, ClipImageState, ReferenceImage } from "../types";
+import type { Continuity } from "../types";
 import type { EditableClipField } from "../../MithrilContext";
-import { BackgroundSelector } from "./StoryboardTable";
-import { isUrl } from "../utils/imageUtils";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/shadcnUI/AlertDialog";
 
 interface ClipTableRowProps {
   row: Continuity;
   sceneIndex: number;
   clipIndex: number;
-  clipKey: string;
-  clipState: ClipImageState | undefined;
-  selectedRef: ReferenceImage | null;
   isNewBackground: boolean;
-  isLoadingRefs: boolean;
-  isGeneratingAll: boolean;
-  aspectRatio: "16:9" | "9:16";
-  availableReferences: ReferenceImage[];
-  referenceObjectUrls: Map<string, string>;
   clipHeadersLength: number;
-  onBgSelect: (refId: string | null) => void;
-  onGenerateClip: () => void;
-  onOpenLightbox: (base64: string, clipName: string) => void;
   onUpdatePrompt: (field: EditableClipField, value: string) => void;
   getOriginalPrompt: (field: EditableClipField) => string | null;
 }
@@ -171,18 +147,8 @@ export default function ClipTableRow({
   row,
   sceneIndex,
   clipIndex,
-  clipState,
-  selectedRef,
   isNewBackground,
-  isLoadingRefs,
-  isGeneratingAll,
-  aspectRatio,
-  availableReferences,
-  referenceObjectUrls,
   clipHeadersLength,
-  onBgSelect,
-  onGenerateClip,
-  onOpenLightbox,
   onUpdatePrompt,
   getOriginalPrompt,
 }: ClipTableRowProps) {
@@ -210,115 +176,6 @@ export default function ClipTableRow({
         </td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
           {row.backgroundId}
-        </td>
-
-        {/* Background Selection Column */}
-        <td className="px-4 py-4 min-w-[180px]">
-          {isLoadingRefs ? (
-            <div className="flex items-center gap-2 text-gray-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">{phrase(dictionary, "storyboard_loading", language)}</span>
-            </div>
-          ) : availableReferences.length === 0 ? (
-            <span className="text-xs text-gray-400">
-              {phrase(dictionary, "storyboard_no_bg_available", language) || "No backgrounds"}
-            </span>
-          ) : (
-            <BackgroundSelector
-              selectedRef={selectedRef}
-              selectedObjectUrl={selectedRef ? (referenceObjectUrls.get(selectedRef.id) || "") : ""}
-              references={availableReferences}
-              referenceObjectUrls={referenceObjectUrls}
-              selectedBgId={clipState?.selectedBgId || null}
-              onSelect={onBgSelect}
-              selectBgLabel={phrase(dictionary, "storyboard_select_bg", language) || "Select BG..."}
-              clearSelectionLabel={phrase(dictionary, "storyboard_clear_selection", language) || "Clear selection"}
-            />
-          )}
-        </td>
-
-        {/* Generated Image Column */}
-        <td className="px-4 py-4 min-w-[200px]">
-          <div className="flex flex-col items-center gap-2">
-            {clipState?.isGenerating ? (
-              <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}>
-                <Loader2 className="w-6 h-6 animate-spin text-[#DB2777]" />
-              </div>
-            ) : clipState?.generatedImageBase64 ? (
-              <div className="relative group">
-                <button
-                  onClick={() => onOpenLightbox(
-                    clipState.generatedImageBase64!,
-                    `${sceneIndex + 1}.${clipIndex + 1}`
-                  )}
-                  className={`relative rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#DB2777] transition-all ${aspectRatio === "9:16" ? "w-20 h-32" : "w-32 h-20"}`}
-                >
-                  <Image
-                    src={isUrl(clipState.generatedImageBase64)
-                      ? clipState.generatedImageBase64
-                      : `data:image/jpeg;base64,${clipState.generatedImageBase64}`}
-                    alt="Generated"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </button>
-                {/* Regenerate button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onGenerateClip();
-                  }}
-                  disabled={(!!row.backgroundId?.trim() && !clipState?.selectedBgId) || isGeneratingAll}
-                  className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                  title={phrase(dictionary, "storyboard_regenerate", language) || "Regenerate"}
-                >
-                  <RefreshCw className="w-3 h-3" />
-                </button>
-              </div>
-            ) : (clipState?.selectedBgId || !row.backgroundId?.trim()) ? (
-              <button
-                onClick={onGenerateClip}
-                disabled={isGeneratingAll}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Sparkles className="w-3 h-3" />
-                {phrase(dictionary, "storyboard_generate_single", language) || "Generate"}
-              </button>
-            ) : (
-              <span className="text-xs text-gray-400">
-                {phrase(dictionary, "storyboard_select_bg_first", language) || "Select BG first"}
-              </span>
-            )}
-
-            {clipState?.error && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <span
-                    className="text-xs text-red-500 max-w-[180px] truncate cursor-pointer hover:underline"
-                    title={phrase(dictionary, "storyboard_click_to_view_error", language) || "Click to view full error"}
-                  >
-                    {clipState.error}
-                  </span>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="z-[2500] bg-white dark:bg-[#211F21] border-none">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-red-500">
-                      {phrase(dictionary, "storyboard_generation_error", language) || "Generation Error"}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="max-h-[300px] overflow-y-auto whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                      {clipState.error}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogAction>
-                      {phrase(dictionary, "dismiss", language) || "Dismiss"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
         </td>
 
         <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">

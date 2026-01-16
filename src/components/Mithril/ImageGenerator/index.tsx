@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import { useMithril } from "../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -16,6 +16,7 @@ import type {
   ImageGenAspectRatio,
   CharacterAssetRef,
   BackgroundAssetRef,
+  LocalAssetRef,
 } from "./types";
 import {
   getImageGenMeta,
@@ -31,6 +32,8 @@ import {
 } from "../services/s3/images";
 import FrameCard from "./FrameCard";
 import ImageModal from "./ImageModal";
+import { parseCsvData, parseCellReference, colLetterToIndex } from "@/utils/csvHelper";
+import { fileToBase64, sanitizeFilename } from "@/utils/fileHelper";
 
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
@@ -78,6 +81,18 @@ export default function ImageGenerator() {
   const [bulkBackgroundId, setBulkBackgroundId] = useState("");
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // CSV Import state
+  const [isCsvPanelOpen, setIsCsvPanelOpen] = useState(false);
+  const [parsedCsvData, setParsedCsvData] = useState<Record<string, string>[] | null>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvPromptStart, setCsvPromptStart] = useState("H2");
+  const [csvPromptEnd, setCsvPromptEnd] = useState("H50");
+  const [csvEndFrameCol, setCsvEndFrameCol] = useState("I");
+  const [csvBgIdCol, setCsvBgIdCol] = useState("E");
+
+  // Local uploaded assets state
+  const [localAssets, setLocalAssets] = useState<LocalAssetRef[]>([]);
 
   // Refs for stable references in async operations
   const framesRef = useRef<ImageGenFrame[]>([]);
@@ -333,25 +348,42 @@ export default function ImageGenerator() {
           characters: [],
         };
 
-        // Add background reference if specified (format: "bgId-angleIndex")
+        let bgIdForPrompt = "";
+
+        // 1. Add background reference if specified
         if (frame.backgroundId) {
-          const lastDashIndex = frame.backgroundId.lastIndexOf("-");
-          if (lastDashIndex > 0) {
-            const bgId = frame.backgroundId.substring(0, lastDashIndex);
-            const angleIndex = parseInt(frame.backgroundId.substring(lastDashIndex + 1), 10);
-            const bg = backgroundAssets.find((b) => b.id === bgId);
-            if (bg && bg.angles && !isNaN(angleIndex) && angleIndex < bg.angles.length) {
-              const selectedAngle = bg.angles[angleIndex];
-              if (selectedAngle?.imageRef) {
-                // Fetch the image and convert to base64
-                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(selectedAngle.imageRef)}`);
-                if (response.ok) {
-                  const data = await response.json();
-                  if (data.base64) {
-                    references.backgrounds.push({
-                      base64: data.base64,
-                      mimeType: "image/webp",
-                    });
+          // First check local uploaded backgrounds
+          const localBg = localAssets.find(
+            (a) => a.category === "background" && a.id === frame.backgroundId
+          );
+          if (localBg) {
+            // Use local uploaded background directly
+            references.backgrounds.push({
+              base64: localBg.base64,
+              mimeType: localBg.mimeType,
+            });
+            bgIdForPrompt = localBg.id;
+          } else {
+            // Check Stage 4 backgrounds (format: "bgId-angleIndex")
+            const lastDashIndex = frame.backgroundId.lastIndexOf("-");
+            if (lastDashIndex > 0) {
+              const bgId = frame.backgroundId.substring(0, lastDashIndex);
+              const angleIndex = parseInt(frame.backgroundId.substring(lastDashIndex + 1), 10);
+              const bg = backgroundAssets.find((b) => b.id === bgId);
+              if (bg && bg.angles && !isNaN(angleIndex) && angleIndex < bg.angles.length) {
+                const selectedAngle = bg.angles[angleIndex];
+                if (selectedAngle?.imageRef) {
+                  // Fetch the image and convert to base64
+                  const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(selectedAngle.imageRef)}`);
+                  if (response.ok) {
+                    const data = await response.json();
+                    if (data.base64) {
+                      references.backgrounds.push({
+                        base64: data.base64,
+                        mimeType: "image/webp",
+                      });
+                      bgIdForPrompt = bgId;
+                    }
                   }
                 }
               }
@@ -359,27 +391,97 @@ export default function ImageGenerator() {
           }
         }
 
-        // Add reference frame if specified
-        if (frame.refFrame) {
-          const refFrame = framesRef.current.find((f) => f.frameLabel === frame.refFrame.trim());
-          if (refFrame?.imageUrl) {
-            const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.base64) {
-                references.characters.push({
-                  base64: data.base64,
-                  mimeType: "image/webp",
-                });
+        // 2. Auto-detect characters in prompt and add their images
+        const promptText = frame.prompt;
+
+        // Check Stage 3 character assets
+        for (const char of characterAssets) {
+          // Escape special regex characters in character ID/name
+          const escapedId = char.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const escapedName = char.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          // Regex to find character ID or name as a whole word in prompt
+          const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
+          const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
+
+          if (regexId.test(promptText) || regexName.test(promptText)) {
+            // Character found in prompt, add their image
+            if (char.imageUrl) {
+              try {
+                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(char.imageUrl)}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.base64) {
+                    references.characters.push({
+                      base64: data.base64,
+                      mimeType: "image/webp",
+                    });
+                  }
+                }
+              } catch (err) {
+                console.warn(`Failed to fetch character image for ${char.id}:`, err);
               }
             }
           }
         }
 
-        // Build full prompt
-        const fullPrompt = settings.stylePrompt
-          ? `STYLE: ${settings.stylePrompt}\nSCENE: ${frame.prompt}`
-          : frame.prompt;
+        // Check local uploaded character assets
+        for (const asset of localAssets.filter((a) => a.category === "character")) {
+          const escapedId = asset.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const escapedName = asset.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
+          const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
+
+          if (regexId.test(promptText) || regexName.test(promptText)) {
+            // Local character found in prompt, add their image directly
+            references.characters.push({
+              base64: asset.base64,
+              mimeType: asset.mimeType,
+            });
+          }
+        }
+
+        // 3. Add reference frame if specified
+        if (frame.refFrame) {
+          const refFrame = framesRef.current.find((f) => f.frameLabel === frame.refFrame.trim());
+          if (refFrame?.imageUrl) {
+            // Check if it's a base64 URL or remote URL
+            if (refFrame.imageUrl.startsWith("data:")) {
+              const base64 = refFrame.imageUrl.split(",")[1];
+              references.characters.push({
+                base64,
+                mimeType: "image/png",
+              });
+            } else {
+              const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
+              if (response.ok) {
+                const data = await response.json();
+                if (data.base64) {
+                  references.characters.push({
+                    base64: data.base64,
+                    mimeType: "image/webp",
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        // Build full prompt (matching reference app format)
+        let fullPrompt = "";
+        if (settings.stylePrompt) {
+          fullPrompt += `STYLE: ${settings.stylePrompt.trim()}\n`;
+        }
+        fullPrompt += `SCENE: ${frame.prompt.trim()}`;
+        if (bgIdForPrompt) {
+          fullPrompt += `\nBG: ${bgIdForPrompt}`;
+        }
+        fullPrompt = fullPrompt.trim();
+
+        console.log("[ImageGen] Full prompt:", fullPrompt);
+        console.log("[ImageGen] References:", {
+          backgrounds: references.backgrounds.length,
+          characters: references.characters.length,
+        });
 
         // Call API
         const response = await fetch("/api/nano_banana", {
@@ -469,7 +571,7 @@ export default function ImageGenerator() {
         });
       }
     },
-    [frames, backgroundAssets, settings, customApiKey, currentProjectId, toast, setStageResult]
+    [frames, backgroundAssets, characterAssets, localAssets, settings, customApiKey, currentProjectId, toast, setStageResult]
   );
 
   // Parse batch range string
@@ -679,6 +781,215 @@ export default function ImageGenerator() {
     });
   }, [bulkBackgroundId, toast]);
 
+  // Handle CSV file upload
+  const handleCsvFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const { headers, data } = parseCsvData(evt.target?.result as string);
+        setCsvHeaders(headers);
+        setParsedCsvData(data);
+        toast({
+          title: "CSV Loaded",
+          description: `Found ${data.length} rows with ${headers.length} columns.`,
+          variant: "default",
+        });
+      } catch (err: any) {
+        toast({
+          title: "CSV Parse Error",
+          description: err.message || "Failed to parse CSV file.",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-uploaded
+    if (e.target) e.target.value = "";
+  }, [toast]);
+
+  // Load storyboard frames from CSV
+  const handleLoadCsvStoryboard = useCallback(() => {
+    if (!parsedCsvData || !csvPromptStart.trim()) {
+      toast({
+        title: "Missing Data",
+        description: "Please upload a CSV file and specify the start cell.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const start = parseCellReference(csvPromptStart);
+    if (!start) {
+      toast({
+        title: "Invalid Cell Reference",
+        description: "Start cell format is invalid (e.g., H2).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const end = csvPromptEnd.trim() ? parseCellReference(csvPromptEnd) : null;
+
+    const mainColIdx = start.colIndex;
+    const endColIdx = csvEndFrameCol.trim() ? colLetterToIndex(csvEndFrameCol.trim().toUpperCase()) : -1;
+    const bgColIdx = csvBgIdCol.trim() ? colLetterToIndex(csvBgIdCol.trim().toUpperCase()) : -1;
+
+    // Calculate row range (CSV data is 0-indexed, but cell refs are 1-indexed with header at row 1)
+    const startRowIndex = start.row - 2; // -2 because row 1 is header, and array is 0-indexed
+    const endRowIndex = end ? end.row - 2 : parsedCsvData.length - 1;
+    const rows = parsedCsvData.slice(Math.max(0, startRowIndex), endRowIndex + 1);
+
+    const mainHeader = csvHeaders[mainColIdx];
+    const endHeader = endColIdx !== -1 && csvHeaders[endColIdx] ? csvHeaders[endColIdx] : null;
+    const bgHeader = bgColIdx !== -1 && csvHeaders[bgColIdx] ? csvHeaders[bgColIdx] : null;
+
+    if (!mainHeader) {
+      toast({
+        title: "Invalid Column",
+        description: "Main prompt column not found in CSV headers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newFrames: ImageGenFrame[] = [];
+    let seq = 1;
+
+    rows.forEach((row, index) => {
+      const spreadsheetRow = startRowIndex + index + 2; // Convert back to spreadsheet row number
+      const frameNumBase = String(spreadsheetRow - 1).padStart(3, "0");
+
+      const startPrompt = row[mainHeader]?.trim() || "";
+      const endPrompt = endHeader ? row[endHeader]?.trim() || "" : "";
+      const bgId = bgHeader ? row[bgHeader]?.trim() || "" : "";
+
+      const baseFrame = {
+        sceneIndex: 0,
+        clipIndex: index,
+        backgroundId: bgId,
+        refFrame: "",
+        imageUrl: null,
+        imageBase64: null,
+        status: "pending" as const,
+        isLoading: false,
+        remixPrompt: "",
+        remixImageUrl: null,
+        remixImageBase64: null,
+        hasDrawingEdits: false,
+        editedImageUrl: null,
+      };
+
+      // If both start and end prompts exist, create A/B frames
+      if (startPrompt && endPrompt) {
+        newFrames.push({
+          ...baseFrame,
+          id: uuidv4(),
+          prompt: startPrompt,
+          frameLabel: `${seq}A`,
+          frameNumber: `${frameNumBase}A`,
+          shotGroup: seq,
+        });
+        newFrames.push({
+          ...baseFrame,
+          id: uuidv4(),
+          prompt: endPrompt,
+          frameLabel: `${seq}B`,
+          frameNumber: `${frameNumBase}B`,
+          shotGroup: seq,
+        });
+        seq++;
+      } else if (startPrompt || endPrompt) {
+        // Single frame
+        newFrames.push({
+          ...baseFrame,
+          id: uuidv4(),
+          prompt: startPrompt || endPrompt,
+          frameLabel: `${seq}`,
+          frameNumber: frameNumBase,
+          shotGroup: seq,
+        });
+        seq++;
+      }
+    });
+
+    if (newFrames.length === 0) {
+      toast({
+        title: "No Frames Created",
+        description: "No valid prompts found in the specified range.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFrames(newFrames);
+    setIsCsvPanelOpen(false);
+    setError(null);
+
+    toast({
+      title: "Storyboard Loaded",
+      description: `Created ${newFrames.length} frames from CSV.`,
+      variant: "default",
+    });
+  }, [parsedCsvData, csvHeaders, csvPromptStart, csvPromptEnd, csvEndFrameCol, csvBgIdCol, toast]);
+
+  // Handle asset file upload (characters or backgrounds)
+  const handleAssetUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>, category: "character" | "background") => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const newAssets: LocalAssetRef[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
+          const base64 = await fileToBase64(file);
+          const id = sanitizeFilename(file.name.split(".")[0]);
+          newAssets.push({
+            id,
+            name: file.name.split(".")[0],
+            base64,
+            mimeType: file.type || "image/png",
+            category,
+          });
+        } catch (err) {
+          console.error(`Error processing file ${file.name}:`, err);
+        }
+      }
+
+      if (newAssets.length > 0) {
+        setLocalAssets((prev) => [...prev, ...newAssets]);
+        toast({
+          title: "Assets Uploaded",
+          description: `Added ${newAssets.length} ${category} asset(s).`,
+          variant: "default",
+        });
+      }
+
+      // Reset input so same files can be re-uploaded
+      if (e.target) e.target.value = "";
+    },
+    [toast]
+  );
+
+  // Remove a local asset
+  const handleRemoveAsset = useCallback((assetId: string) => {
+    setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
+  }, []);
+
+  // Filter local assets by category
+  const localCharacterAssets = useMemo(
+    () => localAssets.filter((a) => a.category === "character"),
+    [localAssets]
+  );
+  const localBackgroundAssets = useMemo(
+    () => localAssets.filter((a) => a.category === "background"),
+    [localAssets]
+  );
+
   // Loading state
   if (isLoadingData) {
     return (
@@ -746,17 +1057,132 @@ export default function ImageGenerator() {
           </div>
         </div>
 
+        {/* CSV Import Panel */}
+        <div className="bg-slate-800/60 rounded-xl p-4 border border-emerald-500/30">
+          <button
+            onClick={() => setIsCsvPanelOpen(!isCsvPanelOpen)}
+            className="w-full flex justify-between items-center text-[10px] font-bold text-emerald-400 uppercase"
+          >
+            <span>CSV Storyboard Import</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${isCsvPanelOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {isCsvPanelOpen && (
+            <div className="mt-4 space-y-3">
+              {/* File Upload */}
+              <div>
+                <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                  Upload CSV File
+                </label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvFileUpload}
+                  className="w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500"
+                />
+                {parsedCsvData && (
+                  <p className="text-[9px] text-emerald-400 mt-1">
+                    Loaded: {parsedCsvData.length} rows, {csvHeaders.length} columns
+                  </p>
+                )}
+              </div>
+
+              {/* Column Mapping */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    Start Cell (e.g., H2)
+                  </label>
+                  <input
+                    type="text"
+                    value={csvPromptStart}
+                    onChange={(e) => setCsvPromptStart(e.target.value)}
+                    placeholder="H2"
+                    className="w-full p-2 bg-slate-900/80 border border-slate-700 rounded text-[10px] text-slate-300 outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    End Cell (e.g., H50)
+                  </label>
+                  <input
+                    type="text"
+                    value={csvPromptEnd}
+                    onChange={(e) => setCsvPromptEnd(e.target.value)}
+                    placeholder="H50"
+                    className="w-full p-2 bg-slate-900/80 border border-slate-700 rounded text-[10px] text-slate-300 outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    End Frame Col (e.g., I)
+                  </label>
+                  <input
+                    type="text"
+                    value={csvEndFrameCol}
+                    onChange={(e) => setCsvEndFrameCol(e.target.value)}
+                    placeholder="I"
+                    className="w-full p-2 bg-slate-900/80 border border-slate-700 rounded text-[10px] text-slate-300 outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    BG ID Col (e.g., E)
+                  </label>
+                  <input
+                    type="text"
+                    value={csvBgIdCol}
+                    onChange={(e) => setCsvBgIdCol(e.target.value)}
+                    placeholder="E"
+                    className="w-full p-2 bg-slate-900/80 border border-slate-700 rounded text-[10px] text-slate-300 outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Load Button */}
+              <button
+                onClick={handleLoadCsvStoryboard}
+                disabled={!parsedCsvData}
+                className="w-full py-2 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Load Storyboard from CSV
+              </button>
+
+              {/* Help Text */}
+              <p className="text-[9px] text-slate-500 italic">
+                CSV should have headers in row 1. Specify prompt column start/end cells (e.g., H2:H50).
+                End Frame column creates A/B frames. BG ID column sets background reference.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Character Assets */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-yellow-500/30">
-          <h3 className="text-[10px] font-black text-yellow-500 uppercase mb-3">
-            Characters ({characterAssets.length})
-          </h3>
-          {characterAssets.length === 0 ? (
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-[10px] font-black text-yellow-500 uppercase">
+              Characters ({characterAssets.length + localCharacterAssets.length})
+            </h3>
+            <label className="cursor-pointer bg-yellow-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors">
+              UPLOAD
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => handleAssetUpload(e, "character")}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {characterAssets.length === 0 && localCharacterAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
-              No characters from Stage 3
+              No characters - upload or complete Stage 3
             </p>
           ) : (
-            <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
+              {/* Stage 3 characters */}
               {characterAssets.map((char) => (
                 <div
                   key={char.id}
@@ -783,21 +1209,62 @@ export default function ImageGenerator() {
                   </div>
                 </div>
               ))}
+              {/* Locally uploaded characters */}
+              {localCharacterAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="bg-slate-900 rounded-lg overflow-hidden border border-yellow-500/50 group relative"
+                  title={asset.name}
+                >
+                  <div className="aspect-square bg-black/40 relative">
+                    <img
+                      src={`data:${asset.mimeType};base64,${asset.base64}`}
+                      alt={asset.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => handleRemoveAsset(asset.id)}
+                      className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="px-1 py-0.5 bg-slate-900 border-t border-yellow-500/50">
+                    <span className="text-[8px] text-yellow-200 font-bold truncate block">
+                      {asset.name}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
         {/* Background Assets */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/30">
-          <h3 className="text-[10px] font-black text-cyan-400 uppercase mb-3">
-            Backgrounds ({backgroundAssets.reduce((acc, bg) => acc + (bg.angles?.length || 0), 0)})
-          </h3>
-          {backgroundAssets.length === 0 ? (
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-[10px] font-black text-cyan-400 uppercase">
+              Backgrounds ({backgroundAssets.reduce((acc, bg) => acc + (bg.angles?.length || 0), 0) + localBackgroundAssets.length})
+            </h3>
+            <label className="cursor-pointer bg-cyan-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-cyan-400 transition-colors">
+              UPLOAD
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => handleAssetUpload(e, "background")}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {backgroundAssets.length === 0 && localBackgroundAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
-              No backgrounds from Stage 5
+              No backgrounds - upload or complete Stage 4
             </p>
           ) : (
-            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
+              {/* Stage 4 backgrounds */}
               {backgroundAssets.map((bg) =>
                 bg.angles?.map((angle, angleIndex) => (
                   <div
@@ -826,6 +1293,34 @@ export default function ImageGenerator() {
                   </div>
                 ))
               )}
+              {/* Locally uploaded backgrounds */}
+              {localBackgroundAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="bg-slate-900 rounded-lg overflow-hidden border border-cyan-500/50 group relative"
+                  title={asset.name}
+                >
+                  <div className="aspect-video bg-black/40 relative">
+                    <img
+                      src={`data:${asset.mimeType};base64,${asset.base64}`}
+                      alt={asset.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => handleRemoveAsset(asset.id)}
+                      className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="px-1 py-0.5 bg-slate-900 border-t border-cyan-500/50">
+                    <span className="text-[8px] text-cyan-200 font-bold truncate block">
+                      {asset.id}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -967,7 +1462,6 @@ export default function ImageGenerator() {
                       isBatchRunning={isBatchRunning}
                       globalIdx={frames.indexOf(frame)}
                       characterAssets={characterAssets}
-                      backgroundAssets={backgroundAssets}
                     />
                   ))}
                 </div>

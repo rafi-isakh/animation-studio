@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Download, AlertCircle, Loader2, Video } from "lucide-react";
+import { Play, Download, AlertCircle, Loader2, Video, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -14,6 +14,7 @@ function isUrl(str: string): boolean {
 interface ClipCardProps {
   clip: SoraVideoClip;
   onGenerate: (clipIndex: number, sceneIndex: number) => void;
+  onRegenerate: (clipIndex: number, sceneIndex: number) => void;
   isGeneratingAll: boolean;
 }
 
@@ -41,7 +42,7 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
   );
 };
 
-export default function ClipCard({ clip, onGenerate, isGeneratingAll }: ClipCardProps) {
+export default function ClipCard({ clip, onGenerate, onRegenerate, isGeneratingAll }: ClipCardProps) {
   const { language, dictionary } = useLanguage();
   const { clipIndex, sceneIndex, sceneTitle, imageBase64, videoUrl, status, error } = clip;
 
@@ -119,13 +120,23 @@ export default function ClipCard({ clip, onGenerate, isGeneratingAll }: ClipCard
         {/* Action buttons */}
         <div className="flex gap-1">
           {status === "completed" && videoUrl ? (
-            <button
-              onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors"
-            >
-              <Download size={14} />
-              <span>{phrase(dictionary, "sora_clip_download", language)}</span>
-            </button>
+            <>
+              <button
+                onClick={handleDownload}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors"
+              >
+                <Download size={14} />
+                <span>{phrase(dictionary, "sora_clip_download", language)}</span>
+              </button>
+              <button
+                onClick={() => onRegenerate(clipIndex, sceneIndex)}
+                disabled={isGeneratingAll}
+                className="flex items-center justify-center gap-1 py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title={phrase(dictionary, "sora_clip_regenerate", language)}
+              >
+                <RefreshCw size={14} />
+              </button>
+            </>
           ) : (
             <button
               onClick={() => onGenerate(clipIndex, sceneIndex)}

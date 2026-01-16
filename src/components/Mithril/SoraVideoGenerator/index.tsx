@@ -327,11 +327,14 @@ export default function SoraVideoGenerator() {
         );
 
         // 1. Submit job
+        const promptToUse = clip.soraVideoPrompt || clip.videoPrompt;
+        console.log("[SoraVideo] Using prompt:", promptToUse);
+
         const submitResponse = await fetch("/api/sora_video", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            prompt: clip.soraVideoPrompt || clip.videoPrompt,
+            prompt: promptToUse,
             imageBase64: clip.imageBase64 || undefined,
             duration: soraDuration,
             aspectRatio,
@@ -428,6 +431,29 @@ export default function SoraVideoGenerator() {
       }
     },
     [clips, aspectRatio, autoSave, toast, dictionary, language]
+  );
+
+  // Regenerate a single clip (reset and generate)
+  const regenerateClip = useCallback(
+    async (clipIndex: number, sceneIndex: number) => {
+      const clipArrayIndex = clips.findIndex(
+        (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+      );
+      if (clipArrayIndex === -1) return;
+
+      // Reset the clip status first
+      setClips((prev) =>
+        prev.map((c, i) =>
+          i === clipArrayIndex
+            ? { ...c, status: "pending" as const, videoUrl: null, jobId: null, s3FileName: null, error: undefined }
+            : c
+        )
+      );
+
+      // Then generate
+      await generateClip(clipIndex, sceneIndex);
+    },
+    [clips, generateClip]
   );
 
   // Generate all clips sequentially
@@ -806,6 +832,7 @@ export default function SoraVideoGenerator() {
             key={`${clip.sceneIndex}-${clip.clipIndex}`}
             clip={clip}
             onGenerate={generateClip}
+            onRegenerate={regenerateClip}
             isGeneratingAll={isGeneratingAll}
           />
         ))}

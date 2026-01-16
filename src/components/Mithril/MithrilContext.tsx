@@ -396,12 +396,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Load ImageGen data (Stage 6)
       const imageGenMeta = await getImageGenMeta(currentProjectId);
-      if (imageGenMeta) {
-        const imageGenFrames = await getImageGenFrames(currentProjectId);
+      const imageGenFrames = await getImageGenFrames(currentProjectId);
+      // Load if meta exists OR frames exist (frames can be saved without meta)
+      if (imageGenMeta || imageGenFrames.length > 0) {
         const imageGenData = {
           settings: {
-            stylePrompt: imageGenMeta.stylePrompt,
-            aspectRatio: imageGenMeta.aspectRatio,
+            stylePrompt: imageGenMeta?.stylePrompt || "",
+            aspectRatio: imageGenMeta?.aspectRatio || "16:9",
           },
           frames: imageGenFrames.map(frame => ({
             id: frame.id,
@@ -419,7 +420,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             remixImageRef: frame.remixImageRef,
             editedImageRef: frame.editedImageRef,
           })),
-          createdAt: imageGenMeta.generatedAt?.toMillis() || Date.now(),
+          createdAt: imageGenMeta?.generatedAt?.toMillis() || Date.now(),
         };
         setStageResults(prev => ({ ...prev, 6: imageGenData }));
       }

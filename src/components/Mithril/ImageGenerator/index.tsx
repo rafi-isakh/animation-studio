@@ -34,6 +34,7 @@ import FrameCard from "./FrameCard";
 import ImageModal from "./ImageModal";
 import { parseCsvData, parseCellReference, colLetterToIndex } from "@/utils/csvHelper";
 import { fileToBase64, sanitizeFilename } from "@/utils/fileHelper";
+import { useCostTracker } from "../CostContext";
 
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
@@ -64,6 +65,7 @@ export default function ImageGenerator() {
   } = useMithril();
   const { language, dictionary } = useLanguage();
   const { toast } = useToast();
+  const { trackImageGeneration, isClockedIn } = useCostTracker();
 
   // Local state
   const [frames, setFrames] = useState<ImageGenFrame[]>([]);
@@ -334,6 +336,16 @@ export default function ImageGenerator() {
   // Generate image for a single frame
   const generateFrame = useCallback(
     async (frameId: string) => {
+      // Require clock-in to generate images
+      if (!isClockedIn) {
+        toast({
+          title: "Clock In Required",
+          description: "Please clock in to start generating images.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const frame = frames.find((f) => f.id === frameId);
       if (!frame) return;
 
@@ -532,6 +544,10 @@ export default function ImageGenerator() {
         }
 
         console.log("[ImageGen] Setting frame state with imageUrl:", imageUrl.substring(0, 80) + "...");
+
+        // Track image generation cost
+        trackImageGeneration(1);
+
         setFrames((prev) => {
           const updatedFrames = prev.map((f) =>
             f.id === frameId
@@ -571,7 +587,7 @@ export default function ImageGenerator() {
         });
       }
     },
-    [frames, backgroundAssets, characterAssets, localAssets, settings, customApiKey, currentProjectId, toast, setStageResult]
+    [frames, backgroundAssets, characterAssets, localAssets, settings, customApiKey, currentProjectId, toast, setStageResult, trackImageGeneration, isClockedIn]
   );
 
   // Parse batch range string
@@ -599,15 +615,6 @@ export default function ImageGenerator() {
 
   // Batch generate frames
   const handleBatchGenerate = useCallback(async () => {
-    if (!customApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Gemini API key to generate images.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const ranges = parseRangeString(batchRange);
     const framesToProcess = frames.filter(
       (f) => !f.imageUrl && isFrameInRanges(f.frameNumber, ranges)
@@ -1339,7 +1346,7 @@ export default function ImageGenerator() {
           />
           <button
             onClick={handleBatchGenerate}
-            disabled={isBatchRunning || !customApiKey}
+            disabled={isBatchRunning}
             className="w-full py-3 bg-cyan-600 text-white font-black rounded-xl hover:bg-cyan-500 shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isBatchRunning ? (

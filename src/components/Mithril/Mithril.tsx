@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Key, Eye, EyeOff } from "lucide-react";
+import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
@@ -10,8 +10,93 @@ import StoryboardGenerator from "./StoryboardGenerator";
 import ImageGenerator from "./ImageGenerator";
 import SoraVideoGenerator from "./SoraVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
+import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+
+// Cost Tracker Dashboard Component
+function CostTrackerDashboard() {
+  const {
+    isClockedIn,
+    isSessionEnded,
+    totalCost,
+    textCost,
+    textCount,
+    imageCost,
+    imageCount,
+    clockIn,
+    clockOut,
+    restartSession,
+    downloadInvoice
+  } = useCostTracker();
+
+  return (
+    <div className="flex items-center gap-3 bg-slate-800/80 p-2 rounded-xl border border-slate-700 shadow-inner">
+      {/* Display Stats */}
+      <div className="flex gap-4 px-2">
+        <div className="flex flex-col">
+          <span className="text-[10px] text-slate-400 font-bold uppercase">Total Cost</span>
+          <span className={`font-mono font-black ${isClockedIn ? 'text-green-400' : 'text-slate-200'}`}>
+            ${totalCost.toFixed(3)}
+          </span>
+        </div>
+        {(isClockedIn || isSessionEnded) && (
+          <>
+            <div className="flex flex-col border-l border-slate-600 pl-3">
+              <span className="text-[9px] text-slate-500 font-bold uppercase">Text</span>
+              <span className="font-mono text-xs text-amber-300">{textCount} (${textCost.toFixed(3)})</span>
+            </div>
+            <div className="flex flex-col border-l border-slate-600 pl-3">
+              <span className="text-[9px] text-slate-500 font-bold uppercase">Images</span>
+              <span className="font-mono text-xs text-cyan-300">{imageCount} (${imageCost.toFixed(3)})</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="flex gap-2">
+        {!isClockedIn && !isSessionEnded && (
+          <button
+            onClick={clockIn}
+            className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg shadow-lg transition-all flex items-center gap-1"
+          >
+            <Clock className="w-3 h-3" />
+            CLOCK IN
+          </button>
+        )}
+
+        {isClockedIn && (
+          <button
+            onClick={clockOut}
+            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg shadow-lg transition-all animate-pulse"
+          >
+            CLOCK OUT
+          </button>
+        )}
+
+        {isSessionEnded && (
+          <div className="flex gap-2">
+            <button
+              onClick={downloadInvoice}
+              className="px-2 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1"
+            >
+              <Download className="w-3 h-3" />
+              INVOICE
+            </button>
+            <button
+              onClick={restartSession}
+              className="px-2 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-lg transition-all flex items-center gap-1"
+            >
+              <RotateCcw className="w-3 h-3" />
+              RESTART
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function MithrilContent() {
   const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey } =
@@ -119,9 +204,13 @@ function MithrilContent() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
-        {/* Gemini API Key - Top Right, outside container */}
+        {/* Gemini API Key and Cost Tracker - Top Right, outside container */}
         {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6) && (
-          <div className={`w-full flex justify-end mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
+          <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
+            {/* Cost Tracker - Only on Stage 6 */}
+            {currentStage === 6 && <CostTrackerDashboard />}
+
+            {/* API Key Input */}
             <div className="w-full max-w-sm">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                 <Key className="w-4 h-4" />
@@ -201,8 +290,10 @@ function MithrilContent() {
 
 export default function Mithril() {
   return (
-    <MithrilProvider>
-      <MithrilContent />
-    </MithrilProvider>
+    <CostProvider>
+      <MithrilProvider>
+        <MithrilContent />
+      </MithrilProvider>
+    </CostProvider>
   );
 }

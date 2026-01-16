@@ -10,6 +10,8 @@ import {
   getChapter,
   updateCharacterImage,
   saveCharacterSheetSettings,
+  saveCharacter,
+  updateCharacter,
   updateCharacterProfileImage,
   updateCharacterMasterSheetImage,
   saveMode,
@@ -35,6 +37,7 @@ import {
   Save,
   LayoutGrid,
   User,
+  UserPlus,
 } from "lucide-react";
 import { StyleSlots, createEmptyStyleSlots } from "./StyleSlots";
 import { CharacterGrid } from "./CharacterGrid";
@@ -355,42 +358,44 @@ export default function CharacterSheetGenerator() {
       // 2. Update Firestore with S3 URL
       await updateCharacterImage(currentProjectId, characterId, imageUrl, prompt);
 
-      // 3. Update local state with S3 URL (add cache-busting param for regeneration)
+      // 3. Update local state with S3 URL and sync to context - use functional update to get latest state
       const imageUrlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
-      setCharacters((prev) =>
-        prev.map((c) =>
+      setCharacters((prev) => {
+        const updatedCharacters = prev.map((c) =>
           c.id === characterId ? { ...c, imageUrl: imageUrlWithCacheBust, imageBase64: "" } : c
-        )
-      );
+        );
 
-      // 4. Update context state so navigation works without manual save
-      const updatedMeta: CharacterSheetResultMetadata = {
-        characters: characters.map((char) => ({
-          id: char.id,
-          name: char.name,
-          role: char.role,
-          isProtagonist: char.isProtagonist,
-          age: char.age,
-          gender: char.gender,
-          traits: char.traits,
-          appearance: char.appearance,
-          clothing: char.clothing,
-          personality: char.personality,
-          backgroundStory: char.backgroundStory,
-          profileImageId: char.profileImageUrl || "",
-          profileImagePrompt: char.profilePrompt || "",
-          masterSheetImageId: char.masterSheetImageUrl || char.imageUrl || "",
-          masterSheetImagePrompt: char.masterSheetPrompt || char.imagePrompt || "",
-          imageId: char.id === characterId ? imageUrl : (char.imageUrl || ""),
-          imagePrompt: char.id === characterId ? prompt : char.imagePrompt,
-        })),
-        styleKeyword,
-        characterBasePrompt,
-        genre,
-        styleSlots,
-        activeStyleIndex,
-      };
-      setCharacterSheetResult(updatedMeta);
+        // 4. Update context state so navigation works without manual save
+        const updatedMeta: CharacterSheetResultMetadata = {
+          characters: updatedCharacters.map((char) => ({
+            id: char.id,
+            name: char.name,
+            role: char.role,
+            isProtagonist: char.isProtagonist,
+            age: char.age,
+            gender: char.gender,
+            traits: char.traits,
+            appearance: char.appearance,
+            clothing: char.clothing,
+            personality: char.personality,
+            backgroundStory: char.backgroundStory,
+            profileImageId: char.profileImageUrl || "",
+            profileImagePrompt: char.profilePrompt || "",
+            masterSheetImageId: char.masterSheetImageUrl || char.imageUrl || "",
+            masterSheetImagePrompt: char.masterSheetPrompt || char.imagePrompt || "",
+            imageId: char.id === characterId ? imageUrl : (char.imageUrl || ""),
+            imagePrompt: char.id === characterId ? prompt : char.imagePrompt,
+          })),
+          styleKeyword,
+          characterBasePrompt,
+          genre,
+          styleSlots,
+          activeStyleIndex,
+        };
+        setCharacterSheetResult(updatedMeta);
+
+        return updatedCharacters;
+      });
     } catch (error) {
       console.error("Auto-save failed for image:", error);
       toast({
@@ -399,7 +404,7 @@ export default function CharacterSheetGenerator() {
         description: error instanceof Error ? error.message : "Failed to save image",
       });
     }
-  }, [currentProjectId, characters, styleKeyword, characterBasePrompt, genre, styleSlots, activeStyleIndex, setCharacterSheetResult, toast, dictionary, language]);
+  }, [currentProjectId, styleKeyword, characterBasePrompt, genre, styleSlots, activeStyleIndex, setCharacterSheetResult, toast, dictionary, language]);
 
   // Helper to sync current state to context (for navigation persistence)
   const syncContextResult = useCallback((updatedCharacters: Character[]) => {
@@ -543,17 +548,17 @@ Style: ${styleKeyword}`;
         await updateCharacterProfileImage(currentProjectId, characterId, imageUrl, prompt);
         const urlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
 
-        // Build updated characters for context sync
-        const updatedCharacters = characters.map((c) =>
-          c.id === characterId
-            ? { ...c, profileImageUrl: urlWithCacheBust, profileImageBase64: "", profilePrompt: prompt }
-            : c
-        );
-
-        setCharacters(updatedCharacters);
-
-        // Sync to context for navigation persistence
-        syncContextResult(updatedCharacters);
+        // Build updated characters for context sync - use functional update to get latest state
+        setCharacters((prev) => {
+          const updatedCharacters = prev.map((c) =>
+            c.id === characterId
+              ? { ...c, profileImageUrl: urlWithCacheBust, profileImageBase64: "", profilePrompt: prompt }
+              : c
+          );
+          // Sync to context for navigation persistence
+          syncContextResult(updatedCharacters);
+          return updatedCharacters;
+        });
       }
 
       setIsSaved(false);
@@ -664,25 +669,25 @@ Style: ${styleKeyword}`;
         await updateCharacterMasterSheetImage(currentProjectId, characterId, imageUrl, prompt);
         const urlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
 
-        // Build updated characters for context sync
-        const updatedCharacters = characters.map((c) =>
-          c.id === characterId
-            ? {
-                ...c,
-                masterSheetImageUrl: urlWithCacheBust,
-                masterSheetImageBase64: "",
-                masterSheetPrompt: prompt,
-                imageUrl: urlWithCacheBust,
-                imageBase64: "",
-                imagePrompt: prompt,
-              }
-            : c
-        );
-
-        setCharacters(updatedCharacters);
-
-        // Sync to context for navigation persistence
-        syncContextResult(updatedCharacters);
+        // Build updated characters for context sync - use functional update to get latest state
+        setCharacters((prev) => {
+          const updatedCharacters = prev.map((c) =>
+            c.id === characterId
+              ? {
+                  ...c,
+                  masterSheetImageUrl: urlWithCacheBust,
+                  masterSheetImageBase64: "",
+                  masterSheetPrompt: prompt,
+                  imageUrl: urlWithCacheBust,
+                  imageBase64: "",
+                  imagePrompt: prompt,
+                }
+              : c
+          );
+          // Sync to context for navigation persistence
+          syncContextResult(updatedCharacters);
+          return updatedCharacters;
+        });
       }
 
       setIsSaved(false);
@@ -782,24 +787,24 @@ Style: ${styleKeyword}`;
         await updateModeImage(currentProjectId, characterId, modeId, imageUrl);
         const urlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
 
-        // Build updated characters for context sync
-        const updatedCharacters = characters.map((c) =>
-          c.id === characterId
-            ? {
-                ...c,
-                modes: c.modes.map((m) =>
-                  m.id === modeId
-                    ? { ...m, imageUrl: urlWithCacheBust, imageBase64: "" }
-                    : m
-                ),
-              }
-            : c
-        );
-
-        setCharacters(updatedCharacters);
-
-        // Sync to context for navigation persistence
-        syncContextResult(updatedCharacters);
+        // Build updated characters for context sync - use functional update to get latest state
+        setCharacters((prev) => {
+          const updatedCharacters = prev.map((c) =>
+            c.id === characterId
+              ? {
+                  ...c,
+                  modes: c.modes.map((m) =>
+                    m.id === modeId
+                      ? { ...m, imageUrl: urlWithCacheBust, imageBase64: "" }
+                      : m
+                  ),
+                }
+              : c
+          );
+          // Sync to context for navigation persistence
+          syncContextResult(updatedCharacters);
+          return updatedCharacters;
+        });
       }
 
       setIsSaved(false);
@@ -877,6 +882,92 @@ Style: ${styleKeyword}`;
     }
 
     setIsSaved(false);
+  };
+
+  // Add a new empty character slot
+  const handleAddCharacter = async () => {
+    const newCharacterData = {
+      name: `New Character ${characters.length + 1}`,
+      role: "unknown" as const,
+      isProtagonist: false,
+      age: "",
+      gender: "",
+      traits: "",
+      appearance: "",
+      clothing: "",
+      personality: "",
+      backgroundStory: "",
+    };
+
+    // Save to Firestore first to get the proper ID
+    if (currentProjectId) {
+      try {
+        const firestoreId = await saveCharacter(currentProjectId, {
+          ...newCharacterData,
+          imageRef: "",
+          imagePrompt: "",
+        });
+
+        const newCharacter: Character = migrateCharacter({
+          id: firestoreId,
+          ...newCharacterData,
+          imagePrompt: "",
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          profilePrompt: "",
+          profileImageBase64: "",
+          profileImageUrl: undefined,
+          profileIsGenerating: false,
+          masterSheetPrompt: "",
+          masterSheetImageBase64: "",
+          masterSheetImageUrl: undefined,
+          masterSheetIsGenerating: false,
+        });
+
+        setCharacters((prev) => [...prev, newCharacter]);
+        setSelectedCharacterId(firestoreId);
+        setViewMode("detail");
+        setIsSaved(false);
+
+        toast({
+          variant: "success",
+          title: "Character Added",
+          description: "New character slot created. Fill in the details below.",
+        });
+      } catch (error) {
+        console.error("Failed to add character:", error);
+        toast({
+          variant: "destructive",
+          title: "Failed to Add Character",
+          description: error instanceof Error ? error.message : "Unknown error occurred",
+        });
+      }
+    } else {
+      // Fallback for no project (shouldn't happen in normal use)
+      const tempId = `char-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newCharacter: Character = migrateCharacter({
+        id: tempId,
+        ...newCharacterData,
+        imagePrompt: "",
+        imageBase64: "",
+        imageUrl: undefined,
+        isGenerating: false,
+        profilePrompt: "",
+        profileImageBase64: "",
+        profileImageUrl: undefined,
+        profileIsGenerating: false,
+        masterSheetPrompt: "",
+        masterSheetImageBase64: "",
+        masterSheetImageUrl: undefined,
+        masterSheetIsGenerating: false,
+      });
+
+      setCharacters((prev) => [...prev, newCharacter]);
+      setSelectedCharacterId(tempId);
+      setViewMode("detail");
+      setIsSaved(false);
+    }
   };
 
   // Detect modes from text
@@ -1056,7 +1147,23 @@ Style: ${styleKeyword}`;
         activeStyleIndex,
       });
 
-      // 3. Create metadata for context
+      // 3. Save character text fields to Firestore
+      for (const char of characters) {
+        await updateCharacter(currentProjectId, char.id, {
+          name: char.name,
+          role: char.role,
+          isProtagonist: char.isProtagonist,
+          age: char.age,
+          gender: char.gender,
+          traits: char.traits,
+          appearance: char.appearance,
+          clothing: char.clothing,
+          personality: char.personality,
+          backgroundStory: char.backgroundStory,
+        });
+      }
+
+      // 4. Create metadata for context
       const metadata: CharacterSheetResultMetadata = {
         characters: characters.map((char) => ({
           id: char.id,
@@ -1272,13 +1379,21 @@ Style: ${styleKeyword}`;
 
       {/* Analyze Button - only show when no results */}
       {!isLoadingData && originalText && !isAnalyzing && characters.length === 0 && (
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-3 flex-wrap">
           <button
             onClick={handleAnalyze}
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             {phrase(dictionary, "charsheet_analyze_text", language)}
+          </button>
+          <button
+            onClick={handleAddCharacter}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-3 rounded-lg transition-colors"
+            title="Add character manually"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Add Character</span>
           </button>
           <button
             onClick={() => exportToJSON(characters, genre, styleKeyword, characterBasePrompt, styleSlots, activeStyleIndex)}
@@ -1356,6 +1471,14 @@ Style: ${styleKeyword}`;
             </div>
 
             <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={handleAddCharacter}
+                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors text-sm"
+                title="Add new character"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Add</span>
+              </button>
               <button
                 onClick={handleSave}
                 disabled={isSaved || isSaving}

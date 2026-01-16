@@ -7,6 +7,10 @@ import {
   DeleteImageRequest,
   DeleteImageResponse,
   getCharacterImageKey,
+  getCharacterProfileImageKey,
+  getCharacterMasterSheetKey,
+  getCharacterModeImageKey,
+  getCharacterFolderPrefix,
   getBackgroundImageKey,
   getBackgroundFolderPrefix,
   getStoryboardImageKey,
@@ -49,14 +53,36 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
 
     switch (imageType) {
       case "character": {
-        const { characterId } = body;
+        const { characterId, characterSubtype, modeId } = body;
         if (!characterId) {
           return NextResponse.json(
             { success: false, s3Key: "", url: "", error: "characterId is required for character images" },
             { status: 400 }
           );
         }
-        s3Key = getCharacterImageKey(projectId, characterId);
+        // Use appropriate key based on subtype
+        switch (characterSubtype) {
+          case "profile":
+            s3Key = getCharacterProfileImageKey(projectId, characterId);
+            break;
+          case "mastersheet":
+            s3Key = getCharacterMasterSheetKey(projectId, characterId);
+            break;
+          case "mode":
+            if (!modeId) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "modeId is required for character mode images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getCharacterModeImageKey(projectId, characterId, modeId);
+            break;
+          case "legacy":
+          default:
+            // Backward compatibility: use legacy key format
+            s3Key = getCharacterImageKey(projectId, characterId);
+            break;
+        }
         break;
       }
       case "background": {
@@ -177,14 +203,49 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
 
     switch (imageType) {
       case "character": {
-        const { characterId } = body;
+        const { characterId, characterSubtype, modeId } = body;
         if (!characterId) {
           return NextResponse.json(
             { success: false, deletedKeys: [], error: "characterId is required for character images" },
             { status: 400 }
           );
         }
-        keysToDelete = [getCharacterImageKey(projectId, characterId)];
+        // Use appropriate key based on subtype
+        switch (characterSubtype) {
+          case "profile":
+            keysToDelete = [getCharacterProfileImageKey(projectId, characterId)];
+            break;
+          case "mastersheet":
+            keysToDelete = [getCharacterMasterSheetKey(projectId, characterId)];
+            break;
+          case "mode":
+            if (!modeId) {
+              return NextResponse.json(
+                { success: false, deletedKeys: [], error: "modeId is required for character mode images" },
+                { status: 400 }
+              );
+            }
+            keysToDelete = [getCharacterModeImageKey(projectId, characterId, modeId)];
+            break;
+          case "legacy":
+            keysToDelete = [getCharacterImageKey(projectId, characterId)];
+            break;
+          default:
+            // Delete all character images (profile, mastersheet, modes, legacy)
+            const prefix = getCharacterFolderPrefix(projectId, characterId);
+            const listResponse = await s3Client.send(
+              new ListObjectsV2Command({
+                Bucket: BUCKET_NAME,
+                Prefix: prefix,
+              })
+            );
+            if (listResponse.Contents) {
+              keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
+            }
+            // Also try to delete legacy format
+            keysToDelete.push(getCharacterImageKey(projectId, characterId));
+            break;
+        }
         break;
       }
       case "background": {

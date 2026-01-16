@@ -34,6 +34,7 @@ export interface ImageGenFrame {
   // Generated image
   imageUrl: string | null; // S3 URL of generated image
   imageBase64: string | null; // Temp base64 before S3 upload
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status: ImageGenFrameStatus;
   isLoading: boolean;
   error?: string;

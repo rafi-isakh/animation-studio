@@ -535,7 +535,7 @@ export default function ImageGenerator() {
         setFrames((prev) => {
           const updatedFrames = prev.map((f) =>
             f.id === frameId
-              ? { ...f, imageUrl, imageBase64: data.imageBase64, isLoading: false, status: "completed" as const }
+              ? { ...f, imageUrl, imageBase64: data.imageBase64, imageUpdatedAt: Date.now(), isLoading: false, status: "completed" as const }
               : f
           );
 

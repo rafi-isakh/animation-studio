@@ -4,7 +4,7 @@ import MithrilProjectLoader from '@/components/Mithril/MithrilProjectLoader';
 import { Suspense } from 'react';
 
 interface MithrilPageProps {
-    searchParams: Promise<{ project?: string }>;
+    searchParams: Promise<{ project?: string; stage?: string }>;
 }
 
 const MithrilPage = async ({ searchParams }: MithrilPageProps) => {

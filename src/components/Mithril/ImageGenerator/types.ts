@@ -83,6 +83,17 @@ export interface BackgroundAssetRef {
 }
 
 /**
+ * Locally uploaded asset (stored in memory with base64)
+ */
+export interface LocalAssetRef {
+  id: string;
+  name: string;
+  base64: string;
+  mimeType: string;
+  category: "character" | "background";
+}
+
+/**
  * Result metadata for Stage 6 (saved to context and Firestore)
  */
 export interface ImageGenResultMetadata {
@@ -128,7 +139,6 @@ export interface FrameCardProps {
   isBatchRunning: boolean;
   globalIdx: number;
   characterAssets: CharacterAssetRef[];
-  backgroundAssets: BackgroundAssetRef[];
 }
 
 /**

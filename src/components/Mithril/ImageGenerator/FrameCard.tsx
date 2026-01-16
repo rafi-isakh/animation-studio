@@ -35,7 +35,6 @@ export default function FrameCard({
   isBatchRunning,
   globalIdx,
   characterAssets,
-  backgroundAssets,
 }: FrameCardProps) {
   const [isRemixOpen, setIsRemixOpen] = useState(false);
 
@@ -103,7 +102,7 @@ export default function FrameCard({
           <textarea
             value={frame.prompt}
             onChange={(e) => onPromptChange(frame.id, e.target.value)}
-            className="w-full text-[11px] text-slate-300 bg-slate-900/50 p-2 rounded border border-slate-700 focus:border-cyan-500 outline-none resize-none"
+            className="w-full text-[11px] text-slate-300 bg-slate-900/50 p-2 rounded border border-slate-700 focus:border-cyan-500 outline-none resize-none no-scrollbar"
             rows={2}
           />
         </div>
@@ -168,7 +167,7 @@ export default function FrameCard({
                   value={frame.remixPrompt || ""}
                   onChange={(e) => onRemixPromptChange(frame.id, e.target.value)}
                   placeholder="Enter changes or in-between action..."
-                  className="w-full text-[11px] text-purple-100 bg-slate-900/80 p-2 rounded border border-purple-500/30 focus:border-purple-400 outline-none resize-none"
+                  className="w-full text-[11px] text-purple-100 bg-slate-900/80 p-2 rounded border border-purple-500/30 focus:border-purple-400 outline-none resize-none no-scrollbar"
                   rows={3}
                 />
                 <button
@@ -188,20 +187,14 @@ export default function FrameCard({
 
         {/* Bottom Controls Row */}
         <div className="grid grid-cols-2 gap-1">
-          <select
+          <input
+            type="text"
             value={frame.backgroundId}
             onChange={(e) => onBgChange(frame.id, e.target.value)}
             className="text-[10px] bg-slate-900/50 p-1.5 rounded border border-slate-700 text-slate-300 focus:border-cyan-500 outline-none"
-          >
-            <option value="">No BG</option>
-            {backgroundAssets.map((bg) =>
-              bg.angles?.map((angle, angleIndex) => (
-                <option key={`${bg.id}-${angleIndex}`} value={`${bg.id}-${angleIndex}`}>
-                  {angle.angle}
-                </option>
-              ))
-            )}
-          </select>
+            placeholder="BG ID"
+            title="Background ID (e.g., bg-001-0). Format: bgId-angleIndex"
+          />
           <div className="flex gap-1">
             <input
               type="text"

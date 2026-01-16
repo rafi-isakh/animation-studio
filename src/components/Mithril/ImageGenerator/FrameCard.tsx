@@ -53,7 +53,7 @@ export default function FrameCard({
           <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
         ) : frame.imageUrl ? (
           <img
-            src={frame.imageUrl}
+            src={frame.imageUrl.startsWith("data:") ? frame.imageUrl : `${frame.imageUrl}${frame.imageUpdatedAt ? `?t=${frame.imageUpdatedAt}` : ""}`}
             alt={`Frame ${frame.frameLabel}`}
             className="w-full h-full object-contain"
           />

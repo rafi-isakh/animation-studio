@@ -210,7 +210,7 @@ export default function BgSheetImageEditor({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
       <div className="flex flex-col md:flex-row w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden shadow-2xl border border-gray-700 bg-gray-900">
         {/* Sidebar */}
-        <div className="w-full md:w-72 bg-gray-800 flex flex-col p-4 shrink-0 border-b md:border-b-0 md:border-r border-gray-700 overflow-y-auto">
+        <div className="w-full md:w-72 bg-gray-800 flex flex-col p-4 shrink-0 border-b md:border-b-0 md:border-r border-gray-700 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <h3 className="text-[#DB2777] font-bold text-xl mb-4">
             {phrase(dictionary, "editor_drawing_tools", language)}
           </h3>
@@ -371,6 +371,7 @@ export default function BgSheetImageEditor({
         <div
           className="flex-1 bg-gray-950 overflow-auto relative flex p-4 md:p-8"
           ref={containerRef}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <canvas
             ref={canvasRef}

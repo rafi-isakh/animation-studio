@@ -25,7 +25,6 @@ import {
   FileUp,
   Package,
   FileJson,
-  FileText,
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -272,7 +271,7 @@ const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> =
     } else if (!bgIdRaw && lastBgPrefix && (bgPrompt || storyboardContext)) {
       // Implicit row for previous BG (row with empty ID but has data)
       bgPrefix = lastBgPrefix;
-      fullId = `${bgPrefix}-?`;
+      fullId = `${bgPrefix}-x`;
     } else {
       continue; // Skip rows without valid Background ID
     }
@@ -1328,21 +1327,37 @@ Image Cost: $${currentImageCost.toFixed(4)}
       return;
     }
 
-    // If we only have URL, fetch and convert to base64
+    // If we only have URL, load via Image element with crossOrigin to avoid CORS issues
     if (imageUrl) {
       try {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          // Remove the data URL prefix to get pure base64
-          const base64Data = result.split(",")[1];
-          if (base64Data) {
-            handleSetReferenceImage(bgId, base64Data);
+        const img = new window.Image();
+        img.crossOrigin = "anonymous"; // Required for S3 URLs to allow canvas export
+
+        img.onload = () => {
+          // Use canvas to extract base64 from the loaded image
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const base64Data = canvas.toDataURL("image/jpeg").split(",")[1];
+            if (base64Data) {
+              handleSetReferenceImage(bgId, base64Data);
+            }
           }
         };
-        reader.readAsDataURL(blob);
+
+        img.onerror = () => {
+          console.error("Failed to load image for reference");
+          toast({
+            variant: "destructive",
+            title: "Failed to set reference",
+            description: "Could not load the image",
+          });
+        };
+
+        img.src = imageUrl;
       } catch (error) {
         console.error("Failed to fetch image for reference:", error);
         toast({
@@ -1588,12 +1603,13 @@ Image Cost: $${currentImageCost.toFixed(4)}
       )
     );
 
-    // Use planned prompt if available, otherwise generate one
+    // Use existing prompt first, then planned prompt, then auto-generate
     const plannedPromptIndex = BACKGROUND_ANGLES.indexOf(imageInfo.angle);
     const plannedPrompt = background.plannedPrompts?.[plannedPromptIndex];
 
     const detailedAngleInstruction = angleToDetailedPrompt[imageInfo.angle] || imageInfo.angle;
-    const prompt = plannedPrompt ||
+    const prompt = imageInfo.prompt ||
+      plannedPrompt ||
       `${backgroundBasePrompt} ${detailedAngleInstruction} of ${background.name}. Description: ${background.description}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
 
     // Update prompt in state
@@ -2330,7 +2346,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
           </div>
 
           {/* Background Cards */}
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {backgrounds.map((bg) => (
               <div
                 key={bg.id}
@@ -2412,7 +2428,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                                     {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
                                   </button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto space-y-1.5">
+                                <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                   {bg.plannedPrompts.map((prompt, idx) => (
                                     <div key={idx} className="flex gap-2 items-start">
                                       <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-5 shrink-0 pt-1">
@@ -2668,7 +2684,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                                 }`}
                                 title={img.isPromptOpen ? "Hide prompt" : "Show prompt"}
                               >
-                                <FileText className="w-3 h-3" />
+                                <Pencil className="w-3 h-3" />
                               </button>
                             )}
                             {/* Finalize Button */}
@@ -2693,6 +2709,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                               value={img.characterPrompt || ""}
                               onChange={(e) => handleUpdateCharacterPrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-gray-50 dark:bg-gray-600 border border-yellow-500/20 rounded p-1.5 text-[10px] text-yellow-700 dark:text-yellow-200 min-h-[40px] focus:outline-none focus:border-yellow-500/50 resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                               placeholder={phrase(dictionary, "bgsheet_scene_notes", language) || "Scene details..."}
                             />
                           </div>
@@ -2705,6 +2722,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                               value={img.prompt || ""}
                               onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[50px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                               placeholder={phrase(dictionary, "bgsheet_prompt_placeholder", language) || "Enter prompt..."}
                             />
                             <button

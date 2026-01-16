@@ -339,7 +339,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -1226,16 +1226,10 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
   // Set reference image and analyze it for spatial elements
   const handleSetReferenceImage = async (bgId: string, base64: string) => {
-    // Set the reference image immediately
-    setBackgrounds(bgs => bgs.map(bg => {
-      if (bg.id !== bgId) return bg;
-      const newImages = [...bg.images];
-      // Also set as first image if empty
-      if (newImages.length > 0 && !newImages[0].imageBase64 && !newImages[0].imageUrl) {
-        newImages[0] = { ...newImages[0], imageBase64: base64 };
-      }
-      return { ...bg, referenceImageBase64: base64, images: newImages };
-    }));
+    // Set the reference image only (don't auto-populate first view)
+    setBackgrounds(bgs => bgs.map(bg =>
+      bg.id === bgId ? { ...bg, referenceImageBase64: base64 } : bg
+    ));
     setIsSaved(false);
 
     // Analyze reference image for spatial elements
@@ -1855,6 +1849,103 @@ Image Cost: $${currentImageCost.toFixed(4)}
     e.target.value = ""; // Reset input
   }, [toast, dictionary, language]);
 
+  // Storyboard Import handler - imports backgrounds from storyboard data
+  const handleImportFromStoryboard = useCallback(() => {
+    const { scenes } = storyboardGenerator;
+
+    if (!scenes || scenes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+        description: phrase(dictionary, "bgsheet_no_storyboard", language) || "No storyboard data available. Please generate a storyboard first.",
+      });
+      return;
+    }
+
+    // Parse storyboard clips to extract backgrounds
+    // Map: background prefix (e.g., "1", "2") -> { name, description, views }
+    const bgMap = new Map<string, { name: string; description: string; views: { angle: string; csvContext: string }[] }>();
+    const bgOrder: string[] = [];
+
+    for (const scene of scenes) {
+      for (const clip of scene.clips) {
+        const bgIdRaw = clip.backgroundId?.trim() || "";
+        const bgPrompt = clip.backgroundPrompt?.trim() || "";
+        const imagePrompt = clip.imagePrompt?.trim() || "";
+
+        if (!bgIdRaw) continue;
+
+        // Extract background prefix (e.g., "1" from "1-1", "1-2")
+        const match = bgIdRaw.match(/^(\d+)/);
+        if (!match) continue;
+
+        const bgPrefix = match[1];
+        const bgName = `Background ${bgPrefix}`;
+
+        if (!bgMap.has(bgName)) {
+          bgMap.set(bgName, {
+            name: bgName,
+            description: "",
+            views: [],
+          });
+          bgOrder.push(bgName);
+        }
+
+        const bgData = bgMap.get(bgName)!;
+
+        // Update description if we have a better one (longer)
+        if (bgPrompt && bgPrompt.length > bgData.description.length) {
+          bgData.description = bgPrompt;
+        }
+
+        // Add view for this clip
+        bgData.views.push({
+          angle: bgIdRaw,
+          csvContext: imagePrompt,
+        });
+      }
+    }
+
+    if (bgMap.size === 0) {
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+        description: phrase(dictionary, "bgsheet_no_backgrounds_found", language) || "No backgrounds found in storyboard",
+      });
+      return;
+    }
+
+    // Create backgrounds from parsed data
+    const newBackgrounds: Background[] = bgOrder.map(bgName => {
+      const bgData = bgMap.get(bgName)!;
+      return {
+        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: bgData.name,
+        description: bgData.description,
+        images: bgData.views.map(view => ({
+          angle: view.angle,
+          prompt: "",
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isActive: true,
+          isFinalized: false,
+          characterPrompt: "",
+          csvContext: view.csvContext,
+        })),
+      };
+    });
+
+    setBackgrounds(newBackgrounds);
+    setIsSaved(false);
+
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
+      description: `${newBackgrounds.length} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported from storyboard"}`,
+    });
+  }, [storyboardGenerator, toast, dictionary, language]);
+
   // JSON Project Export handler
   const handleJsonExport = useCallback(() => {
     const projectData: BgSheetProjectExport = {
@@ -2209,16 +2300,23 @@ Image Cost: $${currentImageCost.toFixed(4)}
         </div>
       ))}
 
-      {/* Analyze Button & Import Options - only show when no results */}
-      {!isLoadingData && originalText && !isAnalyzing && backgrounds.length === 0 && (
+      {/* Import from Storyboard & Import Options - only show when no results */}
+      {!isLoadingData && !isAnalyzing && backgrounds.length === 0 && (
         <div className="flex flex-col items-center gap-3">
+          {/* Primary: Import from Storyboard */}
           <button
-            onClick={handleAnalyze}
-            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+            onClick={handleImportFromStoryboard}
+            disabled={!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0}
+            className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
-            {phrase(dictionary, "bgsheet_analyze_text", language)}
+            {phrase(dictionary, "bgsheet_import_storyboard", language) || "Import from Storyboard"}
           </button>
+          {(!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0) && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {phrase(dictionary, "bgsheet_no_storyboard_hint", language) || "Generate a storyboard first to import backgrounds"}
+            </p>
+          )}
           <div className="flex gap-2">
             <span className="text-xs text-gray-400 dark:text-gray-500 self-center">
               {phrase(dictionary, "bgsheet_or_import", language) || "or import:"}

@@ -662,7 +662,7 @@ export default function StoryboardGenerator() {
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>
-            <div className="max-h-24 overflow-y-auto">
+            <div className="max-h-24 overflow-y-auto scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
                 {splitParts[selectedPartIndex]?.slice(0, 300)}
                 {splitParts[selectedPartIndex]?.length > 300 && "..."}

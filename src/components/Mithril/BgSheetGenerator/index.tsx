@@ -1321,37 +1321,40 @@ Image Cost: $${currentImageCost.toFixed(4)}
       return;
     }
 
-    // If we only have URL, load via Image element with crossOrigin to avoid CORS issues
+    // If we only have URL, fetch via proxy to avoid CORS issues
     if (imageUrl) {
       try {
-        const img = new window.Image();
-        img.crossOrigin = "anonymous"; // Required for S3 URLs to allow canvas export
+        // Use the S3 proxy endpoint to fetch the image
+        const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(imageUrl)}`;
+        const response = await fetch(proxyUrl);
 
-        img.onload = () => {
-          // Use canvas to extract base64 from the loaded image
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const base64Data = canvas.toDataURL("image/jpeg").split(",")[1];
-            if (base64Data) {
-              handleSetReferenceImage(bgId, base64Data);
-            }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+
+        // Convert response to base64
+        const blob = await response.blob();
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          // Remove data URL prefix to get pure base64
+          const base64Data = result.split(",")[1];
+          if (base64Data) {
+            handleSetReferenceImage(bgId, base64Data);
           }
         };
 
-        img.onerror = () => {
-          console.error("Failed to load image for reference");
+        reader.onerror = () => {
+          console.error("Failed to read image blob");
           toast({
             variant: "destructive",
             title: "Failed to set reference",
-            description: "Could not load the image",
+            description: "Could not process the image",
           });
         };
 
-        img.src = imageUrl;
+        reader.readAsDataURL(blob);
       } catch (error) {
         console.error("Failed to fetch image for reference:", error);
         toast({

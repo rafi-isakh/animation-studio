@@ -392,16 +392,20 @@ export default function ImageGenerator() {
 
             if (matchedAngle?.imageRef) {
               // Fetch the image and convert to base64
-              const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
-              if (response.ok) {
-                const data = await response.json();
-                if (data.base64) {
-                  references.backgrounds.push({
-                    base64: data.base64,
-                    mimeType: "image/webp",
-                  });
-                  bgIdForPrompt = matchedBgName || frame.backgroundId;
+              try {
+                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.base64) {
+                    references.backgrounds.push({
+                      base64: data.base64,
+                      mimeType: "image/webp",
+                    });
+                    bgIdForPrompt = matchedBgName || frame.backgroundId;
+                  }
                 }
+              } catch (err) {
+                console.warn(`Failed to fetch background image for ${frame.backgroundId}:`, err);
               }
             }
           }
@@ -460,24 +464,28 @@ export default function ImageGenerator() {
         if (frame.refFrame) {
           const refFrame = framesRef.current.find((f) => f.frameLabel === frame.refFrame.trim());
           if (refFrame?.imageUrl) {
-            // Check if it's a base64 URL or remote URL
-            if (refFrame.imageUrl.startsWith("data:")) {
-              const base64 = refFrame.imageUrl.split(",")[1];
-              references.characters.push({
-                base64,
-                mimeType: "image/png",
-              });
-            } else {
-              const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
-              if (response.ok) {
-                const data = await response.json();
-                if (data.base64) {
-                  references.characters.push({
-                    base64: data.base64,
-                    mimeType: "image/webp",
-                  });
+            try {
+              // Check if it's a base64 URL or remote URL
+              if (refFrame.imageUrl.startsWith("data:")) {
+                const base64 = refFrame.imageUrl.split(",")[1];
+                references.characters.push({
+                  base64,
+                  mimeType: "image/png",
+                });
+              } else {
+                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.base64) {
+                    references.characters.push({
+                      base64: data.base64,
+                      mimeType: "image/webp",
+                    });
+                  }
                 }
               }
+            } catch (err) {
+              console.warn(`Failed to fetch reference frame image for ${frame.refFrame}:`, err);
             }
           }
         }

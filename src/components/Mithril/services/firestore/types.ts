@@ -135,7 +135,7 @@ export interface BgSheetDocument {
 }
 
 export interface BackgroundAngleImage {
-  angle: BackgroundAngle;
+  angle: string; // Can be standard angle name or storyboard ID like "1-3"
   imageRef: string; // S3 URL
   prompt: string;
 }

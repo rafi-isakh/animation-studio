@@ -391,18 +391,19 @@ export default function ImageGenerator() {
             }
 
             if (matchedAngle?.imageRef) {
-              // Fetch the image and convert to base64
+              // Fetch the image via S3 proxy and convert to base64 client-side
               try {
-                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
+                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
                 if (response.ok) {
-                  const data = await response.json();
-                  if (data.base64) {
-                    references.backgrounds.push({
-                      base64: data.base64,
-                      mimeType: "image/webp",
-                    });
-                    bgIdForPrompt = matchedBgName || frame.backgroundId;
-                  }
+                  const arrayBuffer = await response.arrayBuffer();
+                  const base64 = btoa(
+                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                  );
+                  references.backgrounds.push({
+                    base64,
+                    mimeType: response.headers.get("content-type") || "image/webp",
+                  });
+                  bgIdForPrompt = matchedBgName || frame.backgroundId;
                 }
               } catch (err) {
                 console.warn(`Failed to fetch background image for ${frame.backgroundId}:`, err);
@@ -427,15 +428,16 @@ export default function ImageGenerator() {
             // Character found in prompt, add their image
             if (char.imageUrl) {
               try {
-                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(char.imageUrl)}`);
+                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(char.imageUrl)}`);
                 if (response.ok) {
-                  const data = await response.json();
-                  if (data.base64) {
-                    references.characters.push({
-                      base64: data.base64,
-                      mimeType: "image/webp",
-                    });
-                  }
+                  const arrayBuffer = await response.arrayBuffer();
+                  const base64 = btoa(
+                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                  );
+                  references.characters.push({
+                    base64,
+                    mimeType: response.headers.get("content-type") || "image/webp",
+                  });
                 }
               } catch (err) {
                 console.warn(`Failed to fetch character image for ${char.id}:`, err);
@@ -473,15 +475,16 @@ export default function ImageGenerator() {
                   mimeType: "image/png",
                 });
               } else {
-                const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
+                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
                 if (response.ok) {
-                  const data = await response.json();
-                  if (data.base64) {
-                    references.characters.push({
-                      base64: data.base64,
-                      mimeType: "image/webp",
-                    });
-                  }
+                  const arrayBuffer = await response.arrayBuffer();
+                  const base64 = btoa(
+                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                  );
+                  references.characters.push({
+                    base64,
+                    mimeType: response.headers.get("content-type") || "image/webp",
+                  });
                 }
               }
             } catch (err) {

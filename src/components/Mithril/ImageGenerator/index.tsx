@@ -376,27 +376,31 @@ export default function ImageGenerator() {
             });
             bgIdForPrompt = localBg.id;
           } else {
-            // Check Stage 4 backgrounds (format: "bgId-angleIndex")
-            const lastDashIndex = frame.backgroundId.lastIndexOf("-");
-            if (lastDashIndex > 0) {
-              const bgId = frame.backgroundId.substring(0, lastDashIndex);
-              const angleIndex = parseInt(frame.backgroundId.substring(lastDashIndex + 1), 10);
-              const bg = backgroundAssets.find((b) => b.id === bgId);
-              if (bg && bg.angles && !isNaN(angleIndex) && angleIndex < bg.angles.length) {
-                const selectedAngle = bg.angles[angleIndex];
-                if (selectedAngle?.imageRef) {
-                  // Fetch the image and convert to base64
-                  const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(selectedAngle.imageRef)}`);
-                  if (response.ok) {
-                    const data = await response.json();
-                    if (data.base64) {
-                      references.backgrounds.push({
-                        base64: data.base64,
-                        mimeType: "image/webp",
-                      });
-                      bgIdForPrompt = bgId;
-                    }
-                  }
+            // Check Stage 4 backgrounds (storyboard format: "1-3", "4-1-1", etc.)
+            // Find background by matching angle string directly
+            let matchedAngle: { angle: string; imageRef: string } | undefined;
+            let matchedBgName = "";
+
+            for (const bg of backgroundAssets) {
+              const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
+              if (angle?.imageRef) {
+                matchedAngle = angle;
+                matchedBgName = bg.name;
+                break;
+              }
+            }
+
+            if (matchedAngle?.imageRef) {
+              // Fetch the image and convert to base64
+              const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
+              if (response.ok) {
+                const data = await response.json();
+                if (data.base64) {
+                  references.backgrounds.push({
+                    base64: data.base64,
+                    mimeType: "image/webp",
+                  });
+                  bgIdForPrompt = matchedBgName || frame.backgroundId;
                 }
               }
             }

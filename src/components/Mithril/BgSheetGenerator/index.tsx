@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground } from "../services/firestore";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId } from "../services/firestore";
 import { uploadBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
@@ -1847,12 +1847,12 @@ Image Cost: $${currentImageCost.toFixed(4)}
   const jsonImportRef = useRef<HTMLInputElement>(null);
 
   // CSV Import handler - imports prompts from CSV file and creates backgrounds
-  const handleCsvImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCsvImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const csvContent = ev.target?.result as string;
       const importedData = parseCsvForImport(csvContent);
 
@@ -1865,71 +1865,108 @@ Image Cost: $${currentImageCost.toFixed(4)}
         return;
       }
 
-      // Create or update backgrounds from CSV data
-      setBackgrounds(prev => {
-        const existingBgNames = new Set(prev.map(bg => bg.name));
-        const updatedBackgrounds: Background[] = [];
+      // Build updated backgrounds list
+      const existingBgNames = new Set(backgrounds.map(bg => bg.name));
+      const updatedBackgrounds: Background[] = [];
 
-        // Update existing backgrounds - merge new views from CSV
-        for (const bg of prev) {
-          const csvBgData = importedData.get(bg.name);
-          if (csvBgData) {
-            // Find existing angles to avoid duplicates
-            const existingAngles = new Set(bg.images.map(img => img.angle));
+      // Update existing backgrounds - merge new views from CSV
+      for (const bg of backgrounds) {
+        const csvBgData = importedData.get(bg.name);
+        if (csvBgData) {
+          // Find existing angles to avoid duplicates
+          const existingAngles = new Set(bg.images.map(img => img.angle));
 
-            // Add new views from CSV that don't already exist
-            const newImages = csvBgData.views
-              .filter(view => !existingAngles.has(view.angle))
-              .map(view => ({
-                angle: view.angle,
-                prompt: "",
-                imageBase64: "",
-                imageUrl: undefined,
-                isGenerating: false,
-                isActive: true,
-                isFinalized: false,
-                characterPrompt: "",
-                csvContext: view.csvContext,
-              }));
+          // Add new views from CSV that don't already exist
+          const newImages = csvBgData.views
+            .filter(view => !existingAngles.has(view.angle))
+            .map(view => ({
+              angle: view.angle,
+              prompt: "",
+              imageBase64: "",
+              imageUrl: undefined,
+              isGenerating: false,
+              isActive: true,
+              isFinalized: false,
+              characterPrompt: "",
+              csvContext: view.csvContext,
+            }));
 
-            updatedBackgrounds.push({
-              ...bg,
-              description: csvBgData.description || bg.description,
-              images: [...bg.images, ...newImages],
-            });
-          } else {
-            updatedBackgrounds.push(bg);
-          }
+          updatedBackgrounds.push({
+            ...bg,
+            description: csvBgData.description || bg.description,
+            images: [...bg.images, ...newImages],
+          });
+        } else {
+          updatedBackgrounds.push(bg);
         }
+      }
 
-        // Create new backgrounds from CSV that don't exist yet
-        // Each CSV row becomes a separate storyboard view
-        for (const [bgName, csvBgData] of importedData) {
-          if (!existingBgNames.has(bgName)) {
-            const newBg: Background = {
-              id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-              name: csvBgData.name,
-              description: csvBgData.description,
-              images: csvBgData.views.map(view => ({
-                angle: view.angle,
-                prompt: "",
-                imageBase64: "",
-                imageUrl: undefined,
-                isGenerating: false,
-                isActive: true,
-                isFinalized: false,
-                characterPrompt: "",
-                csvContext: view.csvContext,
+      // Create new backgrounds from CSV that don't exist yet
+      for (const [bgName, csvBgData] of importedData) {
+        if (!existingBgNames.has(bgName)) {
+          const newBg: Background = {
+            id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            name: csvBgData.name,
+            description: csvBgData.description,
+            images: csvBgData.views.map(view => ({
+              angle: view.angle,
+              prompt: "",
+              imageBase64: "",
+              imageUrl: undefined,
+              isGenerating: false,
+              isActive: true,
+              isFinalized: false,
+              characterPrompt: "",
+              csvContext: view.csvContext,
+            })),
+          };
+          updatedBackgrounds.push(newBg);
+        }
+      }
+
+      setBackgrounds(updatedBackgrounds);
+
+      // Persist to Firestore immediately so backgrounds survive refresh
+      if (currentProjectId) {
+        try {
+          for (const bg of updatedBackgrounds) {
+            await saveBackgroundWithId(currentProjectId, bg.id, {
+              name: bg.name,
+              description: bg.description,
+              angles: bg.images.map(img => ({
+                angle: img.angle,
+                prompt: img.prompt || "",
+                imageRef: img.imageUrl || "",
               })),
-            };
-            updatedBackgrounds.push(newBg);
+            });
           }
+
+          // Update context state so it hydrates on refresh
+          const metadata: BgSheetResultMetadata = {
+            backgrounds: updatedBackgrounds.map(bg => ({
+              id: bg.id,
+              name: bg.name,
+              description: bg.description,
+              images: bg.images.map(img => ({
+                angle: img.angle,
+                prompt: img.prompt || "",
+                imageId: img.imageUrl || "",
+              })),
+            })),
+            styleKeyword,
+            backgroundBasePrompt,
+          };
+          setBgSheetResult(metadata);
+          setStageResult(4, metadata);
+          setIsSaved(true);
+        } catch (err) {
+          console.error("Failed to save imported backgrounds to Firestore:", err);
+          setIsSaved(false);
         }
+      } else {
+        setIsSaved(false);
+      }
 
-        return updatedBackgrounds;
-      });
-
-      setIsSaved(false);
       toast({
         variant: "success",
         title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
@@ -1938,10 +1975,10 @@ Image Cost: $${currentImageCost.toFixed(4)}
     };
     reader.readAsText(file);
     e.target.value = ""; // Reset input
-  }, [toast, dictionary, language]);
+  }, [toast, dictionary, language, backgrounds, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
 
   // Storyboard Import handler - imports backgrounds from storyboard data
-  const handleImportFromStoryboard = useCallback(() => {
+  const handleImportFromStoryboard = useCallback(async () => {
     const { scenes } = storyboardGenerator;
 
     if (!scenes || scenes.length === 0) {
@@ -2028,14 +2065,55 @@ Image Cost: $${currentImageCost.toFixed(4)}
     });
 
     setBackgrounds(newBackgrounds);
-    setIsSaved(false);
+
+    // Persist to Firestore immediately so backgrounds survive refresh
+    if (currentProjectId) {
+      try {
+        // Save each background to Firestore
+        for (const bg of newBackgrounds) {
+          await saveBackgroundWithId(currentProjectId, bg.id, {
+            name: bg.name,
+            description: bg.description,
+            angles: bg.images.map(img => ({
+              angle: img.angle,
+              prompt: img.prompt || "",
+              imageRef: img.imageUrl || "",
+            })),
+          });
+        }
+
+        // Update context state so it hydrates on refresh
+        const metadata: BgSheetResultMetadata = {
+          backgrounds: newBackgrounds.map(bg => ({
+            id: bg.id,
+            name: bg.name,
+            description: bg.description,
+            images: bg.images.map(img => ({
+              angle: img.angle,
+              prompt: img.prompt || "",
+              imageId: img.imageUrl || "",
+            })),
+          })),
+          styleKeyword,
+          backgroundBasePrompt,
+        };
+        setBgSheetResult(metadata);
+        setStageResult(4, metadata);
+        setIsSaved(true);
+      } catch (err) {
+        console.error("Failed to save imported backgrounds to Firestore:", err);
+        setIsSaved(false);
+      }
+    } else {
+      setIsSaved(false);
+    }
 
     toast({
       variant: "success",
       title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
       description: `${newBackgrounds.length} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported from storyboard"}`,
     });
-  }, [storyboardGenerator, toast, dictionary, language]);
+  }, [storyboardGenerator, toast, dictionary, language, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
 
   // JSON Project Export handler
   const handleJsonExport = useCallback(() => {

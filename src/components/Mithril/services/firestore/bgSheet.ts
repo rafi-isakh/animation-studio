@@ -100,6 +100,23 @@ export async function saveBackground(
 }
 
 /**
+ * Save a background with a specific ID (for imported backgrounds)
+ * Creates or overwrites the document with the given ID
+ */
+export async function saveBackgroundWithId(
+  projectId: string,
+  bgId: string,
+  input: SaveBackgroundInput
+): Promise<void> {
+  const docRef = getBackgroundRef(projectId, bgId);
+  await setDoc(docRef, {
+    name: input.name,
+    description: input.description,
+    angles: input.angles || [],
+  });
+}
+
+/**
  * Update a background
  */
 export async function updateBackground(

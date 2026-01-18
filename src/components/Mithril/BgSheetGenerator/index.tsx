@@ -44,10 +44,25 @@ const BACKGROUND_ANGLES = [
   "Floor Close-up",
 ];
 
-// Helper to get angle suffix (1-9) from angle string
-const getAngleSuffix = (angle: string): string => {
-  const index = BACKGROUND_ANGLES.findIndex(a => angle.includes(a.split(" ")[0]));
-  return index >= 0 ? String(index + 1) : "";
+// Helper to get shot suffix (1-9) from angle string
+// Handles both standard angles like "Front View" and storyboard angles like "1-3" or "Front View (1-3)"
+const getShotSuffix = (angleString: string): string => {
+  // First check if it's a standard angle name
+  const standardIndex = BACKGROUND_ANGLES.indexOf(angleString);
+  if (standardIndex >= 0) {
+    return String(standardIndex + 1);
+  }
+
+  // Check for parenthetical format like "Front View (1-3)"
+  const parenMatch = angleString.match(/\(([^)]+)\)/);
+  if (parenMatch) {
+    const idParts = parenMatch[1].split('-');
+    return idParts.length >= 2 ? idParts[1] : "";
+  }
+
+  // Check for direct format like "1-3"
+  const idParts = angleString.split('-');
+  return idParts.length >= 2 ? idParts[1] : "";
 };
 
 const angleToDetailedPrompt: Record<string, string> = {
@@ -1413,13 +1428,26 @@ Image Cost: $${currentImageCost.toFixed(4)}
     }
   };
 
-  // Update a single planned prompt
+  // Update a single planned prompt - REAL-TIME SYNC to storyboard cards with matching suffix
   const handleUpdatePlannedPrompt = (bgId: string, index: number, newPrompt: string) => {
     setBackgrounds(bgs => bgs.map(bg => {
-      if (bg.id !== bgId || !bg.plannedPrompts) return bg;
-      const newPrompts = [...bg.plannedPrompts];
+      if (bg.id !== bgId) return bg;
+
+      // Update the planned prompts list
+      const newPrompts = bg.plannedPrompts ? [...bg.plannedPrompts] : Array(9).fill("");
       newPrompts[index] = newPrompt;
-      return { ...bg, plannedPrompts: newPrompts };
+
+      // Propagate to all storyboard shots of this angle suffix in this location
+      // index is 0-based, so suffix is index + 1
+      const targetSuffix = String(index + 1);
+      const newImages = bg.images.map(img => {
+        if (getShotSuffix(img.angle) === targetSuffix) {
+          return { ...img, prompt: newPrompt };
+        }
+        return img;
+      });
+
+      return { ...bg, plannedPrompts: newPrompts, images: newImages };
     }));
     setIsSaved(false);
   };
@@ -1484,13 +1512,32 @@ Image Cost: $${currentImageCost.toFixed(4)}
     ));
   };
 
-  // Update prompt for an image card
+  // Update prompt for an image card - REAL-TIME SYNC to planned prompts and other cards with same suffix
   const handleUpdatePrompt = (bgId: string, index: number, newPrompt: string) => {
-    setBackgrounds(bgs => bgs.map(bg =>
-      bg.id === bgId
-        ? { ...bg, images: bg.images.map((img, i) => i === index ? { ...img, prompt: newPrompt } : img) }
-        : bg
-    ));
+    setBackgrounds(bgs => bgs.map(bg => {
+      if (bg.id !== bgId) return bg;
+
+      const targetImage = bg.images[index];
+      const suffix = getShotSuffix(targetImage.angle);
+      const suffixInt = parseInt(suffix, 10);
+
+      // 1. Update the master planned prompts list if suffix is valid (1-9)
+      let newPlanned = bg.plannedPrompts ? [...bg.plannedPrompts] : undefined;
+      if (newPlanned && !isNaN(suffixInt) && suffixInt >= 1 && suffixInt <= 9) {
+        newPlanned[suffixInt - 1] = newPrompt;
+      }
+
+      // 2. Update all images in this location sharing the same angle suffix
+      const newImages = bg.images.map(img => {
+        const currentSuffix = getShotSuffix(img.angle);
+        if (currentSuffix === suffix) {
+          return { ...img, prompt: newPrompt };
+        }
+        return img;
+      });
+
+      return { ...bg, images: newImages, plannedPrompts: newPlanned };
+    }));
     setIsSaved(false);
   };
 
@@ -1600,14 +1647,38 @@ Image Cost: $${currentImageCost.toFixed(4)}
       )
     );
 
-    // Use existing prompt first, then planned prompt, then auto-generate
-    const plannedPromptIndex = BACKGROUND_ANGLES.indexOf(imageInfo.angle);
-    const plannedPrompt = background.plannedPrompts?.[plannedPromptIndex];
+    // Extract shot suffix (1-9) from angle string for planned prompt lookup
+    const viewSuffix = getShotSuffix(imageInfo.angle);
+    const suffixInt = parseInt(viewSuffix, 10);
 
-    const detailedAngleInstruction = angleToDetailedPrompt[imageInfo.angle] || imageInfo.angle;
-    const prompt = imageInfo.prompt ||
-      plannedPrompt ||
-      `${backgroundBasePrompt} ${detailedAngleInstruction} of ${background.name}. Description: ${background.description}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+    // Look up planned prompt by suffix (1-indexed, so subtract 1 for array index)
+    const plannedPrompt = (background.plannedPrompts && !isNaN(suffixInt) && suffixInt >= 1 && suffixInt <= 9)
+      ? background.plannedPrompts[suffixInt - 1]
+      : undefined;
+
+    // Get detailed angle instruction - first try standard angles, then fall back
+    const detailedAngleInstruction = angleToDetailedPrompt[imageInfo.angle] ||
+      (suffixInt >= 1 && suffixInt <= 9 ? angleToDetailedPrompt[BACKGROUND_ANGLES[suffixInt - 1]] : imageInfo.angle);
+
+    // Build base style prompt
+    const baseStylePrompt = `${backgroundBasePrompt}. Description: ${background.description}. Style: ${styleKeyword}.`;
+
+    // Get reference image for consistency (master ref or first generated image)
+    const refImage = background.referenceImageBase64 ||
+      (index !== 0 && background.images[0]?.imageBase64 ? background.images[0].imageBase64 : null);
+
+    // Determine final prompt - priority: existing prompt > planned prompt > csvContext-enhanced > auto-generated
+    let prompt: string;
+    if (imageInfo.prompt) {
+      prompt = imageInfo.prompt;
+    } else if (plannedPrompt) {
+      prompt = plannedPrompt;
+    } else if (imageInfo.csvContext) {
+      // Use storyboard context in the prompt
+      prompt = `${baseStylePrompt} ${detailedAngleInstruction}. Scene context: ${imageInfo.csvContext}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+    } else {
+      prompt = `${baseStylePrompt} ${detailedAngleInstruction} of ${background.name}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+    }
 
     // Update prompt in state
     setBackgrounds(prevBgs =>
@@ -1624,11 +1695,28 @@ Image Cost: $${currentImageCost.toFixed(4)}
     );
 
     try {
-      const response = await fetch("/api/generate_bg_sheet/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-      });
+      let response;
+
+      if (refImage) {
+        // Use image-to-image generation with reference for consistency
+        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
+        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            referenceImageBase64: refImage,
+            prompt: refPrompt,
+            customApiKey: customApiKey || undefined
+          }),
+        });
+      } else {
+        // Use text-only generation
+        response = await fetch("/api/generate_bg_sheet/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
+        });
+      }
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);

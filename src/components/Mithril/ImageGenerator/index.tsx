@@ -35,6 +35,7 @@ import ImageModal from "./ImageModal";
 import { parseCsvData, parseCellReference, colLetterToIndex } from "@/utils/csvHelper";
 import { fileToBase64, sanitizeFilename } from "@/utils/fileHelper";
 import { useCostTracker } from "../CostContext";
+import { compressImage } from "../StoryboardGenerator/utils/imageUtils";
 
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
@@ -369,11 +370,20 @@ export default function ImageGenerator() {
             (a) => a.category === "background" && a.id === frame.backgroundId
           );
           if (localBg) {
-            // Use local uploaded background directly
-            references.backgrounds.push({
-              base64: localBg.base64,
-              mimeType: localBg.mimeType,
-            });
+            // Compress local uploaded background before adding
+            try {
+              const compressed = await compressImage(localBg.base64, localBg.mimeType, 768, 768, 0.7);
+              references.backgrounds.push({
+                base64: compressed.base64,
+                mimeType: compressed.mimeType,
+              });
+            } catch {
+              // Fall back to original if compression fails
+              references.backgrounds.push({
+                base64: localBg.base64,
+                mimeType: localBg.mimeType,
+              });
+            }
             bgIdForPrompt = localBg.id;
           } else {
             // Check Stage 4 backgrounds (storyboard format: "1-3", "4-1-1", etc.)
@@ -391,22 +401,16 @@ export default function ImageGenerator() {
             }
 
             if (matchedAngle?.imageRef) {
-              // Fetch the image via S3 proxy and convert to base64 client-side
+              // Fetch, compress, and add the background image
               try {
-                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(matchedAngle.imageRef)}`);
-                if (response.ok) {
-                  const arrayBuffer = await response.arrayBuffer();
-                  const base64 = btoa(
-                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-                  );
-                  references.backgrounds.push({
-                    base64,
-                    mimeType: response.headers.get("content-type") || "image/webp",
-                  });
-                  bgIdForPrompt = matchedBgName || frame.backgroundId;
-                }
+                const compressed = await compressImage(matchedAngle.imageRef, "image/webp", 768, 768, 0.7);
+                references.backgrounds.push({
+                  base64: compressed.base64,
+                  mimeType: compressed.mimeType,
+                });
+                bgIdForPrompt = matchedBgName || frame.backgroundId;
               } catch (err) {
-                console.warn(`Failed to fetch background image for ${frame.backgroundId}:`, err);
+                console.warn(`Failed to fetch/compress background image for ${frame.backgroundId}:`, err);
               }
             }
           }
@@ -425,22 +429,16 @@ export default function ImageGenerator() {
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
           if (regexId.test(promptText) || regexName.test(promptText)) {
-            // Character found in prompt, add their image
+            // Character found in prompt, fetch and compress their image
             if (char.imageUrl) {
               try {
-                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(char.imageUrl)}`);
-                if (response.ok) {
-                  const arrayBuffer = await response.arrayBuffer();
-                  const base64 = btoa(
-                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-                  );
-                  references.characters.push({
-                    base64,
-                    mimeType: response.headers.get("content-type") || "image/webp",
-                  });
-                }
+                const compressed = await compressImage(char.imageUrl, "image/webp", 768, 768, 0.7);
+                references.characters.push({
+                  base64: compressed.base64,
+                  mimeType: compressed.mimeType,
+                });
               } catch (err) {
-                console.warn(`Failed to fetch character image for ${char.id}:`, err);
+                console.warn(`Failed to fetch/compress character image for ${char.id}:`, err);
               }
             }
           }
@@ -454,11 +452,20 @@ export default function ImageGenerator() {
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
           if (regexId.test(promptText) || regexName.test(promptText)) {
-            // Local character found in prompt, add their image directly
-            references.characters.push({
-              base64: asset.base64,
-              mimeType: asset.mimeType,
-            });
+            // Compress local character image before adding
+            try {
+              const compressed = await compressImage(asset.base64, asset.mimeType, 768, 768, 0.7);
+              references.characters.push({
+                base64: compressed.base64,
+                mimeType: compressed.mimeType,
+              });
+            } catch {
+              // Fall back to original if compression fails
+              references.characters.push({
+                base64: asset.base64,
+                mimeType: asset.mimeType,
+              });
+            }
           }
         }
 
@@ -467,28 +474,23 @@ export default function ImageGenerator() {
           const refFrame = framesRef.current.find((f) => f.frameLabel === frame.refFrame.trim());
           if (refFrame?.imageUrl) {
             try {
-              // Check if it's a base64 URL or remote URL
+              // Compress reference frame image
               if (refFrame.imageUrl.startsWith("data:")) {
                 const base64 = refFrame.imageUrl.split(",")[1];
+                const compressed = await compressImage(base64, "image/png", 768, 768, 0.7);
                 references.characters.push({
-                  base64,
-                  mimeType: "image/png",
+                  base64: compressed.base64,
+                  mimeType: compressed.mimeType,
                 });
               } else {
-                const response = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(refFrame.imageUrl)}`);
-                if (response.ok) {
-                  const arrayBuffer = await response.arrayBuffer();
-                  const base64 = btoa(
-                    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-                  );
-                  references.characters.push({
-                    base64,
-                    mimeType: response.headers.get("content-type") || "image/webp",
-                  });
-                }
+                const compressed = await compressImage(refFrame.imageUrl, "image/webp", 768, 768, 0.7);
+                references.characters.push({
+                  base64: compressed.base64,
+                  mimeType: compressed.mimeType,
+                });
               }
             } catch (err) {
-              console.warn(`Failed to fetch reference frame image for ${frame.refFrame}:`, err);
+              console.warn(`Failed to fetch/compress reference frame image for ${frame.refFrame}:`, err);
             }
           }
         }
@@ -522,19 +524,34 @@ export default function ImageGenerator() {
           }),
         });
 
-        const data = await response.json();
+        // Handle non-JSON responses (e.g., Vercel body size limit errors)
+        const responseText = await response.text();
+        let data: { imageBase64?: string; error?: string };
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          // Response is not JSON - likely a Vercel error like "Request Entity Too Large"
+          console.error("[ImageGen] Non-JSON response:", responseText.substring(0, 100));
+          throw new Error(responseText || `HTTP ${response.status}`);
+        }
+
         console.log("[ImageGen] API response received:", { hasImageBase64: !!data.imageBase64, responseOk: response.ok });
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to generate image");
         }
 
+        if (!data.imageBase64) {
+          throw new Error("No image data received from API");
+        }
+
         // Upload to S3
-        let imageUrl = `data:image/png;base64,${data.imageBase64}`;
+        const imageBase64 = data.imageBase64;
+        let imageUrl = `data:image/png;base64,${imageBase64}`;
         console.log("[ImageGen] Initial imageUrl (base64):", imageUrl.substring(0, 50) + "...");
         if (currentProjectId) {
           try {
-            imageUrl = await uploadImageGenFrameImage(currentProjectId, frameId, data.imageBase64);
+            imageUrl = await uploadImageGenFrameImage(currentProjectId, frameId, imageBase64);
             console.log("[ImageGen] S3 upload successful, URL:", imageUrl);
             // Save full frame data to Firestore
             await saveImageGenFrame(currentProjectId, frameId, {
@@ -566,7 +583,7 @@ export default function ImageGenerator() {
         setFrames((prev) => {
           const updatedFrames = prev.map((f) =>
             f.id === frameId
-              ? { ...f, imageUrl, imageBase64: data.imageBase64, imageUpdatedAt: Date.now(), isLoading: false, status: "completed" as const }
+              ? { ...f, imageUrl, imageBase64, imageUpdatedAt: Date.now(), isLoading: false, status: "completed" as const }
               : f
           );
 

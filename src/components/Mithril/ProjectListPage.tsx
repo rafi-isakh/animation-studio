@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, LogOut } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, LogOut, Pencil } from 'lucide-react';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
+import RenameProjectModal from './RenameProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
 
@@ -18,6 +19,8 @@ export default function ProjectListPage() {
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [projectToRename, setProjectToRename] = useState<ProjectMetadata | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -83,6 +86,20 @@ export default function ProjectListPage() {
   function handleProjectCreated(newProject: ProjectMetadata) {
     setProjects([newProject, ...projects]);
     setIsCreateModalOpen(false);
+  }
+
+  function handleRenameClick(e: React.MouseEvent, project: ProjectMetadata) {
+    e.stopPropagation();
+    setProjectToRename(project);
+    setIsRenameModalOpen(true);
+  }
+
+  function handleProjectRenamed(renamedProject: ProjectMetadata) {
+    setProjects(projects.map(p =>
+      p.id === renamedProject.id ? renamedProject : p
+    ));
+    setIsRenameModalOpen(false);
+    setProjectToRename(null);
   }
 
   function formatDate(timestamp: any) {
@@ -177,15 +194,25 @@ export default function ProjectListPage() {
                   <CardTitle className="text-lg truncate pr-2">
                     {project.name}
                   </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                    onClick={(e) => handleDeleteProject(e, project.id)}
-                    disabled={deletingId === project.id}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={(e) => handleRenameClick(e, project)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                      onClick={(e) => handleDeleteProject(e, project.id)}
+                      disabled={deletingId === project.id}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
@@ -211,6 +238,13 @@ export default function ProjectListPage() {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onProjectCreated={handleProjectCreated}
+      />
+
+      <RenameProjectModal
+        open={isRenameModalOpen}
+        onOpenChange={setIsRenameModalOpen}
+        project={projectToRename}
+        onProjectRenamed={handleProjectRenamed}
       />
     </div>
   );

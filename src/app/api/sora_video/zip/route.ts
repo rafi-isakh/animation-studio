@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { s3Client } from "@/utils/s3";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import JSZip from "jszip";
+import { processWithConcurrency } from "@/utils/concurrency";
 
 export const maxDuration = 300; // 5 minutes max for large collections
 
@@ -50,10 +51,11 @@ export async function POST(request: NextRequest) {
     // Create JSZip instance
     const zip = new JSZip();
 
-    // Fetch videos from S3 and add to ZIP
-    // Process sequentially to manage memory
-    for (const clip of validClips) {
-      try {
+    // Fetch videos from S3 with controlled concurrency (3 at a time)
+    // Balances speed vs memory usage
+    await processWithConcurrency(
+      validClips,
+      async (clip) => {
         const command = new GetObjectCommand({
           Bucket: VIDEOS_BUCKET_NAME,
           Key: clip.s3FileName,
@@ -64,14 +66,16 @@ export async function POST(request: NextRequest) {
         if (response.Body) {
           const arrayBuffer = await response.Body.transformToByteArray();
           const fileName = `scene_${clip.sceneIndex + 1}_clip_${clip.clipIndex + 1}.mp4`;
-
           zip.file(fileName, arrayBuffer, { compression: "STORE" });
         }
-      } catch (error) {
-        console.error(`Failed to fetch ${clip.s3FileName}:`, error);
-        // Continue with other clips even if one fails
+      },
+      {
+        concurrency: 3,
+        onError: (error, clip) => {
+          console.error(`Failed to fetch ${clip.s3FileName}:`, error);
+        },
       }
-    }
+    );
 
     // Generate ZIP as ArrayBuffer
     const zipBuffer = await zip.generateAsync({

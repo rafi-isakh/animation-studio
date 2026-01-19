@@ -128,9 +128,10 @@ export async function GET(request: NextRequest) {
         result.videoUrl = getVideoUrl(s3FileName);
         result.s3FileName = s3FileName;
       } catch (uploadError) {
-        console.error("Error uploading to S3, falling back to proxy URL:", uploadError);
-        // Fallback to proxy URL if S3 upload fails
-        result.videoUrl = `/api/sora_video/download?jobId=${jobId}`;
+        console.error("Error uploading to S3:", uploadError);
+        // Mark as failed instead of using fallback URL that expires
+        result.status = "failed";
+        result.error = "Failed to save video to storage. Please regenerate.";
       }
     }
 

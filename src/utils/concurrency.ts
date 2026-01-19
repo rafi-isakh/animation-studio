@@ -69,13 +69,13 @@ export async function processWithConcurrency<T, R>(
     const item = items[i];
     const index = i;
 
-    const promise = (async () => {
-      try {
-        const result = await processor(item, index);
+    const promise: Promise<void> = processor(item, index)
+      .then((result) => {
         results[index] = result;
         completed++;
         onProgress?.(completed, items.length, result);
-      } catch (err) {
+      })
+      .catch((err) => {
         const error = err instanceof Error ? err : new Error(String(err));
         errors.push({ index, error });
 
@@ -86,10 +86,10 @@ export async function processWithConcurrency<T, R>(
         if (stopOnError) {
           shouldStop = true;
         }
-      } finally {
+      })
+      .finally(() => {
         executing.delete(promise);
-      }
-    })();
+      });
 
     executing.add(promise);
 

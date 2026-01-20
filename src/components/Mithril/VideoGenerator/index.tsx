@@ -167,12 +167,6 @@ export default function VideoGenerator() {
           scenes: Scene[];
         } | null;
 
-        if (!imageGenResult?.frames || imageGenResult.frames.length === 0) {
-          setIsLoadingData(false);
-          setHasLoaded(true);
-          return;
-        }
-
         // 3. Load any previously saved video metadata and clips from Firestore
         let savedVideoMeta: {
           aspectRatio?: AspectRatio;
@@ -204,58 +198,55 @@ export default function VideoGenerator() {
           }
         }
 
-        // 4. Build clips array from ImageGen frames + storyboard video prompts
+        // 4. Build clips array from STORYBOARD (Stage 5) as primary source
+        // Then match with images from ImageGen (Stage 6) and saved video data
         const allClips: VideoClip[] = [];
 
-        // Group frames by sceneIndex and clipIndex (to handle A/B frames)
-        const framesByClip = new Map<
-          string,
-          typeof imageGenResult.frames
-        >();
-        imageGenResult.frames.forEach((frame) => {
-          const key = `${frame.sceneIndex}-${frame.clipIndex}`;
-          if (!framesByClip.has(key)) {
-            framesByClip.set(key, []);
-          }
-          framesByClip.get(key)!.push(frame);
-        });
-
-        // Create one video clip per unique sceneIndex-clipIndex combination
-        framesByClip.forEach((frames, key) => {
-          const [sceneIndexStr, clipIndexStr] = key.split("-");
-          const sceneIndex = parseInt(sceneIndexStr, 10);
-          const clipIndex = parseInt(clipIndexStr, 10);
-
-          // Get video prompts from storyboard
-          const scene = storyboardResult?.scenes?.[sceneIndex];
-          const storyboardClip = scene?.clips?.[clipIndex];
-
-          // Check if we have saved status for this clip
-          const savedClip = savedVideoClips.find(
-            (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
-          );
-
-          // Use the first frame's image (usually frame A)
-          const primaryFrame = frames[0];
-          const imageUrl = primaryFrame?.imageRef || null;
-
-          allClips.push({
-            clipIndex,
-            sceneIndex,
-            sceneTitle: scene?.sceneTitle || `Scene ${sceneIndex + 1}`,
-            videoPrompt: storyboardClip?.videoPrompt || "",
-            soraVideoPrompt: storyboardClip?.soraVideoPrompt || "",
-            length: storyboardClip?.length || "4초",
-            imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
-            videoUrl: savedClip?.videoRef || null,
-            jobId: savedClip?.jobId || null,
-            s3FileName: savedClip?.s3FileName || null,
-            status:
-              (savedClip?.status as VideoClip["status"]) || "pending",
-            error: savedClip?.error,
-            providerId: savedClip?.providerId,
+        // Build a lookup map for ImageGen frames by sceneIndex-clipIndex
+        const framesByClip = new Map<string, string | null>();
+        if (imageGenResult?.frames) {
+          imageGenResult.frames.forEach((frame) => {
+            const key = `${frame.sceneIndex}-${frame.clipIndex}`;
+            // Use the first frame's image (usually frame A) - don't overwrite if already set
+            if (!framesByClip.has(key) && frame.imageRef) {
+              framesByClip.set(key, frame.imageRef);
+            }
           });
-        });
+        }
+
+        // Build clips from storyboard scenes
+        if (storyboardResult?.scenes) {
+          storyboardResult.scenes.forEach((scene, sceneIndex) => {
+            if (scene.clips) {
+              scene.clips.forEach((storyboardClip, clipIndex) => {
+                // Check if we have an image from ImageGen
+                const key = `${sceneIndex}-${clipIndex}`;
+                const imageUrl = framesByClip.get(key) || null;
+
+                // Check if we have saved status for this clip
+                const savedClip = savedVideoClips.find(
+                  (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
+                );
+
+                allClips.push({
+                  clipIndex,
+                  sceneIndex,
+                  sceneTitle: scene.sceneTitle || `Scene ${sceneIndex + 1}`,
+                  videoPrompt: storyboardClip.videoPrompt || "",
+                  soraVideoPrompt: storyboardClip.soraVideoPrompt || "",
+                  length: storyboardClip.length || "4초",
+                  imageBase64: imageUrl, // May be null if image not generated yet
+                  videoUrl: savedClip?.videoRef || null,
+                  jobId: savedClip?.jobId || null,
+                  s3FileName: savedClip?.s3FileName || null,
+                  status: (savedClip?.status as VideoClip["status"]) || "pending",
+                  error: savedClip?.error,
+                  providerId: savedClip?.providerId,
+                });
+              });
+            }
+          });
+        }
 
         // Sort by sceneIndex, then clipIndex
         allClips.sort((a, b) => {
@@ -783,8 +774,8 @@ export default function VideoGenerator() {
             {phrase(dictionary, "sora_title", language)}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            No images found. Please generate and save images in Stage 6 (Image
-            Generator) first.
+            No clips found. Please generate and save storyboard in Stage 5
+            (Storyboard Generator) first.
           </p>
         </div>
       </div>

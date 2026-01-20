@@ -11,6 +11,7 @@ export interface ProjectMetadata {
   updatedAt: Timestamp;
   currentStage: number;
   customApiKey?: string;
+  videoApiKey?: string;
 }
 
 export interface CreateProjectInput {
@@ -21,6 +22,7 @@ export interface UpdateProjectInput {
   name?: string;
   currentStage?: number;
   customApiKey?: string;
+  videoApiKey?: string;
 }
 
 // ============================================
@@ -259,6 +261,7 @@ export type VideoStatus = 'pending' | 'generating' | 'completed' | 'failed';
 
 export interface VideoDocument {
   aspectRatio: AspectRatio;
+  providerId?: string; // Video provider used (e.g., 'sora')
   createdAt: Timestamp;
 }
 
@@ -273,6 +276,7 @@ export interface VideoClipDocument {
   s3FileName: string | null;
   status: VideoStatus;
   error?: string;
+  providerId?: string; // Video provider used for this clip
 }
 
 // ============================================
@@ -447,6 +451,7 @@ export interface UpdateVideoClipInput {
   s3FileName?: string | null;
   status?: VideoStatus;
   error?: string;
+  providerId?: string;
 }
 
 // ============================================

@@ -1,18 +1,25 @@
 "use client";
 
-import { Play, Download, AlertCircle, Loader2, Video, RefreshCw } from "lucide-react";
+import {
+  Play,
+  Download,
+  AlertCircle,
+  Loader2,
+  Video,
+  RefreshCw,
+} from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import type { SoraVideoClip, ClipStatus } from "./types";
+import type { VideoClip, ClipStatus } from "./types";
 
 // Helper to check if string is a URL
 function isUrl(str: string): boolean {
-  return str.startsWith('http://') || str.startsWith('https://');
+  return str.startsWith("http://") || str.startsWith("https://");
 }
 
 interface ClipCardProps {
-  clip: SoraVideoClip;
+  clip: VideoClip;
   onGenerate: (clipIndex: number, sceneIndex: number) => void;
   onRegenerate: (clipIndex: number, sceneIndex: number) => void;
   isGeneratingAll: boolean;
@@ -23,8 +30,10 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
 
   const styles: Record<ClipStatus, string> = {
     pending: "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
-    generating: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
-    completed: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    generating:
+      "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+    completed:
+      "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
     failed: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
   };
 
@@ -36,15 +45,30 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
   };
 
   return (
-    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${styles[status]}`}>
+    <span
+      className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${styles[status]}`}
+    >
       {phrase(dictionary, labelKeys[status], language)}
     </span>
   );
 };
 
-export default function ClipCard({ clip, onGenerate, onRegenerate, isGeneratingAll }: ClipCardProps) {
+export default function ClipCard({
+  clip,
+  onGenerate,
+  onRegenerate,
+  isGeneratingAll,
+}: ClipCardProps) {
   const { language, dictionary } = useLanguage();
-  const { clipIndex, sceneIndex, sceneTitle, imageBase64, videoUrl, status, error } = clip;
+  const {
+    clipIndex,
+    sceneIndex,
+    sceneTitle,
+    imageBase64,
+    videoUrl,
+    status,
+    error,
+  } = clip;
 
   const handleDownload = () => {
     if (videoUrl) {
@@ -72,7 +96,11 @@ export default function ClipCard({ clip, onGenerate, onRegenerate, isGeneratingA
         ) : imageBase64 ? (
           // Show storyboard image (S3 URL or base64)
           <Image
-            src={isUrl(imageBase64) ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`}
+            src={
+              isUrl(imageBase64)
+                ? imageBase64
+                : `data:image/jpeg;base64,${imageBase64}`
+            }
             alt={`Clip ${sceneIndex + 1}-${clipIndex + 1}`}
             fill
             className="object-cover"

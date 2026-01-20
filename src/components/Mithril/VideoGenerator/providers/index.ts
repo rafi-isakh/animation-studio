@@ -2,10 +2,12 @@
 
 import type { VideoProvider, ProviderInfo, ProviderConstraints } from "./types";
 import { soraProvider } from "./sora";
+import { veo3Provider } from "./veo3";
 
 // Provider registry - add new providers here
-const providers: Map<string, VideoProvider> = new Map([
-  [soraProvider.id, soraProvider],
+const providers = new Map<string, VideoProvider>([
+  [soraProvider.id, soraProvider as VideoProvider],
+  [veo3Provider.id, veo3Provider as VideoProvider],
 ]);
 
 /**
@@ -72,3 +74,4 @@ export * from "./types";
 
 // Re-export individual providers for direct access if needed
 export { soraProvider } from "./sora";
+export { veo3Provider } from "./veo3";

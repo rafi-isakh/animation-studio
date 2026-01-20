@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { submitToSora, validateSoraRequest } from "../providers/sora";
+import { submitToVeo3, validateVeo3Request } from "../providers/veo3";
 
 export const maxDuration = 300; // Allow up to 5 minutes for job submission
 
@@ -56,6 +57,50 @@ export async function POST(request: NextRequest) {
                 {
                   error:
                     "Insufficient API quota. Please check your OpenAI account.",
+                },
+                { status: 402 }
+              );
+            }
+            return NextResponse.json({ error: error.message }, { status: 500 });
+          }
+          throw error;
+        }
+      }
+
+      case "veo3": {
+        // Validate request
+        const validationError = validateVeo3Request({
+          prompt,
+          imageBase64,
+          duration,
+          aspectRatio,
+        });
+        if (validationError) {
+          return NextResponse.json({ error: validationError }, { status: 400 });
+        }
+
+        try {
+          const result = await submitToVeo3({
+            prompt,
+            imageBase64,
+            duration,
+            aspectRatio,
+          }, customApiKey);
+          return NextResponse.json(result);
+        } catch (error) {
+          if (error instanceof Error) {
+            // Check for specific Google API errors
+            if (error.message.includes("rate limit") || error.message.includes("RATE_LIMIT")) {
+              return NextResponse.json(
+                { error: "Rate limit exceeded. Please try again later." },
+                { status: 429 }
+              );
+            }
+            if (error.message.includes("quota") || error.message.includes("QUOTA")) {
+              return NextResponse.json(
+                {
+                  error:
+                    "Insufficient API quota. Please check your Google Cloud account.",
                 },
                 { status: 402 }
               );

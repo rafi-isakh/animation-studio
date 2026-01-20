@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkSoraStatus } from "../providers/sora";
+import { checkVeo3Status } from "../providers/veo3";
 
 export const maxDuration = 120; // Allow up to 2 minutes for status check + S3 upload
 
@@ -23,6 +24,24 @@ export async function GET(request: NextRequest) {
         } catch (error) {
           if (error instanceof Error) {
             if (error.message.includes("not found")) {
+              return NextResponse.json(
+                { error: "Job not found. It may have expired." },
+                { status: 404 }
+              );
+            }
+            return NextResponse.json({ error: error.message }, { status: 500 });
+          }
+          throw error;
+        }
+      }
+
+      case "veo3": {
+        try {
+          const result = await checkVeo3Status(jobId, customApiKey);
+          return NextResponse.json(result);
+        } catch (error) {
+          if (error instanceof Error) {
+            if (error.message.includes("not found") || error.message.includes("NOT_FOUND")) {
               return NextResponse.json(
                 { error: "Job not found. It may have expired." },
                 { status: 404 }

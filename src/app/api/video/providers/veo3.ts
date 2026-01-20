@@ -143,8 +143,7 @@ export async function submitToVeo3(
   };
 
   // Build request with or without image
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const requestBody: any = {
+  const requestBody: Record<string, unknown> = {
     model: "veo-3.1-generate-preview",
     prompt,
     config,
@@ -174,8 +173,9 @@ export async function submitToVeo3(
   console.log("[veo3] Has image:", !!imageBase64);
 
   // Submit the video generation job
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const operation = await (ai.models as any).generateVideos(requestBody);
+  // Cast to unknown first to avoid type incompatibility
+  const models = ai.models as unknown as { generateVideos: (body: unknown) => Promise<{ name?: string; operationName?: string; id?: string; operationId?: string }> };
+  const operation = await models.generateVideos(requestBody);
 
   console.log("[veo3] Operation response:", JSON.stringify(operation, null, 2));
 
@@ -208,8 +208,6 @@ export async function checkVeo3Status(
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
-
-  const ai = new GoogleGenAI({ apiKey });
 
   console.log("[veo3] Checking status for operation:", jobId);
 

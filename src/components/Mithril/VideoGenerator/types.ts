@@ -13,6 +13,7 @@ export interface VideoClip {
   sceneTitle: string;
   videoPrompt: string;
   soraVideoPrompt: string; // Provider-specific prompt (kept for backwards compatibility)
+  customPrompt?: string; // User-edited prompt (overrides soraVideoPrompt/videoPrompt)
   length: string; // "1초" or "2초"
   imageBase64: string | null; // From ImageGen (Stage 6)
   videoUrl: string | null;

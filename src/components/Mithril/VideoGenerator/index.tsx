@@ -333,9 +333,24 @@ export default function VideoGenerator() {
     [currentProjectId, aspectRatio, selectedProvider, setStageResult]
   );
 
+  // Update custom prompt for a clip
+  const updateClipPrompt = useCallback(
+    (clipIndex: number, sceneIndex: number, prompt: string) => {
+      setClips((prev) =>
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+            ? { ...c, customPrompt: prompt }
+            : c
+        )
+      );
+      setIsSaved(false);
+    },
+    []
+  );
+
   // Generate a single clip
   const generateClip = useCallback(
-    async (clipIndex: number, sceneIndex: number) => {
+    async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
       const clipArrayIndex = clips.findIndex(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
@@ -372,8 +387,8 @@ export default function VideoGenerator() {
             : prev
         );
 
-        // 1. Submit job
-        const promptToUse = clip.soraVideoPrompt || clip.videoPrompt;
+        // 1. Submit job - use custom prompt if provided, otherwise fall back
+        const promptToUse = customPrompt || clip.customPrompt || clip.soraVideoPrompt || clip.videoPrompt;
 
         const submitResponse = await fetch("/api/video/submit", {
           method: "POST",
@@ -511,7 +526,7 @@ export default function VideoGenerator() {
 
   // Regenerate a single clip (reset and generate)
   const regenerateClip = useCallback(
-    async (clipIndex: number, sceneIndex: number) => {
+    async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
       const clipArrayIndex = clips.findIndex(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
@@ -533,8 +548,8 @@ export default function VideoGenerator() {
         )
       );
 
-      // Then generate
-      await generateClip(clipIndex, sceneIndex);
+      // Then generate with custom prompt if provided
+      await generateClip(clipIndex, sceneIndex, customPrompt);
     },
     [clips, generateClip]
   );
@@ -799,7 +814,7 @@ export default function VideoGenerator() {
         {/* Provider Selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Video Provider
+            {phrase(dictionary, "video_api", language)}
           </label>
           <div className="max-w-xs">
             <ProviderSelector
@@ -956,6 +971,7 @@ export default function VideoGenerator() {
             clip={clip}
             onGenerate={generateClip}
             onRegenerate={regenerateClip}
+            onUpdatePrompt={updateClipPrompt}
             isGeneratingAll={isGeneratingAll}
           />
         ))}

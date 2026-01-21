@@ -242,14 +242,14 @@ function MithrilContent() {
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4" />
-                  Custom API Key (Video)
+                  {phrase(dictionary, "mithril_gemini_video_api_key", language)}
                 </label>
                 <div className="relative">
                   <input
                     type={showVideoApiKey ? "text" : "password"}
                     value={videoApiKey}
                     onChange={(e) => setVideoApiKey(e.target.value)}
-                    placeholder="Enter your custom API Key"
+                    placeholder={phrase(dictionary, "mithril_gemini_api_key_placeholder", language)}
                     className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 pr-10 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
                   />
                   <button

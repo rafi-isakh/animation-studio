@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Play,
   Download,
@@ -7,6 +8,9 @@ import {
   Loader2,
   Video,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
 } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,8 +24,9 @@ function isUrl(str: string): boolean {
 
 interface ClipCardProps {
   clip: VideoClip;
-  onGenerate: (clipIndex: number, sceneIndex: number) => void;
-  onRegenerate: (clipIndex: number, sceneIndex: number) => void;
+  onGenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
+  onRegenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
+  onUpdatePrompt: (clipIndex: number, sceneIndex: number, prompt: string) => void;
   isGeneratingAll: boolean;
 }
 
@@ -57,9 +62,13 @@ export default function ClipCard({
   clip,
   onGenerate,
   onRegenerate,
+  onUpdatePrompt,
   isGeneratingAll,
 }: ClipCardProps) {
   const { language, dictionary } = useLanguage();
+  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState("");
+
   const {
     clipIndex,
     sceneIndex,
@@ -68,7 +77,13 @@ export default function ClipCard({
     videoUrl,
     status,
     error,
+    soraVideoPrompt,
+    videoPrompt,
+    customPrompt,
   } = clip;
+
+  // Use custom prompt if set, otherwise fall back to soraVideoPrompt or videoPrompt
+  const currentPrompt = customPrompt || soraVideoPrompt || videoPrompt || "";
 
   const handleDownload = () => {
     if (videoUrl) {
@@ -79,6 +94,41 @@ export default function ClipCard({
       link.click();
       document.body.removeChild(link);
     }
+  };
+
+  const handleTogglePrompt = () => {
+    if (!isPromptExpanded) {
+      // Initialize edited prompt with current prompt when expanding
+      setEditedPrompt(currentPrompt);
+    }
+    setIsPromptExpanded(!isPromptExpanded);
+  };
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedPrompt(e.target.value);
+  };
+
+  const handleSavePrompt = () => {
+    onUpdatePrompt(clipIndex, sceneIndex, editedPrompt);
+    setIsPromptExpanded(false);
+  };
+
+  const handleGenerateWithPrompt = () => {
+    // Save the prompt first if it was edited
+    if (editedPrompt && editedPrompt !== currentPrompt) {
+      onUpdatePrompt(clipIndex, sceneIndex, editedPrompt);
+    }
+    onGenerate(clipIndex, sceneIndex, editedPrompt || currentPrompt);
+    setIsPromptExpanded(false);
+  };
+
+  const handleRegenerateWithPrompt = () => {
+    // Save the prompt first if it was edited
+    if (editedPrompt && editedPrompt !== currentPrompt) {
+      onUpdatePrompt(clipIndex, sceneIndex, editedPrompt);
+    }
+    onRegenerate(clipIndex, sceneIndex, editedPrompt || currentPrompt);
+    setIsPromptExpanded(false);
   };
 
   return (
@@ -145,37 +195,88 @@ export default function ClipCard({
           </p>
         )}
 
-        {/* Action buttons */}
-        <div className="flex gap-1">
-          {status === "completed" && videoUrl ? (
-            <>
+        {/* Prompt Editor Toggle */}
+        <button
+          onClick={handleTogglePrompt}
+          className="w-full flex items-center justify-between gap-1 py-1 px-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 text-[10px] font-medium rounded transition-colors"
+        >
+          <span className="flex items-center gap-1">
+            <Edit3 size={12} />
+            {customPrompt ? "Custom Prompt" : phrase(dictionary, "prompt", language)}
+          </span>
+          {isPromptExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        </button>
+
+        {/* Expanded Prompt Editor */}
+        {isPromptExpanded && (
+          <div className="space-y-2">
+            <textarea
+              value={editedPrompt}
+              onChange={handlePromptChange}
+              placeholder="Enter video generation prompt..."
+              className="w-full h-24 p-2 text-[10px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded resize-none focus:outline-none focus:ring-1 focus:ring-[#DB2777]"
+            />
+            <div className="flex gap-1">
               <button
-                onClick={handleDownload}
-                className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors"
+                onClick={handleSavePrompt}
+                className="flex-1 py-1 px-2 bg-gray-500 hover:bg-gray-600 text-white text-[10px] font-medium rounded transition-colors"
               >
-                <Download size={14} />
-                <span>{phrase(dictionary, "sora_clip_download", language)}</span>
+                {phrase(dictionary, "sora_save", language)}
               </button>
+              {status === "completed" ? (
+                <button
+                  onClick={handleRegenerateWithPrompt}
+                  disabled={isGeneratingAll || !editedPrompt.trim()}
+                  className="flex-1 py-1 px-2 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {phrase(dictionary, "sora_clip_regenerate", language)}
+                </button>
+              ) : (
+                <button
+                  onClick={handleGenerateWithPrompt}
+                  disabled={status === "generating" || isGeneratingAll || !editedPrompt.trim()}
+                  className="flex-1 py-1 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-[10px] font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {phrase(dictionary, "generateButton", language)}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons (only show when prompt editor is collapsed) */}
+        {!isPromptExpanded && (
+          <div className="flex gap-1">
+            {status === "completed" && videoUrl ? (
+              <>
+                <button
+                  onClick={handleDownload}
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors"
+                >
+                  <Download size={14} />
+                  <span>{phrase(dictionary, "sora_clip_download", language)}</span>
+                </button>
+                <button
+                  onClick={() => onRegenerate(clipIndex, sceneIndex)}
+                  disabled={isGeneratingAll}
+                  className="flex items-center justify-center gap-1 py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={phrase(dictionary, "sora_clip_regenerate", language)}
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => onRegenerate(clipIndex, sceneIndex)}
-                disabled={isGeneratingAll}
-                className="flex items-center justify-center gap-1 py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={phrase(dictionary, "sora_clip_regenerate", language)}
+                onClick={() => onGenerate(clipIndex, sceneIndex)}
+                disabled={status === "generating" || isGeneratingAll}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw size={14} />
+                <Play size={14} />
+                <span>{phrase(dictionary, "sora_clip_generate", language)}</span>
               </button>
-            </>
-          ) : (
-            <button
-              onClick={() => onGenerate(clipIndex, sceneIndex)}
-              disabled={status === "generating" || isGeneratingAll || !imageBase64}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Play size={14} />
-              <span>{phrase(dictionary, "sora_clip_generate", language)}</span>
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

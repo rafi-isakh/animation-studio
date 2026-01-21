@@ -28,7 +28,8 @@ export interface Background {
   name: string;
   description: string;
   images: GeneratedImage[];
-  referenceImageBase64?: string;       // Master reference image
+  referenceImageBase64?: string;       // Master reference image (in-memory before S3 upload)
+  referenceImageUrl?: string;          // Master reference image S3 URL (after upload or when loaded)
   referenceAnalysis?: ReferenceAnalysis; // Spatial analysis of reference
   plannedPrompts?: string[];           // Array of 9 prompts (N-1 to N-9)
   isSequentiallyGenerating?: boolean;  // Whether batch generation is running
@@ -54,6 +55,9 @@ export interface BackgroundMetadata {
   name: string;
   description: string;
   images: GeneratedImageMetadata[];
+  referenceImageUrl?: string;          // S3 URL for master reference image
+  referenceAnalysis?: ReferenceAnalysis; // Spatial analysis of reference
+  plannedPrompts?: string[];           // Array of 9 prompts
 }
 
 export interface BgSheetResultMetadata {

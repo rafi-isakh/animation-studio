@@ -25,6 +25,8 @@ export {
   uploadBackgroundImage,
   deleteBackgroundImage,
   deleteAllBackgroundImages,
+  uploadBackgroundReferenceImage,
+  deleteBackgroundReferenceImage,
   // Storyboard images
   uploadStoryboardImage,
   deleteStoryboardImage,

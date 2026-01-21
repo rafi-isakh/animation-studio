@@ -334,9 +334,13 @@ export default function CharacterSheetGenerator() {
       setGenre(contextResult.genre);
     }
 
-    // Load style slots if available
+    // Load style slots if available - with cache-busting for URLs
     if (contextResult.styleSlots && contextResult.styleSlots.length > 0) {
-      setStyleSlots(contextResult.styleSlots);
+      const slotsWithCacheBust = contextResult.styleSlots.map((slot) => ({
+        ...slot,
+        imageUrl: addCacheBust(slot.imageUrl),
+      }));
+      setStyleSlots(slotsWithCacheBust);
     }
 
     // Load active style index if available
@@ -1134,6 +1138,7 @@ Style: ${styleKeyword}`;
       );
 
       // Auto-select this slot if no active slot
+      const newActiveIndex = activeStyleIndex === null ? index : activeStyleIndex;
       if (activeStyleIndex === null) {
         setActiveStyleIndex(index);
       }
@@ -1142,17 +1147,27 @@ Style: ${styleKeyword}`;
       if (currentProjectId) {
         try {
           const imageUrl = await uploadStyleSlotImage(currentProjectId, index, base64);
-          setStyleSlots((prev) =>
-            prev.map((slot, i) =>
-              i === index ? { ...slot, imageUrl, imageBase64: "" } : slot
-            )
-          );
-          // Convert StyleSlot to StyleSlotDocument format (imageUrl -> imageRef)
-          await saveFirestoreStyleSlots(currentProjectId, styleSlots.map((slot, i) => ({
-            id: slot.id,
-            name: slot.name,
-            imageRef: i === index ? imageUrl : (slot.imageUrl || slot.imageBase64 || ""),
-          })), activeStyleIndex === null ? index : activeStyleIndex);
+          // Add cache-busting to force browser to load new image
+          const imageUrlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
+
+          // Update local state and save to Firestore with the SAME updated data
+          setStyleSlots((prev) => {
+            const updatedSlots = prev.map((slot, i) =>
+              i === index ? { ...slot, imageUrl: imageUrlWithCacheBust, imageBase64: "" } : slot
+            );
+
+            // Save to Firestore using the URL WITHOUT cache-bust (clean URL)
+            const slotsForFirestore = updatedSlots.map((slot) => ({
+              id: slot.id,
+              name: slot.name,
+              // Remove cache-bust query param for storage
+              imageRef: slot.imageUrl?.split("?")[0] || "",
+            }));
+            saveFirestoreStyleSlots(currentProjectId, slotsForFirestore, newActiveIndex)
+              .catch(err => console.error("Failed to save style slots to Firestore:", err));
+
+            return updatedSlots;
+          });
         } catch (err) {
           console.error("Failed to upload style slot image:", err);
         }
@@ -1171,14 +1186,31 @@ Style: ${styleKeyword}`;
 
   // Handle style slot deletion
   const handleStyleSlotDelete = (index: number) => {
-    setStyleSlots((prev) =>
-      prev.map((slot, i) =>
-        i === index ? { ...slot, imageBase64: "", imageUrl: undefined } : slot
-      )
-    );
+    const newActiveIndex = activeStyleIndex === index ? null : activeStyleIndex;
+
     if (activeStyleIndex === index) {
       setActiveStyleIndex(null);
     }
+
+    setStyleSlots((prev) => {
+      const updatedSlots = prev.map((slot, i) =>
+        i === index ? { ...slot, imageBase64: "", imageUrl: undefined } : slot
+      );
+
+      // Auto-save to Firestore
+      if (currentProjectId) {
+        const slotsForFirestore = updatedSlots.map((slot) => ({
+          id: slot.id,
+          name: slot.name,
+          imageRef: slot.imageUrl || "",
+        }));
+        saveFirestoreStyleSlots(currentProjectId, slotsForFirestore, newActiveIndex)
+          .catch(err => console.error("Failed to save style slot deletion to Firestore:", err));
+      }
+
+      return updatedSlots;
+    });
+
     setIsSaved(false);
   };
 

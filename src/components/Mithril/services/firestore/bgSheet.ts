@@ -16,6 +16,7 @@ import {
   BgSheetDocument,
   BackgroundDocument,
   BackgroundAngleImage,
+  BackgroundReferenceAnalysis,
   SaveBgSheetSettingsInput,
   SaveBackgroundInput,
   UpdateBackgroundInput,
@@ -109,11 +110,26 @@ export async function saveBackgroundWithId(
   input: SaveBackgroundInput
 ): Promise<void> {
   const docRef = getBackgroundRef(projectId, bgId);
-  await setDoc(docRef, {
+
+  // Build document data, only including defined fields
+  const docData: Record<string, unknown> = {
     name: input.name,
     description: input.description,
     angles: input.angles || [],
-  });
+  };
+
+  // Add optional reference data fields if provided
+  if (input.referenceImageRef !== undefined) {
+    docData.referenceImageRef = input.referenceImageRef;
+  }
+  if (input.referenceAnalysis !== undefined) {
+    docData.referenceAnalysis = input.referenceAnalysis;
+  }
+  if (input.plannedPrompts !== undefined) {
+    docData.plannedPrompts = input.plannedPrompts;
+  }
+
+  await setDoc(docRef, docData);
 }
 
 /**
@@ -171,6 +187,70 @@ export async function updateBackgroundAngleImage(
     description: bgDescription || '',
     angles,
   }, { merge: true });
+}
+
+/**
+ * Update background reference data (master reference image, analysis, and planned prompts)
+ * Creates the background document if it doesn't exist (upsert behavior)
+ */
+export async function updateBackgroundReferenceData(
+  projectId: string,
+  bgId: string,
+  data: {
+    referenceImageRef?: string | null;
+    referenceAnalysis?: BackgroundReferenceAnalysis | null;
+    plannedPrompts?: string[] | null;
+  },
+  bgName?: string,
+  bgDescription?: string
+): Promise<void> {
+  const docRef = getBackgroundRef(projectId, bgId);
+  const docSnap = await getDoc(docRef);
+
+  // Build update object
+  const updates: Record<string, unknown> = {};
+
+  // Handle reference image URL
+  if (data.referenceImageRef !== undefined) {
+    if (data.referenceImageRef === null) {
+      // To delete a field in Firestore, we need to use deleteField()
+      // But with setDoc merge, we can just set it to undefined
+      updates.referenceImageRef = null;
+    } else {
+      updates.referenceImageRef = data.referenceImageRef;
+    }
+  }
+
+  // Handle reference analysis
+  if (data.referenceAnalysis !== undefined) {
+    if (data.referenceAnalysis === null) {
+      updates.referenceAnalysis = null;
+    } else {
+      updates.referenceAnalysis = data.referenceAnalysis;
+    }
+  }
+
+  // Handle planned prompts
+  if (data.plannedPrompts !== undefined) {
+    if (data.plannedPrompts === null) {
+      updates.plannedPrompts = null;
+    } else {
+      updates.plannedPrompts = data.plannedPrompts;
+    }
+  }
+
+  if (docSnap.exists()) {
+    // Document exists, just update the reference data
+    await setDoc(docRef, updates, { merge: true });
+  } else {
+    // Document doesn't exist, create it with basic info and reference data
+    await setDoc(docRef, {
+      name: bgName || `Background ${bgId}`,
+      description: bgDescription || '',
+      angles: [],
+      ...updates,
+    });
+  }
 }
 
 /**

@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId } from "../services/firestore";
-import { uploadBackgroundImage } from "../services/s3";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds } from "../services/firestore";
+import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -578,7 +578,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
       return;
     }
 
-    const hydrateFromContext = () => {
+    const hydrateFromContext = async () => {
       setIsLoadingData(true);
       try {
         // Reconstruct backgrounds with S3 URLs from context
@@ -606,6 +606,10 @@ Image Cost: $${currentImageCost.toFixed(4)}
                 isActive: true,
                 isPromptOpen: false,
               })),
+          // Load reference data from context if available
+          referenceImageUrl: bgMeta.referenceImageUrl,
+          referenceAnalysis: bgMeta.referenceAnalysis,
+          plannedPrompts: bgMeta.plannedPrompts,
         }));
 
         // Mark as hydrated BEFORE setting state to prevent re-runs
@@ -615,6 +619,29 @@ Image Cost: $${currentImageCost.toFixed(4)}
         setStyleKeyword(contextResult.styleKeyword);
         setBackgroundBasePrompt(contextResult.backgroundBasePrompt);
         setIsSaved(true);
+
+        // If we have a projectId but context doesn't have reference data, load from Firestore
+        if (currentProjectId) {
+          try {
+            const firestoreBackgrounds = await getBackgrounds(currentProjectId);
+            if (firestoreBackgrounds.length > 0) {
+              setBackgrounds(prevBgs => prevBgs.map(bg => {
+                const firestoreBg = firestoreBackgrounds.find(fb => fb.id === bg.id);
+                if (firestoreBg && (firestoreBg.referenceImageRef || firestoreBg.referenceAnalysis || firestoreBg.plannedPrompts)) {
+                  return {
+                    ...bg,
+                    referenceImageUrl: firestoreBg.referenceImageRef || bg.referenceImageUrl,
+                    referenceAnalysis: firestoreBg.referenceAnalysis || bg.referenceAnalysis,
+                    plannedPrompts: firestoreBg.plannedPrompts || bg.plannedPrompts,
+                  };
+                }
+                return bg;
+              }));
+            }
+          } catch (error) {
+            console.error("Failed to load reference data from Firestore:", error);
+          }
+        }
       } catch {
         // Ignore errors
         hasHydratedRef.current = true;
@@ -623,7 +650,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
     };
 
     hydrateFromContext();
-  }, [contextResult]);
+  }, [contextResult, currentProjectId]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -1240,12 +1267,17 @@ Image Cost: $${currentImageCost.toFixed(4)}
   // === Master Reference Handlers ===
 
   // Set reference image and analyze it for spatial elements
+  // Also uploads to S3 and saves to Firestore for persistence
   const handleSetReferenceImage = async (bgId: string, base64: string) => {
-    // Set the reference image only (don't auto-populate first view)
-    setBackgrounds(bgs => bgs.map(bg =>
-      bg.id === bgId ? { ...bg, referenceImageBase64: base64 } : bg
+    const bg = backgrounds.find(b => b.id === bgId);
+
+    // Set the reference image locally (don't auto-populate first view)
+    setBackgrounds(bgs => bgs.map(b =>
+      b.id === bgId ? { ...b, referenceImageBase64: base64 } : b
     ));
     setIsSaved(false);
+
+    let analysisResult: ReferenceAnalysis | undefined;
 
     // Analyze reference image for spatial elements
     try {
@@ -1257,12 +1289,44 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
       const data = await response.json();
       if (response.ok && data.analysis) {
-        setBackgrounds(bgs => bgs.map(bg =>
-          bg.id === bgId ? { ...bg, referenceAnalysis: data.analysis as ReferenceAnalysis } : bg
+        analysisResult = data.analysis as ReferenceAnalysis;
+        setBackgrounds(bgs => bgs.map(b =>
+          b.id === bgId ? { ...b, referenceAnalysis: analysisResult } : b
         ));
       }
     } catch (e) {
       console.error("Failed to analyze reference image:", e);
+    }
+
+    // Upload to S3 and save to Firestore for persistence
+    if (currentProjectId) {
+      try {
+        // Upload reference image to S3
+        const referenceImageUrl = await uploadBackgroundReferenceImage(currentProjectId, bgId, base64);
+
+        // Update local state with S3 URL
+        const urlWithCacheBust = `${referenceImageUrl}?t=${Date.now()}`;
+        setBackgrounds(bgs => bgs.map(b =>
+          b.id === bgId ? { ...b, referenceImageUrl: urlWithCacheBust } : b
+        ));
+
+        // Save to Firestore
+        await updateBackgroundReferenceData(
+          currentProjectId,
+          bgId,
+          {
+            referenceImageRef: referenceImageUrl,
+            referenceAnalysis: analysisResult || null,
+          },
+          bg?.name,
+          bg?.description
+        );
+
+        setIsSaved(true);
+      } catch (error) {
+        console.error("Failed to persist reference image:", error);
+        // Don't show error toast - the image is still usable locally
+      }
     }
   };
 
@@ -1318,14 +1382,43 @@ Image Cost: $${currentImageCost.toFixed(4)}
     }
   };
 
-  // Remove reference image
-  const handleRemoveReference = (bgId: string) => {
-    setBackgrounds(bgs => bgs.map(bg =>
-      bg.id === bgId
-        ? { ...bg, referenceImageBase64: undefined, referenceAnalysis: undefined, plannedPrompts: undefined }
-        : bg
+  // Remove reference image (also deletes from S3 and Firestore)
+  const handleRemoveReference = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+
+    // Update local state
+    setBackgrounds(bgs => bgs.map(b =>
+      b.id === bgId
+        ? { ...b, referenceImageBase64: undefined, referenceImageUrl: undefined, referenceAnalysis: undefined, plannedPrompts: undefined }
+        : b
     ));
     setIsSaved(false);
+
+    // Delete from S3 and Firestore
+    if (currentProjectId) {
+      try {
+        // Delete from S3
+        await deleteBackgroundReferenceImage(currentProjectId, bgId);
+
+        // Clear reference data in Firestore
+        await updateBackgroundReferenceData(
+          currentProjectId,
+          bgId,
+          {
+            referenceImageRef: null,
+            referenceAnalysis: null,
+            plannedPrompts: null,
+          },
+          bg?.name,
+          bg?.description
+        );
+
+        setIsSaved(true);
+      } catch (error) {
+        console.error("Failed to delete reference image from storage:", error);
+        // Don't show error toast - the image is already removed locally
+      }
+    }
   };
 
   // Use a generated image as the master reference
@@ -1386,16 +1479,39 @@ Image Cost: $${currentImageCost.toFixed(4)}
   // Plan prompts for all 9 angles based on reference image
   const handlePlanPrompts = async (bgId: string) => {
     const bg = backgrounds.find(b => b.id === bgId);
-    if (!bg || !bg.referenceImageBase64 || isPlanningPrompts[bgId]) return;
+    if (!bg || (!bg.referenceImageBase64 && !bg.referenceImageUrl) || isPlanningPrompts[bgId]) return;
 
     setIsPlanningPrompts(prev => ({ ...prev, [bgId]: true }));
 
     try {
+      // Get base64 image - either from memory or fetch from URL
+      let imageBase64 = bg.referenceImageBase64;
+      if (!imageBase64 && bg.referenceImageUrl) {
+        // Fetch from URL via proxy and convert to base64
+        const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(bg.referenceImageUrl.split("?")[0])}`;
+        const imageResponse = await fetch(proxyUrl);
+        if (!imageResponse.ok) throw new Error("Failed to fetch reference image");
+        const blob = await imageResponse.blob();
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            resolve(result.split(",")[1]); // Remove data URL prefix
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        // Also update local state with the fetched base64
+        setBackgrounds(bgs => bgs.map(b =>
+          b.id === bgId ? { ...b, referenceImageBase64: imageBase64 } : b
+        ));
+      }
+
       const response = await fetch("/api/generate_bg_sheet/plan-prompts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imageBase64: bg.referenceImageBase64,
+          imageBase64,
           backgroundDesc: bg.description,
           customApiKey: customApiKey || undefined,
         }),
@@ -1409,6 +1525,22 @@ Image Cost: $${currentImageCost.toFixed(4)}
           b.id === bgId ? { ...b, plannedPrompts: data.prompts } : b
         ));
         setIsSaved(false);
+
+        // Save planned prompts to Firestore
+        if (currentProjectId) {
+          try {
+            await updateBackgroundReferenceData(
+              currentProjectId,
+              bgId,
+              { plannedPrompts: data.prompts },
+              bg.name,
+              bg.description
+            );
+            setIsSaved(true);
+          } catch (error) {
+            console.error("Failed to save planned prompts to Firestore:", error);
+          }
+        }
 
         toast({
           variant: "success",
@@ -1664,8 +1796,38 @@ Image Cost: $${currentImageCost.toFixed(4)}
     const baseStylePrompt = `${backgroundBasePrompt}. Description: ${background.description}. Style: ${styleKeyword}.`;
 
     // Get reference image for consistency (master ref or first generated image)
-    const refImage = background.referenceImageBase64 ||
-      (index !== 0 && background.images[0]?.imageBase64 ? background.images[0].imageBase64 : null);
+    // Priority: base64 in memory > URL-fetched base64 > first generated image
+    let refImage: string | undefined = background.referenceImageBase64 ||
+      (index !== 0 && background.images[0]?.imageBase64 ? background.images[0].imageBase64 : undefined);
+
+    // If we have a URL but no base64, fetch and cache it
+    if (!refImage && background.referenceImageUrl) {
+      try {
+        const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(background.referenceImageUrl.split("?")[0])}`;
+        const imageResponse = await fetch(proxyUrl);
+        if (imageResponse.ok) {
+          const blob = await imageResponse.blob();
+          const fetchedBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const result = reader.result as string;
+              resolve(result.split(",")[1]); // Remove data URL prefix
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          refImage = fetchedBase64;
+          // Cache the base64 in local state for future use
+          setBackgrounds(prevBgs =>
+            prevBgs.map(bg =>
+              bg.id === bgId ? { ...bg, referenceImageBase64: fetchedBase64 } : bg
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch reference image from URL:", error);
+      }
+    }
 
     // Determine final prompt - priority: existing prompt > planned prompt > csvContext-enhanced > auto-generated
     let prompt: string;
@@ -2639,7 +2801,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
                     <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
                     </h4>
-                    {bg.referenceImageBase64 && (
+                    {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
                       <button
                         onClick={() => handleRemoveReference(bg.id)}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
@@ -2650,13 +2812,13 @@ Image Cost: $${currentImageCost.toFixed(4)}
                     )}
                   </div>
 
-                  {bg.referenceImageBase64 ? (
+                  {(bg.referenceImageBase64 || bg.referenceImageUrl) ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Column: Image */}
                       <div>
                         <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                           <img
-                            src={`data:image/jpeg;base64,${bg.referenceImageBase64}`}
+                            src={bg.referenceImageBase64 ? `data:image/jpeg;base64,${bg.referenceImageBase64}` : bg.referenceImageUrl}
                             alt="Master Reference"
                             className="w-full h-full object-cover"
                           />

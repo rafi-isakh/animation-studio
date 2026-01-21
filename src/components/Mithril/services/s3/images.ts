@@ -197,6 +197,67 @@ export async function deleteAllBackgroundImages(
   }
 }
 
+/**
+ * Upload a background reference image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadBackgroundReferenceImage(
+  projectId: string,
+  bgId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'background',
+    bgId,
+    angle: '_reference', // Special angle name for reference image
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload background reference image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a background reference image from S3
+ */
+export async function deleteBackgroundReferenceImage(
+  projectId: string,
+  bgId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'background',
+    bgId,
+    angle: '_reference', // Special angle name for reference image
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete background reference image');
+  }
+}
+
 // ============================================================================
 // Storyboard Images
 // ============================================================================

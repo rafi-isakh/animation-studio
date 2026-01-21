@@ -125,6 +125,10 @@ export function getBackgroundFolderPrefix(projectId: string, bgId: string): stri
   return `${S3_BASE_PATH}/${projectId}/backgrounds/${bgId}/`;
 }
 
+export function getBackgroundReferenceImageKey(projectId: string, bgId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/backgrounds/${bgId}/_reference.webp`;
+}
+
 export function getStoryboardImageKey(projectId: string, sceneIndex: number, clipIndex: number): string {
   return `${S3_BASE_PATH}/${projectId}/storyboard/${sceneIndex}_${clipIndex}.webp`;
 }

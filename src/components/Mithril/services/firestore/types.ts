@@ -142,11 +142,25 @@ export interface BackgroundAngleImage {
   prompt: string;
 }
 
+export interface BackgroundReferenceAnalysis {
+  floorType: string;
+  rightObject: string;
+  leftObject: string;
+  rearObject: string;
+  ceilingObject: string;
+  topLeftObject: string;
+  topRightObject: string;
+}
+
 export interface BackgroundDocument {
   id: string;
   name: string;
   description: string;
   angles: BackgroundAngleImage[];
+  // Master reference image and related data
+  referenceImageRef?: string; // S3 URL for reference image
+  referenceAnalysis?: BackgroundReferenceAnalysis; // Spatial analysis
+  plannedPrompts?: string[]; // Array of 9 prompts
 }
 
 // ============================================
@@ -384,11 +398,17 @@ export interface SaveBackgroundInput {
   name: string;
   description: string;
   angles?: BackgroundAngleImage[];
+  referenceImageRef?: string;
+  referenceAnalysis?: BackgroundReferenceAnalysis;
+  plannedPrompts?: string[];
 }
 
 export interface UpdateBackgroundInput {
   name?: string;
   description?: string;
+  referenceImageRef?: string;
+  referenceAnalysis?: BackgroundReferenceAnalysis;
+  plannedPrompts?: string[];
 }
 
 export interface SaveSceneInput {

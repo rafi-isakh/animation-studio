@@ -285,6 +285,14 @@ export default function CharacterSheetGenerator() {
 
     // Reconstruct characters with S3 image URLs from context
     // Use migration helper to ensure all new fields are present
+    // Add cache-busting to URLs to prevent stale images after edits
+    const addCacheBust = (url: string | undefined): string | undefined => {
+      if (!url) return undefined;
+      // Only add cache-bust if URL doesn't already have query params
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}t=${Date.now()}`;
+    };
+
     const charactersWithImages: Character[] = contextResult.characters.map((charMeta) =>
       migrateCharacter({
         id: charMeta.id,
@@ -300,14 +308,14 @@ export default function CharacterSheetGenerator() {
         backgroundStory: charMeta.backgroundStory,
         imagePrompt: charMeta.imagePrompt,
         imageBase64: "",
-        imageUrl: charMeta.imageId || undefined,
+        imageUrl: addCacheBust(charMeta.imageId) || undefined,
         isGenerating: false,
-        // Map new image fields from context
-        profileImageUrl: charMeta.profileImageId || undefined,
+        // Map new image fields from context - with cache-busting
+        profileImageUrl: addCacheBust(charMeta.profileImageId) || undefined,
         profilePrompt: charMeta.profileImagePrompt || "",
         profileImageBase64: "",
         profileIsGenerating: false,
-        masterSheetImageUrl: charMeta.masterSheetImageId || undefined,
+        masterSheetImageUrl: addCacheBust(charMeta.masterSheetImageId) || undefined,
         masterSheetPrompt: charMeta.masterSheetImagePrompt || "",
         masterSheetImageBase64: "",
         masterSheetIsGenerating: false,
@@ -574,6 +582,71 @@ Style: ${styleKeyword}`;
         prev.map((c) => (c.id === characterId ? { ...c, profileIsGenerating: false } : c))
       );
     }
+  };
+
+  // Handle edited profile image
+  const handleEditProfile = async (characterId: string, editedImageBase64: string) => {
+    console.log("[handleEditProfile] Starting edit for character:", characterId);
+    console.log("[handleEditProfile] currentProjectId:", currentProjectId);
+
+    // Update local state immediately
+    setCharacters((prev) =>
+      prev.map((c) =>
+        c.id === characterId
+          ? { ...c, profileImageBase64: editedImageBase64, profileImageUrl: undefined }
+          : c
+      )
+    );
+
+    // Auto-save to S3 and Firestore
+    if (currentProjectId) {
+      try {
+        console.log("[handleEditProfile] Uploading to S3...");
+        const imageUrl = await uploadCharacterProfileImage(currentProjectId, characterId, editedImageBase64);
+        console.log("[handleEditProfile] S3 upload complete, URL:", imageUrl);
+
+        const character = characters.find((c) => c.id === characterId);
+        const prompt = character?.profilePrompt || "Edited profile image";
+
+        console.log("[handleEditProfile] Saving to Firestore with profileImageRef:", imageUrl);
+        await updateCharacterProfileImage(currentProjectId, characterId, imageUrl, prompt);
+        console.log("[handleEditProfile] Firestore save complete");
+
+        const urlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
+
+        setCharacters((prev) => {
+          const updatedCharacters = prev.map((c) =>
+            c.id === characterId
+              ? { ...c, profileImageUrl: urlWithCacheBust, profileImageBase64: "" }
+              : c
+          );
+          syncContextResult(updatedCharacters);
+          return updatedCharacters;
+        });
+
+        toast({
+          variant: "success",
+          title: "Profile Updated",
+          description: "Your edited profile has been saved.",
+        });
+      } catch (error) {
+        console.error("[handleEditProfile] Failed to save:", error);
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: error instanceof Error ? error.message : "Failed to save edited profile",
+        });
+      }
+    } else {
+      console.warn("[handleEditProfile] No currentProjectId - changes not saved to Firestore!");
+      toast({
+        variant: "destructive",
+        title: "Warning",
+        description: "No project selected. Changes will not persist after refresh.",
+      });
+    }
+
+    setIsSaved(false);
   };
 
   // Generate master sheet (16:9 with 4 views)
@@ -1553,12 +1626,15 @@ Style: ${styleKeyword}`;
               onUpdateField={(field, value) => updateCharacterField(selectedCharacter.id, field, value)}
               onGenerateProfile={() => handleGenerateProfile(selectedCharacter.id)}
               onGenerateMasterSheet={() => handleGenerateMasterSheet(selectedCharacter.id)}
+              onEditProfile={(editedImageBase64) => handleEditProfile(selectedCharacter.id, editedImageBase64)}
               onAddMode={(mode) => handleAddMode(selectedCharacter.id, mode)}
               onDeleteMode={(modeId) => handleDeleteMode(selectedCharacter.id, modeId)}
               onGenerateMode={(modeId) => handleGenerateMode(selectedCharacter.id, modeId)}
               onDetectModes={() => handleDetectModes(selectedCharacter.id)}
               isDetectingModes={isDetectingModes[selectedCharacter.id] || false}
               disabled={false}
+              styleReferenceBase64={activeStyleImage || undefined}
+              customApiKey={customApiKey}
             />
           )}
         </div>

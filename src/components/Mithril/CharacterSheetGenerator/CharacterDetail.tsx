@@ -1,15 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   ArrowLeft,
   Crown,
   Image,
   Loader2,
   Download,
+  Pencil,
 } from "lucide-react";
 import { Character, Mode } from "./types";
 import { ModeManager } from "./ModeManager";
+import { ProfileEditModal } from "./ProfileEditModal";
 
 interface CharacterDetailProps {
   character: Character;
@@ -17,12 +19,15 @@ interface CharacterDetailProps {
   onUpdateField: (field: keyof Character, value: string | boolean) => void;
   onGenerateProfile: () => void;
   onGenerateMasterSheet: () => void;
+  onEditProfile: (editedImageBase64: string) => void;
   onAddMode: (mode: Omit<Mode, "id" | "imageBase64" | "imageUrl" | "isGenerating">) => void;
   onDeleteMode: (modeId: string) => void;
   onGenerateMode: (modeId: string) => void;
   onDetectModes: () => void;
   isDetectingModes?: boolean;
   disabled?: boolean;
+  styleReferenceBase64?: string;
+  customApiKey?: string;
 }
 
 /**
@@ -64,13 +69,18 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   onUpdateField,
   onGenerateProfile,
   onGenerateMasterSheet,
+  onEditProfile,
   onAddMode,
   onDeleteMode,
   onGenerateMode,
   onDetectModes,
   isDetectingModes = false,
   disabled = false,
+  styleReferenceBase64,
+  customApiKey,
 }) => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const getImageSrc = (
     base64?: string,
     url?: string
@@ -175,14 +185,27 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 </div>
               )}
             </div>
-            <button
-              onClick={onGenerateProfile}
-              disabled={disabled || character.profileIsGenerating}
-              className="mt-3 flex items-center gap-2 px-4 py-2 bg-[#DB2777] text-white rounded-lg hover:bg-[#BE185D] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Image className="w-4 h-4" />
-              {character.profileIsGenerating ? "Generating..." : profileSrc ? "Regenerate Profile" : "Generate Profile"}
-            </button>
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <button
+                onClick={onGenerateProfile}
+                disabled={disabled || character.profileIsGenerating}
+                className="flex items-center gap-2 px-4 py-2 bg-[#DB2777] text-white rounded-lg hover:bg-[#BE185D] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Image className="w-4 h-4" />
+                {character.profileIsGenerating ? "Generating..." : profileSrc ? "Regenerate" : "Generate Profile"}
+              </button>
+              {profileSrc && (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  disabled={disabled || character.profileIsGenerating}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Edit profile image with mask-based inpainting"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Editable Fields */}
@@ -351,6 +374,22 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {profileSrc && (
+        <ProfileEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          originalImage={profileSrc}
+          characterName={character.name}
+          onSave={(editedImageBase64) => {
+            onEditProfile(editedImageBase64);
+            setIsEditModalOpen(false);
+          }}
+          styleReferenceBase64={styleReferenceBase64}
+          customApiKey={customApiKey}
+        />
+      )}
     </div>
   );
 };

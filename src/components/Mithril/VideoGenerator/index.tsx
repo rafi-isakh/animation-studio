@@ -7,16 +7,20 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Sparkles, StopCircle, Save, Trash2, Download } from "lucide-react";
 import ClipCard from "./ClipCard";
+import ProviderSelector from "./ProviderSelector";
+import {
+  getProviderConstraints,
+  getDefaultProviderId,
+} from "./providers";
 import type {
-  SoraVideoClip,
-  AspectRatio,
-  SoraVideoResultMetadata,
-  SoraVideoSubmitResponse,
-  SoraVideoStatusResponse,
+  VideoClip,
+  VideoResultMetadata,
+  VideoSubmitResponse,
+  VideoStatusResponse,
 } from "./types";
 import { ASPECT_RATIOS } from "./types";
-import type { Scene, Continuity } from "../StoryboardGenerator/types";
-import type { ImageGenFrame } from "../ImageGenerator/types";
+import type { AspectRatio } from "./providers/types";
+import type { Scene } from "../StoryboardGenerator/types";
 import {
   getVideoMeta,
   getVideoClips,
@@ -38,8 +42,15 @@ const Loader: React.FC<LoaderProps> = ({ message }) => (
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default function SoraVideoGenerator() {
-  const { setStageResult, currentStage, getStageResult, currentProjectId, isLoading: isContextLoading } = useMithril();
+export default function VideoGenerator() {
+  const {
+    setStageResult,
+    currentStage,
+    getStageResult,
+    currentProjectId,
+    videoApiKey,
+    isLoading: isContextLoading,
+  } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
 
@@ -47,8 +58,13 @@ export default function SoraVideoGenerator() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
 
+  // Provider state
+  const [selectedProvider, setSelectedProvider] = useState(
+    getDefaultProviderId()
+  );
+
   // Clip data
-  const [clips, setClips] = useState<SoraVideoClip[]>([]);
+  const [clips, setClips] = useState<VideoClip[]>([]);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
 
   // Generation state
@@ -61,7 +77,10 @@ export default function SoraVideoGenerator() {
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-   // Reset mounted ref on mount, cleanup on unmount
+  // Get provider constraints
+  const providerConstraints = getProviderConstraints(selectedProvider);
+
+  // Reset mounted ref on mount, cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true;
     shouldStopRef.current = false;
@@ -94,10 +113,10 @@ export default function SoraVideoGenerator() {
 
     // Check if any clip images have changed
     let hasChanges = false;
-    const updatedClips = clips.map(clip => {
+    const updatedClips = clips.map((clip) => {
       // Find matching frame from ImageGen (match by sceneIndex and clipIndex)
       const matchingFrame = imageGenData.frames.find(
-        f => f.sceneIndex === clip.sceneIndex && f.clipIndex === clip.clipIndex
+        (f) => f.sceneIndex === clip.sceneIndex && f.clipIndex === clip.clipIndex
       );
       const newImageUrl = matchingFrame?.imageRef || null;
 
@@ -144,20 +163,15 @@ export default function SoraVideoGenerator() {
         } | null;
 
         // 2. Load storyboard result from context (stage 5) for video prompts
-        const storyboardResult = getStageResult(5) as { scenes: Scene[] } | null;
-
-        console.log("[SoraVideo] Stage 6 (ImageGen) result:", imageGenResult);
-        console.log("[SoraVideo] Stage 5 (Storyboard) result:", storyboardResult);
-
-        if (!imageGenResult?.frames || imageGenResult.frames.length === 0) {
-          console.log("[SoraVideo] No ImageGen frames found, showing empty state");
-          setIsLoadingData(false);
-          setHasLoaded(true);
-          return;
-        }
+        const storyboardResult = getStageResult(5) as {
+          scenes: Scene[];
+        } | null;
 
         // 3. Load any previously saved video metadata and clips from Firestore
-        let savedVideoMeta: { aspectRatio?: AspectRatio } | null = null;
+        let savedVideoMeta: {
+          aspectRatio?: AspectRatio;
+          providerId?: string;
+        } | null = null;
         let savedVideoClips: Array<{
           sceneIndex: number;
           clipIndex: number;
@@ -166,6 +180,7 @@ export default function SoraVideoGenerator() {
           s3FileName?: string | null;
           status?: string;
           error?: string;
+          providerId?: string;
         }> = [];
 
         if (currentProjectId) {
@@ -175,58 +190,63 @@ export default function SoraVideoGenerator() {
             if (savedVideoMeta?.aspectRatio) {
               setAspectRatio(savedVideoMeta.aspectRatio);
             }
+            if (savedVideoMeta?.providerId) {
+              setSelectedProvider(savedVideoMeta.providerId);
+            }
           } catch {
             // Ignore errors, start fresh
           }
         }
 
-        // 4. Build clips array from ImageGen frames + storyboard video prompts
-        const allClips: SoraVideoClip[] = [];
+        // 4. Build clips array from STORYBOARD (Stage 5) as primary source
+        // Then match with images from ImageGen (Stage 6) and saved video data
+        const allClips: VideoClip[] = [];
 
-        // Group frames by sceneIndex and clipIndex (to handle A/B frames)
-        const framesByClip = new Map<string, typeof imageGenResult.frames>();
-        imageGenResult.frames.forEach(frame => {
-          const key = `${frame.sceneIndex}-${frame.clipIndex}`;
-          if (!framesByClip.has(key)) {
-            framesByClip.set(key, []);
-          }
-          framesByClip.get(key)!.push(frame);
-        });
-
-        // Create one video clip per unique sceneIndex-clipIndex combination
-        framesByClip.forEach((frames, key) => {
-          const [sceneIndexStr, clipIndexStr] = key.split('-');
-          const sceneIndex = parseInt(sceneIndexStr, 10);
-          const clipIndex = parseInt(clipIndexStr, 10);
-
-          // Get video prompts from storyboard
-          const scene = storyboardResult?.scenes?.[sceneIndex];
-          const storyboardClip = scene?.clips?.[clipIndex];
-
-          // Check if we have saved status for this clip
-          const savedClip = savedVideoClips.find(
-            (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
-          );
-
-          // Use the first frame's image (usually frame A)
-          const primaryFrame = frames[0];
-          const imageUrl = primaryFrame?.imageRef || null;
-
-          allClips.push({
-            clipIndex,
-            sceneIndex,
-            sceneTitle: scene?.sceneTitle || `Scene ${sceneIndex + 1}`,
-            videoPrompt: storyboardClip?.videoPrompt || "",
-            soraVideoPrompt: storyboardClip?.soraVideoPrompt || "",
-            length: storyboardClip?.length || "4초",
-            imageBase64: imageUrl, // S3 URL used for i2v (API handles URL fetching)
-            videoUrl: savedClip?.videoRef || null,
-            jobId: savedClip?.jobId || null,
-            s3FileName: savedClip?.s3FileName || null,
-            status: (savedClip?.status as SoraVideoClip["status"]) || "pending",
-            error: savedClip?.error,
+        // Build a lookup map for ImageGen frames by sceneIndex-clipIndex
+        const framesByClip = new Map<string, string | null>();
+        if (imageGenResult?.frames) {
+          imageGenResult.frames.forEach((frame) => {
+            const key = `${frame.sceneIndex}-${frame.clipIndex}`;
+            // Use the first frame's image (usually frame A) - don't overwrite if already set
+            if (!framesByClip.has(key) && frame.imageRef) {
+              framesByClip.set(key, frame.imageRef);
+            }
           });
-        });
+        }
+
+        // Build clips from storyboard scenes
+        if (storyboardResult?.scenes) {
+          storyboardResult.scenes.forEach((scene, sceneIndex) => {
+            if (scene.clips) {
+              scene.clips.forEach((storyboardClip, clipIndex) => {
+                // Check if we have an image from ImageGen
+                const key = `${sceneIndex}-${clipIndex}`;
+                const imageUrl = framesByClip.get(key) || null;
+
+                // Check if we have saved status for this clip
+                const savedClip = savedVideoClips.find(
+                  (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
+                );
+
+                allClips.push({
+                  clipIndex,
+                  sceneIndex,
+                  sceneTitle: scene.sceneTitle || `Scene ${sceneIndex + 1}`,
+                  videoPrompt: storyboardClip.videoPrompt || "",
+                  soraVideoPrompt: storyboardClip.soraVideoPrompt || "",
+                  length: storyboardClip.length || "4초",
+                  imageBase64: imageUrl, // May be null if image not generated yet
+                  videoUrl: savedClip?.videoRef || null,
+                  jobId: savedClip?.jobId || null,
+                  s3FileName: savedClip?.s3FileName || null,
+                  status: (savedClip?.status as VideoClip["status"]) || "pending",
+                  error: savedClip?.error,
+                  providerId: savedClip?.providerId,
+                });
+              });
+            }
+          });
+        }
 
         // Sort by sceneIndex, then clipIndex
         allClips.sort((a, b) => {
@@ -253,51 +273,84 @@ export default function SoraVideoGenerator() {
     };
 
     loadData();
-  }, [currentStage, hasLoaded, currentProjectId, getStageResult, isContextLoading, toast, dictionary, language]);
+  }, [
+    currentStage,
+    hasLoaded,
+    currentProjectId,
+    getStageResult,
+    isContextLoading,
+    toast,
+    dictionary,
+    language,
+  ]);
 
   // Auto-save helper - saves to Firestore (silent, no toast)
-  const autoSave = useCallback(async (updatedClips: SoraVideoClip[]) => {
-    if (!currentProjectId) return;
+  const autoSave = useCallback(
+    async (updatedClips: VideoClip[]) => {
+      if (!currentProjectId) return;
 
-    try {
-      // Update each clip status in Firestore
-      for (const clip of updatedClips) {
-        if (clip.status === "completed" && clip.videoUrl) {
-          const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
-          await updateVideoClipStatus(currentProjectId, clipId, {
-            sceneIndex: clip.sceneIndex,
-            clipIndex: clip.clipIndex,
-            videoRef: clip.videoUrl,
-            s3FileName: clip.s3FileName,
-            status: clip.status,
-          });
+      try {
+        // First, ensure video metadata exists
+        await saveVideoMeta(currentProjectId, aspectRatio, selectedProvider);
+
+        // Update each clip status in Firestore
+        for (const clip of updatedClips) {
+          if (clip.status === "completed" && clip.videoUrl) {
+            const clipId = `${clip.sceneIndex}_${clip.clipIndex}`;
+            await updateVideoClipStatus(currentProjectId, clipId, {
+              sceneIndex: clip.sceneIndex,
+              clipIndex: clip.clipIndex,
+              videoRef: clip.videoUrl,
+              s3FileName: clip.s3FileName,
+              status: clip.status,
+              providerId: clip.providerId,
+            });
+          }
         }
-      }
 
-      // Update context
-      const metadata: SoraVideoResultMetadata = {
-        clips: updatedClips.map((c) => ({
-          clipIndex: c.clipIndex,
-          sceneIndex: c.sceneIndex,
-          videoUrl: c.videoUrl,
-          jobId: c.jobId,
-          s3FileName: c.s3FileName,
-          status: c.status,
-          error: c.error,
-        })),
-        aspectRatio,
-        createdAt: Date.now(),
-      };
-      setStageResult(7, metadata);
-      setIsSaved(true);
-    } catch (err) {
-      console.error("Error auto-saving:", err);
-    }
-  }, [currentProjectId, aspectRatio, setStageResult]);
+        // Update context
+        const metadata: VideoResultMetadata = {
+          clips: updatedClips.map((c) => ({
+            clipIndex: c.clipIndex,
+            sceneIndex: c.sceneIndex,
+            videoUrl: c.videoUrl,
+            jobId: c.jobId,
+            s3FileName: c.s3FileName,
+            status: c.status,
+            error: c.error,
+            providerId: c.providerId,
+          })),
+          aspectRatio,
+          providerId: selectedProvider,
+          createdAt: Date.now(),
+        };
+        setStageResult(7, metadata);
+        setIsSaved(true);
+      } catch (err) {
+        console.error("Error auto-saving video:", err);
+      }
+    },
+    [currentProjectId, aspectRatio, selectedProvider, setStageResult]
+  );
+
+  // Update custom prompt for a clip
+  const updateClipPrompt = useCallback(
+    (clipIndex: number, sceneIndex: number, prompt: string) => {
+      setClips((prev) =>
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+            ? { ...c, customPrompt: prompt }
+            : c
+        )
+      );
+      setIsSaved(false);
+    },
+    []
+  );
 
   // Generate a single clip
   const generateClip = useCallback(
-    async (clipIndex: number, sceneIndex: number) => {
+    async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
       const clipArrayIndex = clips.findIndex(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
@@ -305,63 +358,75 @@ export default function SoraVideoGenerator() {
 
       const clip = clips[clipArrayIndex];
 
-       // Create AbortController for this generation
+      // Create AbortController for this generation
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
       // Update status to generating
       setClips((prev) =>
         prev.map((c, i) =>
-          i === clipArrayIndex ? { ...c, status: "generating", error: undefined } : c
+          i === clipArrayIndex
+            ? { ...c, status: "generating", error: undefined }
+            : c
         )
       );
 
       try {
         // Parse duration from length (e.g., "1초" -> 1, "2초" -> 2)
         const durationMatch = clip.length.match(/(\d+)/);
-        const parsedDuration = durationMatch ? parseInt(durationMatch[1], 10) : 4;
-        // Sora only supports 4, 8, or 12 seconds - map to nearest valid value
-        const validDurations = [4, 8, 12];
-        const soraDuration = validDurations.reduce((prev, curr) =>
-          Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration) ? curr : prev
+        const parsedDuration = durationMatch
+          ? parseInt(durationMatch[1], 10)
+          : 4;
+
+        // Map to valid provider duration
+        const constraints = getProviderConstraints(selectedProvider);
+        const validDurations = constraints?.durations || [4, 8, 12];
+        const mappedDuration = validDurations.reduce((prev, curr) =>
+          Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration)
+            ? curr
+            : prev
         );
 
-        // 1. Submit job
-        const promptToUse = clip.soraVideoPrompt || clip.videoPrompt;
-        console.log("[SoraVideo] Using prompt:", promptToUse);
+        // 1. Submit job - use custom prompt if provided, otherwise fall back
+        const promptToUse = customPrompt || clip.customPrompt || clip.soraVideoPrompt || clip.videoPrompt;
 
-        const submitResponse = await fetch("/api/sora_video", {
+        const submitResponse = await fetch("/api/video/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            providerId: selectedProvider,
             prompt: promptToUse,
             imageBase64: clip.imageBase64 || undefined,
-            duration: soraDuration,
+            duration: mappedDuration,
             aspectRatio,
+            customApiKey: videoApiKey || undefined,
           }),
           signal: abortController.signal,
         });
 
-        const submitData: SoraVideoSubmitResponse = await submitResponse.json();
+        const submitData: VideoSubmitResponse = await submitResponse.json();
 
         if (!submitResponse.ok) {
-          throw new Error((submitData as unknown as { error: string }).error || "Failed to submit job");
+          throw new Error(
+            (submitData as unknown as { error: string }).error ||
+              "Failed to submit job"
+          );
         }
 
         const jobId = submitData.jobId;
 
         // Update with job ID
         setClips((prev) =>
-          prev.map((c, i) =>
-            i === clipArrayIndex ? { ...c, jobId } : c
-          )
+          prev.map((c, i) => (i === clipArrayIndex ? { ...c, jobId } : c))
         );
 
         // 2. Poll for completion
-        let status: SoraVideoStatusResponse["status"] = "pending";
+        let status: VideoStatusResponse["status"] = "pending";
         let videoUrl: string | undefined;
         let s3FileName: string | undefined;
         let pollError: string | undefined;
+
+        const pollingInterval = constraints?.polling.intervalMs || 5000;
 
         while (status === "pending" || status === "running") {
           // Check if we should stop (user clicked stop or component unmounted)
@@ -369,12 +434,19 @@ export default function SoraVideoGenerator() {
             throw new Error("Generation cancelled");
           }
 
-          await sleep(5000); // Poll every 5 seconds
+          await sleep(pollingInterval);
 
-          const statusResponse = await fetch(`/api/sora_video/status?jobId=${jobId}`, {
+          const statusUrl = new URL("/api/video/status", window.location.origin);
+          statusUrl.searchParams.set("jobId", jobId);
+          statusUrl.searchParams.set("providerId", selectedProvider);
+          if (videoApiKey) {
+            statusUrl.searchParams.set("customApiKey", videoApiKey);
+          }
+
+          const statusResponse = await fetch(statusUrl.toString(), {
             signal: abortController.signal,
           });
-          const statusData: SoraVideoStatusResponse = await statusResponse.json();
+          const statusData: VideoStatusResponse = await statusResponse.json();
 
           status = statusData.status;
           videoUrl = statusData.videoUrl;
@@ -391,7 +463,14 @@ export default function SoraVideoGenerator() {
           setClips((prev) => {
             const updatedClips = prev.map((c, i) =>
               i === clipArrayIndex
-                ? { ...c, status: "completed" as const, videoUrl: videoUrl || null, s3FileName: s3FileName || null, error: undefined }
+                ? {
+                    ...c,
+                    status: "completed" as const,
+                    videoUrl: videoUrl || null,
+                    s3FileName: s3FileName || null,
+                    error: undefined,
+                    providerId: selectedProvider,
+                  }
                 : c
             );
             // Auto-save after successful generation
@@ -413,11 +492,14 @@ export default function SoraVideoGenerator() {
           return;
         }
 
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
 
         setClips((prev) =>
           prev.map((c, i) =>
-            i === clipArrayIndex ? { ...c, status: "failed", error: errorMessage } : c
+            i === clipArrayIndex
+              ? { ...c, status: "failed", error: errorMessage }
+              : c
           )
         );
 
@@ -430,12 +512,21 @@ export default function SoraVideoGenerator() {
         }
       }
     },
-    [clips, aspectRatio, autoSave, toast, dictionary, language]
+    [
+      clips,
+      aspectRatio,
+      selectedProvider,
+      videoApiKey,
+      autoSave,
+      toast,
+      dictionary,
+      language,
+    ]
   );
 
   // Regenerate a single clip (reset and generate)
   const regenerateClip = useCallback(
-    async (clipIndex: number, sceneIndex: number) => {
+    async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
       const clipArrayIndex = clips.findIndex(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
@@ -445,13 +536,20 @@ export default function SoraVideoGenerator() {
       setClips((prev) =>
         prev.map((c, i) =>
           i === clipArrayIndex
-            ? { ...c, status: "pending" as const, videoUrl: null, jobId: null, s3FileName: null, error: undefined }
+            ? {
+                ...c,
+                status: "pending" as const,
+                videoUrl: null,
+                jobId: null,
+                s3FileName: null,
+                error: undefined,
+              }
             : c
         )
       );
 
-      // Then generate
-      await generateClip(clipIndex, sceneIndex);
+      // Then generate with custom prompt if provided
+      await generateClip(clipIndex, sceneIndex, customPrompt);
     },
     [clips, generateClip]
   );
@@ -495,8 +593,8 @@ export default function SoraVideoGenerator() {
     setIsSaving(true);
 
     try {
-      // Save video metadata (aspect ratio)
-      await saveVideoMeta(currentProjectId, aspectRatio);
+      // Save video metadata (aspect ratio and provider)
+      await saveVideoMeta(currentProjectId, aspectRatio, selectedProvider);
 
       // Save each clip status to Firestore
       for (const clip of clips) {
@@ -509,11 +607,12 @@ export default function SoraVideoGenerator() {
           s3FileName: clip.s3FileName,
           status: clip.status,
           error: clip.error,
+          providerId: clip.providerId,
         });
       }
 
       // Update context
-      const metadata: SoraVideoResultMetadata = {
+      const metadata: VideoResultMetadata = {
         clips: clips.map((c) => ({
           clipIndex: c.clipIndex,
           sceneIndex: c.sceneIndex,
@@ -522,8 +621,10 @@ export default function SoraVideoGenerator() {
           s3FileName: c.s3FileName,
           status: c.status,
           error: c.error,
+          providerId: c.providerId,
         })),
         aspectRatio,
+        providerId: selectedProvider,
         createdAt: Date.now(),
       };
       setStageResult(7, metadata);
@@ -543,7 +644,16 @@ export default function SoraVideoGenerator() {
     } finally {
       setIsSaving(false);
     }
-  }, [currentProjectId, clips, aspectRatio, setStageResult, toast, dictionary, language]);
+  }, [
+    currentProjectId,
+    clips,
+    aspectRatio,
+    selectedProvider,
+    setStageResult,
+    toast,
+    dictionary,
+    language,
+  ]);
 
   // Clear all results and delete videos from S3 and Firestore
   const handleClear = useCallback(async () => {
@@ -557,7 +667,7 @@ export default function SoraVideoGenerator() {
     // Delete from S3 if there are files to delete
     if (s3FileNames.length > 0) {
       try {
-        await fetch("/api/sora_video/delete", {
+        await fetch("/api/video/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileNames: s3FileNames }),
@@ -586,6 +696,7 @@ export default function SoraVideoGenerator() {
         s3FileName: null,
         status: "pending" as const,
         error: undefined,
+        providerId: undefined,
       }))
     );
     setIsSaved(false);
@@ -610,7 +721,7 @@ export default function SoraVideoGenerator() {
     setIsDownloadingZip(true);
 
     try {
-      const response = await fetch("/api/sora_video/zip", {
+      const response = await fetch("/api/video/zip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -619,7 +730,7 @@ export default function SoraVideoGenerator() {
             sceneIndex: c.sceneIndex,
             clipIndex: c.clipIndex,
           })),
-          zipFileName: `sora_videos_${Date.now()}.zip`,
+          zipFileName: `videos_${Date.now()}.zip`,
         }),
       });
 
@@ -632,7 +743,7 @@ export default function SoraVideoGenerator() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `sora_videos_${Date.now()}.zip`;
+      link.download = `videos_${Date.now()}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -658,6 +769,10 @@ export default function SoraVideoGenerator() {
   const completedCount = clips.filter((c) => c.status === "completed").length;
   const totalCount = clips.length;
 
+  // Get aspect ratio options from provider or fallback to defaults
+  const aspectRatioOptions =
+    providerConstraints?.aspectRatios || ASPECT_RATIOS;
+
   if (isLoadingData) {
     return (
       <div className="w-full p-6">
@@ -674,7 +789,8 @@ export default function SoraVideoGenerator() {
             {phrase(dictionary, "sora_title", language)}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            No images found. Please generate and save images in Stage 6 (Image Generator) first.
+            No clips found. Please generate and save storyboard in Stage 5
+            (Storyboard Generator) first.
           </p>
         </div>
       </div>
@@ -693,33 +809,52 @@ export default function SoraVideoGenerator() {
         </p>
       </div>
 
-      {/* Aspect Ratio Selector */}
-      <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          {phrase(dictionary, "sora_aspect_ratio", language)}
-        </label>
-        <div className="flex gap-4">
-          {ASPECT_RATIOS.map((ratio) => (
-            <label
-              key={ratio.value}
-              className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border transition-all ${
-                aspectRatio === ratio.value
-                  ? "border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]"
-                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
-              } ${isGeneratingAll ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              <input
-                type="radio"
-                name="aspectRatio"
-                value={ratio.value}
-                checked={aspectRatio === ratio.value}
-                onChange={(e) => setAspectRatio(e.target.value as AspectRatio)}
-                disabled={isGeneratingAll}
-                className="accent-[#DB2777]"
-              />
-              <span className="text-sm font-medium">{ratio.label}</span>
-            </label>
-          ))}
+      {/* Settings Panel */}
+      <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-4">
+        {/* Provider Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {phrase(dictionary, "video_api", language)}
+          </label>
+          <div className="max-w-xs">
+            <ProviderSelector
+              value={selectedProvider}
+              onChange={setSelectedProvider}
+              disabled={isGeneratingAll}
+            />
+          </div>
+        </div>
+
+        {/* Aspect Ratio Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {phrase(dictionary, "sora_aspect_ratio", language)}
+          </label>
+          <div className="flex gap-4">
+            {aspectRatioOptions.map((ratio) => (
+              <label
+                key={ratio.value}
+                className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border transition-all ${
+                  aspectRatio === ratio.value
+                    ? "border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]"
+                    : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
+                } ${isGeneratingAll ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="aspectRatio"
+                  value={ratio.value}
+                  checked={aspectRatio === ratio.value}
+                  onChange={(e) =>
+                    setAspectRatio(e.target.value as AspectRatio)
+                  }
+                  disabled={isGeneratingAll}
+                  className="accent-[#DB2777]"
+                />
+                <span className="text-sm font-medium">{ratio.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -746,7 +881,8 @@ export default function SoraVideoGenerator() {
           )}
 
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {phrase(dictionary, "sora_progress", language)}: {completedCount}/{totalCount}
+            {phrase(dictionary, "sora_progress", language)}: {completedCount}/
+            {totalCount}
           </span>
         </div>
 
@@ -758,8 +894,8 @@ export default function SoraVideoGenerator() {
               isSaved
                 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                 : isSaving
-                ? "bg-[#DB2777]/70 text-white cursor-wait"
-                : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
+                  ? "bg-[#DB2777]/70 text-white cursor-wait"
+                  : "bg-[#DB2777] hover:bg-[#BE185D] text-white"
             }`}
           >
             {isSaving ? (
@@ -773,8 +909,8 @@ export default function SoraVideoGenerator() {
               {isSaving
                 ? phrase(dictionary, "sora_saving", language)
                 : isSaved
-                ? phrase(dictionary, "sora_saved", language)
-                : phrase(dictionary, "sora_save", language)}
+                  ? phrase(dictionary, "sora_saved", language)
+                  : phrase(dictionary, "sora_save", language)}
             </span>
           </button>
 
@@ -787,7 +923,9 @@ export default function SoraVideoGenerator() {
               {isDownloadingZip ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>{phrase(dictionary, "sora_downloading_zip", language)}</span>
+                  <span>
+                    {phrase(dictionary, "sora_downloading_zip", language)}
+                  </span>
                 </>
               ) : (
                 <>
@@ -833,6 +971,7 @@ export default function SoraVideoGenerator() {
             clip={clip}
             onGenerate={generateClip}
             onRegenerate={regenerateClip}
+            onUpdatePrompt={updateClipPrompt}
             isGeneratingAll={isGeneratingAll}
           />
         ))}

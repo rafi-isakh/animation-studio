@@ -8,7 +8,7 @@ import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
 import ImageGenerator from "./ImageGenerator";
-import SoraVideoGenerator from "./SoraVideoGenerator";
+import VideoGenerator from "./VideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -99,12 +99,13 @@ function CostTrackerDashboard() {
 }
 
 function MithrilContent() {
-  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey } =
+  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey } =
     useMithril();
   const { language, dictionary } = useLanguage();
 
-  // API key visibility toggle
+  // API key visibility toggles
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showVideoApiKey, setShowVideoApiKey] = useState(false);
 
   // Track scroll position to adjust stepper position
   const [scrolled, setScrolled] = useState(false);
@@ -204,35 +205,63 @@ function MithrilContent() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
-        {/* Gemini API Key and Cost Tracker - Top Right, outside container */}
-        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6) && (
+        {/* API Keys and Cost Tracker - Top Right, outside container */}
+        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7) && (
           <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
             {/* Cost Tracker - Only on Stage 6 */}
             {currentStage === 6 && <CostTrackerDashboard />}
 
-            {/* API Key Input */}
-            <div className="w-full max-w-sm">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
-                <Key className="w-4 h-4" />
-                {phrase(dictionary, "mithril_gemini_api_key", language)}
-              </label>
-              <div className="relative">
-                <input
-                  type={showApiKey ? "text" : "password"}
-                  value={customApiKey}
-                  onChange={(e) => setCustomApiKey(e.target.value)}
-                  placeholder={phrase(dictionary, "mithril_gemini_api_key_placeholder", language)}
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 pr-10 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+            {/* Image API Key (Gemini) - Stages 3-6 */}
+            {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6) && (
+              <div className="w-full max-w-sm">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  {phrase(dictionary, "mithril_gemini_api_key", language)}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showApiKey ? "text" : "password"}
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    placeholder={phrase(dictionary, "mithril_gemini_api_key_placeholder", language)}
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 pr-10 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Video API Key (OpenAI) - Stage 7 */}
+            {currentStage === 7 && (
+              <div className="w-full max-w-sm">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  {phrase(dictionary, "mithril_gemini_video_api_key", language)}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showVideoApiKey ? "text" : "password"}
+                    value={videoApiKey}
+                    onChange={(e) => setVideoApiKey(e.target.value)}
+                    placeholder={phrase(dictionary, "mithril_gemini_api_key_placeholder", language)}
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 pr-10 text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowVideoApiKey(!showVideoApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showVideoApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -247,7 +276,7 @@ function MithrilContent() {
           {currentStage === 4 && <StoryboardGenerator />}
           {currentStage === 5 && <BgSheetGenerator />}
           {currentStage === 6 && <ImageGenerator />}
-          {currentStage === 7 && <SoraVideoGenerator />}
+          {currentStage === 7 && <VideoGenerator />}
         </div>
       </div>
 

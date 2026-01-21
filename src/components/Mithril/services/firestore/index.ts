@@ -11,6 +11,7 @@ export {
   getMetadata,
   updateMetadata,
   updateCustomApiKey,
+  updateVideoApiKey,
 } from './metadata';
 
 // Stage 1: Chapter

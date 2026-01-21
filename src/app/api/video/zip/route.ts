@@ -22,7 +22,7 @@ interface ZipRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ZipRequest = await request.json();
-    const { clips, zipFileName = "sora_videos.zip" } = body;
+    const { clips, zipFileName = "videos.zip" } = body;
 
     // Validation
     if (!clips || !Array.isArray(clips) || clips.length === 0) {
@@ -32,18 +32,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate all clips have s3FileName and are sora videos
+    // Validate all clips have s3FileName and are video files
     const validClips = clips.filter(
       (clip) =>
         clip.s3FileName &&
         typeof clip.s3FileName === "string" &&
-        clip.s3FileName.startsWith("sora_") &&
         clip.s3FileName.endsWith(".mp4")
     );
 
     if (validClips.length === 0) {
       return NextResponse.json(
-        { error: "No valid sora video files provided" },
+        { error: "No valid video files provided" },
         { status: 400 }
       );
     }

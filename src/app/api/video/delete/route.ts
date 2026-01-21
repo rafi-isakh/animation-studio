@@ -16,14 +16,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Filter to only allow sora_ prefixed files for safety
+    // Filter to only allow video files (sora_ prefix for now, can expand later)
     const validFileNames = fileNames.filter(
-      (name) => typeof name === "string" && name.startsWith("sora_") && name.endsWith(".mp4")
+      (name) =>
+        typeof name === "string" &&
+        name.startsWith("sora_") &&
+        name.endsWith(".mp4")
     );
 
     if (validFileNames.length === 0) {
       return NextResponse.json(
-        { error: "No valid sora video files to delete" },
+        { error: "No valid video files to delete" },
         { status: 400 }
       );
     }
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     const result = await s3Client.send(new DeleteObjectsCommand(deleteParams));
 
-    console.log("Deleted Sora videos from S3:", validFileNames);
+    console.log("Deleted videos from S3:", validFileNames);
 
     return NextResponse.json({
       success: true,
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
       errors: result.Errors || [],
     });
   } catch (error: unknown) {
-    console.error("Error deleting Sora videos from S3:", error);
+    console.error("Error deleting videos from S3:", error);
 
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

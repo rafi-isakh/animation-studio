@@ -12,6 +12,7 @@ import {
   getMetadata,
   updateCurrentStage as updateCurrentStageFirestore,
   updateCustomApiKey as updateCustomApiKeyFirestore,
+  updateVideoApiKey as updateVideoApiKeyFirestore,
   getStorySplits,
   saveStorySplits,
   deleteStorySplits,
@@ -151,6 +152,10 @@ interface MithrilContextProps {
   customApiKey: string;
   setCustomApiKey: (key: string) => void;
 
+  // Video API Key for video generation (separate from image gen)
+  videoApiKey: string;
+  setVideoApiKey: (key: string) => void;
+
   // Story Splitter (Stage 2)
   storySplitter: StorySplitterState;
   startStorySplit: (text: string, guidelines: string, numParts: number) => Promise<void>;
@@ -233,6 +238,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Custom API Key state
   const [customApiKey, setCustomApiKeyState] = useState<string>("");
 
+  // Video API Key state (separate from image gen)
+  const [videoApiKey, setVideoApiKeyState] = useState<string>("");
+
   // File management state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
@@ -289,6 +297,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           setCurrentStageState(metadata.currentStage || 1);
         }
         setCustomApiKeyState(metadata.customApiKey || "");
+        setVideoApiKeyState(metadata.videoApiKey || "");
       }
 
       // Load story splitter data
@@ -509,6 +518,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         await updateCustomApiKeyFirestore(currentProjectId, key);
       } catch (error) {
         console.error("Error updating custom API key in Firestore:", error);
+      }
+    }
+  }, [currentProjectId]);
+
+  // Wrapper for setVideoApiKey that also updates Firestore
+  const setVideoApiKey = useCallback(async (key: string) => {
+    setVideoApiKeyState(key);
+    if (currentProjectId) {
+      try {
+        await updateVideoApiKeyFirestore(currentProjectId, key);
+      } catch (error) {
+        console.error("Error updating video API key in Firestore:", error);
       }
     }
   }, [currentProjectId]);
@@ -1220,9 +1241,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         stageResults,
         setStageResult,
         getStageResult,
-        // Custom API Key
+        // Custom API Key (for image generation)
         customApiKey,
         setCustomApiKey,
+        // Video API Key (for video generation)
+        videoApiKey,
+        setVideoApiKey,
         // Story Splitter
         storySplitter,
         startStorySplit,

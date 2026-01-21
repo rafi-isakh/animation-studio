@@ -46,12 +46,14 @@ export async function getVideoMeta(
  */
 export async function saveVideoMeta(
   projectId: string,
-  aspectRatio: AspectRatio
+  aspectRatio: AspectRatio,
+  providerId?: string
 ): Promise<void> {
   const docRef = getVideoRef(projectId);
 
   await setDoc(docRef, {
     aspectRatio,
+    providerId: providerId || 'sora',
     createdAt: Timestamp.now(),
   });
 
@@ -122,9 +124,13 @@ export async function updateVideoClipStatus(
   clipId: string,
   updates: UpdateVideoClipInput
 ): Promise<void> {
+  // Filter out undefined values - Firestore doesn't accept undefined
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, value]) => value !== undefined)
+  );
   const docRef = getVideoClipRef(projectId, clipId);
   // Use setDoc with merge to handle both create and update cases
-  await setDoc(docRef, updates, { merge: true });
+  await setDoc(docRef, cleanUpdates, { merge: true });
 }
 
 /**

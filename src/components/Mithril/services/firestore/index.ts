@@ -34,3 +34,9 @@ export * from './imageGen';
 
 // Stage 7: Video
 export * from './video';
+
+// Image-to-Video: Stage 1 - Image Splitter
+export * from './imageSplitter';
+
+// Image-to-Video: Stage 2 - Script Writer
+export * from './imageToScript';

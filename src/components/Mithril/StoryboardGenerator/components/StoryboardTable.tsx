@@ -57,7 +57,7 @@ export default function StoryboardTable({
   return (
     <div className="space-y-4">
       {/* Table */}
-      <div className="overflow-auto max-h-[60vh] rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <div className="overflow-auto max-h-[100vh] rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         {voicePrompts.length > 0 && (
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">

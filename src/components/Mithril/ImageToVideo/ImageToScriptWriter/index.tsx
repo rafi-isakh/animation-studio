@@ -1,9 +1,48 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Loader2, Sparkles, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Loader2, Sparkles, Download, ChevronDown, ChevronUp, Split, Upload, Trash2, ImageIcon, FileArchive } from "lucide-react";
+import JSZip from "jszip";
 import { useMithril } from "../../MithrilContext";
 import type { MangaPage } from "../ImageSplitter";
+import { StoryboardTable } from "./StoryboardTable";
+
+// Types matching ver 1.1
+export interface Continuity {
+  story: string;
+  imagePrompt: string;
+  imagePromptEnd?: string; // Optional field for split frames
+  videoPrompt: string;
+  soraVideoPrompt: string; // Combined video and dialogue prompt for Sora
+  dialogue: string;   // Character Dialogue (Korean)
+  dialogueEn: string; // Character Dialogue (English)
+  sfx: string;        // Sound Effects (Korean)
+  sfxEn: string;      // Sound Effects (English)
+  bgm: string;        // Background Music (Korean)
+  bgmEn: string;      // Background Music (English)
+  length: string;
+  accumulatedTime: string;
+  backgroundPrompt: string;
+  backgroundId: string;
+  referenceImage?: string; // Base64 encoded image or URL
+  referenceImageIndex?: number; // Internal mapping during generation
+  panelCoordinates?: number[]; // [ymin, xmin, ymax, xmax] normalized coordinates for cropping
+}
+
+export interface VoicePrompt {
+  promptKo: string;
+  promptEn: string;
+}
+
+export interface Scene {
+  sceneTitle: string;
+  clips: Continuity[];
+}
+
+export interface GenerationResult {
+  scenes: Scene[];
+  voicePrompts: VoicePrompt[];
+}
 
 // Genre presets
 interface GenrePreset {
@@ -79,20 +118,32 @@ const GENRE_PRESETS: GenrePreset[] = [
   },
 ];
 
+// Type for imported manga images (can be File or base64 string)
+type MangaImageItem = File | string;
+
 export default function ImageToScriptWriter() {
   const { getStageResult, setStageResult } = useMithril();
 
   // Get panels from Stage 1
   const stage1Result = getStageResult(1) as { pages: MangaPage[] } | undefined;
   const pages = stage1Result?.pages || [];
-  const totalPanels = pages.reduce((acc, p) => acc + p.panels.length, 0);
+  const totalPanelsFromStage1 = pages.reduce((acc, p) => acc + p.panels.length, 0);
+
+  // Refs
+  const mangaInputRef = useRef<HTMLInputElement>(null);
 
   // State
   const [selectedGenre, setSelectedGenre] = useState<string>('fantasy');
   const [targetDuration, setTargetDuration] = useState('03:00');
   const [sourceText, setSourceText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSplitting, setIsSplitting] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
+  const [showGuides, setShowGuides] = useState(false);
+
+  // Imported manga images (alternative to Stage 1)
+  const [mangaImages, setMangaImages] = useState<MangaImageItem[]>([]);
+  const [convertedMangaImages, setConvertedMangaImages] = useState<string[]>([]);
 
   // Conditions (editable)
   const [storyCondition, setStoryCondition] = useState(GENRE_PRESETS[0].story);
@@ -100,9 +151,13 @@ export default function ImageToScriptWriter() {
   const [videoCondition, setVideoCondition] = useState(GENRE_PRESETS[0].video);
   const [soundCondition, setSoundCondition] = useState(GENRE_PRESETS[0].sound);
 
+  // Guide prompts (for consistent style)
+  const [imageGuide, setImageGuide] = useState('');
+  const [videoGuide, setVideoGuide] = useState('');
+
   // Generated storyboard
-  const [scenes, setScenes] = useState<any[]>([]);
-  const [voicePrompts, setVoicePrompts] = useState<any[]>([]);
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [voicePrompts, setVoicePrompts] = useState<VoicePrompt[]>([]);
 
   // Handle genre change
   const handleGenreChange = (genreId: string) => {
@@ -116,22 +171,133 @@ export default function ImageToScriptWriter() {
     }
   };
 
-  // Collect all panels with images from pages
+  // Convert File/Blob to base64
+  const blobToBase64 = (blob: Blob | File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Extract base64 part after the data URL prefix
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  // Handle manga panel upload (images, ZIP, JSON)
+  const handleMangaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages: MangaImageItem[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Handle ZIP files
+      if (file.type === 'application/zip' || file.type === 'application/x-zip-compressed' || file.name.endsWith('.zip')) {
+        try {
+          const zip = await JSZip.loadAsync(file);
+          const imageNames = Object.keys(zip.files)
+            .filter(name => name.match(/\.(jpg|jpeg|png|webp)$/i) && !zip.files[name].dir && !name.startsWith('__'))
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+          for (const name of imageNames) {
+            const blob = await zip.files[name].async('blob');
+            const imgFile = new File([blob], name.split('/').pop() || name, { type: 'image/jpeg' });
+            newImages.push(imgFile);
+          }
+        } catch (err) {
+          console.error('Failed to extract ZIP:', err);
+          alert(`Failed to extract ZIP: ${file.name}`);
+        }
+      }
+      // Handle JSON files (can contain base64 images)
+      else if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        try {
+          const text = await file.text();
+          const json = JSON.parse(text);
+
+          let extractedImages: string[] = [];
+          if (json.mangaImages && Array.isArray(json.mangaImages)) {
+            extractedImages = json.mangaImages;
+          } else if (Array.isArray(json)) {
+            extractedImages = json.filter((item: unknown) => typeof item === 'string');
+          }
+
+          if (extractedImages.length > 0) {
+            newImages.push(...extractedImages);
+          } else {
+            alert(`No images found in ${file.name}`);
+          }
+        } catch (err) {
+          console.error('JSON parsing error:', err);
+          alert(`Failed to read JSON: ${file.name}`);
+        }
+      }
+      // Handle image files
+      else if (file.type.startsWith('image/')) {
+        newImages.push(file);
+      }
+    }
+
+    setMangaImages(prev => [...prev, ...newImages]);
+    if (e.target) e.target.value = '';
+  };
+
+  // Convert manga images to base64 when they change
+  useMemo(() => {
+    const convertImages = async () => {
+      const converted: string[] = [];
+      for (const img of mangaImages) {
+        if (typeof img === 'string') {
+          converted.push(img);
+        } else {
+          const base64 = await blobToBase64(img);
+          converted.push(base64);
+        }
+      }
+      setConvertedMangaImages(converted);
+    };
+    convertImages();
+  }, [mangaImages]);
+
+  // Collect all panels - prefer imported manga images, fallback to Stage 1
   const allPanels = useMemo(() => {
     const panels: { id: string; imageBase64: string; label: string }[] = [];
-    pages.forEach(page => {
-      page.panels.forEach(panel => {
-        if (panel.imageUrl) {
-          panels.push({
-            id: panel.id,
-            imageBase64: panel.imageUrl,
-            label: panel.label || `Panel ${panels.length + 1}`,
-          });
-        }
+
+    // If we have imported manga images, use those
+    if (convertedMangaImages.length > 0) {
+      convertedMangaImages.forEach((base64, idx) => {
+        panels.push({
+          id: `imported-${idx}`,
+          imageBase64: base64,
+          label: `Panel ${idx + 1}`,
+        });
       });
-    });
+    }
+    // Otherwise, use panels from Stage 1
+    else {
+      pages.forEach(page => {
+        page.panels.forEach(panel => {
+          if (panel.imageUrl) {
+            panels.push({
+              id: panel.id,
+              imageBase64: panel.imageUrl,
+              label: panel.label || `Panel ${panels.length + 1}`,
+            });
+          }
+        });
+      });
+    }
+
     return panels;
-  }, [pages]);
+  }, [pages, convertedMangaImages]);
+
+  // Total panels count
+  const totalPanels = allPanels.length || totalPanelsFromStage1;
 
   // Generate storyboard
   const handleGenerate = async () => {
@@ -162,6 +328,8 @@ export default function ImageToScriptWriter() {
           imageCondition,
           videoCondition,
           soundCondition,
+          imageGuide: imageGuide || undefined,
+          videoGuide: videoGuide || undefined,
         }),
       });
 
@@ -171,14 +339,28 @@ export default function ImageToScriptWriter() {
       }
 
       const data = await response.json();
-      const generatedScenes = data.scenes || [];
-      const generatedVoicePrompts = data.voicePrompts || [];
+      const generatedScenes: Scene[] = data.scenes || [];
+      const generatedVoicePrompts: VoicePrompt[] = data.voicePrompts || [];
 
-      setScenes(generatedScenes);
+      // Map referenceImageIndex to actual panel images
+      const updatedScenes: Scene[] = generatedScenes.map(scene => ({
+        ...scene,
+        clips: scene.clips.map(clip => {
+          let refImage: string | undefined;
+          if (clip.referenceImageIndex !== undefined &&
+              clip.referenceImageIndex >= 0 &&
+              clip.referenceImageIndex < allPanels.length) {
+            refImage = allPanels[clip.referenceImageIndex].imageBase64;
+          }
+          return { ...clip, referenceImage: refImage };
+        })
+      }));
+
+      setScenes(updatedScenes);
       setVoicePrompts(generatedVoicePrompts);
 
       // Save to stage results
-      setStageResult(2, { scenes: generatedScenes, voicePrompts: generatedVoicePrompts });
+      setStageResult(2, { scenes: updatedScenes, voicePrompts: generatedVoicePrompts });
     } catch (error) {
       console.error('Error generating storyboard:', error);
       alert(error instanceof Error ? error.message : 'Failed to generate storyboard');
@@ -187,40 +369,104 @@ export default function ImageToScriptWriter() {
     }
   };
 
-  // Export CSV
-  const exportCSV = () => {
+  // Split Start/End frames
+  const handleSplitStartEnd = async () => {
     if (scenes.length === 0) return;
 
+    setIsSplitting(true);
+    try {
+      const response = await fetch('/api/manga/split-start-end', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ scenes }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to split frames');
+      }
+
+      const data = await response.json();
+      const updatedScenes: Scene[] = data.scenes || [];
+
+      setScenes(updatedScenes);
+      setStageResult(2, { scenes: updatedScenes, voicePrompts });
+    } catch (error) {
+      console.error('Error splitting frames:', error);
+      alert(error instanceof Error ? error.message : 'Failed to split frames');
+    } finally {
+      setIsSplitting(false);
+    }
+  };
+
+  // Check if any clip has imagePromptEnd
+  const hasEndPrompts = useMemo(() => {
+    return scenes.some(scene => scene.clips.some(clip => !!clip.imagePromptEnd));
+  }, [scenes]);
+
+  // Export CSV (full version with all fields)
+  const exportCSV = (textOnly: boolean = false) => {
+    if (scenes.length === 0) return;
+
+    const escapeCSV = (val: unknown) => {
+      const str = (val === null || val === undefined) ? "" : String(val);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
     const headers = [
-      'Scene', 'Clip', 'Length', 'Accumulated Time', 'Story',
-      'Image Prompt', 'Video Prompt', 'Dialogue (Ko)', 'Dialogue (En)',
+      'Scene', 'Clip', 'Length', 'Accumulated Time', 'Background ID', 'Background Prompt',
+      ...(textOnly ? [] : ['Reference Image']),
+      'Story', 'Image Prompt (Start)',
+      ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
+      'Video Prompt', 'Sora Video Prompt', 'Dialogue (Ko)', 'Dialogue (En)',
       'SFX (Ko)', 'SFX (En)', 'BGM (Ko)', 'BGM (En)'
     ];
 
     const rows = scenes.flatMap((scene, sIdx) =>
-      scene.clips.map((clip: any, cIdx: number) => [
-        `Scene ${sIdx + 1}: ${scene.sceneTitle}`,
-        `${sIdx + 1}-${cIdx + 1}`,
-        clip.length,
-        clip.accumulatedTime,
-        clip.story,
-        clip.imagePrompt,
-        clip.videoPrompt,
-        clip.dialogue,
-        clip.dialogueEn,
-        clip.sfx,
-        clip.sfxEn,
-        clip.bgm,
-        clip.bgmEn,
-      ].map(v => `"${String(v || '').replace(/"/g, '""')}"`)
-    ));
+      scene.clips.map((clip, cIdx) => {
+        const row = [
+          escapeCSV(`Scene ${sIdx + 1}: ${scene.sceneTitle}`),
+          escapeCSV(`${sIdx + 1}-${cIdx + 1}`),
+          escapeCSV(clip.length),
+          escapeCSV(clip.accumulatedTime),
+          escapeCSV(clip.backgroundId),
+          escapeCSV(clip.backgroundPrompt),
+        ];
 
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        if (!textOnly) {
+          const ref = clip.referenceImage || "";
+          row.push(escapeCSV(ref.startsWith('blob:') ? "[Image Blob]" : ref));
+        }
+
+        row.push(
+          escapeCSV(clip.story),
+          escapeCSV(clip.imagePrompt)
+        );
+
+        if (hasEndPrompts) row.push(escapeCSV(clip.imagePromptEnd || ""));
+
+        row.push(
+          escapeCSV(clip.videoPrompt),
+          escapeCSV(clip.soraVideoPrompt),
+          escapeCSV(clip.dialogue),
+          escapeCSV(clip.dialogueEn),
+          escapeCSV(clip.sfx),
+          escapeCSV(clip.sfxEn),
+          escapeCSV(clip.bgm),
+          escapeCSV(clip.bgmEn)
+        );
+        return row.join(',');
+      })
+    );
+
+    const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'storyboard.csv';
+    a.download = textOnly ? 'storyboard_text_only.csv' : 'storyboard_full.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -239,18 +485,99 @@ export default function ImageToScriptWriter() {
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Panels from Stage 1</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {mangaImages.length > 0 ? 'Imported Panels' : 'Panels from Stage 1'}
+            </p>
             <p className="text-2xl font-bold text-[#DB2777]">{totalPanels} panels</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Pages</p>
-            <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">{pages.length}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {mangaImages.length > 0 ? 'Source' : 'Pages'}
+            </p>
+            <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+              {mangaImages.length > 0 ? 'Direct Import' : pages.length}
+            </p>
           </div>
         </div>
         {totalPanels === 0 && (
           <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
-            Please complete the Panel Splitter stage first
+            Upload panels below or complete the Panel Splitter stage first
           </p>
+        )}
+      </div>
+
+      {/* Manga Panel Import */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <FileArchive className="w-5 h-5 text-blue-500" />
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              Import Manga Panels (Images, ZIP, JSON)
+            </span>
+          </div>
+          {mangaImages.length > 0 && (
+            <button
+              onClick={() => setMangaImages([])}
+              className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1"
+            >
+              <Trash2 className="w-3 h-3" />
+              Clear All
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <label className="flex-1 cursor-pointer">
+            <div className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+              <Upload className="w-5 h-5 text-gray-400" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Click to upload or drag & drop
+              </span>
+            </div>
+            <input
+              ref={mangaInputRef}
+              type="file"
+              multiple
+              accept="image/*,.zip,.json"
+              onChange={handleMangaUpload}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        {mangaImages.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <ImageIcon className="w-4 h-4 text-green-500" />
+            <span className="text-green-600 dark:text-green-400">
+              {mangaImages.length} panels loaded
+            </span>
+            <span className="text-gray-400 text-xs">
+              (overrides Stage 1 panels)
+            </span>
+          </div>
+        )}
+
+        {/* Preview of imported images */}
+        {convertedMangaImages.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2 max-h-32 overflow-auto">
+            {convertedMangaImages.slice(0, 10).map((base64, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={`data:image/jpeg;base64,${base64}`}
+                  alt={`Panel ${idx + 1}`}
+                  className="h-16 w-auto rounded border border-gray-300 dark:border-gray-600 object-cover"
+                />
+                <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5">
+                  {idx + 1}
+                </span>
+              </div>
+            ))}
+            {convertedMangaImages.length > 10 && (
+              <div className="h-16 w-16 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600">
+                <span className="text-xs text-gray-500">+{convertedMangaImages.length - 10}</span>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -369,8 +696,60 @@ export default function ImageToScriptWriter() {
         )}
       </div>
 
+      {/* Guide Prompts (Collapsible) */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+        <button
+          onClick={() => setShowGuides(!showGuides)}
+          className="w-full p-4 flex items-center justify-between text-left"
+        >
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            Style Guide Prompts (Optional)
+          </span>
+          {showGuides ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </button>
+
+        {showGuides && (
+          <div className="p-4 pt-0 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Image Guide
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                Style guide to append to all image prompts (e.g., art style, color palette)
+              </p>
+              <textarea
+                value={imageGuide}
+                onChange={(e) => setImageGuide(e.target.value)}
+                placeholder="e.g., anime style, soft lighting, pastel colors..."
+                rows={2}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Video Guide
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                Style guide to append to all video prompts (e.g., camera movement style)
+              </p>
+              <textarea
+                value={videoGuide}
+                onChange={(e) => setVideoGuide(e.target.value)}
+                placeholder="e.g., smooth camera movements, cinematic style..."
+                rows={2}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Generate Button */}
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-4 flex-wrap">
         <button
           onClick={handleGenerate}
           disabled={isGenerating || totalPanels === 0}
@@ -390,54 +769,65 @@ export default function ImageToScriptWriter() {
         </button>
 
         {scenes.length > 0 && (
-          <button
-            onClick={exportCSV}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg flex items-center gap-2"
-          >
-            <Download className="w-5 h-5" />
-            Export CSV
-          </button>
+          <>
+            <button
+              onClick={handleSplitStartEnd}
+              disabled={isSplitting || hasEndPrompts}
+              className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              title={hasEndPrompts ? "Already split" : "Split image prompts into start/end frames"}
+            >
+              {isSplitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Splitting...
+                </>
+              ) : (
+                <>
+                  <Split className="w-5 h-5" />
+                  Split Start/End
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => exportCSV(false)}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Export CSV
+            </button>
+
+            <button
+              onClick={() => exportCSV(true)}
+              className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg flex items-center gap-2 text-sm"
+            >
+              <Download className="w-4 h-4" />
+              CSV (Text Only)
+            </button>
+          </>
         )}
       </div>
 
       {/* Results */}
-      {scenes.length > 0 && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 border-b border-gray-200 dark:border-gray-600">
-            <h3 className="font-medium text-gray-700 dark:text-gray-300">
-              Generated Storyboard ({scenes.reduce((acc, s) => acc + s.clips.length, 0)} clips)
-            </h3>
-          </div>
-          <div className="max-h-96 overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0">
-                <tr>
-                  <th className="p-2 text-left">Scene</th>
-                  <th className="p-2 text-left">Story</th>
-                  <th className="p-2 text-left">Image Prompt</th>
-                  <th className="p-2 text-left">Length</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scenes.flatMap((scene, sIdx) =>
-                  scene.clips.map((clip: any, cIdx: number) => (
-                    <tr key={`${sIdx}-${cIdx}`} className="border-b border-gray-100 dark:border-gray-700">
-                      <td className="p-2 text-gray-600 dark:text-gray-400">
-                        {cIdx === 0 ? scene.sceneTitle : ''}
-                      </td>
-                      <td className="p-2 text-gray-800 dark:text-gray-200">{clip.story}</td>
-                      <td className="p-2 text-gray-600 dark:text-gray-400 max-w-xs truncate">
-                        {clip.imagePrompt}
-                      </td>
-                      <td className="p-2 text-gray-600 dark:text-gray-400">{clip.length}s</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      <StoryboardTable
+        data={scenes}
+        voicePrompts={voicePrompts}
+        hasEndPrompt={hasEndPrompts}
+        onUpdateClip={(sceneIndex, clipIndex, changes) => {
+          const updatedScenes = scenes.map((scene, sIdx) => {
+            if (sIdx !== sceneIndex) return scene;
+            return {
+              ...scene,
+              clips: scene.clips.map((clip, cIdx) => {
+                if (cIdx !== clipIndex) return clip;
+                return { ...clip, ...changes };
+              })
+            };
+          });
+          setScenes(updatedScenes);
+          setStageResult(2, { scenes: updatedScenes, voicePrompts });
+        }}
+      />
     </div>
   );
 }

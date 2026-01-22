@@ -5,7 +5,8 @@
       "WebFetch(domain:ai.google.dev)",
       "WebFetch(domain:docs.cloud.google.com)",
       "WebFetch(domain:github.com)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

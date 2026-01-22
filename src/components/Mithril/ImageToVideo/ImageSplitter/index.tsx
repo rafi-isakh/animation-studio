@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Upload, Scissors, Loader2, Check, AlertCircle, Download, FileJson } from "lucide-react";
+import JSZip from "jszip";
 import { useMithril } from "../../MithrilContext";
 
 // Types
@@ -34,6 +35,61 @@ export default function ImageSplitter() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [readingDirection, setReadingDirection] = useState<ReadingDirection>('rtl');
 
+  // Check if filename is an image
+  const isImageFile = (filename: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
+    const lowerName = filename.toLowerCase();
+    return imageExtensions.some(ext => lowerName.endsWith(ext));
+  };
+
+  // Get MIME type from filename
+  const getMimeType = (filename: string): string => {
+    const ext = filename.toLowerCase().split('.').pop();
+    const mimeTypes: Record<string, string> = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'webp': 'image/webp',
+      'gif': 'image/gif',
+      'bmp': 'image/bmp',
+    };
+    return mimeTypes[ext || ''] || 'image/jpeg';
+  };
+
+  // Extract images from ZIP file
+  const extractImagesFromZip = async (zipFile: File): Promise<MangaPage[]> => {
+    const zip = await JSZip.loadAsync(zipFile);
+    const extractedPages: MangaPage[] = [];
+
+    // Get all image files from ZIP, sorted by name for correct page order
+    const imageFiles = Object.keys(zip.files)
+      .filter(filename => {
+        const file = zip.files[filename];
+        // Skip directories and hidden files (like __MACOSX)
+        return !file.dir && !filename.startsWith('__') && !filename.includes('/__') && isImageFile(filename);
+      })
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+    for (const filename of imageFiles) {
+      const zipEntry = zip.files[filename];
+      const blob = await zipEntry.async('blob');
+      const mimeType = getMimeType(filename);
+      const file = new File([blob], filename.split('/').pop() || filename, { type: mimeType });
+
+      extractedPages.push({
+        id: `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        file: file,
+        previewUrl: URL.createObjectURL(blob),
+        fileName: file.name,
+        panels: [],
+        status: 'pending',
+        readingDirection: readingDirection,
+      });
+    }
+
+    return extractedPages;
+  };
+
   // Handle file upload
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -45,8 +101,12 @@ export default function ImageSplitter() {
     for (const file of fileList) {
       // Handle ZIP files
       if (file.type === 'application/zip' || file.type === 'application/x-zip-compressed' || file.name.endsWith('.zip')) {
-        // TODO: Implement ZIP extraction with JSZip
-        console.log('ZIP file detected - extraction not yet implemented');
+        try {
+          const extractedPages = await extractImagesFromZip(file);
+          newPages.push(...extractedPages);
+        } catch (error) {
+          console.error('Failed to extract ZIP file:', error);
+        }
         continue;
       }
 

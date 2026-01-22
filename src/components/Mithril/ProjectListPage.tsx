@@ -122,6 +122,16 @@ export default function ProjectListPage() {
     7: 'Videos',
   };
 
+  const stageColors: Record<number, string> = {
+    1: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    2: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    3: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    4: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    5: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
+    6: 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300',
+    7: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="flex justify-between items-center mb-8">
@@ -224,7 +234,7 @@ export default function ProjectListPage() {
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     Stage:
                   </span>
-                  <span className="text-sm font-medium px-2 py-0.5 bg-primary/10 text-primary rounded">
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColors[project.currentStage] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
                     {stageLabels[project.currentStage] || `Stage ${project.currentStage}`}
                   </span>
                 </div>

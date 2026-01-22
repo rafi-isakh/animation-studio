@@ -346,7 +346,7 @@ export default function StorySplitter() {
             </div>
           </div>
 
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide">
+          <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-2 scrollbar-hide">
             {splitResult.parts.map((part, index) => (
               <div
                 key={index}

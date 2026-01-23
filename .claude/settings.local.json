@@ -4,7 +4,9 @@
       "WebSearch",
       "WebFetch(domain:ai.google.dev)",
       "WebFetch(domain:docs.cloud.google.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

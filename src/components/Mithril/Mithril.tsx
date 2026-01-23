@@ -117,7 +117,7 @@ function CostTrackerDashboard() {
 }
 
 function MithrilContent() {
-  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey, projectType, totalStages } =
+  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey, projectType, totalStages, isStageSkipped } =
     useMithril();
   const { language, dictionary } = useLanguage();
 
@@ -183,19 +183,25 @@ function MithrilContent() {
         }`}
       >
         <div className="flex items-center justify-center min-w-max px-4">
-          {stages.map((stage, index) => (
+          {stages.map((stage, index) => {
+            const skipped = isStageSkipped(stage.id);
+            return (
             <div key={stage.id} className="flex items-center">
               {/* Stage Circle */}
               <button
-                onClick={() => setCurrentStage(stage.id)}
-                className="flex flex-col items-center group"
+                onClick={() => !skipped && setCurrentStage(stage.id)}
+                disabled={skipped}
+                className={`flex flex-col items-center group ${skipped ? 'cursor-not-allowed opacity-50' : ''}`}
+                title={skipped ? 'Skipped (Single Chapter upload)' : undefined}
               >
                 <div
                   className={`
                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
-                    transition-all duration-200 cursor-pointer
+                    transition-all duration-200 ${skipped ? 'cursor-not-allowed' : 'cursor-pointer'}
                     ${
-                      stage.id === currentStage
+                      skipped
+                        ? "bg-gray-300 dark:bg-gray-600 text-gray-400 dark:text-gray-500 line-through"
+                        : stage.id === currentStage
                         ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
                         : stage.id < currentStage
                         ? `${stage.color.bg} text-white`
@@ -209,7 +215,9 @@ function MithrilContent() {
                   className={`
                     mt-2 text-xs font-medium whitespace-nowrap
                     ${
-                      stage.id === currentStage
+                      skipped
+                        ? "text-gray-400 dark:text-gray-500 line-through"
+                        : stage.id === currentStage
                         ? stage.color.text
                         : stage.id < currentStage
                         ? stage.color.text
@@ -235,7 +243,8 @@ function MithrilContent() {
                 />
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

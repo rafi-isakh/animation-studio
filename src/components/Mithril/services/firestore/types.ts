@@ -32,10 +32,13 @@ export interface UpdateProjectInput {
 // Chapter (Stage 1)
 // ============================================
 
+export type UploadType = 'novel' | 'chapter';
+
 export interface ChapterDocument {
   content: string;
   filename: string;
   uploadedAt: Timestamp;
+  uploadType?: UploadType; // Optional for backward compatibility
 }
 
 // ============================================
@@ -371,6 +374,7 @@ export interface VideoClipDocument {
 export interface SaveChapterInput {
   content: string;
   filename: string;
+  uploadType: UploadType;
 }
 
 export interface SaveStorySplitsInput {

@@ -29,6 +29,8 @@ import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import GenrePresets, { type GenrePreset } from "./GenrePresets";
 import { uploadFileToDrive } from "../services";
+import { getChapter } from "../../services/firestore";
+import { useProject } from "@/contexts/ProjectContext";
 import type { SplitResult, Scene, Continuity } from "../types";
 
 /**
@@ -96,10 +98,12 @@ export default function StoryboardGenerator() {
     splitStartEndFrames,
     importStoryboard,
     clearStoryboardGeneration,
+    isStageSkipped,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+  const { currentProjectId } = useProject();
 
   // File input refs for imports
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,16 +190,34 @@ export default function StoryboardGenerator() {
   const [showConditions, setShowConditions] = useState(false);
 
   // Load split parts from context on mount
+  // If Stage 2 is skipped (single chapter mode), load text from Firestore (Stage 1) directly
   useEffect(() => {
-    const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
-    if (contextResult?.parts && Array.isArray(contextResult.parts)) {
-      // Handle both PartWithAnalysis objects and plain strings
-      const texts = contextResult.parts.map((part) =>
-        typeof part === "string" ? part : part.text
-      );
-      setSplitParts(texts);
-    }
-  }, [getStageResult]);
+    const loadParts = async () => {
+      if (isStageSkipped(2)) {
+        // Stage 2 is skipped - load uploaded text from Firestore as a single part
+        if (!currentProjectId) return;
+        try {
+          const chapter = await getChapter(currentProjectId);
+          if (chapter?.content) {
+            setSplitParts([chapter.content]);
+          }
+        } catch (err) {
+          console.error("Failed to load chapter from Firestore:", err);
+        }
+      } else {
+        // Normal flow - use split parts from Stage 2
+        const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
+        if (contextResult?.parts && Array.isArray(contextResult.parts)) {
+          // Handle both PartWithAnalysis objects and plain strings
+          const texts = contextResult.parts.map((part) =>
+            typeof part === "string" ? part : part.text
+          );
+          setSplitParts(texts);
+        }
+      }
+    };
+    loadParts();
+  }, [getStageResult, isStageSkipped, currentProjectId]);
 
   // Sync context results to stage results for other components
   useEffect(() => {
@@ -724,7 +746,9 @@ export default function StoryboardGenerator() {
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            {phrase(dictionary, "storyboard_no_parts", language)}
+            {isStageSkipped(2)
+              ? phrase(dictionary, "storyboard_no_upload", language)
+              : phrase(dictionary, "storyboard_no_parts", language)}
           </p>
         </div>
       )}

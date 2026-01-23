@@ -15,6 +15,7 @@ import {
   updateCurrentStage as updateCurrentStageFirestore,
   updateCustomApiKey as updateCustomApiKeyFirestore,
   updateVideoApiKey as updateVideoApiKeyFirestore,
+  getChapter,
   getStorySplits,
   saveStorySplits,
   deleteStorySplits,
@@ -50,6 +51,7 @@ import {
   saveDetectedIds,
   clearPropDesigner,
 } from "./services/firestore";
+import type { UploadType } from "./services/firestore/types";
 
 const TOTAL_STAGES = 8;
 
@@ -215,6 +217,11 @@ interface MithrilContextProps {
   setPropDesignerResult: (result: PropDesignerResultMetadata) => void;
   clearPropDesignerData: () => void;
 
+  // Upload Type (novel vs chapter)
+  uploadType: UploadType;
+  setUploadType: (type: UploadType) => void;
+  isStageSkipped: (stage: number) => boolean;
+
   // Reload data from Firestore
   reloadFromFirestore: () => Promise<void>;
 }
@@ -331,6 +338,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     result: null,
   });
 
+  // Upload Type state (novel vs chapter - determines if Stage 2 is skipped)
+  const [uploadType, setUploadTypeState] = useState<UploadType>('novel');
+
+  // Setter for upload type (used by UploadManager when file is processed)
+  const setUploadType = useCallback((type: UploadType) => {
+    setUploadTypeState(type);
+  }, []);
+
+  // Check if a stage should be skipped based on upload type
+  const isStageSkipped = useCallback((stage: number): boolean => {
+    // Stage 2 (Story Splitter) is skipped when upload type is 'chapter'
+    return stage === 2 && uploadType === 'chapter';
+  }, [uploadType]);
+
   // Load data from Firestore when projectId changes
   const loadFromFirestore = useCallback(async () => {
     if (!currentProjectId) {
@@ -350,6 +371,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
         setCustomApiKeyState(metadata.customApiKey || "");
         setVideoApiKeyState(metadata.videoApiKey || "");
+      }
+
+      // Load chapter data (including uploadType)
+      const chapterData = await getChapter(currentProjectId);
+      if (chapterData) {
+        // Load uploadType from chapter document (defaults to 'novel' for backward compatibility)
+        setUploadTypeState(chapterData.uploadType || 'novel');
       }
 
       // Load story splitter data
@@ -1293,15 +1321,29 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Navigation methods
   const goToNextStage = useCallback(() => {
     if (currentStage < totalStages) {
-      setCurrentStage(currentStage + 1);
+      let nextStage = currentStage + 1;
+      // Skip Stage 2 if uploadType is 'chapter'
+      if (nextStage === 2 && uploadType === 'chapter') {
+        nextStage = 3;
+      }
+      if (nextStage <= totalStages) {
+        setCurrentStage(nextStage);
+      }
     }
-  }, [currentStage, totalStages, setCurrentStage]);
+  }, [currentStage, totalStages, uploadType, setCurrentStage]);
 
   const goToPreviousStage = useCallback(() => {
     if (currentStage > 1) {
-      setCurrentStage(currentStage - 1);
+      let prevStage = currentStage - 1;
+      // Skip Stage 2 if uploadType is 'chapter'
+      if (prevStage === 2 && uploadType === 'chapter') {
+        prevStage = 1;
+      }
+      if (prevStage >= 1) {
+        setCurrentStage(prevStage);
+      }
     }
-  }, [currentStage, setCurrentStage]);
+  }, [currentStage, uploadType, setCurrentStage]);
 
   // File management methods
   const addFile = (file: File) => {
@@ -1383,6 +1425,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         propDesignerGenerator,
         setPropDesignerResult,
         clearPropDesignerData,
+        // Upload Type (novel vs chapter)
+        uploadType,
+        setUploadType,
+        isStageSkipped,
         // Reload
         reloadFromFirestore,
       }}

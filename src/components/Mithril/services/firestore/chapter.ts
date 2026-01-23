@@ -31,6 +31,7 @@ export async function saveChapter(
   await setDoc(docRef, {
     content: input.content,
     filename: input.filename,
+    uploadType: input.uploadType,
     uploadedAt: Timestamp.now(),
   });
 

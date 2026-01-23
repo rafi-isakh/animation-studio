@@ -34,6 +34,7 @@ export default function ImageSplitter() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [readingDirection, setReadingDirection] = useState<ReadingDirection>('rtl');
+  const [processingStats, setProcessingStats] = useState<{ duration: string; pageCount: number; panelCount: number } | null>(null);
 
   // Check if filename is an image
   const isImageFile = (filename: string): boolean => {
@@ -126,6 +127,8 @@ export default function ImageSplitter() {
 
     if (newPages.length > 0) {
       setPages(prev => [...prev, ...newPages]);
+      // Reset stats when new files are added
+      setProcessingStats(null);
     }
 
     // Reset input
@@ -191,8 +194,11 @@ export default function ImageSplitter() {
     const pendingPages = pages.filter(p => p.status === 'pending');
     if (pendingPages.length === 0) return;
 
+    setProcessingStats(null);
     setIsProcessing(true);
     setProgress({ current: 0, total: pendingPages.length });
+
+    const startTime = Date.now();
 
     // Create a copy of pages for updating
     let updatedPages = [...pages];
@@ -266,8 +272,20 @@ export default function ImageSplitter() {
 
     setIsProcessing(false);
 
-    // Save result to stage results for next stage
+    // Calculate processing stats
+    const endTime = Date.now();
+    const durationMs = endTime - startTime;
+    const durationMinutes = (durationMs / 60000).toFixed(2);
     const completedPages = updatedPages.filter(p => p.status === 'completed');
+    const totalPanels = completedPages.reduce((acc, p) => acc + p.panels.length, 0);
+
+    setProcessingStats({
+      duration: durationMinutes,
+      pageCount: pendingPages.length,
+      panelCount: totalPanels,
+    });
+
+    // Save result to stage results for next stage
     setStageResult(1, { pages: completedPages });
   };
 
@@ -282,7 +300,44 @@ export default function ImageSplitter() {
     });
   };
 
-  // Export panels as JSON
+  // Download panels as ZIP file
+  const downloadZip = async () => {
+    const completedPages = pages.filter(p => p.status === 'completed' && p.panels.length > 0);
+    if (completedPages.length === 0) return;
+
+    const zip = new JSZip();
+    let hasContent = false;
+
+    completedPages.forEach((page) => {
+      page.panels.forEach((panel, idx) => {
+        if (panel.imageUrl) {
+          // Remove data URL prefix if present, otherwise use as-is
+          const base64Data = panel.imageUrl.includes(',')
+            ? panel.imageUrl.split(',')[1]
+            : panel.imageUrl;
+
+          // Create filename: sourcepage_panelnum.jpg
+          const baseName = page.fileName.replace(/\.[^/.]+$/, ''); // Remove extension
+          const filename = `${baseName}_panel_${String(idx + 1).padStart(2, '0')}.jpg`;
+
+          zip.file(filename, base64Data, { base64: true });
+          hasContent = true;
+        }
+      });
+    });
+
+    if (hasContent) {
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'manga_panels.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // Export panels as JSON (with images for storyboard apps)
   const exportJSON = () => {
     const completedPages = pages.filter(p => p.status === 'completed' && p.panels.length > 0);
     if (completedPages.length === 0) return;
@@ -292,8 +347,23 @@ export default function ImageSplitter() {
         app: "Toonyz Mithril",
         version: "1.0",
         exportedAt: new Date().toISOString(),
+        totalPages: completedPages.length,
         totalPanels: completedPages.reduce((acc, p) => acc + p.panels.length, 0)
       },
+      // Flat storyboard format for easy import into other apps
+      storyboard: completedPages.flatMap((page, pageIdx) =>
+        page.panels.map((panel, panelIdx) => ({
+          id: panel.id,
+          sourcePage: page.fileName,
+          pageOrder: pageIdx + 1,
+          panelOrder: panelIdx + 1,
+          readingDirection: page.readingDirection,
+          box_2d: panel.box_2d,
+          label: panel.label,
+          imageBase64: panel.imageUrl, // Include base64 image
+        }))
+      ),
+      // Also include page-grouped format
       pages: completedPages.map((page, pageIdx) => ({
         fileName: page.fileName,
         pageOrder: pageIdx + 1,
@@ -303,6 +373,7 @@ export default function ImageSplitter() {
           panelOrder: panelIdx + 1,
           box_2d: panel.box_2d,
           label: panel.label,
+          imageBase64: panel.imageUrl,
         }))
       }))
     };
@@ -311,7 +382,7 @@ export default function ImageSplitter() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'manga_panels.json';
+    a.download = 'manga_panels_sequence.json';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -395,7 +466,7 @@ export default function ImageSplitter() {
       )}
 
       {/* Action Buttons */}
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-wrap justify-center gap-3">
         <button
           onClick={startProcessing}
           disabled={isProcessing || pendingCount === 0}
@@ -415,6 +486,15 @@ export default function ImageSplitter() {
         </button>
 
         <button
+          onClick={downloadZip}
+          disabled={!hasResults}
+          className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Download ZIP
+        </button>
+
+        <button
           onClick={exportJSON}
           disabled={!hasResults}
           className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -423,6 +503,16 @@ export default function ImageSplitter() {
           Export JSON
         </button>
       </div>
+
+      {/* Processing Stats */}
+      {processingStats && (
+        <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center justify-center text-green-700 dark:text-green-400 text-sm">
+          <Check className="w-4 h-4 mr-2" />
+          <span>
+            Processed <strong>{processingStats.pageCount}</strong> pages ({processingStats.panelCount} panels) in <strong>{processingStats.duration}</strong> minutes.
+          </span>
+        </div>
+      )}
 
       {/* Page Grid */}
       {pages.length > 0 && (

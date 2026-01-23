@@ -113,6 +113,17 @@ export default function ProjectListPage() {
     });
   }
 
+  // Stage colors - each stage gets a unique color
+  const stageColors = [
+    { bg: 'bg-yellow-500/15', text: 'text-yellow-600 dark:text-yellow-400' },
+    { bg: 'bg-orange-500/15', text: 'text-orange-600 dark:text-orange-400' },
+    { bg: 'bg-red-500/15', text: 'text-red-600 dark:text-red-400' },
+    { bg: 'bg-purple-500/15', text: 'text-purple-600 dark:text-purple-400' },
+    { bg: 'bg-indigo-500/15', text: 'text-indigo-600 dark:text-indigo-400' },
+    { bg: 'bg-sky-500/15', text: 'text-sky-600 dark:text-sky-400' },
+    { bg: 'bg-green-500/15', text: 'text-green-600 dark:text-green-400' },
+  ];
+
   // Get stage label based on project type
   function getStageLabel(projectType: ProjectType, stageId: number): string {
     const stageConfig = getStageConfig(projectType, stageId);
@@ -132,6 +143,14 @@ export default function ProjectListPage() {
     };
 
     return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;
+  }
+
+  // Get stage color based on project type and stage id
+  function getStageColor(projectType: ProjectType, stageId: number) {
+    const config = getProjectTypeConfig(projectType);
+    const stageIndex = config.stages.findIndex(s => s.id === stageId);
+    if (stageIndex === -1) return stageColors[0];
+    return stageColors[stageIndex % stageColors.length];
   }
 
   // Get project type display info
@@ -261,14 +280,19 @@ export default function ProjectListPage() {
                   })()}
                 </div>
                 {/* Current Stage */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Stage:
-                  </span>
-                  <span className="text-sm font-medium px-2 py-0.5 bg-primary/10 text-primary rounded">
-                    {getStageLabel(project.projectType, project.currentStage)}
-                  </span>
-                </div>
+                {(() => {
+                  const stageColor = getStageColor(project.projectType, project.currentStage);
+                  return (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        Stage:
+                      </span>
+                      <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColor.bg} ${stageColor.text}`}>
+                        {getStageLabel(project.projectType, project.currentStage)}
+                      </span>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           ))}

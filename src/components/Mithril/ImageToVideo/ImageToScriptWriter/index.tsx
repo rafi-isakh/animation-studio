@@ -171,8 +171,55 @@ export default function ImageToScriptWriter() {
     }
   };
 
-  // Convert File/Blob to base64
-  const blobToBase64 = (blob: Blob | File): Promise<string> => {
+  // Compress and resize image to reduce payload size (for Vercel's 4.5MB limit)
+  const compressImage = (blob: Blob | File, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(blob);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        // Calculate new dimensions
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        // Draw to canvas and compress
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 with compression
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        const base64 = dataUrl.split(',')[1];
+        resolve(base64);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = url;
+    });
+  };
+
+  // Convert File/Blob to base64 (with compression for large files)
+  const blobToBase64 = async (blob: Blob | File): Promise<string> => {
+    // Compress if file is larger than 100KB
+    if (blob.size > 100 * 1024) {
+      return compressImage(blob);
+    }
+
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -183,6 +230,36 @@ export default function ImageToScriptWriter() {
       };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
+    });
+  };
+
+  // Compress base64 image string
+  const compressBase64Image = (base64: string, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        const compressedBase64 = dataUrl.split(',')[1];
+        resolve(compressedBase64);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = `data:image/jpeg;base64,${base64}`;
     });
   };
 
@@ -314,6 +391,18 @@ export default function ImageToScriptWriter() {
     setIsGenerating(true);
 
     try {
+      // Compress all panel images to reduce payload size (Vercel has 4.5MB limit)
+      const compressedPanels = await Promise.all(
+        allPanels.map(async (panel) => {
+          // Check if base64 string is large (rough estimate: 100KB = ~137K base64 chars)
+          if (panel.imageBase64.length > 100000) {
+            const compressed = await compressBase64Image(panel.imageBase64, 800, 0.7);
+            return { ...panel, imageBase64: compressed };
+          }
+          return panel;
+        })
+      );
+
       // Call API to generate storyboard
       const response = await fetch('/api/manga/generate-storyboard', {
         method: 'POST',
@@ -321,7 +410,7 @@ export default function ImageToScriptWriter() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          panels: allPanels,
+          panels: compressedPanels,
           sourceText: sourceText || undefined,
           targetDuration,
           storyCondition,
@@ -334,8 +423,23 @@ export default function ImageToScriptWriter() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate storyboard');
+        // Check for payload too large error (413) or Vercel's body size limit
+        if (response.status === 413) {
+          throw new Error('Request too large. Try reducing the number of panels or image quality.');
+        }
+        // Try to parse error response, but handle non-JSON responses
+        let errorMessage = 'Failed to generate storyboard';
+        const responseText = await response.text();
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // Response is not JSON (e.g., "Request Entity Too Large" text)
+          if (responseText.toLowerCase().includes('request') || responseText.toLowerCase().includes('large') || responseText.toLowerCase().includes('entity')) {
+            errorMessage = 'Request too large. Try reducing the number of panels or use smaller images.';
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

@@ -138,13 +138,25 @@ function MithrilContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Stage colors - each stage gets a unique color
+  const stageColors = [
+    { bg: 'bg-yellow-500', text: 'text-yellow-500', ring: 'ring-yellow-500/30' },
+    { bg: 'bg-orange-500', text: 'text-orange-500', ring: 'ring-orange-500/30' },
+    { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },
+    { bg: 'bg-purple-500', text: 'text-purple-500', ring: 'ring-purple-500/30' },
+    { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
+    { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
+    { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
+  ];
+
   // Build stages dynamically from project type config
   const projectTypeConfig = getProjectTypeConfig(projectType);
   const stages = useMemo(
-    () => projectTypeConfig.stages.map(stage => ({
+    () => projectTypeConfig.stages.map((stage, index) => ({
       id: stage.id,
       label: phrase(dictionary, stage.labelKey, language),
       component: stage.component,
+      color: stageColors[index % stageColors.length],
     })),
     [projectTypeConfig, dictionary, language]
   );
@@ -181,9 +193,9 @@ function MithrilContent() {
                     transition-all duration-200 cursor-pointer
                     ${
                       stage.id === currentStage
-                        ? "bg-[#DB2777] text-white ring-4 ring-[#DB2777]/30"
+                        ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
                         : stage.id < currentStage
-                        ? "bg-[#DB2777] text-white"
+                        ? `${stage.color.bg} text-white`
                         : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
                     }
                   `}
@@ -195,9 +207,9 @@ function MithrilContent() {
                     mt-2 text-xs font-medium whitespace-nowrap
                     ${
                       stage.id === currentStage
-                        ? "text-[#DB2777]"
+                        ? stage.color.text
                         : stage.id < currentStage
-                        ? "text-[#DB2777]"
+                        ? stage.color.text
                         : "text-gray-500 dark:text-gray-400"
                     }
                   `}
@@ -213,7 +225,7 @@ function MithrilContent() {
                     w-12 md:w-20 h-1 mx-2 self-start mt-5
                     ${
                       stage.id < currentStage
-                        ? "bg-[#DB2777]"
+                        ? "bg-gray-400 dark:bg-gray-500"
                         : "bg-gray-200 dark:bg-gray-700"
                     }
                   `}

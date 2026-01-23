@@ -135,6 +135,7 @@ export default function ProjectListPage() {
       'mithril_stage2': 'Story Split',
       'mithril_stage3': 'Characters',
       'mithril_stage4': 'Storyboard',
+      'mithril_stage5_prop': 'Assets',
       'mithril_stage5': 'Backgrounds',
       'mithril_stage6': 'Image Clips',
       'mithril_stage7': 'Videos',

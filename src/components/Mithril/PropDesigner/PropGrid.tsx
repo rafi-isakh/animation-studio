@@ -16,23 +16,63 @@ export default function PropGrid({
   onSelectProp,
   onGenerateImage,
 }: PropGridProps) {
-  return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-bold text-gray-200">
-        Detected Props ({props.length})
-      </h3>
+  // Separate characters and objects
+  const characters = props.filter((p) => p.category === "character");
+  const objects = props.filter((p) => p.category === "object");
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {props.map((prop) => (
-          <PropCard
-            key={prop.id}
-            prop={prop}
-            isSelected={selectedPropId === prop.id}
-            onSelect={() => onSelectProp(prop.id)}
-            onGenerateImage={onGenerateImage}
-          />
-        ))}
-      </div>
+  return (
+    <div className="space-y-6">
+      {/* Characters Section */}
+      {characters.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-gray-200">
+              Characters ({characters.length})
+            </h3>
+            <span className="text-[9px] font-black text-purple-400 bg-purple-900/50 px-2 py-0.5 rounded border border-purple-700 uppercase">
+              Character
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {characters.map((prop) => (
+              <PropCard
+                key={prop.id}
+                prop={prop}
+                isSelected={selectedPropId === prop.id}
+                onSelect={() => onSelectProp(prop.id)}
+                onGenerateImage={onGenerateImage}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Objects Section */}
+      {objects.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-gray-200">
+              Props / Objects ({objects.length})
+            </h3>
+            <span className="text-[9px] font-black text-teal-400 bg-teal-900/50 px-2 py-0.5 rounded border border-teal-700 uppercase">
+              Object
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {objects.map((prop) => (
+              <PropCard
+                key={prop.id}
+                prop={prop}
+                isSelected={selectedPropId === prop.id}
+                onSelect={() => onSelectProp(prop.id)}
+                onGenerateImage={onGenerateImage}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -48,17 +88,23 @@ function PropCard({ prop, isSelected, onSelect, onGenerateImage }: PropCardProps
   const imageUrl = prop.designSheetImageUrl ||
     (prop.designSheetImageBase64 ? `data:image/png;base64,${prop.designSheetImageBase64}` : null);
 
+  const isCharacter = prop.category === "character";
+  const borderColor = isCharacter
+    ? isSelected ? "border-purple-500 ring-2 ring-purple-500/30" : "border-gray-700 hover:border-purple-600"
+    : isSelected ? "border-teal-500 ring-2 ring-teal-500/30" : "border-gray-700 hover:border-teal-600";
+
+  const accentColor = isCharacter ? "text-purple-400" : "text-teal-400";
+  const accentBg = isCharacter ? "bg-purple-900/50 border-purple-800" : "bg-teal-900/50 border-teal-800";
+
   return (
     <div
-      className={`bg-gray-800 border rounded-lg overflow-hidden transition-all cursor-pointer hover:border-teal-600 ${
-        isSelected ? "border-teal-500 ring-2 ring-teal-500/30" : "border-gray-700"
-      }`}
+      className={`bg-gray-800 border rounded-lg overflow-hidden transition-all cursor-pointer ${borderColor}`}
       onClick={onSelect}
     >
       {/* Image preview */}
-      <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
+      <div className="aspect-video bg-gray-900 relative overflow-hidden">
         {prop.isGenerating ? (
-          <div className="flex flex-col items-center gap-2 text-gray-500">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-500">
             <svg
               className="animate-spin h-8 w-8"
               xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +131,7 @@ function PropCard({ prop, isSelected, onSelect, onGenerateImage }: PropCardProps
           <img
             src={imageUrl}
             alt={prop.name}
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-contain"
           />
         ) : (
           <button
@@ -93,7 +139,7 @@ function PropCard({ prop, isSelected, onSelect, onGenerateImage }: PropCardProps
               e.stopPropagation();
               onGenerateImage(prop.id, prop.designSheetPrompt, prop.referenceImageBase64);
             }}
-            className="flex flex-col items-center gap-2 text-gray-600 hover:text-teal-400 transition-colors"
+            className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-600 hover:${accentColor} transition-colors`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -118,17 +164,19 @@ function PropCard({ prop, isSelected, onSelect, onGenerateImage }: PropCardProps
       <div className="p-3 space-y-2">
         <div className="flex justify-between items-start">
           <h4 className="font-bold text-gray-200 text-sm truncate flex-1">{prop.name}</h4>
-          <span className="text-[8px] font-bold text-teal-500 bg-teal-900/50 px-1.5 py-0.5 rounded border border-teal-800 uppercase shrink-0 ml-2">
-            {prop.appearingClips.slice(0, 3).join(", ")}
-            {prop.appearingClips.length > 3 && "..."}
-          </span>
+          {prop.appearingClips && prop.appearingClips.length > 0 && (
+            <span className={`text-[8px] font-bold ${accentColor} ${accentBg} px-1.5 py-0.5 rounded border uppercase shrink-0 ml-2`}>
+              {prop.appearingClips.slice(0, 3).join(", ")}
+              {prop.appearingClips.length > 3 && "..."}
+            </span>
+          )}
         </div>
 
         <p className="text-[10px] text-gray-400 line-clamp-2" title={prop.description}>
           {prop.description}
         </p>
 
-        <p className="text-[10px] text-teal-400 line-clamp-1" title={prop.descriptionKo}>
+        <p className={`text-[10px] ${accentColor} line-clamp-1`} title={prop.descriptionKo}>
           {prop.descriptionKo}
         </p>
       </div>

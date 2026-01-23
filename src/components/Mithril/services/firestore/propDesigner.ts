@@ -123,16 +123,21 @@ export async function getProp(
 
 /**
  * Save a new prop
- * Returns the auto-generated Firestore document ID
+ * If input.id is provided, uses that as the document ID
+ * Otherwise, auto-generates a Firestore document ID
+ * Returns the document ID used
  */
 export async function saveProp(
   projectId: string,
   input: SavePropInput
 ): Promise<string> {
   const collectionRef = getPropsCollection(projectId);
-  const newDocRef = doc(collectionRef);
+  // Use provided ID or auto-generate
+  const docRef = input.id
+    ? doc(collectionRef, input.id)
+    : doc(collectionRef);
 
-  await setDoc(newDocRef, {
+  await setDoc(docRef, {
     name: input.name,
     category: input.category,
     description: input.description,
@@ -144,7 +149,7 @@ export async function saveProp(
     referenceImageRef: input.referenceImageRef || '',
   });
 
-  return newDocRef.id;
+  return docRef.id;
 }
 
 /**
@@ -262,24 +267,46 @@ export async function updateDetectedIdCategory(
  */
 export async function clearPropDesigner(projectId: string): Promise<void> {
   const batch = writeBatch(db);
+  let hasDeletes = false;
 
-  // Delete all props
-  const props = await getProps(projectId);
-  for (const prop of props) {
-    const propRef = getPropRef(projectId, prop.id);
-    batch.delete(propRef);
+  // Delete all props - wrap in try-catch to handle BloomFilter errors on empty collections
+  try {
+    const props = await getProps(projectId);
+    for (const prop of props) {
+      const propRef = getPropRef(projectId, prop.id);
+      batch.delete(propRef);
+      hasDeletes = true;
+    }
+  } catch (error) {
+    // BloomFilter errors can occur on empty/new collections - safe to ignore
+    console.warn("Error fetching props for deletion (may be empty):", error);
   }
 
-  // Delete all detected IDs
-  const detectedIds = await getDetectedIds(projectId);
-  for (const detectedId of detectedIds) {
-    const detectedIdRef = getDetectedIdRef(projectId, detectedId.id);
-    batch.delete(detectedIdRef);
+  // Delete all detected IDs - wrap in try-catch to handle BloomFilter errors
+  try {
+    const detectedIds = await getDetectedIds(projectId);
+    for (const detectedId of detectedIds) {
+      const detectedIdRef = getDetectedIdRef(projectId, detectedId.id);
+      batch.delete(detectedIdRef);
+      hasDeletes = true;
+    }
+  } catch (error) {
+    // BloomFilter errors can occur on empty/new collections - safe to ignore
+    console.warn("Error fetching detected IDs for deletion (may be empty):", error);
   }
 
-  // Delete settings
+  // Delete settings - always try to delete
   const settingsRef = getSettingsRef(projectId);
   batch.delete(settingsRef);
+  hasDeletes = true;
 
-  await batch.commit();
+  // Only commit if there are deletes to perform
+  if (hasDeletes) {
+    try {
+      await batch.commit();
+    } catch (error) {
+      // If batch commit fails (e.g., no documents exist), log and continue
+      console.warn("Batch commit warning:", error);
+    }
+  }
 }

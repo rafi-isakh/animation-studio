@@ -210,6 +210,7 @@ export interface SavePropDesignerSettingsInput {
 }
 
 export interface SavePropInput {
+  id?: string; // Optional: use this ID instead of auto-generating
   name: string;
   category: 'character' | 'object';
   description: string;

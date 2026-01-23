@@ -24,9 +24,10 @@ const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator' },
   { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'StoryboardGenerator' },
-  { id: 5, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
-  { id: 6, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
-  { id: 7, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
+  { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
+  { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
+  { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
+  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
 ];
 
 // Stage configurations for Image-to-Video (manga-to-anime pipeline)

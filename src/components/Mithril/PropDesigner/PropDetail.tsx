@@ -41,6 +41,11 @@ export default function PropDetail({
   const referenceUrl = prop.referenceImageUrl ||
     (prop.referenceImageBase64 ? prop.referenceImageBase64 : null);
 
+  const isCharacter = prop.category === "character";
+  const accentColor = isCharacter ? "text-purple-500" : "text-teal-500";
+  const accentBg = isCharacter ? "bg-purple-900/50 border-purple-800" : "bg-teal-900/50 border-teal-800";
+  const buttonBg = isCharacter ? "bg-purple-700 hover:bg-purple-600" : "bg-teal-700 hover:bg-teal-600";
+
   return (
     <div className="bg-gray-800/80 border border-gray-700 rounded-lg p-6 space-y-6">
       {/* Header */}
@@ -48,11 +53,11 @@ export default function PropDetail({
         <div>
           <h3 className="text-xl font-bold text-gray-200">{prop.name}</h3>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[9px] font-black text-teal-500 bg-teal-900/50 px-2 py-0.5 rounded border border-teal-800 uppercase">
+            <span className={`text-[9px] font-black ${accentColor} ${accentBg} px-2 py-0.5 rounded border uppercase`}>
               {prop.category}
             </span>
             <span className="text-xs text-gray-500">
-              Appears in: {prop.appearingClips.join(", ")}
+              {prop.appearingClips && prop.appearingClips.length > 0 && `Appears in: ${prop.appearingClips.join(", ")}`}
             </span>
           </div>
         </div>
@@ -222,7 +227,7 @@ export default function PropDetail({
             onGenerateImage(prop.id, editedPrompt, refBase64);
           }}
           disabled={prop.isGenerating || !editedPrompt.trim()}
-          className="px-4 py-2 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-sm font-bold transition-colors flex items-center gap-2"
+          className={`px-4 py-2 ${buttonBg} disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-sm font-bold transition-colors flex items-center gap-2`}
         >
           {prop.isGenerating ? (
             <>

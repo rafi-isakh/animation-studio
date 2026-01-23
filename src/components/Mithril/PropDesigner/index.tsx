@@ -201,7 +201,6 @@ export default function PropDesigner() {
 
   // Debug: log when importedScenes changes
   useEffect(() => {
-    console.log("[PropDesigner] importedScenes state changed:", importedScenes.length, "scenes");
     if (importedScenes.length > 0) {
       console.log("[PropDesigner] First scene has", importedScenes[0].clips.length, "clips");
     }
@@ -215,9 +214,7 @@ export default function PropDesigner() {
   // Use a memoized value that depends on the actual array lengths
   // Prioritize imported scenes when user explicitly imports a CSV
   const activeScenes = useMemo(() => {
-    console.log("[PropDesigner] Recomputing activeScenes - context:", hasContextScenes, "imported:", hasImportedScenes);
     if (hasImportedScenes) {
-      console.log("[PropDesigner] Using imported scenes (priority)");
       return importedScenes;
     }
     if (hasContextScenes) {
@@ -226,16 +223,10 @@ export default function PropDesigner() {
     return [];
   }, [contextScenes, importedScenes, hasContextScenes, hasImportedScenes]);
 
-  console.log("[PropDesigner] activeScenes length:", activeScenes.length);
-
   // Load from context on mount
   useEffect(() => {
     if (propDesignerGenerator.result) {
       const result = propDesignerGenerator.result;
-      console.log("[PropDesigner] Loading from context:", result.props.length, "props");
-      result.props.forEach((p, i) => {
-        console.log(`[PropDesigner] Prop ${i}: ${p.name}, imageRef: ${p.designSheetImageRef?.substring(0, 50)}...`);
-      });
 
       setGenre(result.settings?.genre || "Modern");
       setStyleKeyword(result.settings?.styleKeyword || "anime 2d style");
@@ -266,10 +257,8 @@ export default function PropDesigner() {
   // Use useEffect for the side effect (setDetectedIds) instead of useMemo
   // Include importVersion to force re-run when CSV is imported
   useEffect(() => {
-    console.log("[PropDesigner] ID extraction effect running, importVersion:", importVersion, "activeScenes:", activeScenes.length);
 
     if (!activeScenes || activeScenes.length === 0) {
-      console.log("[PropDesigner] No active scenes, clearing detected IDs");
       setDetectedIds([]);
       return;
     }
@@ -327,7 +316,6 @@ export default function PropDesigner() {
       }
     });
 
-    console.log("[PropDesigner] Extracted IDs from", activeScenes.length, "scenes:", allDetected.length, "IDs found");
     setDetectedIds(allDetected);
   }, [activeScenes, importVersion]);
 

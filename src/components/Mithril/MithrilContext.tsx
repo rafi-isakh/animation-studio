@@ -138,6 +138,12 @@ interface GenerateStoryboardParams {
   soundCondition: string;
   imageGuide: string;
   videoGuide: string;
+  // New configuration parameters (from reference)
+  targetTime?: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 // Types for shared state

@@ -18,6 +18,12 @@ import {
   FileSpreadsheet,
   SplitSquareHorizontal,
   Upload,
+  Clock,
+  FileText,
+  Ban,
+  Video,
+  BookOpen,
+  CheckCircle,
 } from "lucide-react";
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
@@ -99,6 +105,11 @@ export default function StoryboardGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
+  // File input refs for configuration file uploads
+  const bgInstructionFileRef = useRef<HTMLInputElement>(null);
+  const negativeInstructionFileRef = useRef<HTMLInputElement>(null);
+  const videoInstructionFileRef = useRef<HTMLInputElement>(null);
+
   // Default conditions
   const defaultConditions = useMemo(
     () => ({
@@ -160,6 +171,13 @@ export default function StoryboardGenerator() {
   const [imageGuide, setImageGuide] = useState("");
   const [videoGuide, setVideoGuide] = useState("");
 
+  // New configuration state (from reference)
+  const [targetTime, setTargetTime] = useState("03:00");
+  const [customInstruction, setCustomInstruction] = useState("");
+  const [backgroundInstruction, setBackgroundInstruction] = useState("");
+  const [negativeInstruction, setNegativeInstruction] = useState("");
+  const [videoInstruction, setVideoInstruction] = useState("");
+
   // Local UI state (not lifted to context)
   const [isSavingToDrive, setIsSavingToDrive] = useState(false);
 
@@ -213,6 +231,12 @@ export default function StoryboardGenerator() {
       soundCondition,
       imageGuide,
       videoGuide,
+      // New configuration parameters from reference
+      targetTime,
+      customInstruction,
+      backgroundInstruction,
+      negativeInstruction,
+      videoInstruction,
     });
 
     // Show success toast if generation completed without error
@@ -232,6 +256,11 @@ export default function StoryboardGenerator() {
     soundCondition,
     imageGuide,
     videoGuide,
+    targetTime,
+    customInstruction,
+    backgroundInstruction,
+    negativeInstruction,
+    videoInstruction,
     startStoryboardGeneration,
     storyboardGenerator,
     toast,
@@ -617,6 +646,28 @@ export default function StoryboardGenerator() {
     event.target.value = "";
   }, [importStoryboard, toast, dictionary, language]);
 
+  // Handler for configuration file uploads
+  const handleConfigFileUpload = useCallback(
+    (
+      event: React.ChangeEvent<HTMLInputElement>,
+      setter: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setter(content);
+      };
+      reader.readAsText(file);
+
+      // Reset the file input so the same file can be uploaded again
+      event.target.value = "";
+    },
+    []
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -677,6 +728,172 @@ export default function StoryboardGenerator() {
           </p>
         </div>
       )}
+
+      {/* Configuration Section (from reference) */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 space-y-4">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+          <Settings className="w-5 h-5 text-[#DB2777]" />
+          {phrase(dictionary, "storyboard_config_title", language) || "Generation Configuration"}
+        </h3>
+
+        {/* Row 1: Target Time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Clock className="w-4 h-4 text-[#DB2777]" />
+              {phrase(dictionary, "storyboard_target_time", language) || "Total Running Time"}
+            </label>
+            <input
+              type="text"
+              value={targetTime}
+              onChange={(e) => setTargetTime(e.target.value)}
+              placeholder="03:00"
+              className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {phrase(dictionary, "storyboard_target_time_hint", language) || "Format: MM:SS (e.g., 03:00 for 3 minutes)"}
+            </p>
+          </div>
+        </div>
+
+        {/* Row 2: Story Guide (Custom Instruction) */}
+        <div>
+          <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <BookOpen className="w-4 h-4 text-[#DB2777]" />
+            {phrase(dictionary, "storyboard_story_guide", language) || "Story Guide"}
+          </label>
+          <textarea
+            rows={3}
+            value={customInstruction}
+            onChange={(e) => setCustomInstruction(e.target.value)}
+            placeholder={phrase(dictionary, "storyboard_story_guide_placeholder", language) || "What to emphasize, what to omit, what narrative to extend..."}
+            className="block w-full p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none resize-none"
+          />
+        </div>
+
+        {/* Row 3: File Uploads */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Background ID Instruction */}
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <FileText className="w-4 h-4 text-blue-500" />
+              {phrase(dictionary, "storyboard_bg_instruction", language) || "Background ID"}
+            </label>
+            <input
+              type="file"
+              ref={bgInstructionFileRef}
+              accept=".txt"
+              onChange={(e) => handleConfigFileUpload(e, setBackgroundInstruction)}
+              className="hidden"
+            />
+            <button
+              onClick={() => bgInstructionFileRef.current?.click()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-lg border-2 border-dashed transition-all ${
+                backgroundInstruction
+                  ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 text-blue-700 dark:text-blue-300"
+                  : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {backgroundInstruction ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_file_loaded", language) || "Loaded"}
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_upload_txt", language) || "Upload .txt"}
+                </>
+              )}
+            </button>
+            {backgroundInstruction && (
+              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 truncate" title={backgroundInstruction.slice(0, 100)}>
+                {backgroundInstruction.slice(0, 50)}...
+              </p>
+            )}
+          </div>
+
+          {/* Negative Prompt Instruction */}
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Ban className="w-4 h-4 text-red-500" />
+              {phrase(dictionary, "storyboard_negative_instruction", language) || "Negative Prompt"}
+            </label>
+            <input
+              type="file"
+              ref={negativeInstructionFileRef}
+              accept=".txt"
+              onChange={(e) => handleConfigFileUpload(e, setNegativeInstruction)}
+              className="hidden"
+            />
+            <button
+              onClick={() => negativeInstructionFileRef.current?.click()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-lg border-2 border-dashed transition-all ${
+                negativeInstruction
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-400 text-red-700 dark:text-red-300"
+                  : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-red-400 hover:text-red-600"
+              }`}
+            >
+              {negativeInstruction ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_file_loaded", language) || "Loaded"}
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_upload_txt", language) || "Upload .txt"}
+                </>
+              )}
+            </button>
+            {negativeInstruction && (
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400 truncate" title={negativeInstruction.slice(0, 100)}>
+                {negativeInstruction.slice(0, 50)}...
+              </p>
+            )}
+          </div>
+
+          {/* Video Prompt Rule Instruction */}
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Video className="w-4 h-4 text-purple-500" />
+              {phrase(dictionary, "storyboard_video_instruction", language) || "Video Prompt Rule"}
+            </label>
+            <input
+              type="file"
+              ref={videoInstructionFileRef}
+              accept=".txt"
+              onChange={(e) => handleConfigFileUpload(e, setVideoInstruction)}
+              className="hidden"
+            />
+            <button
+              onClick={() => videoInstructionFileRef.current?.click()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-lg border-2 border-dashed transition-all ${
+                videoInstruction
+                  ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 text-purple-700 dark:text-purple-300"
+                  : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-400 hover:text-purple-600"
+              }`}
+            >
+              {videoInstruction ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_file_loaded", language) || "Loaded"}
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  {phrase(dictionary, "storyboard_upload_txt", language) || "Upload .txt"}
+                </>
+              )}
+            </button>
+            {videoInstruction && (
+              <p className="mt-1 text-xs text-purple-600 dark:text-purple-400 truncate" title={videoInstruction.slice(0, 100)}>
+                {videoInstruction.slice(0, 50)}...
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Collapsible Conditions Section */}
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">

@@ -35,5 +35,11 @@ export * from './bgSheet';
 // Stage 7: ImageGen
 export * from './imageGen';
 
-// Stage 8: Video
+// Stage 7: Video
 export * from './video';
+
+// Image-to-Video: Stage 1 - Image Splitter
+export * from './imageSplitter';
+
+// Image-to-Video: Stage 2 - Script Writer
+export * from './imageToScript';

@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
+import type { ProjectType } from '../../config/projectTypes';
 
 // ============================================
 // Project Metadata
@@ -7,6 +8,7 @@ import { Timestamp } from 'firebase/firestore';
 export interface ProjectMetadata {
   id: string;
   name: string;
+  projectType: ProjectType;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   currentStage: number;
@@ -16,6 +18,7 @@ export interface ProjectMetadata {
 
 export interface CreateProjectInput {
   name: string;
+  projectType: ProjectType;
 }
 
 export interface UpdateProjectInput {
@@ -582,4 +585,129 @@ export interface CreateMithrilUserInput {
   role: MithrilUserRole;
   displayName: string;
   createdBy: string;
+}
+
+// ============================================
+// Image-to-Video: Image Splitter (I2V Stage 1)
+// ============================================
+
+export type MangaPanelStatus = 'pending' | 'processing' | 'completed' | 'error';
+export type ReadingDirection = 'rtl' | 'ltr';
+
+export interface MangaPanelDocument {
+  id: string;
+  panelIndex: number;
+  box_2d: number[]; // [ymin, xmin, ymax, xmax] in 0-1000 scale
+  label: string;
+  imageRef?: string; // S3 URL for cropped panel image
+}
+
+export interface MangaPageDocument {
+  id: string;
+  pageIndex: number;
+  fileName: string;
+  imageRef: string; // S3 URL for full page image
+  readingDirection: ReadingDirection;
+  status: MangaPanelStatus;
+  panelCount: number;
+  createdAt: Timestamp;
+}
+
+export interface ImageSplitterDocument {
+  readingDirection: ReadingDirection;
+  totalPages: number;
+  totalPanels: number;
+  generatedAt: Timestamp;
+}
+
+export interface SaveMangaPageInput {
+  fileName: string;
+  imageRef: string;
+  readingDirection: ReadingDirection;
+  status?: MangaPanelStatus;
+}
+
+export interface SaveMangaPanelInput {
+  box_2d: number[];
+  label: string;
+  imageRef?: string;
+}
+
+// ============================================
+// Image-to-Video: Script Writer (I2V Stage 2)
+// ============================================
+
+export interface I2VScriptDocument {
+  targetDuration: string;
+  sourceText?: string;
+  storyCondition: string;
+  imageCondition: string;
+  videoCondition: string;
+  soundCondition: string;
+  generatedAt: Timestamp;
+}
+
+export interface I2VSceneDocument {
+  sceneIndex: number;
+  sceneTitle: string;
+}
+
+export interface I2VClipDocument {
+  clipIndex: number;
+  referenceImageIndex: number; // Reference to source panel
+  // Story content
+  story: string;
+  // Prompts
+  imagePrompt: string;
+  videoPrompt: string;
+  soraVideoPrompt: string;
+  backgroundPrompt: string;
+  backgroundId: string;
+  // Dialogue
+  dialogue: string;
+  dialogueEn: string;
+  // Sound
+  sfx: string;
+  sfxEn: string;
+  bgm: string;
+  bgmEn: string;
+  // Timing
+  length: string;
+  accumulatedTime: string;
+}
+
+export interface I2VVoicePromptDocument {
+  promptKo: string;
+  promptEn: string;
+}
+
+export interface SaveI2VScriptInput {
+  targetDuration: string;
+  sourceText?: string;
+  storyCondition: string;
+  imageCondition: string;
+  videoCondition: string;
+  soundCondition: string;
+}
+
+export interface SaveI2VSceneInput {
+  sceneTitle: string;
+}
+
+export interface SaveI2VClipInput {
+  referenceImageIndex: number;
+  story: string;
+  imagePrompt: string;
+  videoPrompt: string;
+  soraVideoPrompt: string;
+  backgroundPrompt: string;
+  backgroundId: string;
+  dialogue: string;
+  dialogueEn: string;
+  sfx: string;
+  sfxEn: string;
+  bgm: string;
+  bgmEn: string;
+  length: string;
+  accumulatedTime: string;
 }

@@ -29,6 +29,7 @@ export async function createProject(
 
   const projectData = {
     name: input.name,
+    projectType: input.projectType,
     createdAt: now,
     updatedAt: now,
     currentStage: 1,
@@ -51,9 +52,12 @@ export async function getProject(
     return null;
   }
 
+  const data = docSnap.data();
   return {
     id: docSnap.id,
-    ...docSnap.data(),
+    ...data,
+    // Default to 'text-to-video' for existing projects without projectType
+    projectType: data.projectType || 'text-to-video',
   } as ProjectMetadata;
 }
 
@@ -68,10 +72,15 @@ export async function listProjects(): Promise<ProjectMetadata[]> {
 
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProjectMetadata[];
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      ...data,
+      // Default to 'text-to-video' for existing projects without projectType
+      projectType: data.projectType || 'text-to-video',
+    };
+  }) as ProjectMetadata[];
 }
 
 /**

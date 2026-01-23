@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, ComponentType } from "react";
 import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
@@ -10,10 +10,27 @@ import PropDesigner from "./PropDesigner";
 import BgSheetGenerator from "./BgSheetGenerator";
 import ImageGenerator from "./ImageGenerator";
 import VideoGenerator from "./VideoGenerator";
+import ImageSplitter from "./ImageToVideo/ImageSplitter";
+import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { getProjectTypeConfig, ProjectType } from "./config/projectTypes";
+
+// Component mapping for dynamic rendering
+const STAGE_COMPONENTS: Record<string, ComponentType> = {
+  'UploadManager': UploadManager,
+  'StorySplitter': StorySplitter,
+  'CharacterSheetGenerator': CharacterSheetGenerator,
+  'StoryboardGenerator': StoryboardGenerator,
+  'PropDesigner': PropDesigner,
+  'BgSheetGenerator': BgSheetGenerator,
+  'ImageGenerator': ImageGenerator,
+  'VideoGenerator': VideoGenerator,
+  'ImageSplitter': ImageSplitter,
+  'ImageToScriptWriter': ImageToScriptWriter,
+};
 
 // Cost Tracker Dashboard Component
 function CostTrackerDashboard() {
@@ -100,7 +117,7 @@ function CostTrackerDashboard() {
 }
 
 function MithrilContent() {
-  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey } =
+  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey, projectType, totalStages } =
     useMithril();
   const { language, dictionary } = useLanguage();
 
@@ -123,30 +140,39 @@ function MithrilContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const stageColors: Record<number, { bg: string; text: string; ring: string }> = {
-    1: { bg: 'bg-yellow-500', text: 'text-yellow-500', ring: 'ring-yellow-500/30' },
-    2: { bg: 'bg-orange-500', text: 'text-orange-500', ring: 'ring-orange-500/30' },
-    3: { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },
-    4: { bg: 'bg-purple-500', text: 'text-purple-500', ring: 'ring-purple-500/30' },
-    5: { bg: 'bg-teal-500', text: 'text-teal-500', ring: 'ring-teal-500/30' },
-    6: { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
-    7: { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
-    8: { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
-  };
+  // Stage colors - each stage gets a unique color (added teal for PropDesigner)
+  const stageColors = [
+    { bg: 'bg-yellow-500', text: 'text-yellow-500', ring: 'ring-yellow-500/30' },
+    { bg: 'bg-orange-500', text: 'text-orange-500', ring: 'ring-orange-500/30' },
+    { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },
+    { bg: 'bg-purple-500', text: 'text-purple-500', ring: 'ring-purple-500/30' },
+    { bg: 'bg-teal-500', text: 'text-teal-500', ring: 'ring-teal-500/30' },
+    { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
+    { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
+    { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
+  ];
 
+  // Build stages dynamically from project type config
+  const projectTypeConfig = getProjectTypeConfig(projectType);
   const stages = useMemo(
-    () => [
-      { id: 1, label: phrase(dictionary, "mithril_stage1", language) },
-      { id: 2, label: phrase(dictionary, "mithril_stage2", language) },
-      { id: 3, label: phrase(dictionary, "mithril_stage3", language) },
-      { id: 4, label: phrase(dictionary, "mithril_stage4", language) },
-      { id: 5, label: "Prop Designer" }, // New stage for prop detection
-      { id: 6, label: phrase(dictionary, "mithril_stage5", language) }, // Was stage 5: BgSheet
-      { id: 7, label: phrase(dictionary, "mithril_stage6", language) }, // Was stage 6: ImageGen
-      { id: 8, label: phrase(dictionary, "mithril_stage7", language) }, // Was stage 7: VideoGen
-    ],
-    [dictionary, language]
+    () => projectTypeConfig.stages.map((stage, index) => ({
+      id: stage.id,
+      label: phrase(dictionary, stage.labelKey, language),
+      component: stage.component,
+      color: stageColors[index % stageColors.length],
+    })),
+    [projectTypeConfig, dictionary, language]
   );
+
+  // Get current stage component
+  const currentStageConfig = stages.find(s => s.id === currentStage);
+  const StageComponent = currentStageConfig ? STAGE_COMPONENTS[currentStageConfig.component] : null;
+
+  // Determine if we need API keys based on project type and stage
+  const isTextToVideo = projectType === 'text-to-video';
+  const needsImageApiKey = isTextToVideo && (currentStage >= 3 && currentStage <= 7);
+  const needsVideoApiKey = isTextToVideo && currentStage === 8;
+  const showCostTracker = isTextToVideo && currentStage === 7;
 
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -170,9 +196,9 @@ function MithrilContent() {
                     transition-all duration-200 cursor-pointer
                     ${
                       stage.id === currentStage
-                        ? `${stageColors[stage.id].bg} text-white ring-4 ${stageColors[stage.id].ring}`
+                        ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
                         : stage.id < currentStage
-                        ? `${stageColors[stage.id].bg} text-white`
+                        ? `${stage.color.bg} text-white`
                         : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
                     }
                   `}
@@ -184,9 +210,9 @@ function MithrilContent() {
                     mt-2 text-xs font-medium whitespace-nowrap
                     ${
                       stage.id === currentStage
-                        ? stageColors[stage.id].text
+                        ? stage.color.text
                         : stage.id < currentStage
-                        ? stageColors[stage.id].text
+                        ? stage.color.text
                         : "text-gray-500 dark:text-gray-400"
                     }
                   `}
@@ -218,14 +244,14 @@ function MithrilContent() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
-        {/* API Keys and Cost Tracker - Top Right, outside container */}
-        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7 || currentStage === 8) && (
+        {/* API Keys and Cost Tracker - Top Right, outside container (Text-to-Video only) */}
+        {(needsImageApiKey || needsVideoApiKey) && (
           <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 6 || currentStage === 7 ? "max-w-[95%]" : "max-w-6xl"}`}>
             {/* Cost Tracker - Only on Stage 7 (ImageGen) */}
-            {currentStage === 7 && <CostTrackerDashboard />}
+            {showCostTracker && <CostTrackerDashboard />}
 
             {/* Image API Key (Gemini) - Stages 3-7 */}
-            {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7) && (
+            {needsImageApiKey && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4" />
@@ -251,7 +277,7 @@ function MithrilContent() {
             )}
 
             {/* Video API Key (OpenAI) - Stage 8 */}
-            {currentStage === 8 && (
+            {needsVideoApiKey && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4" />
@@ -280,17 +306,15 @@ function MithrilContent() {
 
         <div
           className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
-            currentStage === 6 || currentStage === 7 ? "max-w-[95%]" : "max-w-6xl"
+            isTextToVideo && (currentStage === 6 || currentStage === 7) ? "max-w-[95%]" : "max-w-6xl"
           }`}
         >
-          {currentStage === 1 && <UploadManager />}
-          {currentStage === 2 && <StorySplitter />}
-          {currentStage === 3 && <CharacterSheetGenerator />}
-          {currentStage === 4 && <StoryboardGenerator />}
-          {currentStage === 5 && <PropDesigner />}
-          {currentStage === 6 && <BgSheetGenerator />}
-          {currentStage === 7 && <ImageGenerator />}
-          {currentStage === 8 && <VideoGenerator />}
+          {/* Dynamic stage rendering */}
+          {StageComponent ? <StageComponent /> : (
+            <div className="text-center py-12 text-gray-500">
+              Stage component not found for: {currentStageConfig?.component}
+            </div>
+          )}
         </div>
       </div>
 

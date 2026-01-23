@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, LogOut, Pencil } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, LogOut, Pencil, FileText, Images } from 'lucide-react';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
 import RenameProjectModal from './RenameProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
+import { ProjectType, getProjectTypeConfig, getStageConfig } from './config/projectTypes';
 
 export default function ProjectListPage() {
   const router = useRouter();
@@ -112,25 +113,61 @@ export default function ProjectListPage() {
     });
   }
 
-  const stageLabels: Record<number, string> = {
-    1: 'Upload',
-    2: 'Story Split',
-    3: 'Characters',
-    4: 'Storyboard',
-    5: 'Backgrounds',
-    6: 'Image Clips',
-    7: 'Videos',
-  };
+  // Stage colors - each stage gets a unique color
+  const stageColors = [
+    { bg: 'bg-yellow-500/15', text: 'text-yellow-600 dark:text-yellow-400' },
+    { bg: 'bg-orange-500/15', text: 'text-orange-600 dark:text-orange-400' },
+    { bg: 'bg-red-500/15', text: 'text-red-600 dark:text-red-400' },
+    { bg: 'bg-purple-500/15', text: 'text-purple-600 dark:text-purple-400' },
+    { bg: 'bg-indigo-500/15', text: 'text-indigo-600 dark:text-indigo-400' },
+    { bg: 'bg-sky-500/15', text: 'text-sky-600 dark:text-sky-400' },
+    { bg: 'bg-green-500/15', text: 'text-green-600 dark:text-green-400' },
+  ];
 
-  const stageColors: Record<number, string> = {
-    1: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    2: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    3: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    4: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-    5: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
-    6: 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300',
-    7: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  };
+  // Get stage label based on project type
+  function getStageLabel(projectType: ProjectType, stageId: number): string {
+    const stageConfig = getStageConfig(projectType, stageId);
+    if (!stageConfig) return `Stage ${stageId}`;
+
+    // Simple label mapping (could use i18n later)
+    const labelMap: Record<string, string> = {
+      'mithril_stage1': 'Upload',
+      'mithril_stage2': 'Story Split',
+      'mithril_stage3': 'Characters',
+      'mithril_stage4': 'Storyboard',
+      'mithril_stage5': 'Backgrounds',
+      'mithril_stage6': 'Image Clips',
+      'mithril_stage7': 'Videos',
+      'mithril_i2v_stage1': 'Panel Splitter',
+      'mithril_i2v_stage2': 'Script Writer',
+    };
+
+    return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;
+  }
+
+  // Get stage color based on project type and stage id
+  function getStageColor(projectType: ProjectType, stageId: number) {
+    const config = getProjectTypeConfig(projectType);
+    const stageIndex = config.stages.findIndex(s => s.id === stageId);
+    if (stageIndex === -1) return stageColors[0];
+    return stageColors[stageIndex % stageColors.length];
+  }
+
+  // Get project type display info
+  function getProjectTypeDisplay(projectType: ProjectType) {
+    if (projectType === 'image-to-video') {
+      return {
+        label: 'Manga to Anime',
+        icon: <Images className="w-3 h-3" />,
+        color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+      };
+    }
+    return {
+      label: 'Novel to Video',
+      icon: <FileText className="w-3 h-3" />,
+      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    };
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -229,15 +266,31 @@ export default function ProjectListPage() {
                   {formatDate(project.updatedAt)}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Stage:
-                  </span>
-                  <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColors[project.currentStage] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
-                    {stageLabels[project.currentStage] || `Stage ${project.currentStage}`}
-                  </span>
-                </div>
+              <CardContent className="space-y-2">
+                {/* Project Type Badge */}
+                {(() => {
+                  const typeDisplay = getProjectTypeDisplay(project.projectType);
+                  return (
+                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${typeDisplay.color}`}>
+                      {typeDisplay.icon}
+                      {typeDisplay.label}
+                    </span>
+                  );
+                })()}
+                {/* Current Stage */}
+                {(() => {
+                  const stageColor = getStageColor(project.projectType, project.currentStage);
+                  return (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        Stage:
+                      </span>
+                      <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColor.bg} ${stageColor.text}`}>
+                        {getStageLabel(project.projectType, project.currentStage)}
+                      </span>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           ))}

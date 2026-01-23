@@ -1,12 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
 import { useProject } from "@/contexts/ProjectContext";
+import { ProjectType, getTotalStages, isValidStage, getDefaultProjectType } from "./config/projectTypes";
 
 // Firestore services
 import {
@@ -147,6 +148,10 @@ interface MithrilContextProps {
   // Current project ID
   currentProjectId: string | null;
 
+  // Project type
+  projectType: ProjectType;
+  totalStages: number;
+
   // Navigation
   currentStage: number;
   setCurrentStage: (stage: number) => void;
@@ -211,12 +216,18 @@ interface MithrilContextProps {
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
 
 export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { currentProjectId } = useProject();
+  const { currentProject, currentProjectId } = useProject();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
+
+  // Project type state (loaded from project metadata)
+  const [projectType, setProjectType] = useState<ProjectType>(getDefaultProjectType());
+
+  // Calculate total stages based on project type
+  const totalStages = useMemo(() => getTotalStages(projectType), [projectType]);
 
   // Navigation state
   const [currentStage, setCurrentStageState] = useState(1);
@@ -227,24 +238,31 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Track if we're programmatically changing the URL (to avoid infinite loops)
   const isUpdatingUrl = useRef(false);
 
+  // Sync project type from currentProject
+  useEffect(() => {
+    if (currentProject?.projectType) {
+      setProjectType(currentProject.projectType);
+    }
+  }, [currentProject?.projectType]);
+
   // Initialize stage from URL on mount
   useEffect(() => {
     const stageParam = searchParams.get('stage');
     if (stageParam) {
       const stage = parseInt(stageParam, 10);
-      if (!isNaN(stage) && stage >= 1 && stage <= TOTAL_STAGES) {
+      if (!isNaN(stage) && isValidStage(projectType, stage)) {
         initializedFromUrl.current = true;
         setCurrentStageState(stage);
       }
     }
-  }, []); // Only run on mount
+  }, [projectType]); // Re-run when projectType changes
 
   // Sync stage when URL changes (browser back/forward)
   useEffect(() => {
     const stageParam = searchParams.get('stage');
     if (stageParam && !isUpdatingUrl.current) {
       const stage = parseInt(stageParam, 10);
-      if (!isNaN(stage) && stage >= 1 && stage <= TOTAL_STAGES && stage !== currentStage) {
+      if (!isNaN(stage) && isValidStage(projectType, stage) && stage !== currentStage) {
         setCurrentStageState(stage);
         // Also update Firestore
         if (currentProjectId) {
@@ -254,7 +272,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       }
     }
-  }, [searchParams, currentProjectId]); // Note: currentStage intentionally omitted to avoid loops
+  }, [searchParams, currentProjectId, projectType]); // Note: currentStage intentionally omitted to avoid loops
 
   // Custom API Key state
   const [customApiKey, setCustomApiKeyState] = useState<string>("");
@@ -1268,10 +1286,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Navigation methods
   const goToNextStage = useCallback(() => {
-    if (currentStage < TOTAL_STAGES) {
+    if (currentStage < totalStages) {
       setCurrentStage(currentStage + 1);
     }
-  }, [currentStage, setCurrentStage]);
+  }, [currentStage, totalStages, setCurrentStage]);
 
   const goToPreviousStage = useCallback(() => {
     if (currentStage > 1) {
@@ -1309,6 +1327,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         isLoading,
         // Current project ID
         currentProjectId,
+        // Project type
+        projectType,
+        totalStages,
         // Navigation
         currentStage,
         setCurrentStage,

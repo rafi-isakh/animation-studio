@@ -23,14 +23,17 @@ export * from './storySplitter';
 // Stage 3: Character Sheet
 export * from './characterSheet';
 
-// Stage 4: Background Sheet
-export * from './bgSheet';
-
-// Stage 5: Storyboard
+// Stage 4: Storyboard
 export * from './storyboard';
 
-// Stage 6: ImageGen
+// Stage 5: Prop Designer
+export * from './propDesigner';
+
+// Stage 6: Background Sheet
+export * from './bgSheet';
+
+// Stage 7: ImageGen
 export * from './imageGen';
 
-// Stage 7: Video
+// Stage 8: Video
 export * from './video';

@@ -5,8 +5,9 @@ import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
-import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
+import PropDesigner from "./PropDesigner";
+import BgSheetGenerator from "./BgSheetGenerator";
 import ImageGenerator from "./ImageGenerator";
 import VideoGenerator from "./VideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
@@ -127,9 +128,10 @@ function MithrilContent() {
     2: { bg: 'bg-orange-500', text: 'text-orange-500', ring: 'ring-orange-500/30' },
     3: { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },
     4: { bg: 'bg-purple-500', text: 'text-purple-500', ring: 'ring-purple-500/30' },
-    5: { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
-    6: { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
-    7: { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
+    5: { bg: 'bg-teal-500', text: 'text-teal-500', ring: 'ring-teal-500/30' },
+    6: { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
+    7: { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
+    8: { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
   };
 
   const stages = useMemo(
@@ -138,9 +140,10 @@ function MithrilContent() {
       { id: 2, label: phrase(dictionary, "mithril_stage2", language) },
       { id: 3, label: phrase(dictionary, "mithril_stage3", language) },
       { id: 4, label: phrase(dictionary, "mithril_stage4", language) },
-      { id: 5, label: phrase(dictionary, "mithril_stage5", language) },
-      { id: 6, label: phrase(dictionary, "mithril_stage6", language)},
-      { id: 7, label: phrase(dictionary, "mithril_stage7", language) }, // Sora Video Generator
+      { id: 5, label: "Prop Designer" }, // New stage for prop detection
+      { id: 6, label: phrase(dictionary, "mithril_stage5", language) }, // Was stage 5: BgSheet
+      { id: 7, label: phrase(dictionary, "mithril_stage6", language) }, // Was stage 6: ImageGen
+      { id: 8, label: phrase(dictionary, "mithril_stage7", language) }, // Was stage 7: VideoGen
     ],
     [dictionary, language]
   );
@@ -216,13 +219,13 @@ function MithrilContent() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         {/* API Keys and Cost Tracker - Top Right, outside container */}
-        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7) && (
-          <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
-            {/* Cost Tracker - Only on Stage 6 */}
-            {currentStage === 6 && <CostTrackerDashboard />}
+        {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7 || currentStage === 8) && (
+          <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 6 || currentStage === 7 ? "max-w-[95%]" : "max-w-6xl"}`}>
+            {/* Cost Tracker - Only on Stage 7 (ImageGen) */}
+            {currentStage === 7 && <CostTrackerDashboard />}
 
-            {/* Image API Key (Gemini) - Stages 3-6 */}
-            {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6) && (
+            {/* Image API Key (Gemini) - Stages 3-7 */}
+            {(currentStage === 3 || currentStage === 4 || currentStage === 5 || currentStage === 6 || currentStage === 7) && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4" />
@@ -247,8 +250,8 @@ function MithrilContent() {
               </div>
             )}
 
-            {/* Video API Key (OpenAI) - Stage 7 */}
-            {currentStage === 7 && (
+            {/* Video API Key (OpenAI) - Stage 8 */}
+            {currentStage === 8 && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4" />
@@ -277,16 +280,17 @@ function MithrilContent() {
 
         <div
           className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
-            currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"
+            currentStage === 6 || currentStage === 7 ? "max-w-[95%]" : "max-w-6xl"
           }`}
         >
           {currentStage === 1 && <UploadManager />}
           {currentStage === 2 && <StorySplitter />}
           {currentStage === 3 && <CharacterSheetGenerator />}
           {currentStage === 4 && <StoryboardGenerator />}
-          {currentStage === 5 && <BgSheetGenerator />}
-          {currentStage === 6 && <ImageGenerator />}
-          {currentStage === 7 && <VideoGenerator />}
+          {currentStage === 5 && <PropDesigner />}
+          {currentStage === 6 && <BgSheetGenerator />}
+          {currentStage === 7 && <ImageGenerator />}
+          {currentStage === 8 && <VideoGenerator />}
         </div>
       </div>
 

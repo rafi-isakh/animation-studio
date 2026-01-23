@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
+import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
 import { useProject } from "@/contexts/ProjectContext";
 
 // Firestore services
@@ -36,12 +37,20 @@ import {
   saveVoicePrompts,
   updateClipField as updateClipFieldFirestore,
   clearStoryboard,
-  // ImageGen (Stage 6)
+  // ImageGen (Stage 7)
   getImageGenMeta,
   getImageGenFrames,
+  // PropDesigner (Stage 5)
+  getPropDesignerSettings,
+  getProps,
+  getDetectedIds,
+  savePropDesignerSettings,
+  saveProp,
+  saveDetectedIds,
+  clearPropDesigner,
 } from "./services/firestore";
 
-const TOTAL_STAGES = 7;
+const TOTAL_STAGES = 8;
 
 // Editable clip field type (shared across components)
 export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
@@ -87,6 +96,13 @@ interface CharacterSheetGeneratorState {
   isAnalyzing: boolean;
   error: string | null;
   result: CharacterSheetResultMetadata | null;
+}
+
+// Types for Prop Designer Generator (Stage 5)
+interface PropDesignerGeneratorState {
+  isAnalyzing: boolean;
+  error: string | null;
+  result: PropDesignerResultMetadata | null;
 }
 
 interface BgSheetBackground {
@@ -183,6 +199,11 @@ interface MithrilContextProps {
   clearCharacterSheetAnalysis: () => void;
   setCharacterSheetResult: (result: CharacterSheetResultMetadata) => void;
 
+  // Prop Designer Generator (Stage 5)
+  propDesignerGenerator: PropDesignerGeneratorState;
+  setPropDesignerResult: (result: PropDesignerResultMetadata) => void;
+  clearPropDesignerData: () => void;
+
   // Reload data from Firestore
   reloadFromFirestore: () => Promise<void>;
 }
@@ -274,6 +295,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Character Sheet Generator state (Stage 3)
   const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+    result: null,
+  });
+
+  // Prop Designer Generator state (Stage 5)
+  const [propDesignerGenerator, setPropDesignerGenerator] = useState<PropDesignerGeneratorState>({
     isAnalyzing: false,
     error: null,
     result: null,
@@ -444,7 +472,40 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setOriginalStoryboard(storyboardData);
       }
 
-      // Load ImageGen data (Stage 6)
+      // Load PropDesigner data (Stage 5)
+      const propSettings = await getPropDesignerSettings(currentProjectId);
+      const props = await getProps(currentProjectId);
+      const detectedIds = await getDetectedIds(currentProjectId);
+      if (propSettings || props.length > 0) {
+        const propMetadata: PropDesignerResultMetadata = {
+          settings: {
+            styleKeyword: propSettings?.styleKeyword || "",
+            propBasePrompt: propSettings?.propBasePrompt || "",
+            genre: propSettings?.genre || "Modern",
+          },
+          props: props.map(prop => ({
+            id: prop.id,
+            name: prop.name,
+            category: prop.category,
+            description: prop.description,
+            descriptionKo: prop.descriptionKo,
+            appearingClips: prop.appearingClips,
+            designSheetPrompt: prop.designSheetPrompt,
+            designSheetImageRef: prop.designSheetImageRef,
+            referenceImageRef: prop.referenceImageRef,
+          })),
+          detectedIds: detectedIds.map(d => ({
+            id: d.id,
+            category: d.category,
+            clipIds: d.clipIds,
+            contexts: d.contexts,
+            occurrences: d.occurrences,
+          })),
+        };
+        setPropDesignerGenerator(prev => ({ ...prev, result: propMetadata }));
+      }
+
+      // Load ImageGen data (Stage 7)
       const imageGenMeta = await getImageGenMeta(currentProjectId);
       const imageGenFrames = await getImageGenFrames(currentProjectId);
       // Load if meta exists OR frames exist (frames can be saved without meta)
@@ -1184,6 +1245,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     setCharacterSheetGenerator(prev => ({ ...prev, result }));
   }, []);
 
+  // Prop Designer methods
+  const setPropDesignerResult = useCallback((result: PropDesignerResultMetadata) => {
+    setPropDesignerGenerator(prev => ({ ...prev, result }));
+  }, []);
+
+  const clearPropDesignerData = useCallback(async () => {
+    setPropDesignerGenerator({
+      isAnalyzing: false,
+      error: null,
+      result: null,
+    });
+
+    if (currentProjectId) {
+      try {
+        await clearPropDesigner(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing prop designer from Firestore:", error);
+      }
+    }
+  }, [currentProjectId]);
+
   // Navigation methods
   const goToNextStage = useCallback(() => {
     if (currentStage < TOTAL_STAGES) {
@@ -1270,6 +1352,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         startCharacterSheetAnalysis,
         clearCharacterSheetAnalysis,
         setCharacterSheetResult,
+        // Prop Designer Generator
+        propDesignerGenerator,
+        setPropDesignerResult,
+        clearPropDesignerData,
         // Reload
         reloadFromFirestore,
       }}

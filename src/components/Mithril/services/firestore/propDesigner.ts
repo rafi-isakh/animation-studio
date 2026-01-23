@@ -1,0 +1,285 @@
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  writeBatch,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from '@/lib/firestore';
+import {
+  PropDesignerDocument,
+  PropDocument,
+  PropContextDocument,
+  DetectedIdDocument,
+  SavePropDesignerSettingsInput,
+  SavePropInput,
+  UpdatePropInput,
+} from './types';
+
+// ============================================
+// Document References
+// ============================================
+
+const getSettingsRef = (projectId: string) =>
+  doc(db, 'projects', projectId, 'propDesigner', 'settings');
+
+const getPropsCollection = (projectId: string) =>
+  collection(db, 'projects', projectId, 'propDesigner', 'settings', 'props');
+
+const getPropRef = (projectId: string, propId: string) =>
+  doc(db, 'projects', projectId, 'propDesigner', 'settings', 'props', propId);
+
+const getDetectedIdsCollection = (projectId: string) =>
+  collection(db, 'projects', projectId, 'propDesigner', 'settings', 'detectedIds');
+
+const getDetectedIdRef = (projectId: string, detectedIdId: string) =>
+  doc(db, 'projects', projectId, 'propDesigner', 'settings', 'detectedIds', detectedIdId);
+
+// ============================================
+// Settings Functions
+// ============================================
+
+/**
+ * Get prop designer settings
+ */
+export async function getPropDesignerSettings(
+  projectId: string
+): Promise<PropDesignerDocument | null> {
+  const docRef = getSettingsRef(projectId);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    return null;
+  }
+
+  return docSnap.data() as PropDesignerDocument;
+}
+
+/**
+ * Save prop designer settings
+ */
+export async function savePropDesignerSettings(
+  projectId: string,
+  input: SavePropDesignerSettingsInput
+): Promise<void> {
+  const docRef = getSettingsRef(projectId);
+
+  const data: Record<string, unknown> = {
+    styleKeyword: input.styleKeyword,
+    propBasePrompt: input.propBasePrompt,
+    generatedAt: Timestamp.now(),
+  };
+
+  if (input.genre !== undefined) {
+    data.genre = input.genre;
+  }
+
+  await setDoc(docRef, data, { merge: true });
+
+  // Update project metadata timestamp
+  const projectRef = doc(db, 'projects', projectId);
+  await setDoc(projectRef, { updatedAt: Timestamp.now() }, { merge: true });
+}
+
+// ============================================
+// Prop Functions
+// ============================================
+
+/**
+ * Get all props
+ */
+export async function getProps(projectId: string): Promise<PropDocument[]> {
+  const collectionRef = getPropsCollection(projectId);
+  const snapshot = await getDocs(collectionRef);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as PropDocument[];
+}
+
+/**
+ * Get a single prop by ID
+ */
+export async function getProp(
+  projectId: string,
+  propId: string
+): Promise<PropDocument | null> {
+  const docRef = getPropRef(projectId, propId);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    return null;
+  }
+
+  return {
+    id: docSnap.id,
+    ...docSnap.data(),
+  } as PropDocument;
+}
+
+/**
+ * Save a new prop
+ * Returns the auto-generated Firestore document ID
+ */
+export async function saveProp(
+  projectId: string,
+  input: SavePropInput
+): Promise<string> {
+  const collectionRef = getPropsCollection(projectId);
+  const newDocRef = doc(collectionRef);
+
+  await setDoc(newDocRef, {
+    name: input.name,
+    category: input.category,
+    description: input.description,
+    descriptionKo: input.descriptionKo,
+    appearingClips: input.appearingClips,
+    contextPrompts: input.contextPrompts || [],
+    designSheetPrompt: input.designSheetPrompt || '',
+    designSheetImageRef: input.designSheetImageRef || '',
+    referenceImageRef: input.referenceImageRef || '',
+  });
+
+  return newDocRef.id;
+}
+
+/**
+ * Update a prop
+ * Uses setDoc with merge to create the document if it doesn't exist
+ */
+export async function updateProp(
+  projectId: string,
+  propId: string,
+  updates: UpdatePropInput
+): Promise<void> {
+  const docRef = getPropRef(projectId, propId);
+  await setDoc(docRef, updates, { merge: true });
+}
+
+/**
+ * Update prop design sheet image
+ */
+export async function updatePropDesignSheetImage(
+  projectId: string,
+  propId: string,
+  designSheetImageRef: string,
+  designSheetPrompt: string
+): Promise<void> {
+  await updateProp(projectId, propId, { designSheetImageRef, designSheetPrompt });
+}
+
+/**
+ * Update prop reference image
+ */
+export async function updatePropReferenceImage(
+  projectId: string,
+  propId: string,
+  referenceImageRef: string
+): Promise<void> {
+  await updateProp(projectId, propId, { referenceImageRef });
+}
+
+/**
+ * Delete a prop
+ */
+export async function deleteProp(
+  projectId: string,
+  propId: string
+): Promise<void> {
+  const docRef = getPropRef(projectId, propId);
+  await deleteDoc(docRef);
+}
+
+// ============================================
+// Detected IDs Functions
+// ============================================
+
+/**
+ * Get all detected IDs
+ */
+export async function getDetectedIds(projectId: string): Promise<DetectedIdDocument[]> {
+  const collectionRef = getDetectedIdsCollection(projectId);
+  const snapshot = await getDocs(collectionRef);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as DetectedIdDocument[];
+}
+
+/**
+ * Save detected IDs (replaces all)
+ */
+export async function saveDetectedIds(
+  projectId: string,
+  detectedIds: DetectedIdDocument[]
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  // Delete existing detected IDs
+  const existing = await getDetectedIds(projectId);
+  for (const existingId of existing) {
+    const docRef = getDetectedIdRef(projectId, existingId.id);
+    batch.delete(docRef);
+  }
+
+  // Add new detected IDs
+  for (const detectedId of detectedIds) {
+    const docRef = getDetectedIdRef(projectId, detectedId.id);
+    batch.set(docRef, {
+      category: detectedId.category,
+      clipIds: detectedId.clipIds,
+      contexts: detectedId.contexts,
+      occurrences: detectedId.occurrences,
+    });
+  }
+
+  await batch.commit();
+}
+
+/**
+ * Update a single detected ID's category
+ */
+export async function updateDetectedIdCategory(
+  projectId: string,
+  detectedIdId: string,
+  category: 'character' | 'object'
+): Promise<void> {
+  const docRef = getDetectedIdRef(projectId, detectedIdId);
+  await setDoc(docRef, { category }, { merge: true });
+}
+
+// ============================================
+// Clear Functions
+// ============================================
+
+/**
+ * Clear all prop designer data (settings + all props + detected IDs)
+ */
+export async function clearPropDesigner(projectId: string): Promise<void> {
+  const batch = writeBatch(db);
+
+  // Delete all props
+  const props = await getProps(projectId);
+  for (const prop of props) {
+    const propRef = getPropRef(projectId, prop.id);
+    batch.delete(propRef);
+  }
+
+  // Delete all detected IDs
+  const detectedIds = await getDetectedIds(projectId);
+  for (const detectedId of detectedIds) {
+    const detectedIdRef = getDetectedIdRef(projectId, detectedId.id);
+    batch.delete(detectedIdRef);
+  }
+
+  // Delete settings
+  const settingsRef = getSettingsRef(projectId);
+  batch.delete(settingsRef);
+
+  await batch.commit();
+}

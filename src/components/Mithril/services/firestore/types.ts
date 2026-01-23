@@ -114,7 +114,7 @@ export interface CharacterDocument {
 }
 
 // ============================================
-// Background Sheet (Stage 4)
+// Background Sheet (Stage 6 - was Stage 5)
 // ============================================
 
 export const BACKGROUND_ANGLES = [
@@ -164,7 +164,74 @@ export interface BackgroundDocument {
 }
 
 // ============================================
-// Storyboard (Stage 5)
+// Prop Designer (Stage 5)
+// ============================================
+
+export interface PropDesignerDocument {
+  styleKeyword: string;
+  propBasePrompt: string;
+  genre: string;
+  generatedAt: Timestamp;
+}
+
+export interface PropContextDocument {
+  clipId: string;
+  text: string;
+}
+
+export interface PropDocument {
+  id: string;
+  name: string;
+  category: 'character' | 'object';
+  description: string;
+  descriptionKo: string;
+  appearingClips: string[];
+  contextPrompts: PropContextDocument[];
+  designSheetPrompt: string;
+  designSheetImageRef: string; // S3 URL
+  referenceImageRef?: string; // S3 URL
+}
+
+export interface DetectedIdDocument {
+  id: string;
+  category: 'character' | 'object';
+  clipIds: string[];
+  contexts: PropContextDocument[];
+  occurrences: number;
+}
+
+export interface SavePropDesignerSettingsInput {
+  styleKeyword: string;
+  propBasePrompt: string;
+  genre?: string;
+}
+
+export interface SavePropInput {
+  name: string;
+  category: 'character' | 'object';
+  description: string;
+  descriptionKo: string;
+  appearingClips: string[];
+  contextPrompts?: PropContextDocument[];
+  designSheetPrompt?: string;
+  designSheetImageRef?: string;
+  referenceImageRef?: string;
+}
+
+export interface UpdatePropInput {
+  name?: string;
+  category?: 'character' | 'object';
+  description?: string;
+  descriptionKo?: string;
+  appearingClips?: string[];
+  contextPrompts?: PropContextDocument[];
+  designSheetPrompt?: string;
+  designSheetImageRef?: string;
+  referenceImageRef?: string;
+}
+
+// ============================================
+// Storyboard (Stage 4)
 // ============================================
 
 export interface StoryboardDocument {
@@ -210,7 +277,7 @@ export interface ClipDocument {
 }
 
 // ============================================
-// ImageGen (Stage 6)
+// ImageGen (Stage 7 - was Stage 6)
 // ============================================
 
 export type ImageGenAspectRatio = '1:1' | '16:9' | '9:16';
@@ -267,7 +334,7 @@ export interface UpdateImageGenFrameInput {
 }
 
 // ============================================
-// Video (Stage 7)
+// Video (Stage 8 - was Stage 7)
 // ============================================
 
 export type AspectRatio = '16:9' | '9:16';

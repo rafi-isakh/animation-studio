@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
+import { Loader2, Image as ImageIcon, ChevronDown, Trash2, Sparkles } from "lucide-react";
 import { useMithril } from "../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -270,6 +270,8 @@ export default function ImageGenerator() {
           });
 
           // Merge saved frame data with storyboard frames
+          // IMPORTANT: Use saved frame's imageRef directly (even if empty) - don't fall back to storyboard
+          // This ensures that when user clicks "Apply From Storyboard" to clear images, they stay cleared
           const mergedFrames = storyboardFrames.map((sbFrame) => {
             const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
             if (savedFrame) {
@@ -279,7 +281,7 @@ export default function ImageGenerator() {
                 prompt: savedFrame.prompt || sbFrame.prompt,
                 backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                 refFrame: savedFrame.refFrame || sbFrame.refFrame,
-                imageUrl: savedFrame.imageRef || sbFrame.imageUrl,
+                imageUrl: savedFrame.imageRef || null, // Don't fall back to sbFrame.imageUrl
                 status: savedFrame.status || sbFrame.status,
                 remixPrompt: savedFrame.remixPrompt || "",
                 remixImageUrl: savedFrame.remixImageRef || null,
@@ -419,32 +421,10 @@ export default function ImageGenerator() {
         // 2. Auto-detect characters in prompt and add their images
         const promptText = frame.prompt;
 
-        // Check Stage 3 character assets
-        for (const char of characterAssets) {
-          // Escape special regex characters in character ID/name
-          const escapedId = char.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          const escapedName = char.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          // Regex to find character ID or name as a whole word in prompt
-          const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
-          const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
+        // Track which character IDs have been matched to avoid duplicates
+        const matchedCharacterIds = new Set<string>();
 
-          if (regexId.test(promptText) || regexName.test(promptText)) {
-            // Character found in prompt, fetch and compress their image
-            if (char.imageUrl) {
-              try {
-                const compressed = await compressImage(char.imageUrl, "image/webp", 768, 768, 0.7);
-                references.characters.push({
-                  base64: compressed.base64,
-                  mimeType: compressed.mimeType,
-                });
-              } catch (err) {
-                console.warn(`Failed to fetch/compress character image for ${char.id}:`, err);
-              }
-            }
-          }
-        }
-
-        // Check local uploaded character assets
+        // Check local uploaded/replacement character assets FIRST (priority over Stage 3)
         for (const asset of localAssets.filter((a) => a.category === "character")) {
           const escapedId = asset.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           const escapedName = asset.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -465,6 +445,38 @@ export default function ImageGenerator() {
                 base64: asset.base64,
                 mimeType: asset.mimeType,
               });
+            }
+            // Mark this ID as matched so Stage 3 won't add it again
+            matchedCharacterIds.add(asset.id);
+          }
+        }
+
+        // Check Stage 3 character assets (skip if already matched from local assets)
+        for (const char of characterAssets) {
+          // Skip if this character was already matched from local assets (replacement)
+          if (matchedCharacterIds.has(char.id)) {
+            continue;
+          }
+
+          // Escape special regex characters in character ID/name
+          const escapedId = char.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const escapedName = char.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          // Regex to find character ID or name as a whole word in prompt
+          const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
+          const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
+
+          if (regexId.test(promptText) || regexName.test(promptText)) {
+            // Character found in prompt, fetch and compress their image
+            if (char.imageUrl) {
+              try {
+                const compressed = await compressImage(char.imageUrl, "image/webp", 768, 768, 0.7);
+                references.characters.push({
+                  base64: compressed.base64,
+                  mimeType: compressed.mimeType,
+                });
+              } catch (err) {
+                console.warn(`Failed to fetch/compress character image for ${char.id}:`, err);
+              }
             }
           }
         }
@@ -775,6 +787,80 @@ export default function ImageGenerator() {
     });
   }, [currentProjectId, loadFramesFromStoryboard, setStageResult, toast]);
 
+  // Apply from storyboard - creates fresh frames and saves to Firestore
+  const handleApplyFromStoryboard = useCallback(async () => {
+    const storyboardFrames = loadFramesFromStoryboard();
+    if (storyboardFrames.length === 0) {
+      return;
+    }
+
+    // Create fresh frames WITHOUT images (like BgSheetGenerator)
+    const freshFrames = storyboardFrames.map((f) => ({
+      ...f,
+      imageUrl: null,
+      imageBase64: null,
+      status: "pending" as const,
+      remixImageUrl: null,
+      remixImageBase64: null,
+      hasDrawingEdits: false,
+      editedImageUrl: null,
+    }));
+
+    setFrames(freshFrames);
+    setError(null);
+
+    // Persist to Firestore immediately so frames survive refresh
+    if (currentProjectId) {
+      try {
+        // Clear existing frames first (like BgSheetGenerator does)
+        await clearImageGen(currentProjectId);
+
+        // Save each frame to Firestore
+        const frameInputs = freshFrames.map((f) => ({
+          id: f.id,
+          input: {
+            sceneIndex: f.sceneIndex,
+            clipIndex: f.clipIndex,
+            frameLabel: f.frameLabel,
+            frameNumber: f.frameNumber,
+            shotGroup: f.shotGroup,
+            prompt: f.prompt,
+            backgroundId: f.backgroundId,
+            refFrame: f.refFrame,
+            imageRef: "",
+            status: f.status,
+            remixPrompt: "",
+            remixImageRef: null,
+            editedImageRef: null,
+          },
+        }));
+        await saveImageGenFrames(currentProjectId, frameInputs);
+
+        // Update stage result so it hydrates on refresh
+        setStageResult(6, {
+          settings,
+          frames: freshFrames.map((f) => ({
+            id: f.id,
+            sceneIndex: f.sceneIndex,
+            clipIndex: f.clipIndex,
+            frameLabel: f.frameLabel,
+            imageRef: null,
+            status: f.status,
+          })),
+          createdAt: Date.now(),
+        });
+      } catch (err) {
+        console.error("Failed to save imported frames to Firestore:", err);
+      }
+    }
+
+    toast({
+      title: "Storyboard Applied",
+      description: `Loaded ${freshFrames.length} frames from storyboard.`,
+      variant: "default",
+    });
+  }, [currentProjectId, loadFramesFromStoryboard, settings, setStageResult, toast]);
+
   // Frame handlers
   const handlePromptChange = useCallback((id: string, value: string) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, prompt: value } : f)));
@@ -1019,6 +1105,53 @@ export default function ImageGenerator() {
     setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
   }, []);
 
+  // Replace a Stage 3/4 asset with uploaded file
+  const handleReplaceAsset = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>, assetId: string, assetName: string, category: "character" | "background") => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const base64 = await fileToBase64(file);
+        // Remove existing replacement if any
+        setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
+        // Add new replacement with same ID
+        setLocalAssets((prev) => [
+          ...prev,
+          {
+            id: assetId,
+            name: assetName,
+            base64,
+            mimeType: file.type || "image/png",
+            category,
+          },
+        ]);
+        toast({
+          title: "Asset Replaced",
+          description: `"${assetName}" has been replaced with your uploaded image.`,
+          variant: "default",
+        });
+      } catch (err) {
+        console.error("Error replacing asset:", err);
+        toast({
+          title: "Replace Failed",
+          description: "Failed to replace asset. Please try again.",
+          variant: "destructive",
+        });
+      }
+
+      // Reset input
+      if (e.target) e.target.value = "";
+    },
+    [toast]
+  );
+
+  // Check if an asset has been replaced
+  const isAssetReplaced = useCallback(
+    (assetId: string) => localAssets.some((a) => a.id === assetId),
+    [localAssets]
+  );
+
   // Filter local assets by category
   const localCharacterAssets = useMemo(
     () => localAssets.filter((a) => a.category === "character"),
@@ -1222,32 +1355,65 @@ export default function ImageGenerator() {
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
               {/* Stage 3 characters */}
-              {characterAssets.map((char) => (
-                <div
-                  key={char.id}
-                  className="bg-slate-900 rounded-lg overflow-hidden border border-slate-700 group"
-                  title={char.name}
-                >
-                  {char.imageUrl ? (
+              {characterAssets.map((char) => {
+                const replaced = isAssetReplaced(char.id);
+                const replacementAsset = localAssets.find((a) => a.id === char.id);
+                const hasImage = replaced ? !!replacementAsset : !!char.imageUrl;
+                return (
+                  <div
+                    key={char.id}
+                    className={`bg-slate-900 rounded-lg overflow-hidden border group relative ${
+                      replaced ? "border-green-500" : "border-slate-700"
+                    }`}
+                    title={char.name}
+                  >
                     <div className="aspect-square bg-black/40 relative">
-                      <img
-                        src={char.imageUrl}
-                        alt={char.name}
-                        className="w-full h-full object-cover"
-                      />
+                      {hasImage ? (
+                        <img
+                          src={replaced && replacementAsset ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}` : char.imageUrl || ""}
+                          alt={char.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-800">
+                          <span className="text-[10px] text-slate-500">No img</span>
+                        </div>
+                      )}
+                      {replaced ? (
+                        <button
+                          onClick={() => handleRemoveAsset(char.id)}
+                          className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          title="Remove replacement"
+                        >
+                          ×
+                        </button>
+                      ) : (
+                        <label className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                          title="Replace with your image"
+                        >
+                          ↑
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleReplaceAsset(e, char.id, char.name, "character")}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                      {replaced && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">
+                          <span className="text-[7px] font-black text-white uppercase">Replaced</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="aspect-square bg-slate-800 flex items-center justify-center">
-                      <span className="text-[10px] text-slate-500">No img</span>
+                    <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
+                      <span className="text-[8px] text-yellow-200 font-bold truncate block">
+                        {char.name}
+                      </span>
                     </div>
-                  )}
-                  <div className="px-1 py-0.5 bg-slate-900 border-t border-slate-700">
-                    <span className="text-[8px] text-yellow-200 font-bold truncate block">
-                      {char.name}
-                    </span>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {/* Locally uploaded characters */}
               {localCharacterAssets.map((asset) => (
                 <div
@@ -1305,32 +1471,66 @@ export default function ImageGenerator() {
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
               {/* Stage 4 backgrounds */}
               {backgroundAssets.map((bg) =>
-                bg.angles?.map((angle, angleIndex) => (
-                  <div
-                    key={`${bg.id}-${angleIndex}`}
-                    className="bg-slate-900 rounded-lg overflow-hidden border border-slate-700 group"
-                    title={`${bg.name} - ${angle.angle}`}
-                  >
-                    {angle.imageRef ? (
+                bg.angles?.map((angle, angleIndex) => {
+                  const angleId = angle.angle;
+                  const replaced = isAssetReplaced(angleId);
+                  const replacementAsset = localAssets.find((a) => a.id === angleId);
+                  const hasImage = replaced ? !!replacementAsset : !!angle.imageRef;
+                  return (
+                    <div
+                      key={`${bg.id}-${angleIndex}`}
+                      className={`bg-slate-900 rounded-lg overflow-hidden border group relative ${
+                        replaced ? "border-green-500" : "border-slate-700"
+                      }`}
+                      title={`${bg.name} - ${angle.angle}`}
+                    >
                       <div className="aspect-video bg-black/40 relative">
-                        <img
-                          src={angle.imageRef}
-                          alt={`${bg.id}-${angleIndex + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        {hasImage ? (
+                          <img
+                            src={replaced && replacementAsset ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}` : angle.imageRef || ""}
+                            alt={`${bg.id}-${angleIndex + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-800">
+                            <span className="text-[8px] text-slate-500">No img</span>
+                          </div>
+                        )}
+                        {replaced ? (
+                          <button
+                            onClick={() => handleRemoveAsset(angleId)}
+                            className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            title="Remove replacement"
+                          >
+                            ×
+                          </button>
+                        ) : (
+                          <label className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            title="Replace with your image"
+                          >
+                            ↑
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${angle.angle}`, "background")}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                        {replaced && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">
+                            <span className="text-[7px] font-black text-white uppercase">Replaced</span>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="aspect-video bg-slate-800 flex items-center justify-center">
-                        <span className="text-[8px] text-slate-500">No img</span>
+                      <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
+                        <span className="text-[8px] text-cyan-200 font-bold truncate block">
+                          {angle.angle}
+                        </span>
                       </div>
-                    )}
-                    <div className="px-1 py-0.5 bg-slate-900 border-t border-slate-700">
-                      <span className="text-[8px] text-cyan-200 font-bold truncate block">
-                        {angle.angle}
-                      </span>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
               {/* Locally uploaded backgrounds */}
               {localBackgroundAssets.map((asset) => (
@@ -1410,21 +1610,13 @@ export default function ImageGenerator() {
           </div>
         )}
 
-        {/* Save/Clear Actions */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={handleSaveSettings}
-            className="py-2 bg-green-700 text-white text-[10px] font-bold rounded-lg hover:bg-green-600 transition-colors"
-          >
-            Save All
-          </button>
-          <button
-            onClick={handleClear}
-            className="py-2 bg-slate-700 text-slate-300 text-[10px] font-bold rounded-lg hover:bg-slate-600 transition-colors"
-          >
-            Clear All
-          </button>
-        </div>
+        {/* Save Action */}
+        <button
+          onClick={handleSaveSettings}
+          className="w-full py-2 bg-green-700 text-white text-[10px] font-bold rounded-lg hover:bg-green-600 transition-colors"
+        >
+          Save All
+        </button>
 
         {/* Error Display */}
         {error && (
@@ -1442,19 +1634,31 @@ export default function ImageGenerator() {
             <h2 className="text-xl font-black text-cyan-400 uppercase tracking-widest">
               Storyboard
             </h2>
-            <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
-              <input
-                type="text"
-                placeholder="Bulk BG ID"
-                value={bulkBackgroundId}
-                onChange={(e) => setBulkBackgroundId(e.target.value)}
-                className="p-1.5 text-[10px] bg-slate-900 border border-slate-700 rounded-lg w-24 outline-none text-slate-300 placeholder-slate-500"
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
+                <input
+                  type="text"
+                  placeholder="Bulk BG ID"
+                  value={bulkBackgroundId}
+                  onChange={(e) => setBulkBackgroundId(e.target.value)}
+                  className="p-1.5 text-[10px] bg-slate-900 border border-slate-700 rounded-lg w-24 outline-none text-slate-300 placeholder-slate-500"
+                />
+                <button
+                  onClick={handleApplyBulkBg}
+                  className="px-3 py-1.5 text-[10px] bg-purple-600 text-white rounded-lg font-black hover:bg-purple-500 transition-all"
+                >
+                  APPLY ALL
+                </button>
+              </div>
               <button
-                onClick={handleApplyBulkBg}
-                className="px-3 py-1.5 text-[10px] bg-purple-600 text-white rounded-lg font-black hover:bg-purple-500 transition-all"
+                onClick={() => {
+                  setFrames([]);
+                  setStageResult(6, null);
+                }}
+                className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                title="Clear all frames"
               >
-                APPLY ALL
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1463,14 +1667,29 @@ export default function ImageGenerator() {
         {/* Frames Content */}
         <div className="p-6 space-y-10 overflow-y-auto flex-1 no-scrollbar">
           {groupedFrames.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 opacity-30">
-              <ImageIcon className="w-20 h-20 text-slate-600" />
-              <h2 className="text-xl font-black text-slate-500 uppercase tracking-widest mt-4">
-                No Frames
-              </h2>
-              <p className="text-sm text-slate-600 mt-2">
-                Please complete Stage 5 (Storyboard) first
-              </p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="opacity-30">
+                <ImageIcon className="w-20 h-20 text-slate-600 mx-auto" />
+                <h2 className="text-xl font-black text-slate-500 uppercase tracking-widest mt-4">
+                  No Frames
+                </h2>
+                <p className="text-sm text-slate-600 mt-2 text-center">
+                  Please complete Stage 5 (Storyboard) first
+                </p>
+              </div>
+              <button
+                onClick={handleApplyFromStoryboard}
+                disabled={!getStageResult(5)}
+                className="mt-6 px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                Apply From Storyboard
+              </button>
+              {!getStageResult(5) && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Complete Stage 5 (Storyboard) to enable this option
+                </p>
+              )}
             </div>
           ) : (
             groupedFrames.map(([groupId, groupFrames], shotIdx) => (

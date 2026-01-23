@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 import type { FrameCardProps } from "./types";
 
 const ImageIcon = () => (
@@ -36,6 +38,7 @@ export default function FrameCard({
   globalIdx,
   characterAssets,
 }: FrameCardProps) {
+  const { language, dictionary } = useLanguage();
   const [isRemixOpen, setIsRemixOpen] = useState(false);
 
   return (
@@ -79,7 +82,7 @@ export default function FrameCard({
               <button
                 onClick={() => onDownload(frame.id)}
                 className="px-2 py-0.5 text-[10px] bg-slate-700 text-white rounded font-bold hover:bg-slate-600 transition-colors"
-                title="Download"
+                title={phrase(dictionary, "imagegen_download", language) || "Download"}
               >
                 ⬇️
               </button>
@@ -89,7 +92,7 @@ export default function FrameCard({
               disabled={isBatchRunning || frame.isLoading}
               className="px-2 py-0.5 text-[10px] bg-cyan-600 text-white rounded font-bold hover:bg-cyan-500 transition-colors disabled:opacity-50 min-w-[50px]"
             >
-              {frame.isLoading && !frame.remixImageUrl ? "..." : "Generate"}
+              {frame.isLoading && !frame.remixImageUrl ? "..." : frame.imageUrl ? phrase(dictionary, "imagegen_regenerate", language) || "Regenerate" : phrase(dictionary, "imagegen_generate", language) || "Generate"}
             </button>
           </div>
         </div>
@@ -97,7 +100,7 @@ export default function FrameCard({
         {/* Original Prompt */}
         <div className="space-y-1">
           <label className="text-[9px] font-bold text-slate-500 uppercase">
-            Original Prompt
+            {phrase(dictionary, "imagegen_original_prompt", language) || "Original Prompt"}
           </label>
           <textarea
             value={frame.prompt}
@@ -118,7 +121,7 @@ export default function FrameCard({
                   : "bg-slate-900/40 border-slate-700 text-purple-400 hover:bg-slate-700"
               }`}
             >
-              {isRemixOpen ? "Close Remix Panel" : "Open Remix / In-Between"}
+              {isRemixOpen ? phrase(dictionary, "imagegen_close_remix", language) || "Close Remix Panel" : phrase(dictionary, "imagegen_open_remix", language) || "Open Remix / In-Between"}
             </button>
 
             {isRemixOpen && (
@@ -141,7 +144,7 @@ export default function FrameCard({
                             onDownload(frame.id, true);
                           }}
                           className="w-6 h-6 bg-slate-800/80 rounded flex items-center justify-center text-[10px] hover:bg-slate-700"
-                          title="Download Remix"
+                          title={phrase(dictionary, "imagegen_download_remix", language) || "Download Remix"}
                         >
                           ⬇️
                         </button>
@@ -154,19 +157,19 @@ export default function FrameCard({
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-purple-600/80 py-0.5 text-center">
                       <span className="text-[8px] font-black text-white uppercase tracking-widest">
-                        Remix Result
+                        {phrase(dictionary, "imagegen_remix_result", language) || "Remix Result"}
                       </span>
                     </div>
                   </div>
                 )}
 
                 <label className="text-[9px] font-bold text-purple-400 uppercase">
-                  Remix Prompt (Reference original image)
+                  {phrase(dictionary, "imagegen_remix_prompt", language) || "Remix Prompt (Reference original image)"}
                 </label>
                 <textarea
                   value={frame.remixPrompt || ""}
                   onChange={(e) => onRemixPromptChange(frame.id, e.target.value)}
-                  placeholder="Enter changes or in-between action..."
+                  placeholder={phrase(dictionary, "imagegen_remix_placeholder", language) || "Enter changes or in-between action..."}
                   className="w-full text-[11px] text-purple-100 bg-slate-900/80 p-2 rounded border border-purple-500/30 focus:border-purple-400 outline-none resize-none no-scrollbar"
                   rows={3}
                 />
@@ -178,7 +181,7 @@ export default function FrameCard({
                   {frame.isLoading ? (
                     <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full"></div>
                   ) : null}
-                  {frame.isLoading ? "Remixing..." : "Run Remix"}
+                  {frame.isLoading ? phrase(dictionary, "imagegen_remixing", language) || "Remixing..." : phrase(dictionary, "imagegen_run_remix", language) || "Run Remix"}
                 </button>
               </div>
             )}
@@ -192,8 +195,8 @@ export default function FrameCard({
             value={frame.backgroundId}
             onChange={(e) => onBgChange(frame.id, e.target.value)}
             className="text-[10px] bg-slate-900/50 p-1.5 rounded border border-slate-700 text-slate-300 focus:border-cyan-500 outline-none"
-            placeholder="BG ID"
-            title="Background ID (e.g., bg-001-0). Format: bgId-angleIndex"
+            placeholder={phrase(dictionary, "imagegen_bg_id", language) || "BG ID"}
+            title={phrase(dictionary, "imagegen_bg_id_tooltip", language) || "Background ID (e.g., bg-001-0). Format: bgId-angleIndex"}
           />
           <div className="flex gap-1">
             <input
@@ -201,13 +204,13 @@ export default function FrameCard({
               value={frame.refFrame}
               onChange={(e) => onRefChange(frame.id, e.target.value)}
               className="w-12 text-[10px] bg-slate-900/50 p-1.5 rounded border border-slate-700 text-slate-300 focus:border-cyan-500 outline-none"
-              placeholder="Ref#"
-              title="Reference frame label (e.g., 1A). Use this frame's image as reference."
+              placeholder={phrase(dictionary, "imagegen_ref", language) || "Ref#"}
+              title={phrase(dictionary, "imagegen_ref_tooltip", language) || "Reference frame label (e.g., 1A). Use this frame's image as reference."}
             />
             <button
               onClick={() => onEdit(frame.id)}
               className="flex-1 py-1 bg-slate-700 text-[10px] text-slate-300 rounded hover:bg-slate-600 transition-colors"
-              title="Edit with Drawing Tools"
+              title={phrase(dictionary, "imagegen_edit", language) || "Edit with Drawing Tools"}
             >
               ✏️
             </button>

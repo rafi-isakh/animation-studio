@@ -193,9 +193,9 @@ function MithrilContent() {
                     transition-all duration-200 cursor-pointer
                     ${
                       stage.id === currentStage
-                        ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
+                        ? `${stageColors[stage.id].bg} text-white ring-4 ${stageColors[stage.id].ring}`
                         : stage.id < currentStage
-                        ? `${stage.color.bg} text-white`
+                        ? `${stageColors[stage.id].bg} text-white`
                         : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
                     }
                   `}
@@ -207,9 +207,9 @@ function MithrilContent() {
                     mt-2 text-xs font-medium whitespace-nowrap
                     ${
                       stage.id === currentStage
-                        ? stage.color.text
+                        ? stageColors[stage.id].text
                         : stage.id < currentStage
-                        ? stage.color.text
+                        ? stageColors[stage.id].text
                         : "text-gray-500 dark:text-gray-400"
                     }
                   `}

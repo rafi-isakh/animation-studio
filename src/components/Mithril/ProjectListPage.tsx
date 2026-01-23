@@ -278,6 +278,12 @@ export default function ProjectListPage() {
                       </span>
                     );
                   })()}
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Stage:
+                  </span>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColors[project.currentStage] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                    {stageLabels[project.currentStage] || `Stage ${project.currentStage}`}
+                  </span>
                 </div>
                 {/* Current Stage */}
                 {(() => {

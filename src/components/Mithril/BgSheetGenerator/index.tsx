@@ -2775,7 +2775,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
           </div>
 
           {/* Background Cards */}
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1 scrollbar-hide">
+          <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
             {backgrounds.map((bg) => (
               <div
                 key={bg.id}

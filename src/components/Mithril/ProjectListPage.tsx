@@ -268,23 +268,15 @@ export default function ProjectListPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {/* Project Type Badge */}
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const typeDisplay = getProjectTypeDisplay(project.projectType);
-                    return (
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${typeDisplay.color}`}>
-                        {typeDisplay.icon}
-                        {typeDisplay.label}
-                      </span>
-                    );
-                  })()}
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Stage:
-                  </span>
-                  <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColors[project.currentStage] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
-                    {stageLabels[project.currentStage] || `Stage ${project.currentStage}`}
-                  </span>
-                </div>
+                {(() => {
+                  const typeDisplay = getProjectTypeDisplay(project.projectType);
+                  return (
+                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${typeDisplay.color}`}>
+                      {typeDisplay.icon}
+                      {typeDisplay.label}
+                    </span>
+                  );
+                })()}
                 {/* Current Stage */}
                 {(() => {
                   const stageColor = getStageColor(project.projectType, project.currentStage);

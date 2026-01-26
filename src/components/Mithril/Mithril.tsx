@@ -5,8 +5,9 @@ import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import UploadManager from "./UploadManager";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
-import BgSheetGenerator from "./BgSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
+import PropDesigner from "./PropDesigner";
+import BgSheetGenerator from "./BgSheetGenerator";
 import ImageGenerator from "./ImageGenerator";
 import VideoGenerator from "./VideoGenerator";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
@@ -22,8 +23,9 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'UploadManager': UploadManager,
   'StorySplitter': StorySplitter,
   'CharacterSheetGenerator': CharacterSheetGenerator,
-  'BgSheetGenerator': BgSheetGenerator,
   'StoryboardGenerator': StoryboardGenerator,
+  'PropDesigner': PropDesigner,
+  'BgSheetGenerator': BgSheetGenerator,
   'ImageGenerator': ImageGenerator,
   'VideoGenerator': VideoGenerator,
   'ImageSplitter': ImageSplitter,
@@ -115,7 +117,7 @@ function CostTrackerDashboard() {
 }
 
 function MithrilContent() {
-  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey, projectType, totalStages } =
+  const { currentStage, setCurrentStage, goToNextStage, goToPreviousStage, customApiKey, setCustomApiKey, videoApiKey, setVideoApiKey, projectType, totalStages, isStageSkipped } =
     useMithril();
   const { language, dictionary } = useLanguage();
 
@@ -138,12 +140,13 @@ function MithrilContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Stage colors - each stage gets a unique color
+  // Stage colors - each stage gets a unique color (added teal for PropDesigner)
   const stageColors = [
     { bg: 'bg-yellow-500', text: 'text-yellow-500', ring: 'ring-yellow-500/30' },
     { bg: 'bg-orange-500', text: 'text-orange-500', ring: 'ring-orange-500/30' },
     { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },
     { bg: 'bg-purple-500', text: 'text-purple-500', ring: 'ring-purple-500/30' },
+    { bg: 'bg-teal-500', text: 'text-teal-500', ring: 'ring-teal-500/30' },
     { bg: 'bg-indigo-500', text: 'text-indigo-500', ring: 'ring-indigo-500/30' },
     { bg: 'bg-sky-500', text: 'text-sky-500', ring: 'ring-sky-500/30' },
     { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
@@ -167,9 +170,9 @@ function MithrilContent() {
 
   // Determine if we need API keys based on project type and stage
   const isTextToVideo = projectType === 'text-to-video';
-  const needsImageApiKey = isTextToVideo && (currentStage >= 3 && currentStage <= 6);
-  const needsVideoApiKey = isTextToVideo && currentStage === 7;
-  const showCostTracker = isTextToVideo && currentStage === 6;
+  const needsImageApiKey = isTextToVideo && (currentStage >= 3 && currentStage <= 7);
+  const needsVideoApiKey = isTextToVideo && currentStage === 8;
+  const showCostTracker = isTextToVideo && currentStage === 7;
 
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -180,19 +183,25 @@ function MithrilContent() {
         }`}
       >
         <div className="flex items-center justify-center min-w-max px-4">
-          {stages.map((stage, index) => (
+          {stages.map((stage, index) => {
+            const skipped = isStageSkipped(stage.id);
+            return (
             <div key={stage.id} className="flex items-center">
               {/* Stage Circle */}
               <button
-                onClick={() => setCurrentStage(stage.id)}
-                className="flex flex-col items-center group"
+                onClick={() => !skipped && setCurrentStage(stage.id)}
+                disabled={skipped}
+                className={`flex flex-col items-center group ${skipped ? 'cursor-not-allowed opacity-50' : ''}`}
+                title={skipped ? 'Skipped (Single Chapter upload)' : undefined}
               >
                 <div
                   className={`
                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
-                    transition-all duration-200 cursor-pointer
+                    transition-all duration-200 ${skipped ? 'cursor-not-allowed' : 'cursor-pointer'}
                     ${
-                      stage.id === currentStage
+                      skipped
+                        ? "bg-gray-300 dark:bg-gray-600 text-gray-400 dark:text-gray-500 line-through"
+                        : stage.id === currentStage
                         ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
                         : stage.id < currentStage
                         ? `${stage.color.bg} text-white`
@@ -206,7 +215,9 @@ function MithrilContent() {
                   className={`
                     mt-2 text-xs font-medium whitespace-nowrap
                     ${
-                      stage.id === currentStage
+                      skipped
+                        ? "text-gray-400 dark:text-gray-500 line-through"
+                        : stage.id === currentStage
                         ? stage.color.text
                         : stage.id < currentStage
                         ? stage.color.text
@@ -232,7 +243,8 @@ function MithrilContent() {
                 />
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -243,11 +255,11 @@ function MithrilContent() {
       <div className="flex-1 flex flex-col items-center py-8 px-4 md:px-8">
         {/* API Keys and Cost Tracker - Top Right, outside container (Text-to-Video only) */}
         {(needsImageApiKey || needsVideoApiKey) && (
-          <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 5 || currentStage === 6 ? "max-w-[95%]" : "max-w-6xl"}`}>
-            {/* Cost Tracker - Only on Stage 6 */}
+          <div className={`w-full flex justify-end items-end gap-4 mt-10 mb-4 ${currentStage === 6 || currentStage === 7 ? "max-w-[95%]" : "max-w-6xl"}`}>
+            {/* Cost Tracker - Only on Stage 7 (ImageGen) */}
             {showCostTracker && <CostTrackerDashboard />}
 
-            {/* Image API Key (Gemini) - Stages 3-6 */}
+            {/* Image API Key (Gemini) - Stages 3-7 */}
             {needsImageApiKey && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
@@ -273,7 +285,7 @@ function MithrilContent() {
               </div>
             )}
 
-            {/* Video API Key (OpenAI) - Stage 7 */}
+            {/* Video API Key (OpenAI) - Stage 8 */}
             {needsVideoApiKey && (
               <div className="w-full max-w-sm">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
@@ -303,7 +315,7 @@ function MithrilContent() {
 
         <div
           className={`w-full mx-auto p-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
-            isTextToVideo && (currentStage === 5 || currentStage === 6) ? "max-w-[95%]" : "max-w-6xl"
+            isTextToVideo && (currentStage === 6 || currentStage === 7) ? "max-w-[95%]" : "max-w-6xl"
           }`}
         >
           {/* Dynamic stage rendering */}

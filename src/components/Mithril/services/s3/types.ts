@@ -9,8 +9,12 @@
  * │   ├── legacy.webp               (backward compatibility)
  * │   └── modes/{modeId}.webp       (mode variations)
  * ├── style-slots/{slotIndex}.webp  (global style references)
+ * ├── props/{propId}/
+ * │   ├── designsheet.webp          (16:9 prop design sheet)
+ * │   └── reference.webp            (user-uploaded reference)
  * ├── backgrounds/{bgId}/{angle}.webp
  * ├── storyboard/{sceneIndex}_{clipIndex}.webp
+ * ├── imagegen/{frameId}.webp
  * └── videos/{clipId}.mp4
  */
 
@@ -22,7 +26,7 @@ export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
 
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -38,6 +42,9 @@ export interface UploadImageRequest {
   // For imagegen images
   frameId?: string;
   imageGenSubtype?: ImageGenImageSubtype; // frame, remix, or edited
+  // For prop images
+  propId?: string;
+  propSubtype?: 'designsheet' | 'reference';
   // Image data
   base64: string;
   mimeType?: string;
@@ -52,7 +59,7 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -68,6 +75,9 @@ export interface DeleteImageRequest {
   // For imagegen images
   frameId?: string;
   imageGenSubtype?: ImageGenImageSubtype; // frame, remix, or edited
+  // For prop images
+  propId?: string;
+  propSubtype?: 'designsheet' | 'reference';
 }
 
 export interface DeleteImageResponse {
@@ -224,4 +234,36 @@ export function getImageGenEditedKey(projectId: string, frameId: string): string
  */
 export function getImageGenFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/imagegen/`;
+}
+
+// ============================================
+// Prop Designer (Stage 5) Key Generators
+// ============================================
+
+/**
+ * Get S3 key for prop design sheet image (16:9 product sheet)
+ */
+export function getPropDesignSheetKey(projectId: string, propId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/props/${propId}/designsheet.webp`;
+}
+
+/**
+ * Get S3 key for prop reference image (uploaded by user)
+ */
+export function getPropReferenceImageKey(projectId: string, propId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/props/${propId}/reference.webp`;
+}
+
+/**
+ * Get S3 folder prefix for prop (for deleting all prop images)
+ */
+export function getPropFolderPrefix(projectId: string, propId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/props/${propId}/`;
+}
+
+/**
+ * Get S3 folder prefix for all props (for clearing all prop images)
+ */
+export function getPropsFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/props/`;
 }

@@ -10,6 +10,12 @@ interface StoryboardRequest {
   soundCondition: string;
   imageGuide: string;
   videoGuide: string;
+  // New configuration parameters (from reference)
+  targetTime?: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 const MAX_RETRIES = 3;
@@ -53,10 +59,21 @@ async function generateStoryboardWithRetry(
     soundCondition,
     imageGuide,
     videoGuide,
+    // New configuration parameters
+    targetTime = "03:00",
+    customInstruction = "",
+    backgroundInstruction = "",
+    negativeInstruction = "",
+    videoInstruction = "",
   } = params;
 
+  // Parse target time to get total seconds and clip count
+  const [minutes, seconds] = targetTime.split(":").map(Number);
+  const totalSeconds = (minutes || 0) * 60 + (seconds || 0);
+  const estimatedClipCount = Math.round(totalSeconds / 1.8); // ~1.8 seconds per clip average
+
   const prompt = `
-    다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 100개의 클립으로 구성된, 정확히 3분(180초) 분량의 애니메이션 콘티를 제작해 주세요.
+    다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 ${estimatedClipCount}개의 클립으로 구성된, 정확히 ${totalSeconds}초(${targetTime}) 분량의 애니메이션 콘티를 제작해 주세요.
     각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다.
 
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
@@ -204,12 +221,36 @@ async function generateStoryboardWithRetry(
 
     14. **accumulatedTime**:
         - 이전 클립까지의 누적 시간에 현재 클립의 길이를 더한 값을 "MM:SS" 형식으로 표시합니다. 예: "00:03", "00:07", "01:25"
-        - **전체 누적 시간은 반드시 180초가 되어야 하며, 마지막 클립의 값은 "03:00"이어야 합니다.**
+        - **전체 누적 시간은 반드시 ${totalSeconds}초가 되어야 하며, 마지막 클립의 값은 "${targetTime}"이어야 합니다.**
 
     15. **backgroundPrompt**:
         - 반드시 영어로 작성해야 합니다.
         - **지침: 클립의 정적 배경을 'imagePrompt'와는 별개로, 매우 상세하고 풍부하게 묘사합니다. 배경의 분위기, 주요 사물, 빛의 상태, 재질감 등 시각적 요소를 풍부하게 포함해야 합니다. 동일한 배경을 공유하는 연속적인 클립에는 동일한 \`backgroundPrompt\` 값을 사용해야 합니다. 씬 내에서 배경이 변경될 때만 이 프롬프트를 변경합니다.**
         - **예시: "A dimly lit, ornate Victorian-style bedroom with a large four-poster bed, a vintage wooden wardrobe, and flickering gas lamps. Dust motes visible in the sparse light."**
+
+    ${customInstruction ? `
+    **[사용자 특별 지시사항 (Story Guide)]**
+    다음 지시사항을 반드시 따르세요. 무엇을 강조하고, 무엇을 생략하며, 어떤 서사를 확장할지에 대한 사용자의 요청입니다:
+    ${customInstruction}
+    ` : ''}
+
+    ${backgroundInstruction ? `
+    **[배경 ID 지시사항]**
+    다음 배경 ID 규칙을 적용하세요:
+    ${backgroundInstruction}
+    ` : ''}
+
+    ${negativeInstruction ? `
+    **[Negative Prompt - 절대 피해야 할 요소]**
+    다음 요소들은 imagePrompt, videoPrompt, soraVideoPrompt에서 절대 사용하지 마십시오:
+    ${negativeInstruction}
+    ` : ''}
+
+    ${videoInstruction ? `
+    **[비디오 프롬프트 추가 규칙]**
+    videoPrompt와 soraVideoPrompt 생성 시 다음 규칙을 추가로 적용하세요:
+    ${videoInstruction}
+    ` : ''}
 
     원본 텍스트는 다음과 같습니다:
     ---
@@ -418,6 +459,12 @@ export async function POST(request: NextRequest) {
       soundCondition,
       imageGuide,
       videoGuide,
+      // New configuration parameters
+      targetTime,
+      customInstruction,
+      backgroundInstruction,
+      negativeInstruction,
+      videoInstruction,
     } = body;
 
     // Validation
@@ -436,6 +483,12 @@ export async function POST(request: NextRequest) {
       soundCondition: soundCondition || "",
       imageGuide: imageGuide || "",
       videoGuide: videoGuide || "",
+      // New configuration parameters
+      targetTime: targetTime || "03:00",
+      customInstruction: customInstruction || "",
+      backgroundInstruction: backgroundInstruction || "",
+      negativeInstruction: negativeInstruction || "",
+      videoInstruction: videoInstruction || "",
     });
 
     return NextResponse.json(result);

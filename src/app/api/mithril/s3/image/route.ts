@@ -19,6 +19,9 @@ import {
   getImageGenRemixKey,
   getImageGenEditedKey,
   getImageGenFolderPrefix,
+  getPropDesignSheetKey,
+  getPropReferenceImageKey,
+  getPropFolderPrefix,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -136,6 +139,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
           case "frame":
           default:
             s3Key = getImageGenFrameKey(projectId, frameId);
+            break;
+        }
+        break;
+      }
+      case "prop": {
+        const { propId, propSubtype } = body;
+        if (!propId) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "propId is required for prop images" },
+            { status: 400 }
+          );
+        }
+        switch (propSubtype) {
+          case "reference":
+            s3Key = getPropReferenceImageKey(projectId, propId);
+            break;
+          case "designsheet":
+          default:
+            s3Key = getPropDesignSheetKey(projectId, propId);
             break;
         }
         break;
@@ -321,6 +343,39 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
             case "frame":
             default:
               keysToDelete = [getImageGenFrameKey(projectId, frameId)];
+              break;
+          }
+        }
+        break;
+      }
+      case "prop": {
+        const { propId, propSubtype } = body;
+        if (!propId) {
+          return NextResponse.json(
+            { success: false, deletedKeys: [], error: "propId is required for prop images" },
+            { status: 400 }
+          );
+        }
+        if (!propSubtype) {
+          // Delete all prop images if no subtype specified
+          const prefix = getPropFolderPrefix(projectId, propId);
+          const listResponse = await s3Client.send(
+            new ListObjectsV2Command({
+              Bucket: BUCKET_NAME,
+              Prefix: prefix,
+            })
+          );
+          if (listResponse.Contents) {
+            keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
+          }
+        } else {
+          switch (propSubtype) {
+            case "reference":
+              keysToDelete = [getPropReferenceImageKey(projectId, propId)];
+              break;
+            case "designsheet":
+            default:
+              keysToDelete = [getPropDesignSheetKey(projectId, propId)];
               break;
           }
         }

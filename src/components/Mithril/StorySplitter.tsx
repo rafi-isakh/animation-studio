@@ -118,7 +118,7 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
 
 
 export default function StorySplitter() {
-  const { setStageResult, storySplitter, startStorySplit, clearStorySplit } = useMithril();
+  const { setStageResult, storySplitter, startStorySplit, clearStorySplit, isStageSkipped, goToNextStage } = useMithril();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
 
@@ -195,6 +195,31 @@ export default function StorySplitter() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DB2777]"></div>
+      </div>
+    );
+  }
+
+  // If this stage is skipped (single chapter upload), show redirect notice
+  if (isStageSkipped(2)) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">{phrase(dictionary, "storysplitter_title", language)}</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            {phrase(dictionary, "storysplitter_subtitle", language)}
+          </p>
+        </div>
+        <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+          <p className="text-blue-700 dark:text-blue-400 mb-4">
+            {phrase(dictionary, "storysplitter_skipped_notice", language)}
+          </p>
+          <button
+            onClick={goToNextStage}
+            className="px-6 py-2 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200"
+          >
+            {phrase(dictionary, "storysplitter_go_to_next_stage", language)}
+          </button>
+        </div>
       </div>
     );
   }

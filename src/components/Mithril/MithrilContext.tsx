@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
+import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
 import { useProject } from "@/contexts/ProjectContext";
 import { ProjectType, getTotalStages, isValidStage, getDefaultProjectType } from "./config/projectTypes";
 
@@ -14,6 +15,7 @@ import {
   updateCurrentStage as updateCurrentStageFirestore,
   updateCustomApiKey as updateCustomApiKeyFirestore,
   updateVideoApiKey as updateVideoApiKeyFirestore,
+  getChapter,
   getStorySplits,
   saveStorySplits,
   deleteStorySplits,
@@ -37,10 +39,21 @@ import {
   saveVoicePrompts,
   updateClipField as updateClipFieldFirestore,
   clearStoryboard,
-  // ImageGen (Stage 6)
+  // ImageGen (Stage 7)
   getImageGenMeta,
   getImageGenFrames,
+  // PropDesigner (Stage 5)
+  getPropDesignerSettings,
+  getProps,
+  getDetectedIds,
+  savePropDesignerSettings,
+  saveProp,
+  saveDetectedIds,
+  clearPropDesigner,
 } from "./services/firestore";
+import type { UploadType } from "./services/firestore/types";
+
+const TOTAL_STAGES = 8;
 
 // Editable clip field type (shared across components)
 export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
@@ -88,6 +101,13 @@ interface CharacterSheetGeneratorState {
   result: CharacterSheetResultMetadata | null;
 }
 
+// Types for Prop Designer Generator (Stage 5)
+interface PropDesignerGeneratorState {
+  isAnalyzing: boolean;
+  error: string | null;
+  result: PropDesignerResultMetadata | null;
+}
+
 interface BgSheetBackground {
   id: string;
   name: string;
@@ -120,6 +140,12 @@ interface GenerateStoryboardParams {
   soundCondition: string;
   imageGuide: string;
   videoGuide: string;
+  // New configuration parameters (from reference)
+  targetTime?: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 // Types for shared state
@@ -185,6 +211,16 @@ interface MithrilContextProps {
   startCharacterSheetAnalysis: (text: string, styleKeyword: string, characterBasePrompt: string) => Promise<Character[]>;
   clearCharacterSheetAnalysis: () => void;
   setCharacterSheetResult: (result: CharacterSheetResultMetadata) => void;
+
+  // Prop Designer Generator (Stage 5)
+  propDesignerGenerator: PropDesignerGeneratorState;
+  setPropDesignerResult: (result: PropDesignerResultMetadata) => void;
+  clearPropDesignerData: () => void;
+
+  // Upload Type (novel vs chapter)
+  uploadType: UploadType;
+  setUploadType: (type: UploadType) => void;
+  isStageSkipped: (stage: number) => boolean;
 
   // Reload data from Firestore
   reloadFromFirestore: () => Promise<void>;
@@ -295,6 +331,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     result: null,
   });
 
+  // Prop Designer Generator state (Stage 5)
+  const [propDesignerGenerator, setPropDesignerGenerator] = useState<PropDesignerGeneratorState>({
+    isAnalyzing: false,
+    error: null,
+    result: null,
+  });
+
+  // Upload Type state (novel vs chapter - determines if Stage 2 is skipped)
+  const [uploadType, setUploadTypeState] = useState<UploadType>('novel');
+
+  // Setter for upload type (used by UploadManager when file is processed)
+  const setUploadType = useCallback((type: UploadType) => {
+    setUploadTypeState(type);
+  }, []);
+
+  // Check if a stage should be skipped based on upload type
+  const isStageSkipped = useCallback((stage: number): boolean => {
+    // Stage 2 (Story Splitter) is skipped when upload type is 'chapter'
+    return stage === 2 && uploadType === 'chapter';
+  }, [uploadType]);
+
   // Load data from Firestore when projectId changes
   const loadFromFirestore = useCallback(async () => {
     if (!currentProjectId) {
@@ -314,6 +371,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
         setCustomApiKeyState(metadata.customApiKey || "");
         setVideoApiKeyState(metadata.videoApiKey || "");
+      }
+
+      // Load chapter data (including uploadType)
+      const chapterData = await getChapter(currentProjectId);
+      if (chapterData) {
+        // Load uploadType from chapter document (defaults to 'novel' for backward compatibility)
+        setUploadTypeState(chapterData.uploadType || 'novel');
       }
 
       // Load story splitter data
@@ -460,7 +524,40 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setOriginalStoryboard(storyboardData);
       }
 
-      // Load ImageGen data (Stage 6)
+      // Load PropDesigner data (Stage 5)
+      const propSettings = await getPropDesignerSettings(currentProjectId);
+      const props = await getProps(currentProjectId);
+      const detectedIds = await getDetectedIds(currentProjectId);
+      if (propSettings || props.length > 0) {
+        const propMetadata: PropDesignerResultMetadata = {
+          settings: {
+            styleKeyword: propSettings?.styleKeyword || "",
+            propBasePrompt: propSettings?.propBasePrompt || "",
+            genre: propSettings?.genre || "Modern",
+          },
+          props: props.map(prop => ({
+            id: prop.id,
+            name: prop.name,
+            category: prop.category,
+            description: prop.description,
+            descriptionKo: prop.descriptionKo,
+            appearingClips: prop.appearingClips,
+            designSheetPrompt: prop.designSheetPrompt,
+            designSheetImageRef: prop.designSheetImageRef,
+            referenceImageRef: prop.referenceImageRef,
+          })),
+          detectedIds: detectedIds.map(d => ({
+            id: d.id,
+            category: d.category,
+            clipIds: d.clipIds,
+            contexts: d.contexts,
+            occurrences: d.occurrences,
+          })),
+        };
+        setPropDesignerGenerator(prev => ({ ...prev, result: propMetadata }));
+      }
+
+      // Load ImageGen data (Stage 7)
       const imageGenMeta = await getImageGenMeta(currentProjectId);
       const imageGenFrames = await getImageGenFrames(currentProjectId);
       // Load if meta exists OR frames exist (frames can be saved without meta)
@@ -1200,18 +1297,53 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     setCharacterSheetGenerator(prev => ({ ...prev, result }));
   }, []);
 
+  // Prop Designer methods
+  const setPropDesignerResult = useCallback((result: PropDesignerResultMetadata) => {
+    setPropDesignerGenerator(prev => ({ ...prev, result }));
+  }, []);
+
+  const clearPropDesignerData = useCallback(async () => {
+    setPropDesignerGenerator({
+      isAnalyzing: false,
+      error: null,
+      result: null,
+    });
+
+    if (currentProjectId) {
+      try {
+        await clearPropDesigner(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing prop designer from Firestore:", error);
+      }
+    }
+  }, [currentProjectId]);
+
   // Navigation methods
   const goToNextStage = useCallback(() => {
     if (currentStage < totalStages) {
-      setCurrentStage(currentStage + 1);
+      let nextStage = currentStage + 1;
+      // Skip Stage 2 if uploadType is 'chapter'
+      if (nextStage === 2 && uploadType === 'chapter') {
+        nextStage = 3;
+      }
+      if (nextStage <= totalStages) {
+        setCurrentStage(nextStage);
+      }
     }
-  }, [currentStage, totalStages, setCurrentStage]);
+  }, [currentStage, totalStages, uploadType, setCurrentStage]);
 
   const goToPreviousStage = useCallback(() => {
     if (currentStage > 1) {
-      setCurrentStage(currentStage - 1);
+      let prevStage = currentStage - 1;
+      // Skip Stage 2 if uploadType is 'chapter'
+      if (prevStage === 2 && uploadType === 'chapter') {
+        prevStage = 1;
+      }
+      if (prevStage >= 1) {
+        setCurrentStage(prevStage);
+      }
     }
-  }, [currentStage, setCurrentStage]);
+  }, [currentStage, uploadType, setCurrentStage]);
 
   // File management methods
   const addFile = (file: File) => {
@@ -1289,6 +1421,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         startCharacterSheetAnalysis,
         clearCharacterSheetAnalysis,
         setCharacterSheetResult,
+        // Prop Designer Generator
+        propDesignerGenerator,
+        setPropDesignerResult,
+        clearPropDesignerData,
+        // Upload Type (novel vs chapter)
+        uploadType,
+        setUploadType,
+        isStageSkipped,
         // Reload
         reloadFromFirestore,
       }}

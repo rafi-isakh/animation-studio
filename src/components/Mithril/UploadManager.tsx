@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Upload } from "lucide-react";
+import { Upload, FileText, BookOpen } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useProject } from "@/contexts/ProjectContext";
-import { getChapter, saveChapter, deleteChapter } from "./services/firestore";
+import { useMithril } from "./MithrilContext";
+import { getChapter, saveChapter, deleteChapter, saveStorySplits, deleteStorySplits } from "./services/firestore";
+import type { UploadType } from "./services/firestore/types";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -67,6 +69,7 @@ const SAMPLE_FILES = [
 export default function UploadManager() {
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
+  const { uploadType, setUploadType } = useMithril();
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string>("");
@@ -116,6 +119,9 @@ export default function UploadManager() {
     setError(null);
     setIsLoading(true);
 
+    // Sample files are always treated as 'novel' type
+    setUploadType('novel');
+
     try {
       const response = await fetch(file.path);
       if (!response.ok) {
@@ -125,11 +131,15 @@ export default function UploadManager() {
       setFileContent(content);
       setFileName(file.name);
 
-      // Save to Firestore
+      // Save to Firestore with 'novel' type for samples
       await saveChapter(currentProjectId, {
         content,
         filename: file.name,
+        uploadType: 'novel',
       });
+
+      // Clear any existing story splits since this is a novel that needs splitting
+      await deleteStorySplits(currentProjectId);
     } catch (err) {
       console.error("Error loading file:", err);
       setError("Failed to load the selected file. Please try again.");
@@ -138,7 +148,7 @@ export default function UploadManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, setUploadType]);
 
   const handleClear = useCallback(async () => {
     setFileContent(null);
@@ -186,12 +196,24 @@ export default function UploadManager() {
       setFileName(name);
       setSelectedFile(""); // Clear sample selection
 
-      // Save to Firestore
+      // Save to Firestore with current uploadType
       try {
         await saveChapter(currentProjectId, {
           content,
           filename: name,
+          uploadType,
         });
+
+        // If chapter type, auto-create single-part storySplits
+        if (uploadType === 'chapter') {
+          await saveStorySplits(currentProjectId, {
+            guidelines: '',
+            parts: [{ text: content, cliffhangers: [] }],
+          });
+        } else {
+          // Clear any existing story splits if switching to novel type
+          await deleteStorySplits(currentProjectId);
+        }
       } catch (err) {
         console.error("Error saving to Firestore:", err);
       }
@@ -203,7 +225,7 @@ export default function UploadManager() {
       setIsLoading(false);
     };
     reader.readAsText(file);
-  }, [currentProjectId, dictionary, language]);
+  }, [currentProjectId, dictionary, language, uploadType]);
 
   // Drag event handlers
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -253,6 +275,43 @@ export default function UploadManager() {
       </p>
 
       <div className="space-y-6">
+        {/* Upload Type Toggle */}
+        <div className="flex flex-col items-center gap-3">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {phrase(dictionary, "upload_type_label", language)}
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setUploadType('novel')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
+                uploadType === 'novel'
+                  ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
+                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#DB2777]/50'
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              <div className="text-left">
+                <div className="font-medium">{phrase(dictionary, "upload_type_novel", language)}</div>
+                <div className="text-xs opacity-70">{phrase(dictionary, "upload_type_novel_desc", language)}</div>
+              </div>
+            </button>
+            <button
+              onClick={() => setUploadType('chapter')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
+                uploadType === 'chapter'
+                  ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
+                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#DB2777]/50'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              <div className="text-left">
+                <div className="font-medium">{phrase(dictionary, "upload_type_chapter", language)}</div>
+                <div className="text-xs opacity-70">{phrase(dictionary, "upload_type_chapter_desc", language)}</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Drag and Drop Zone */}
         <div
           onDragEnter={handleDrag}

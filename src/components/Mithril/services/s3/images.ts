@@ -23,6 +23,7 @@ import {
   ClearProjectResponse,
   CharacterImageSubtype,
   ImageGenImageSubtype,
+  I2VImageSubtype,
   getCharacterImageKey,
   getBackgroundImageKey,
   getStoryboardImageKey,
@@ -34,6 +35,8 @@ import {
   getImageGenFrameKey,
   getImageGenRemixKey,
   getImageGenEditedKey,
+  getI2VPageKey,
+  getI2VPanelKey,
 } from './types';
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
@@ -854,6 +857,159 @@ export async function deleteImageGenEditedImage(
 }
 
 // ============================================================================
+// Image-to-Video (I2V) Images
+// ============================================================================
+
+/**
+ * Upload an I2V page image (full manga page) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VPageImage(
+  projectId: string,
+  pageIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'page',
+    pageIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V page image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an I2V panel image (cropped panel) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VPanelImage(
+  projectId: string,
+  pageIndex: number,
+  panelIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel',
+    pageIndex,
+    panelIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V panel image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete an I2V page image from S3
+ */
+export async function deleteI2VPageImage(
+  projectId: string,
+  pageIndex: number
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'page',
+    pageIndex,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete I2V page image');
+  }
+}
+
+/**
+ * Delete an I2V panel image from S3
+ */
+export async function deleteI2VPanelImage(
+  projectId: string,
+  pageIndex: number,
+  panelIndex: number
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel',
+    pageIndex,
+    panelIndex,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete I2V panel image');
+  }
+}
+
+/**
+ * Delete all I2V images (pages and panels) for a project from S3
+ */
+export async function clearAllI2VImages(projectId: string): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    // No pageIndex = delete all
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to clear I2V images');
+  }
+}
+
+// ============================================================================
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================
 
@@ -869,4 +1025,6 @@ export {
   getImageGenFrameKey,
   getImageGenRemixKey,
   getImageGenEditedKey,
+  getI2VPageKey,
+  getI2VPanelKey,
 };

@@ -22,6 +22,9 @@ import {
   getPropDesignSheetKey,
   getPropReferenceImageKey,
   getPropFolderPrefix,
+  getI2VPageKey,
+  getI2VPanelKey,
+  getI2VFolderPrefix,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -158,6 +161,31 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
           case "designsheet":
           default:
             s3Key = getPropDesignSheetKey(projectId, propId);
+            break;
+        }
+        break;
+      }
+      case "i2v": {
+        const { i2vSubtype, pageIndex, panelIndex } = body;
+        if (pageIndex === undefined) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "pageIndex is required for i2v images" },
+            { status: 400 }
+          );
+        }
+        switch (i2vSubtype) {
+          case "panel":
+            if (panelIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "panelIndex is required for i2v panel images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VPanelKey(projectId, pageIndex, panelIndex);
+            break;
+          case "page":
+          default:
+            s3Key = getI2VPageKey(projectId, pageIndex);
             break;
         }
         break;
@@ -376,6 +404,35 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
             case "designsheet":
             default:
               keysToDelete = [getPropDesignSheetKey(projectId, propId)];
+              break;
+          }
+        }
+        break;
+      }
+      case "i2v": {
+        const { i2vSubtype, pageIndex, panelIndex } = body;
+        // If no specific index provided, delete all i2v content
+        if (pageIndex === undefined) {
+          const prefix = getI2VFolderPrefix(projectId);
+          const listResponse = await s3Client.send(
+            new ListObjectsV2Command({
+              Bucket: BUCKET_NAME,
+              Prefix: prefix,
+            })
+          );
+          if (listResponse.Contents) {
+            keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
+          }
+        } else {
+          switch (i2vSubtype) {
+            case "panel":
+              if (panelIndex !== undefined) {
+                keysToDelete = [getI2VPanelKey(projectId, pageIndex, panelIndex)];
+              }
+              break;
+            case "page":
+            default:
+              keysToDelete = [getI2VPageKey(projectId, pageIndex)];
               break;
           }
         }

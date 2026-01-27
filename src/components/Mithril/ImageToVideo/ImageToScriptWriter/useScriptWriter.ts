@@ -4,7 +4,7 @@ import { useReducer, useCallback, useEffect, useRef, useMemo } from 'react';
 import JSZip from 'jszip';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
-import { blobToBase64, compressBase64Image } from './utils/imageCompression';
+import { blobToBase64, compressBase64Image, urlToBase64, isUrl } from './utils/imageCompression';
 import type {
   ScriptWriterState,
   Scene,
@@ -361,14 +361,26 @@ export function useScriptWriter() {
     dispatch({ type: 'START_GENERATING' });
 
     try {
-      // Compress all panel images to reduce payload size
+      // Convert URLs to base64 and compress all panel images
       const compressedPanels = await Promise.all(
         allPanels.map(async (panel) => {
-          if (panel.imageBase64.length > 100000) {
-            const compressed = await compressBase64Image(panel.imageBase64, 800, 0.7);
-            return { ...panel, imageBase64: compressed };
+          let imageData = panel.imageBase64;
+
+          // If it's a URL (S3), fetch and convert to base64
+          if (isUrl(imageData)) {
+            try {
+              imageData = await urlToBase64(imageData, 800, 0.7);
+            } catch (err) {
+              console.error(`Failed to fetch image from URL: ${imageData}`, err);
+              throw new Error(`Failed to load panel image. Please try refreshing the page.`);
+            }
           }
-          return panel;
+          // Otherwise compress if too large
+          else if (imageData.length > 100000) {
+            imageData = await compressBase64Image(imageData, 800, 0.7);
+          }
+
+          return { ...panel, imageBase64: imageData };
         })
       );
 

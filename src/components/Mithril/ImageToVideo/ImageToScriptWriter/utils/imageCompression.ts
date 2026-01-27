@@ -107,3 +107,50 @@ export function compressBase64Image(
     img.src = `data:image/jpeg;base64,${base64}`;
   });
 }
+
+/**
+ * Check if a string is a URL
+ */
+export function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('blob:');
+}
+
+/**
+ * Fetch image from URL and convert to base64
+ * Also compresses the image to reduce payload size
+ */
+export async function urlToBase64(
+  url: string,
+  maxWidth = 800,
+  quality = 0.7
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const base64 = dataUrl.split(',')[1];
+      resolve(base64);
+    };
+
+    img.onerror = () => reject(new Error(`Failed to load image from URL: ${url}`));
+    img.src = url;
+  });
+}

@@ -145,6 +145,7 @@ export function useImageSplitter() {
 
           loadedPages.push({
             id: page.id,
+            pageIndex: page.pageIndex, // Store original index for deletion
             previewUrl: page.imageRef, // S3 URL for preview
             fileName: page.fileName,
             panels,
@@ -389,6 +390,9 @@ export function useImageSplitter() {
             status: 'completed',
           });
 
+          // Store pageIndex in local state for proper deletion later
+          dispatch({ type: 'SET_PAGE_INDEX', id: page.id, pageIndex });
+
           // Save panels and upload to S3
           for (let panelIndex = 0; panelIndex < panels.length; panelIndex++) {
             const panel = panels[panelIndex];
@@ -454,22 +458,25 @@ export function useImageSplitter() {
 
   // Remove a page
   const remove = useCallback(async (id: string) => {
-    // Find page and its index
-    const pageIndex = stateRef.current.pages.findIndex((p) => p.id === id);
-    const page = stateRef.current.pages[pageIndex];
+    // Find page by ID
+    const page = stateRef.current.pages.find((p) => p.id === id);
+    if (!page) return;
+
+    // Use stored pageIndex (from Firestore) or fall back to array position for new uploads
+    const pageIndex = page.pageIndex ?? stateRef.current.pages.findIndex((p) => p.id === id);
 
     // Revoke preview URL if it's a blob
-    if (page?.previewUrl?.startsWith('blob:')) {
+    if (page.previewUrl?.startsWith('blob:')) {
       URL.revokeObjectURL(page.previewUrl);
     }
 
     dispatch({ type: 'REMOVE_PAGE', id });
 
-    // Delete from Firestore and S3
-    if (currentProjectId && pageIndex >= 0) {
+    // Delete from Firestore and S3 (only if page was saved to Firestore)
+    if (currentProjectId && page.pageIndex !== undefined) {
       try {
         // Delete panel images from S3
-        if (page?.panels?.length > 0) {
+        if (page.panels?.length > 0) {
           await Promise.all(
             page.panels.map((_, panelIndex) =>
               deleteI2VPanelImage(currentProjectId, pageIndex, panelIndex).catch((err) =>

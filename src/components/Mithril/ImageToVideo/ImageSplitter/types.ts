@@ -15,6 +15,7 @@ export interface MangaPanel {
 // A single manga/comic page with its detected panels
 export interface MangaPage {
   id: string;
+  pageIndex?: number; // Original index from Firestore (used for deletion)
   file?: File;
   previewUrl: string;
   fileName: string;

@@ -13,6 +13,7 @@ export type ImageSplitterAction =
   | { type: 'REMOVE_PAGE'; id: string }
   | { type: 'UPDATE_PAGE_STATUS'; id: string; status: ProcessingStatus }
   | { type: 'SET_PAGE_PANELS'; id: string; panels: MangaPanel[] }
+  | { type: 'SET_PAGE_INDEX'; id: string; pageIndex: number }
   | { type: 'SET_READING_DIRECTION'; direction: ReadingDirection }
   | { type: 'START_PROCESSING'; total: number }
   | { type: 'INCREMENT_PROGRESS' }
@@ -63,6 +64,14 @@ export function imageSplitterReducer(
           p.id === action.id
             ? { ...p, panels: action.panels, status: 'completed' as ProcessingStatus }
             : p
+        ),
+      };
+
+    case 'SET_PAGE_INDEX':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.id ? { ...p, pageIndex: action.pageIndex } : p
         ),
       };
 

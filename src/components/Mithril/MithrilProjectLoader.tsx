@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProject } from '@/contexts/ProjectContext';
 import { getProject } from './services/firestore';
+import { useMithrilAuth } from './auth/MithrilAuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface MithrilProjectLoaderProps {
@@ -16,6 +17,7 @@ export default function MithrilProjectLoader({
   children,
 }: MithrilProjectLoaderProps) {
   const router = useRouter();
+  const { user } = useMithrilAuth();
   const { currentProject, setCurrentProject } = useProject();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +27,11 @@ export default function MithrilProjectLoader({
       // No projectId provided - redirect to projects page
       if (!projectId) {
         router.replace('/projects');
+        return;
+      }
+
+      // Wait for user to be available
+      if (!user) {
         return;
       }
 
@@ -38,10 +45,10 @@ export default function MithrilProjectLoader({
         setLoading(true);
         setError(null);
 
-        const project = await getProject(projectId);
+        const project = await getProject(projectId, { id: user.id, role: user.role });
 
         if (!project) {
-          setError('Project not found');
+          setError('Project not found or access denied');
           return;
         }
 
@@ -55,7 +62,7 @@ export default function MithrilProjectLoader({
     }
 
     loadProject();
-  }, [projectId, currentProject?.id, setCurrentProject, router]);
+  }, [projectId, currentProject?.id, setCurrentProject, router, user]);
 
   if (loading) {
     return (

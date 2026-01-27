@@ -13,6 +13,7 @@ import { Button } from '@/components/shadcnUI/Button';
 import { Input } from '@/components/shadcnUI/Input';
 import { Label } from '@/components/shadcnUI/Label';
 import { createProject, getProject, ProjectMetadata } from './services/firestore';
+import { useMithrilAuth } from './auth/MithrilAuthContext';
 import { Loader2, FileText, Images } from 'lucide-react';
 import {
   ProjectType,
@@ -38,6 +39,7 @@ export default function CreateProjectModal({
   onOpenChange,
   onProjectCreated,
 }: CreateProjectModalProps) {
+  const { user } = useMithrilAuth();
   const [name, setName] = useState('');
   const [projectType, setProjectType] = useState<ProjectType>(getDefaultProjectType());
   const [loading, setLoading] = useState(false);
@@ -53,11 +55,16 @@ export default function CreateProjectModal({
       return;
     }
 
+    if (!user) {
+      setError('You must be logged in to create a project');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const projectId = await createProject({ name: name.trim(), projectType });
+      const projectId = await createProject({ name: name.trim(), projectType, ownerId: user.id });
       const newProject = await getProject(projectId);
 
       if (newProject) {

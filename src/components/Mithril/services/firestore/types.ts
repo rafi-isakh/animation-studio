@@ -14,11 +14,13 @@ export interface ProjectMetadata {
   currentStage: number;
   customApiKey?: string;
   videoApiKey?: string;
+  ownerId: string; // User ID who owns this project
 }
 
 export interface CreateProjectInput {
   name: string;
   projectType: ProjectType;
+  ownerId: string; // User ID who is creating the project
 }
 
 export interface UpdateProjectInput {

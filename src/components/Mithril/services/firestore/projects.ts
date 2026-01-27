@@ -9,13 +9,21 @@ import {
   Timestamp,
   query,
   orderBy,
+  where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
 import {
   ProjectMetadata,
   CreateProjectInput,
   UpdateProjectInput,
+  MithrilUserRole,
 } from './types';
+
+// User context for access control
+export interface UserContext {
+  id: string;
+  role: MithrilUserRole;
+}
 
 const PROJECTS_COLLECTION = 'projects';
 
@@ -30,6 +38,7 @@ export async function createProject(
   const projectData = {
     name: input.name,
     projectType: input.projectType,
+    ownerId: input.ownerId,
     createdAt: now,
     updatedAt: now,
     currentStage: 1,
@@ -40,10 +49,22 @@ export async function createProject(
 }
 
 /**
+ * Check if user has access to a project
+ * Admin can access all projects, users can only access their own
+ */
+function hasProjectAccess(project: ProjectMetadata, user: UserContext): boolean {
+  if (user.role === 'admin') return true;
+  return project.ownerId === user.id;
+}
+
+/**
  * Get a single project by ID
+ * @param projectId - The project ID
+ * @param user - Optional user context for access control. If provided, checks access.
  */
 export async function getProject(
-  projectId: string
+  projectId: string,
+  user?: UserContext
 ): Promise<ProjectMetadata | null> {
   const docRef = doc(db, PROJECTS_COLLECTION, projectId);
   const docSnap = await getDoc(docRef);
@@ -53,22 +74,46 @@ export async function getProject(
   }
 
   const data = docSnap.data();
-  return {
+  const project = {
     id: docSnap.id,
     ...data,
     // Default to 'text-to-video' for existing projects without projectType
     projectType: data.projectType || 'text-to-video',
+    // Default ownerId for legacy projects (assign to empty string, only admins can access)
+    ownerId: data.ownerId || '',
   } as ProjectMetadata;
+
+  // Check access if user context provided
+  if (user && !hasProjectAccess(project, user)) {
+    return null; // Return null if user doesn't have access
+  }
+
+  return project;
 }
 
 /**
- * List all projects (ordered by updatedAt desc)
+ * List projects based on user role
+ * Admin: sees all projects
+ * User: sees only projects they own
+ * @param user - User context for filtering
  */
-export async function listProjects(): Promise<ProjectMetadata[]> {
-  const q = query(
-    collection(db, PROJECTS_COLLECTION),
-    orderBy('updatedAt', 'desc')
-  );
+export async function listProjects(user: UserContext): Promise<ProjectMetadata[]> {
+  let q;
+
+  if (user.role === 'admin') {
+    // Admin sees all projects
+    q = query(
+      collection(db, PROJECTS_COLLECTION),
+      orderBy('updatedAt', 'desc')
+    );
+  } else {
+    // Regular user sees only their own projects
+    q = query(
+      collection(db, PROJECTS_COLLECTION),
+      where('ownerId', '==', user.id),
+      orderBy('updatedAt', 'desc')
+    );
+  }
 
   const snapshot = await getDocs(q);
 
@@ -79,17 +124,35 @@ export async function listProjects(): Promise<ProjectMetadata[]> {
       ...data,
       // Default to 'text-to-video' for existing projects without projectType
       projectType: data.projectType || 'text-to-video',
+      // Default ownerId for legacy projects
+      ownerId: data.ownerId || '',
     };
   }) as ProjectMetadata[];
 }
 
 /**
  * Update a project's metadata
+ * @param projectId - The project ID
+ * @param updates - The fields to update
+ * @param user - Optional user context for access control
+ * @throws Error if user doesn't have access
  */
 export async function updateProject(
   projectId: string,
-  updates: UpdateProjectInput
+  updates: UpdateProjectInput,
+  user?: UserContext
 ): Promise<void> {
+  // Check access if user context provided
+  if (user) {
+    const project = await getProject(projectId);
+    if (!project) {
+      throw new Error('Project not found');
+    }
+    if (!hasProjectAccess(project, user)) {
+      throw new Error('Access denied');
+    }
+  }
+
   const docRef = doc(db, PROJECTS_COLLECTION, projectId);
 
   await updateDoc(docRef, {
@@ -100,12 +163,16 @@ export async function updateProject(
 
 /**
  * Update the current stage of a project
+ * @param projectId - The project ID
+ * @param stage - The new stage number
+ * @param user - Optional user context for access control
  */
 export async function updateCurrentStage(
   projectId: string,
-  stage: number
+  stage: number,
+  user?: UserContext
 ): Promise<void> {
-  await updateProject(projectId, { currentStage: stage });
+  await updateProject(projectId, { currentStage: stage }, user);
 }
 
 /**
@@ -138,8 +205,22 @@ async function deleteCollection(
  * ├── storyboard/data/scenes/scene_{idx}
  * ├── storyboard/video
  * └── storyboard/video/clips/{clipId}
+ *
+ * @param projectId - The project ID
+ * @param user - Optional user context for access control
+ * @throws Error if user doesn't have access
  */
-export async function deleteProject(projectId: string): Promise<void> {
+export async function deleteProject(projectId: string, user?: UserContext): Promise<void> {
+  // Check access if user context provided
+  if (user) {
+    const project = await getProject(projectId);
+    if (!project) {
+      throw new Error('Project not found');
+    }
+    if (!hasProjectAccess(project, user)) {
+      throw new Error('Access denied');
+    }
+  }
   const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
 
   // 1. Delete deepest nested collections first

@@ -51,12 +51,9 @@ export function useScriptWriter() {
 
     const loadFromFirestore = async () => {
       isLoadingRef.current = true;
-      console.log('[ScriptWriter] Loading from Firestore for project:', currentProjectId);
       try {
         const meta = await getI2VScriptMeta(currentProjectId);
-        console.log('[ScriptWriter] Meta:', meta);
         if (!meta) {
-          console.log('[ScriptWriter] No metadata found, skipping load');
           isLoadingRef.current = false;
           return;
         }
@@ -81,7 +78,6 @@ export function useScriptWriter() {
 
         // Load scenes
         const firestoreScenes = await getI2VScenes(currentProjectId);
-        console.log('[ScriptWriter] Loaded scenes from Firestore:', firestoreScenes.length);
         const loadedScenes: Scene[] = [];
 
         for (const scene of firestoreScenes) {
@@ -410,15 +406,14 @@ export function useScriptWriter() {
     scenes: Scene[],
     voicePrompts: VoicePrompt[]
   ) => {
-    console.log('[ScriptWriter] Saving to Firestore:', { projectId, scenesCount: scenes.length });
-    // Save metadata
+    // Save metadata (Firestore doesn't accept undefined, use empty string or omit)
     await saveI2VScriptMeta(projectId, {
       targetDuration: config.targetDuration,
-      sourceText: config.sourceText || undefined,
-      storyCondition: config.conditions.story,
-      imageCondition: config.conditions.image,
-      videoCondition: config.conditions.video,
-      soundCondition: config.conditions.sound,
+      sourceText: config.sourceText || '',
+      storyCondition: config.conditions.story || '',
+      imageCondition: config.conditions.image || '',
+      videoCondition: config.conditions.video || '',
+      soundCondition: config.conditions.sound || '',
     });
 
     // Save voice prompts
@@ -436,25 +431,24 @@ export function useScriptWriter() {
         const clip = scene.clips[clipIndex];
         await saveI2VClip(projectId, sceneIndex, clipIndex, {
           referenceImageIndex: clip.referenceImageIndex ?? 0,
-          story: clip.story,
-          imagePrompt: clip.imagePrompt,
-          imagePromptEnd: clip.imagePromptEnd,
-          videoPrompt: clip.videoPrompt,
-          soraVideoPrompt: clip.soraVideoPrompt,
-          dialogue: clip.dialogue,
-          dialogueEn: clip.dialogueEn,
-          sfx: clip.sfx,
-          sfxEn: clip.sfxEn,
-          bgm: clip.bgm,
-          bgmEn: clip.bgmEn,
-          length: clip.length,
-          accumulatedTime: clip.accumulatedTime,
-          backgroundPrompt: clip.backgroundPrompt,
-          backgroundId: clip.backgroundId,
+          story: clip.story || '',
+          imagePrompt: clip.imagePrompt || '',
+          imagePromptEnd: clip.imagePromptEnd || '',
+          videoPrompt: clip.videoPrompt || '',
+          soraVideoPrompt: clip.soraVideoPrompt || '',
+          dialogue: clip.dialogue || '',
+          dialogueEn: clip.dialogueEn || '',
+          sfx: clip.sfx || '',
+          sfxEn: clip.sfxEn || '',
+          bgm: clip.bgm || '',
+          bgmEn: clip.bgmEn || '',
+          length: clip.length || '',
+          accumulatedTime: clip.accumulatedTime || '',
+          backgroundPrompt: clip.backgroundPrompt || '',
+          backgroundId: clip.backgroundId || '',
         });
       }
     }
-    console.log('[ScriptWriter] Save to Firestore completed');
   };
 
   // Generate storyboard

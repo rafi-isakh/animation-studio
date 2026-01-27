@@ -19,8 +19,11 @@ import {
 import {
   uploadI2VPageImage,
   uploadI2VPanelImage,
+  deleteI2VPageImage,
+  deleteI2VPanelImage,
   clearAllI2VImages,
 } from '../../services/s3/images';
+import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
 
 // Image file extensions we support
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
@@ -267,7 +270,10 @@ export function useImageSplitter() {
         throw new Error('No file available for processing');
       }
 
-      const base64Image = await fileToBase64(page.file);
+      // Compress image for API call (1500px max width, 80% quality)
+      // to stay under Vercel's 4.5MB request body limit.
+      // Panel cropping still uses original resolution via page.previewUrl.
+      const base64Image = await compressImage(page.file, 1500, 0.8);
 
       const response = await fetch('/api/manga/split-panels', {
         method: 'POST',
@@ -459,9 +465,26 @@ export function useImageSplitter() {
 
     dispatch({ type: 'REMOVE_PAGE', id });
 
-    // Delete from Firestore
+    // Delete from Firestore and S3
     if (currentProjectId && pageIndex >= 0) {
       try {
+        // Delete panel images from S3
+        if (page?.panels?.length > 0) {
+          await Promise.all(
+            page.panels.map((_, panelIndex) =>
+              deleteI2VPanelImage(currentProjectId, pageIndex, panelIndex).catch((err) =>
+                console.error(`Error deleting panel ${panelIndex} from S3:`, err)
+              )
+            )
+          );
+        }
+
+        // Delete page image from S3
+        await deleteI2VPageImage(currentProjectId, pageIndex).catch((err) =>
+          console.error('Error deleting page image from S3:', err)
+        );
+
+        // Delete from Firestore
         await deleteMangaPage(currentProjectId, pageIndex);
       } catch (error) {
         console.error('Error deleting page from Firestore:', error);

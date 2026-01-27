@@ -55,6 +55,30 @@ function generateId(): string {
   return `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
+// Helper: Process array with concurrency limit
+async function processWithConcurrency<T, R>(
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>,
+  concurrency: number
+): Promise<R[]> {
+  const results: R[] = [];
+  let currentIndex = 0;
+
+  async function worker() {
+    while (currentIndex < items.length) {
+      const index = currentIndex++;
+      results[index] = await fn(items[index], index);
+    }
+  }
+
+  const workers = Array(Math.min(concurrency, items.length))
+    .fill(null)
+    .map(() => worker());
+
+  await Promise.all(workers);
+  return results;
+}
+
 // Helper: Convert File to base64
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -351,97 +375,7 @@ export function useImageSplitter() {
       dispatch({ type: 'INCREMENT_PROGRESS' });
     }
 
-    // Save to Firestore and S3 if we have a project
-    if (currentProjectId && processedPages.length > 0) {
-      try {
-        // Save metadata
-        const totalPages = stateRef.current.pages.length;
-        const totalPanels = stateRef.current.pages.reduce((acc, p) => acc + p.panels.length, 0);
-        await saveImageSplitterMeta(
-          currentProjectId,
-          stateRef.current.readingDirection,
-          totalPages,
-          totalPanels
-        );
-
-        // Save each processed page and its panels
-        for (const { page, pageIndex, panels } of processedPages) {
-          let pageImageRef = '';
-
-          // Upload page image to S3 if we have file data
-          if (page.file) {
-            try {
-              // Compress page image for S3 upload (max 1500px, 80% quality)
-              // to stay under Vercel's 4.5MB request body limit
-              const pageBase64 = await compressImage(page.file, 1500, 0.8);
-              pageImageRef = await uploadI2VPageImage(
-                currentProjectId,
-                pageIndex,
-                pageBase64,
-                'image/jpeg'
-              );
-            } catch (uploadError) {
-              console.error(`Failed to upload page ${pageIndex} to S3:`, uploadError);
-            }
-          }
-
-          await saveMangaPage(currentProjectId, pageIndex, {
-            fileName: page.fileName,
-            imageRef: pageImageRef,
-            readingDirection: page.readingDirection,
-            status: 'completed',
-          });
-
-          // Store pageIndex in local state for proper deletion later
-          dispatch({ type: 'SET_PAGE_INDEX', id: page.id, pageIndex });
-
-          // Save panels and upload to S3
-          for (let panelIndex = 0; panelIndex < panels.length; panelIndex++) {
-            const panel = panels[panelIndex];
-            let panelImageRef = '';
-
-            // Upload panel image to S3 if we have base64 data
-            if (panel.imageUrl) {
-              try {
-                // panel.imageUrl is already base64 (without data URL prefix)
-                let panelBase64 = panel.imageUrl.includes(',')
-                  ? panel.imageUrl.split(',')[1]
-                  : panel.imageUrl;
-
-                // Compress if too large for Vercel's 4.5MB limit
-                // Base64 adds ~33% overhead, so compress if > 3MB
-                if (panelBase64.length > 3 * 1024 * 1024) {
-                  panelBase64 = await compressBase64Image(panelBase64, 1200, 0.75);
-                }
-
-                panelImageRef = await uploadI2VPanelImage(
-                  currentProjectId,
-                  pageIndex,
-                  panelIndex,
-                  panelBase64,
-                  'image/jpeg'
-                );
-              } catch (uploadError) {
-                console.error(`Failed to upload panel ${pageIndex}-${panelIndex} to S3:`, uploadError);
-              }
-            }
-
-            await saveMangaPanel(currentProjectId, pageIndex, panelIndex, {
-              box_2d: panel.box_2d,
-              label: panel.label || `Panel ${panelIndex + 1}`,
-              imageRef: panelImageRef,
-            });
-          }
-
-          // Update panel count
-          await updateMangaPagePanelCount(currentProjectId, pageIndex, panels.length);
-        }
-      } catch (error) {
-        console.error('Error saving to Firestore/S3:', error);
-      }
-    }
-
-    // Calculate stats
+    // Calculate stats and finish processing immediately (UI becomes responsive)
     const endTime = Date.now();
     const durationMinutes = ((endTime - startTime) / 60000).toFixed(2);
 
@@ -453,6 +387,98 @@ export function useImageSplitter() {
         panelCount: totalPanelsProcessed,
       },
     });
+
+    // Save to Firestore and S3 in the background (non-blocking)
+    if (currentProjectId && processedPages.length > 0) {
+      (async () => {
+        try {
+          // Save metadata
+          const totalPages = stateRef.current.pages.length;
+          const totalPanels = stateRef.current.pages.reduce((acc, p) => acc + p.panels.length, 0);
+          await saveImageSplitterMeta(
+            currentProjectId,
+            stateRef.current.readingDirection,
+            totalPages,
+            totalPanels
+          );
+
+          // Save each processed page and its panels (parallelize panel uploads)
+          for (const { page, pageIndex, panels } of processedPages) {
+            let pageImageRef = '';
+
+            // Upload page image to S3 if we have file data
+            if (page.file) {
+              try {
+                // Compress page image for S3 upload (max 1500px, 80% quality)
+                // to stay under Vercel's 4.5MB request body limit
+                const pageBase64 = await compressImage(page.file, 1500, 0.8);
+                pageImageRef = await uploadI2VPageImage(
+                  currentProjectId,
+                  pageIndex,
+                  pageBase64,
+                  'image/jpeg'
+                );
+              } catch (uploadError) {
+                console.error(`Failed to upload page ${pageIndex} to S3:`, uploadError);
+              }
+            }
+
+            await saveMangaPage(currentProjectId, pageIndex, {
+              fileName: page.fileName,
+              imageRef: pageImageRef,
+              readingDirection: page.readingDirection,
+              status: 'completed',
+            });
+
+            // Store pageIndex in local state for proper deletion later
+            dispatch({ type: 'SET_PAGE_INDEX', id: page.id, pageIndex });
+
+            // Upload panels to S3 with concurrency limit (3 at a time)
+            await processWithConcurrency(
+              panels,
+              async (panel, panelIndex) => {
+                let panelImageRef = '';
+
+                if (panel.imageUrl) {
+                  try {
+                    let panelBase64 = panel.imageUrl.includes(',')
+                      ? panel.imageUrl.split(',')[1]
+                      : panel.imageUrl;
+
+                    // Compress if too large for Vercel's 4.5MB limit
+                    if (panelBase64.length > 3 * 1024 * 1024) {
+                      panelBase64 = await compressBase64Image(panelBase64, 1200, 0.75);
+                    }
+
+                    panelImageRef = await uploadI2VPanelImage(
+                      currentProjectId,
+                      pageIndex,
+                      panelIndex,
+                      panelBase64,
+                      'image/jpeg'
+                    );
+                  } catch (uploadError) {
+                    console.error(`Failed to upload panel ${pageIndex}-${panelIndex} to S3:`, uploadError);
+                  }
+                }
+
+                await saveMangaPanel(currentProjectId, pageIndex, panelIndex, {
+                  box_2d: panel.box_2d,
+                  label: panel.label || `Panel ${panelIndex + 1}`,
+                  imageRef: panelImageRef,
+                });
+              },
+              3 // Concurrency limit: 3 panels uploading at once
+            );
+
+            // Update panel count
+            await updateMangaPagePanelCount(currentProjectId, pageIndex, panels.length);
+          }
+        } catch (error) {
+          console.error('Error saving to Firestore/S3:', error);
+        }
+      })();
+    }
 
     abortControllerRef.current = null;
   }, [processPage, currentProjectId]);

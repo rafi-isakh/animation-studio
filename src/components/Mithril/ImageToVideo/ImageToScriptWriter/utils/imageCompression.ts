@@ -116,7 +116,15 @@ export function isUrl(str: string): boolean {
 }
 
 /**
+ * Check if URL is an S3 URL that needs proxying
+ */
+function isS3Url(url: string): boolean {
+  return url.includes('s3.amazonaws.com') || url.includes('s3.ap-northeast-2.amazonaws.com');
+}
+
+/**
  * Fetch image from URL and convert to base64
+ * Uses proxy API for S3 URLs to avoid CORS issues
  * Also compresses the image to reduce payload size
  */
 export async function urlToBase64(
@@ -124,9 +132,17 @@ export async function urlToBase64(
   maxWidth = 800,
   quality = 0.7
 ): Promise<string> {
+  // For S3 URLs, use the proxy API to avoid CORS
+  const fetchUrl = isS3Url(url)
+    ? `/api/mithril/s3/proxy?url=${encodeURIComponent(url)}`
+    : url;
+
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // Only set crossOrigin for non-proxy URLs
+    if (!isS3Url(url)) {
+      img.crossOrigin = 'anonymous';
+    }
 
     img.onload = () => {
       let { width, height } = img;
@@ -151,6 +167,6 @@ export async function urlToBase64(
     };
 
     img.onerror = () => reject(new Error(`Failed to load image from URL: ${url}`));
-    img.src = url;
+    img.src = fetchUrl;
   });
 }

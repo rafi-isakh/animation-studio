@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useReducer, useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import JSZip from 'jszip';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
@@ -25,12 +25,18 @@ import {
   saveI2VClip,
   saveI2VVoicePrompts,
   clearI2VScript,
+  // Stage 1 (ImageSplitter) functions
+  getImageSplitterMeta,
+  getMangaPages,
+  getMangaPanels,
 } from '../../services/firestore';
 
 export function useScriptWriter() {
   const { getStageResult, setStageResult, currentProjectId } = useMithril();
   const [state, dispatch] = useReducer(scriptWriterReducer, initialState);
+  const [loadedStage1Pages, setLoadedStage1Pages] = useState<MangaPage[]>([]);
   const isLoadingRef = useRef(false);
+  const isLoadingStage1Ref = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Keep a ref to current state for async operations
@@ -45,9 +51,12 @@ export function useScriptWriter() {
 
     const loadFromFirestore = async () => {
       isLoadingRef.current = true;
+      console.log('[ScriptWriter] Loading from Firestore for project:', currentProjectId);
       try {
         const meta = await getI2VScriptMeta(currentProjectId);
+        console.log('[ScriptWriter] Meta:', meta);
         if (!meta) {
+          console.log('[ScriptWriter] No metadata found, skipping load');
           isLoadingRef.current = false;
           return;
         }
@@ -72,6 +81,7 @@ export function useScriptWriter() {
 
         // Load scenes
         const firestoreScenes = await getI2VScenes(currentProjectId);
+        console.log('[ScriptWriter] Loaded scenes from Firestore:', firestoreScenes.length);
         const loadedScenes: Scene[] = [];
 
         for (const scene of firestoreScenes) {
@@ -128,9 +138,68 @@ export function useScriptWriter() {
     loadFromFirestore();
   }, [currentProjectId, setStageResult]);
 
-  // Get panels from Stage 1
+  // Get panels from Stage 1 (context or loaded from Firestore)
   const stage1Result = getStageResult(1) as { pages: MangaPage[] } | undefined;
-  const stage1Pages = stage1Result?.pages || [];
+  const stage1PagesFromContext = stage1Result?.pages || [];
+
+  // Load Stage 1 data from Firestore if not in context
+  useEffect(() => {
+    if (!currentProjectId || isLoadingStage1Ref.current) return;
+    if (stage1PagesFromContext.length > 0) {
+      // Already have data from context, no need to load
+      setLoadedStage1Pages([]);
+      return;
+    }
+
+    const loadStage1FromFirestore = async () => {
+      isLoadingStage1Ref.current = true;
+      try {
+        const meta = await getImageSplitterMeta(currentProjectId);
+        if (!meta) {
+          isLoadingStage1Ref.current = false;
+          return;
+        }
+
+        const firestorePages = await getMangaPages(currentProjectId);
+        const loadedPages: MangaPage[] = [];
+
+        for (const page of firestorePages) {
+          const firestorePanels = await getMangaPanels(currentProjectId, page.pageIndex);
+          const panels = firestorePanels.map((p) => ({
+            id: p.id,
+            box_2d: p.box_2d,
+            label: p.label,
+            imageUrl: p.imageRef, // S3 URL
+          }));
+
+          loadedPages.push({
+            id: page.id,
+            pageIndex: page.pageIndex,
+            previewUrl: page.imageRef,
+            fileName: page.fileName,
+            panels,
+            status: page.status as 'pending' | 'processing' | 'completed' | 'error',
+            readingDirection: page.readingDirection as 'rtl' | 'ltr',
+          });
+        }
+
+        if (loadedPages.length > 0) {
+          setLoadedStage1Pages(loadedPages);
+          // Also set in context for other components
+          setStageResult(1, { pages: loadedPages.filter((p) => p.status === 'completed') });
+        }
+      } catch (error) {
+        console.error('Error loading Stage 1 data from Firestore:', error);
+      } finally {
+        isLoadingStage1Ref.current = false;
+      }
+    };
+
+    loadStage1FromFirestore();
+  }, [currentProjectId, stage1PagesFromContext.length, setStageResult]);
+
+  // Use context data if available, otherwise use loaded data
+  const stage1Pages = stage1PagesFromContext.length > 0 ? stage1PagesFromContext : loadedStage1Pages;
   const totalPanelsFromStage1 = stage1Pages.reduce((acc, p) => acc + p.panels.length, 0);
 
   // Convert manga image files to base64 when they change
@@ -188,6 +257,45 @@ export function useScriptWriter() {
   }, [stage1Pages, state.mangaImages]);
 
   const totalPanels = allPanels.length || totalPanelsFromStage1;
+
+  // Update reference images when allPanels becomes available
+  // (handles case where script is loaded from Firestore before panels are loaded)
+  useEffect(() => {
+    if (!state.result?.scenes.length || allPanels.length === 0) return;
+
+    // Check if any clips need reference images populated
+    const needsUpdate = state.result.scenes.some((scene) =>
+      scene.clips.some(
+        (clip) =>
+          clip.referenceImageIndex !== undefined &&
+          clip.referenceImageIndex >= 0 &&
+          !clip.referenceImage
+      )
+    );
+
+    if (!needsUpdate) return;
+
+    // Update scenes with reference images from allPanels
+    const updatedScenes = state.result.scenes.map((scene) => ({
+      ...scene,
+      clips: scene.clips.map((clip) => {
+        if (
+          clip.referenceImageIndex !== undefined &&
+          clip.referenceImageIndex >= 0 &&
+          clip.referenceImageIndex < allPanels.length &&
+          !clip.referenceImage
+        ) {
+          return {
+            ...clip,
+            referenceImage: allPanels[clip.referenceImageIndex].imageBase64,
+          };
+        }
+        return clip;
+      }),
+    }));
+
+    dispatch({ type: 'UPDATE_SCENES', scenes: updatedScenes });
+  }, [allPanels, state.result?.scenes]);
 
   // Handle manga panel upload (images, ZIP, JSON)
   const uploadMangaFiles = useCallback(async (files: FileList | File[]) => {
@@ -302,6 +410,7 @@ export function useScriptWriter() {
     scenes: Scene[],
     voicePrompts: VoicePrompt[]
   ) => {
+    console.log('[ScriptWriter] Saving to Firestore:', { projectId, scenesCount: scenes.length });
     // Save metadata
     await saveI2VScriptMeta(projectId, {
       targetDuration: config.targetDuration,
@@ -345,6 +454,7 @@ export function useScriptWriter() {
         });
       }
     }
+    console.log('[ScriptWriter] Save to Firestore completed');
   };
 
   // Generate storyboard
@@ -426,7 +536,7 @@ export function useScriptWriter() {
       const generatedScenes: Scene[] = data.scenes || [];
       const generatedVoicePrompts: VoicePrompt[] = data.voicePrompts || [];
 
-      // Map referenceImageIndex to actual panel images
+      // Map referenceImageIndex to actual panel images (use compressedPanels which has base64)
       const updatedScenes: Scene[] = generatedScenes.map((scene) => ({
         ...scene,
         clips: scene.clips.map((clip) => {
@@ -434,9 +544,9 @@ export function useScriptWriter() {
           if (
             clip.referenceImageIndex !== undefined &&
             clip.referenceImageIndex >= 0 &&
-            clip.referenceImageIndex < allPanels.length
+            clip.referenceImageIndex < compressedPanels.length
           ) {
-            refImage = allPanels[clip.referenceImageIndex].imageBase64;
+            refImage = compressedPanels[clip.referenceImageIndex].imageBase64;
           }
           return { ...clip, referenceImage: refImage };
         }),

@@ -173,7 +173,11 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                       {clip.referenceImage ? (
                         <div className="relative overflow-hidden rounded bg-black flex items-center justify-center h-20 w-32 mx-auto border border-gray-700">
                           <img
-                            src={`data:image/jpeg;base64,${clip.referenceImage}`}
+                            src={
+                              clip.referenceImage.startsWith('http') || clip.referenceImage.startsWith('blob:')
+                                ? clip.referenceImage
+                                : `data:image/jpeg;base64,${clip.referenceImage}`
+                            }
                             className="object-contain h-full w-full"
                             alt="Ref"
                             loading="lazy"

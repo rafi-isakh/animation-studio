@@ -664,6 +664,7 @@ export interface I2VClipDocument {
   story: string;
   // Prompts
   imagePrompt: string;
+  imagePromptEnd?: string; // Optional end frame prompt for split frames
   videoPrompt: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;
@@ -703,6 +704,7 @@ export interface SaveI2VClipInput {
   referenceImageIndex: number;
   story: string;
   imagePrompt: string;
+  imagePromptEnd?: string; // Optional end frame prompt for split frames
   videoPrompt: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;

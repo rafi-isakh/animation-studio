@@ -15,7 +15,10 @@
  * ├── backgrounds/{bgId}/{angle}.webp
  * ├── storyboard/{sceneIndex}_{clipIndex}.webp
  * ├── imagegen/{frameId}.webp
- * └── videos/{clipId}.mp4
+ * ├── videos/{clipId}.mp4
+ * └── i2v/                          (Image-to-Video pipeline)
+ *     ├── pages/{pageIndex}.webp    (manga page images)
+ *     └── panels/{pageIndex}_{panelIndex}.webp (cropped panels)
  */
 
 // Request/Response types for S3 API routes
@@ -24,9 +27,11 @@ export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode
 
 export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
 
+export type I2VImageSubtype = 'page' | 'panel';
+
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -45,6 +50,10 @@ export interface UploadImageRequest {
   // For prop images
   propId?: string;
   propSubtype?: 'designsheet' | 'reference';
+  // For i2v (Image-to-Video) images
+  i2vSubtype?: I2VImageSubtype; // page or panel
+  pageIndex?: number;
+  panelIndex?: number;
   // Image data
   base64: string;
   mimeType?: string;
@@ -59,7 +68,7 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -78,6 +87,10 @@ export interface DeleteImageRequest {
   // For prop images
   propId?: string;
   propSubtype?: 'designsheet' | 'reference';
+  // For i2v (Image-to-Video) images
+  i2vSubtype?: I2VImageSubtype; // page or panel
+  pageIndex?: number;
+  panelIndex?: number;
 }
 
 export interface DeleteImageResponse {
@@ -266,4 +279,43 @@ export function getPropFolderPrefix(projectId: string, propId: string): string {
  */
 export function getPropsFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/props/`;
+}
+
+// ============================================
+// Image-to-Video (I2V) Key Generators
+// ============================================
+
+/**
+ * Get S3 key for I2V manga page image
+ */
+export function getI2VPageKey(projectId: string, pageIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/pages/${pageIndex}.webp`;
+}
+
+/**
+ * Get S3 key for I2V panel image
+ */
+export function getI2VPanelKey(projectId: string, pageIndex: number, panelIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panels/${pageIndex}_${panelIndex}.webp`;
+}
+
+/**
+ * Get S3 folder prefix for I2V pages (for deleting all pages)
+ */
+export function getI2VPagesFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/pages/`;
+}
+
+/**
+ * Get S3 folder prefix for I2V panels (for deleting all panels)
+ */
+export function getI2VPanelsFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panels/`;
+}
+
+/**
+ * Get S3 folder prefix for all I2V content
+ */
+export function getI2VFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/`;
 }

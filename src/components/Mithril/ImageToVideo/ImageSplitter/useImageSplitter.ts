@@ -23,7 +23,7 @@ import {
   deleteI2VPanelImage,
   clearAllI2VImages,
 } from '../../services/s3/images';
-import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
+import { compressImage, compressBase64Image } from '../ImageToScriptWriter/utils/imageCompression';
 
 // Image file extensions we support
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
@@ -371,12 +371,14 @@ export function useImageSplitter() {
           // Upload page image to S3 if we have file data
           if (page.file) {
             try {
-              const pageBase64 = await fileToBase64(page.file);
+              // Compress page image for S3 upload (max 1500px, 80% quality)
+              // to stay under Vercel's 4.5MB request body limit
+              const pageBase64 = await compressImage(page.file, 1500, 0.8);
               pageImageRef = await uploadI2VPageImage(
                 currentProjectId,
                 pageIndex,
                 pageBase64,
-                page.file.type || 'image/webp'
+                'image/jpeg'
               );
             } catch (uploadError) {
               console.error(`Failed to upload page ${pageIndex} to S3:`, uploadError);
@@ -402,9 +404,16 @@ export function useImageSplitter() {
             if (panel.imageUrl) {
               try {
                 // panel.imageUrl is already base64 (without data URL prefix)
-                const panelBase64 = panel.imageUrl.includes(',')
+                let panelBase64 = panel.imageUrl.includes(',')
                   ? panel.imageUrl.split(',')[1]
                   : panel.imageUrl;
+
+                // Compress if too large for Vercel's 4.5MB limit
+                // Base64 adds ~33% overhead, so compress if > 3MB
+                if (panelBase64.length > 3 * 1024 * 1024) {
+                  panelBase64 = await compressBase64Image(panelBase64, 1200, 0.75);
+                }
+
                 panelImageRef = await uploadI2VPanelImage(
                   currentProjectId,
                   pageIndex,

@@ -30,6 +30,19 @@ export {
   // Storyboard images
   uploadStoryboardImage,
   deleteStoryboardImage,
+  // ImageGen images
+  uploadImageGenFrameImage,
+  uploadImageGenRemixImage,
+  uploadImageGenEditedImage,
+  deleteImageGenFrameImage,
+  deleteImageGenRemixImage,
+  deleteImageGenEditedImage,
+  // I2V (Image-to-Video) images
+  uploadI2VPageImage,
+  uploadI2VPanelImage,
+  deleteI2VPageImage,
+  deleteI2VPanelImage,
+  clearAllI2VImages,
   // Videos
   uploadVideo,
   deleteVideo,

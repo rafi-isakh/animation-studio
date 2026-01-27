@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Upload, Trash2 } from 'lucide-react';
-import type { Scene, VoicePrompt, Continuity } from './index';
+import type { Scene, VoicePrompt, Continuity } from './types';
 
 interface StoryboardTableProps {
   data: Scene[];

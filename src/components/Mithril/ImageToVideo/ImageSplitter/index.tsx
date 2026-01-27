@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Upload, Scissors, Loader2, Check, AlertCircle, Download, FileJson, X } from "lucide-react";
+import { Upload, Scissors, Loader2, Check, AlertCircle, Download, FileJson, X, Trash2 } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 
 // Re-export types for external consumers
@@ -18,6 +18,7 @@ export default function ImageSplitter() {
     process,
     cancelProcessing,
     remove,
+    clear,
     setReadingDirection,
     downloadZip,
     exportJSON,
@@ -163,6 +164,19 @@ export default function ImageSplitter() {
           <FileJson className="w-4 h-4" />
           Export JSON
         </button>
+
+        <button
+          onClick={() => {
+            if (confirm('Clear all pages and panels? This will delete all data from storage.')) {
+              clear();
+            }
+          }}
+          disabled={pages.length === 0}
+          className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Clear All
+        </button>
       </div>
 
       {/* Processing Stats */}
@@ -216,11 +230,21 @@ function PageCard({ page, onRemove }: PageCardProps) {
         'border-gray-200 dark:border-gray-700 hover:border-gray-300'
       }`}
     >
-      <img
-        src={page.previewUrl}
-        className="w-full h-40 object-cover bg-gray-100 dark:bg-gray-800"
-        alt={page.fileName}
-      />
+      {page.previewUrl ? (
+        <img
+          src={page.previewUrl}
+          className="w-full h-40 object-cover bg-gray-100 dark:bg-gray-800"
+          alt={page.fileName}
+          onError={(e) => {
+            // Show placeholder on load error
+            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23374151" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%239CA3AF" font-size="12">Image Error</text></svg>';
+          }}
+        />
+      ) : (
+        <div className="w-full h-40 bg-gray-700 flex items-center justify-center text-gray-400 text-xs">
+          No preview
+        </div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-2">
         <span className="text-xs text-white truncate">{page.fileName}</span>
         <div className="flex items-center gap-1 mt-1">

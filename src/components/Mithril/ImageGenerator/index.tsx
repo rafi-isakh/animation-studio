@@ -134,8 +134,8 @@ export default function ImageGenerator() {
       );
     }
 
-    // Load backgrounds from Stage 4
-    const bgResult = getStageResult(4) as BgSheetResultMetadata | null;
+    // Load backgrounds from Stage 6
+    const bgResult = getStageResult(6) as BgSheetResultMetadata | null;
     if (bgResult?.backgrounds) {
       setBackgroundAssets(
         bgResult.backgrounds.map((bg) => ({
@@ -150,11 +150,11 @@ export default function ImageGenerator() {
     }
   }, [getStageResult]);
 
-  // Load frames from Stage 5 storyboard
+  // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
-    const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
+    const storyboardData = getStageResult(4) as { scenes: Scene[] } | null;
     if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
-      setError("No storyboard data found. Please complete Stage 5 first.");
+      setError("No storyboard data found. Please complete Stage 4 first.");
       return [];
     }
 
@@ -222,7 +222,7 @@ export default function ImageGenerator() {
 
   // Load data from Firestore or initialize from storyboard
   useEffect(() => {
-    if (currentStage !== 6) {
+    if (currentStage !== 7) {
       setHasLoaded(false);
       return;
     }
@@ -295,7 +295,7 @@ export default function ImageGenerator() {
           setFrames(mergedFrames);
 
           // Also set stage result so Stage 7 can access it
-          setStageResult(6, {
+          setStageResult(7, {
             settings,
             frames: mergedFrames.map((f) => ({
               id: f.id,
@@ -600,7 +600,7 @@ export default function ImageGenerator() {
           );
 
           // Auto-save to stage result so Stage 7 can access it
-          setStageResult(6, {
+          setStageResult(7, {
             settings,
             frames: updatedFrames.map((f) => ({
               id: f.id,
@@ -735,7 +735,7 @@ export default function ImageGenerator() {
       await saveImageGenFrames(currentProjectId, frameInputs);
 
       // Update stage result for Stage 7
-      setStageResult(6, {
+      setStageResult(7, {
         settings,
         frames: frames.map((f) => ({
           id: f.id,
@@ -778,7 +778,7 @@ export default function ImageGenerator() {
     // Reload frames from storyboard
     const storyboardFrames = loadFramesFromStoryboard();
     setFrames(storyboardFrames);
-    setStageResult(6, null);
+    setStageResult(7, null);
 
     toast({
       title: "Cleared",
@@ -837,7 +837,7 @@ export default function ImageGenerator() {
         await saveImageGenFrames(currentProjectId, frameInputs);
 
         // Update stage result so it hydrates on refresh
-        setStageResult(6, {
+        setStageResult(7, {
           settings,
           frames: freshFrames.map((f) => ({
             id: f.id,
@@ -1653,7 +1653,7 @@ export default function ImageGenerator() {
               <button
                 onClick={() => {
                   setFrames([]);
-                  setStageResult(6, null);
+                  setStageResult(7, null);
                 }}
                 className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                 title="Clear all frames"
@@ -1679,13 +1679,13 @@ export default function ImageGenerator() {
               </div>
               <button
                 onClick={handleApplyFromStoryboard}
-                disabled={!getStageResult(5)}
+                disabled={!getStageResult(4)}
                 className="mt-6 px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
                 Apply From Storyboard
               </button>
-              {!getStageResult(5) && (
+              {!getStageResult(4) && (
                 <p className="text-xs text-gray-400 mt-2">
                   Complete Stage 5 (Storyboard) to enable this option
                 </p>

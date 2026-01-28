@@ -222,7 +222,7 @@ export default function StoryboardGenerator() {
   // Sync context results to stage results for other components
   useEffect(() => {
     if (scenes.length === 0) return;
-    setStageResult(5, { scenes, voicePrompts });
+    setStageResult(4, { scenes, voicePrompts });
   }, [scenes, voicePrompts, setStageResult]);
 
   const handleGenerate = useCallback(async () => {

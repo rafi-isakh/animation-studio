@@ -9,7 +9,7 @@ import StoryboardGenerator from "./StoryboardGenerator";
 import PropDesigner from "./PropDesigner";
 import BgSheetGenerator from "./BgSheetGenerator";
 import ImageGenerator from "./ImageGenerator";
-import VideoGenerator from "./VideoGenerator";
+import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
 import { MithrilProvider, useMithril } from "./MithrilContext";
@@ -27,7 +27,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'PropDesigner': PropDesigner,
   'BgSheetGenerator': BgSheetGenerator,
   'ImageGenerator': ImageGenerator,
-  'VideoGenerator': VideoGenerator,
+  'VideoGenerator': VideoGeneratorWrapper,
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
 };

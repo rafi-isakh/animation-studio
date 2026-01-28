@@ -38,6 +38,9 @@ export * from './imageGen';
 // Stage 7: Video
 export * from './video';
 
+// Job Queue (orchestrator real-time updates)
+export * from './jobQueue';
+
 // Image-to-Video: Stage 1 - Image Splitter
 export * from './imageSplitter';
 

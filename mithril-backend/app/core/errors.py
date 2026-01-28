@@ -164,6 +164,20 @@ def classify_exception(exc: Exception) -> VideoJobError:
     if "quota" in lower_message or "insufficient" in lower_message:
         return VideoJobError.quota_exceeded(message)
 
+    # Check for authentication/API key errors (non-retryable)
+    if any(indicator in lower_message for indicator in [
+        "api key",
+        "api_key",
+        "apikey",
+        "invalid key",
+        "incorrect key",
+        "authentication",
+        "unauthorized",
+        "invalid credentials",
+        "401",
+    ]):
+        return VideoJobError.invalid_request(message)
+
     # Check for timeout indicators
     if "timeout" in lower_message or "timed out" in lower_message:
         return VideoJobError.timeout(message)

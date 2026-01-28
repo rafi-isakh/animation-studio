@@ -106,7 +106,9 @@ export default function VideoGeneratorOrchestrator() {
               c.clipIndex === update.clipIndex
           );
 
-          if (clipArrayIndex === -1) return prev;
+          if (clipArrayIndex === -1) {
+            return prev;
+          }
 
           const updatedClips = [...prev];
           const clip = updatedClips[clipArrayIndex];
@@ -137,10 +139,12 @@ export default function VideoGeneratorOrchestrator() {
             }, 100);
           }
 
-          // Remove from tracking on failure
+          // Remove from tracking on final failure (not retrying)
           if (update.status === "failed") {
             activeJobsRef.current.delete(update.jobId);
           }
+
+          // Retrying jobs stay in tracking for continued updates
 
           return updatedClips;
         });
@@ -333,7 +337,6 @@ export default function VideoGeneratorOrchestrator() {
         if (currentProjectId) {
           try {
             const activeJobs = await getActiveProjectJobs(currentProjectId);
-            console.log("[VideoGenerator] Active jobs from job_queue:", activeJobs.length);
 
             activeJobs.forEach((job) => {
               const clipIdx = allClips.findIndex(
@@ -355,7 +358,6 @@ export default function VideoGeneratorOrchestrator() {
 
                 // Add to tracking for real-time updates
                 activeJobsRef.current.add(job.id);
-                console.log("[VideoGenerator] Tracking active job:", job.id, "status:", job.status);
               }
             });
           } catch (err) {
@@ -413,18 +415,17 @@ export default function VideoGeneratorOrchestrator() {
     async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
       if (!currentProjectId) return;
 
-      const clipArrayIndex = clips.findIndex(
+      // Find clip data (but don't rely on array index for later updates)
+      const clip = clips.find(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
-      if (clipArrayIndex === -1) return;
+      if (!clip) return;
 
-      const clip = clips[clipArrayIndex];
-
-      // Update status to generating
+      // Update status to generating and clear old jobId (find by sceneIndex/clipIndex, not array index)
       setClips((prev) =>
-        prev.map((c, i) =>
-          i === clipArrayIndex
-            ? { ...c, status: "generating", error: undefined }
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+            ? { ...c, status: "generating", error: undefined, jobId: null }
             : c
         )
       );
@@ -466,10 +467,12 @@ export default function VideoGeneratorOrchestrator() {
         // Track this job for updates
         activeJobsRef.current.add(response.jobId);
 
-        // Update with job ID
+        // Update with job ID (find by sceneIndex/clipIndex, not array index)
         setClips((prev) =>
-          prev.map((c, i) =>
-            i === clipArrayIndex ? { ...c, jobId: response.jobId } : c
+          prev.map((c) =>
+            c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+              ? { ...c, jobId: response.jobId }
+              : c
           )
         );
 
@@ -481,8 +484,8 @@ export default function VideoGeneratorOrchestrator() {
           err instanceof Error ? err.message : "Unknown error";
 
         setClips((prev) =>
-          prev.map((c, i) =>
-            i === clipArrayIndex
+          prev.map((c) =>
+            c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
               ? { ...c, status: "failed", error: errorMessage }
               : c
           )
@@ -513,14 +516,10 @@ export default function VideoGeneratorOrchestrator() {
   // Regenerate a single clip
   const regenerateClip = useCallback(
     async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
-      const clipArrayIndex = clips.findIndex(
-        (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
-      );
-      if (clipArrayIndex === -1) return;
-
+      // Reset the clip status first (find by sceneIndex/clipIndex, not array index)
       setClips((prev) =>
-        prev.map((c, i) =>
-          i === clipArrayIndex
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
             ? {
                 ...c,
                 status: "pending" as const,
@@ -535,7 +534,7 @@ export default function VideoGeneratorOrchestrator() {
 
       await generateClip(clipIndex, sceneIndex, customPrompt);
     },
-    [clips, generateClip]
+    [generateClip]
   );
 
   // Generate all clips

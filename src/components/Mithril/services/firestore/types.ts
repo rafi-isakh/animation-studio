@@ -547,7 +547,7 @@ export interface UpdateVideoClipInput {
   jobId?: string | null;
   s3FileName?: string | null;
   status?: VideoStatus;
-  error?: string;
+  error?: string | null;
   providerId?: string;
 }
 

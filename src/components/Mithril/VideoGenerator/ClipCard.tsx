@@ -40,6 +40,8 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
     completed:
       "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
     failed: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+    retrying:
+      "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400",
   };
 
   const labelKeys: Record<ClipStatus, string> = {
@@ -47,13 +49,25 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
     generating: "sora_status_generating",
     completed: "sora_status_done",
     failed: "sora_status_failed",
+    retrying: "sora_status_retrying",
   };
+
+  // Fallback labels in case translation keys don't exist
+  const fallbackLabels: Record<ClipStatus, string> = {
+    pending: "Pending",
+    generating: "Generating",
+    completed: "Done",
+    failed: "Failed",
+    retrying: "Retrying",
+  };
+
+  const label = phrase(dictionary, labelKeys[status], language) || fallbackLabels[status];
 
   return (
     <span
       className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${styles[status]}`}
     >
-      {phrase(dictionary, labelKeys[status], language)}
+      {label}
     </span>
   );
 };
@@ -170,6 +184,14 @@ export default function ClipCard({
           </div>
         )}
 
+        {/* Retrying overlay */}
+        {status === "retrying" && (
+          <div className="absolute inset-0 bg-orange-900/50 flex items-center justify-center flex-col gap-1">
+            <Loader2 className="w-6 h-6 text-white animate-spin" />
+            <span className="text-white text-xs">Retrying...</span>
+          </div>
+        )}
+
         {/* Error overlay */}
         {status === "failed" && (
           <div className="absolute inset-0 bg-red-900/50 flex items-center justify-center">
@@ -188,8 +210,8 @@ export default function ClipCard({
           <StatusBadge status={status} />
         </div>
 
-        {/* Error message */}
-        {error && (
+        {/* Error message - show for failed and retrying status */}
+        {(status === "failed" || status === "retrying") && error && (
           <p className="text-[10px] text-red-600 dark:text-red-400 line-clamp-2">
             {error}
           </p>
@@ -234,7 +256,7 @@ export default function ClipCard({
               ) : (
                 <button
                   onClick={handleGenerateWithPrompt}
-                  disabled={status === "generating" || isGeneratingAll || !editedPrompt.trim()}
+                  disabled={status === "generating" || status === "retrying" || isGeneratingAll || !editedPrompt.trim()}
                   className="flex-1 py-1 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-[10px] font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {phrase(dictionary, "generateButton", language)}
@@ -268,7 +290,7 @@ export default function ClipCard({
             ) : (
               <button
                 onClick={() => onGenerate(clipIndex, sceneIndex)}
-                disabled={status === "generating" || isGeneratingAll}
+                disabled={status === "generating" || status === "retrying" || isGeneratingAll}
                 className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-[#DB2777] hover:bg-[#BE185D] text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play size={14} />

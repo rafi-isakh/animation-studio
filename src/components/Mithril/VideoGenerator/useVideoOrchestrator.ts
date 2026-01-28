@@ -43,7 +43,7 @@ export interface ClipUpdate {
   sceneIndex: number;
   clipIndex: number;
   jobId: string;
-  status: 'pending' | 'generating' | 'completed' | 'failed';
+  status: 'pending' | 'generating' | 'completed' | 'failed' | 'retrying';
   videoUrl: string | null;
   s3FileName: string | null;
   error?: string;

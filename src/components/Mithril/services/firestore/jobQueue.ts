@@ -103,7 +103,11 @@ export function subscribeToProjectJobs(
   );
 
   return onSnapshot(jobsQuery, (snapshot) => {
-    const jobs = snapshot.docs.map((doc) => doc.data() as JobQueueDocument);
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,  // Ensure document ID is included
+    } as JobQueueDocument));
+
     callback(jobs);
   });
 }
@@ -128,7 +132,10 @@ export function subscribeToActiveProjectJobs(
   return onSnapshot(jobsQuery, (snapshot) => {
     const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
     const jobs = snapshot.docs
-      .map((doc) => doc.data() as JobQueueDocument)
+      .map((docSnapshot) => ({
+        ...docSnapshot.data(),
+        id: docSnapshot.id,  // Ensure document ID is included
+      } as JobQueueDocument))
       .filter((job) => !terminalStatuses.includes(job.status));
     callback(jobs);
   });
@@ -189,7 +196,7 @@ export function mapJobToClipUpdate(job: JobQueueDocument) {
     sceneIndex: job.scene_index,
     clipIndex: job.clip_index,
     jobId: job.id,
-    status: mapJobStatusToClipStatus(job.status),
+    status: mapJobStatusToClipStatus(job.status, job.retry_count),
     videoUrl: job.video_url || null,
     s3FileName: job.s3_file_name || null,
     error: job.error_message,
@@ -200,13 +207,17 @@ export function mapJobToClipUpdate(job: JobQueueDocument) {
 
 /**
  * Map job status to clip status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
  */
 function mapJobStatusToClipStatus(
-  jobStatus: JobStatus
-): 'pending' | 'generating' | 'completed' | 'failed' {
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): 'pending' | 'generating' | 'completed' | 'failed' | 'retrying' {
   switch (jobStatus) {
     case 'pending':
-      return 'pending';
+      // Distinguish between retrying and unstarted
+      return retryCount > 0 ? 'retrying' : 'pending';
     case 'submitted':
     case 'polling':
     case 'uploading':

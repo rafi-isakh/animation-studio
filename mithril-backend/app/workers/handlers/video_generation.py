@@ -321,7 +321,7 @@ async def _stage_complete(
         progress=1.0,
     )
 
-    # Update video clip in project Firestore
+    # Update video clip in project Firestore (error="" clears previous errors)
     await video_clip_service.update_clip_status(
         project_id=job.project_id,
         scene_index=job.scene_index,
@@ -331,6 +331,7 @@ async def _stage_complete(
         s3FileName=result["s3_file_name"],
         jobId=job.id,
         providerId=job.provider_id,
+        error="",
     )
 
 
@@ -392,6 +393,15 @@ async def _handle_error(
             error_code=error.code.value,
             error_message=error.message,
             error_retryable=True,
+        )
+
+        # Update video clip status to show error (so frontend can see it)
+        await video_clip_service.update_clip_status(
+            project_id=job.project_id,
+            scene_index=job.scene_index,
+            clip_index=job.clip_index,
+            status="failed",
+            error=f"{error.message} (retrying {retry_state.retry_count}/{retry_state.max_retries})",
         )
 
         # Queue retry task with delay and API key

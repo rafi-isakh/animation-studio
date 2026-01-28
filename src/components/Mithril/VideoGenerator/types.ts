@@ -4,7 +4,7 @@
 // Re-export provider types for convenience
 export type { AspectRatio, AspectRatioOption } from "./providers/types";
 
-export type ClipStatus = "pending" | "generating" | "completed" | "failed";
+export type ClipStatus = "pending" | "generating" | "completed" | "failed" | "retrying";
 
 // Individual clip state
 export interface VideoClip {

@@ -723,7 +723,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
         };
         setBgSheetResult(metadata);
         // Also update stageResults so useReferenceImages can access the data
-        setStageResult(4, metadata);
+        setStageResult(6, metadata);
         return currentBgs;
       });
     } catch (error) {
@@ -754,7 +754,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
         styleKeyword,
         backgroundBasePrompt,
       };
-      setStageResult(4, metadata);
+      setStageResult(6, metadata);
       setBgSheetResult(metadata);
       setIsSaved(true);
     } else if (analysisError) {
@@ -1244,7 +1244,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
       };
 
       // 4. Update context
-      setStageResult(4, metadata);
+      setStageResult(6, metadata);
       setBgSheetResult(metadata);
       setIsSaved(true);
       toast({
@@ -2119,7 +2119,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
             backgroundBasePrompt,
           };
           setBgSheetResult(metadata);
-          setStageResult(4, metadata);
+          setStageResult(6, metadata);
           setIsSaved(true);
         } catch (err) {
           console.error("Failed to save imported backgrounds to Firestore:", err);
@@ -2260,7 +2260,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
           backgroundBasePrompt,
         };
         setBgSheetResult(metadata);
-        setStageResult(4, metadata);
+        setStageResult(6, metadata);
         setIsSaved(true);
       } catch (err) {
         console.error("Failed to save imported backgrounds to Firestore:", err);

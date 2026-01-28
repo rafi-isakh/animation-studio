@@ -44,3 +44,13 @@ next-env.d.ts
 
 # claude code
 CLAUDE.md
+
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+ENV/
+env/

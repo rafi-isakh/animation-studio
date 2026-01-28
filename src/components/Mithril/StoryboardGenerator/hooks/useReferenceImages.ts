@@ -26,7 +26,7 @@ export function useReferenceImages(): UseReferenceImagesResult {
     const loadReferences = async () => {
       try {
         // Load background images from context (S3 URLs)
-        const bgSheetResult = getStageResult(4) as BgSheetResultMetadata | null;
+        const bgSheetResult = getStageResult(6) as BgSheetResultMetadata | null;
 
         if (bgSheetResult?.backgrounds) {
           const references: ReferenceImage[] = [];

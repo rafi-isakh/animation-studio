@@ -466,7 +466,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         };
         setBgSheetGenerator(prev => ({ ...prev, result: metadata }));
         // Also set stageResult for components that read from it (e.g., useReferenceImages)
-        setStageResults(prev => ({ ...prev, 4: metadata }));
+        setStageResults(prev => ({ ...prev, 6: metadata }));
       }
 
       // Load storyboard data
@@ -518,7 +518,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }));
 
         // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
-        setStageResults(prev => ({ ...prev, 5: storyboardData }));
+        setStageResults(prev => ({ ...prev, 4: storyboardData }));
 
         // Store original for reset functionality
         setOriginalStoryboard(storyboardData);
@@ -585,7 +585,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           })),
           createdAt: imageGenMeta?.generatedAt?.toMillis() || Date.now(),
         };
-        setStageResults(prev => ({ ...prev, 6: imageGenData }));
+        setStageResults(prev => ({ ...prev, 7: imageGenData }));
       }
     } catch (error) {
       console.error("Error loading data from Firestore:", error);
@@ -1016,10 +1016,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scene.clips = clips;
       newScenes[sceneIndex] = scene;
 
-      // Also update stageResults so Stage 6 can access the images immediately
+      // Also update stageResults so Stage 7 can access the images immediately
       setStageResults(prevResults => ({
         ...prevResults,
-        5: { scenes: newScenes, voicePrompts: prev.voicePrompts }
+        4: { scenes: newScenes, voicePrompts: prev.voicePrompts }
       }));
 
       return { ...prev, scenes: newScenes };

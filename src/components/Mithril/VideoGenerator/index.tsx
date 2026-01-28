@@ -93,8 +93,8 @@ export default function VideoGenerator() {
   }, []);
 
   // Get data from context
-  const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
-  const imageGenData = getStageResult(6) as {
+  const storyboardData = getStageResult(4) as { scenes: Scene[] } | null;
+  const imageGenData = getStageResult(7) as {
     settings: { stylePrompt: string; aspectRatio: string };
     frames: Array<{
       id: string;
@@ -108,7 +108,7 @@ export default function VideoGenerator() {
 
   // Sync clip images when ImageGen data changes
   useEffect(() => {
-    if (currentStage !== 7 || !hasLoaded || clips.length === 0) return;
+    if (currentStage !== 8 || !hasLoaded || clips.length === 0) return;
     if (!imageGenData?.frames) return;
 
     // Check if any clip images have changed
@@ -135,7 +135,7 @@ export default function VideoGenerator() {
   // Load storyboard data from context and video status from Firestore
   useEffect(() => {
     // Reset loaded state when leaving this stage so we reload on next visit
-    if (currentStage !== 7) {
+    if (currentStage !== 8) {
       setHasLoaded(false);
       return;
     }
@@ -149,8 +149,8 @@ export default function VideoGenerator() {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        // 1. Load ImageGen result from context (stage 6)
-        const imageGenResult = getStageResult(6) as {
+        // 1. Load ImageGen result from context (stage 7)
+        const imageGenResult = getStageResult(7) as {
           settings: { stylePrompt: string; aspectRatio: string };
           frames: Array<{
             id: string;
@@ -162,8 +162,8 @@ export default function VideoGenerator() {
           }>;
         } | null;
 
-        // 2. Load storyboard result from context (stage 5) for video prompts
-        const storyboardResult = getStageResult(5) as {
+        // 2. Load storyboard result from context (stage 4) for video prompts
+        const storyboardResult = getStageResult(4) as {
           scenes: Scene[];
         } | null;
 
@@ -324,7 +324,7 @@ export default function VideoGenerator() {
           providerId: selectedProvider,
           createdAt: Date.now(),
         };
-        setStageResult(7, metadata);
+        setStageResult(8, metadata);
         setIsSaved(true);
       } catch (err) {
         console.error("Error auto-saving video:", err);
@@ -627,7 +627,7 @@ export default function VideoGenerator() {
         providerId: selectedProvider,
         createdAt: Date.now(),
       };
-      setStageResult(7, metadata);
+      setStageResult(8, metadata);
       setIsSaved(true);
 
       toast({

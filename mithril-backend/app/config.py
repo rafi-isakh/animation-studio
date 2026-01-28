@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     max_concurrent_jobs_per_project: int = 10
 
+    # Internal service auth (for Next.js proxy calls)
+    internal_service_secret: str = ""
+
     @property
     def cloudfront_url(self) -> str:
         """Get the CloudFront base URL."""

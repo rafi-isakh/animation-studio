@@ -1,6 +1,8 @@
 """Firestore service for job queue operations."""
 
+import base64
 import hashlib
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -8,6 +10,7 @@ from typing import Any
 
 from google.cloud import firestore
 from google.cloud.firestore_v1 import DocumentReference
+from google.oauth2 import service_account
 
 from app.config import get_settings
 from app.models.job import JobDocument, JobStatus, JobSubmitRequest
@@ -19,11 +22,51 @@ settings = get_settings()
 _db: firestore.AsyncClient | None = None
 
 
+def _parse_service_account(value: str) -> dict:
+    """
+    Parse service account JSON from env var.
+
+    Supports:
+    - Raw JSON string: {"type":"service_account",...}
+    - Base64 encoded JSON
+    """
+    value = value.strip()
+
+    # Try raw JSON first (starts with '{')
+    if value.startswith("{"):
+        return json.loads(value)
+
+    # Try base64 decode
+    try:
+        decoded = base64.b64decode(value).decode("utf-8")
+        return json.loads(decoded)
+    except Exception:
+        pass
+
+    raise ValueError("Invalid service account format")
+
+
 def get_db() -> firestore.AsyncClient:
     """Get or create Firestore async client."""
     global _db
     if _db is None:
-        _db = firestore.AsyncClient(project=settings.firebase_project_id)
+        if settings.firebase_service_account_json:
+            # Use service account credentials
+            service_account_info = _parse_service_account(
+                settings.firebase_service_account_json
+            )
+            credentials = service_account.Credentials.from_service_account_info(
+                service_account_info
+            )
+            _db = firestore.AsyncClient(
+                project=settings.firebase_project_id,
+                credentials=credentials,
+            )
+            logger.info("Firestore client initialized with service account")
+        else:
+            # Fall back to default credentials (for local dev with gcloud auth)
+            _db = firestore.AsyncClient(project=settings.firebase_project_id)
+            logger.warning("Firestore client initialized with default credentials")
     return _db
 
 
@@ -293,6 +336,27 @@ class VideoClipService:
         )
 
 
-# Service instances
-job_queue_service = JobQueueService()
-video_clip_service = VideoClipService()
+# Lazy service instances
+_job_queue_service: JobQueueService | None = None
+_video_clip_service: VideoClipService | None = None
+
+
+def get_job_queue_service() -> JobQueueService:
+    """Get or create JobQueueService instance."""
+    global _job_queue_service
+    if _job_queue_service is None:
+        _job_queue_service = JobQueueService()
+    return _job_queue_service
+
+
+def get_video_clip_service() -> VideoClipService:
+    """Get or create VideoClipService instance."""
+    global _video_clip_service
+    if _video_clip_service is None:
+        _video_clip_service = VideoClipService()
+    return _video_clip_service
+
+
+# Backwards compatible aliases (use getter functions for lazy init)
+job_queue_service = None  # Use get_job_queue_service() instead
+video_clip_service = None  # Use get_video_clip_service() instead

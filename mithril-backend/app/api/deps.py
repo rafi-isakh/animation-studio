@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth, credentials, initialize_app, get_app
 from firebase_admin.exceptions import FirebaseError
@@ -16,8 +16,8 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# HTTP Bearer token security scheme
-security = HTTPBearer()
+# HTTP Bearer token security scheme (optional for internal calls)
+security = HTTPBearer(auto_error=False)
 
 # Firebase app initialization flag
 _firebase_initialized = False
@@ -86,20 +86,60 @@ class CurrentUser(BaseModel):
 
 
 async def get_current_user(
-    token: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    token: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    x_internal_secret: Annotated[str | None, Header()] = None,
+    x_user_id: Annotated[str | None, Header()] = None,
+    x_user_email: Annotated[str | None, Header()] = None,
 ) -> CurrentUser:
     """
-    Validate Firebase ID token and extract user information.
+    Validate user identity via Firebase ID token OR internal service auth.
+
+    Supports two authentication modes:
+    1. Firebase ID token (Bearer token) - for direct client calls
+    2. Internal service auth (X-Internal-Secret header) - for Next.js proxy calls
 
     Args:
-        token: Bearer token from Authorization header
+        token: Optional Bearer token from Authorization header
+        x_internal_secret: Internal service secret for server-to-server calls
+        x_user_id: User ID passed from internal service
+        x_user_email: User email passed from internal service
 
     Returns:
         CurrentUser with validated user info
 
     Raises:
-        HTTPException 401 if token is invalid
+        HTTPException 401 if authentication fails
     """
+    # Check for internal service auth first
+    if x_internal_secret and x_user_id:
+        if not settings.internal_service_secret:
+            logger.warning("Internal service auth attempted but no secret configured")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Internal service auth not configured",
+            )
+
+        if x_internal_secret != settings.internal_service_secret:
+            logger.warning("Invalid internal service secret")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid internal service credentials",
+            )
+
+        logger.debug(f"Internal service auth successful for user {x_user_id}")
+        return CurrentUser(
+            uid=x_user_id,
+            email=x_user_email,
+        )
+
+    # Fall back to Firebase token auth
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     init_firebase()
 
     try:

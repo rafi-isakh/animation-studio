@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import health
+from app.api.routes import admin, health, jobs
 from app.config import get_settings
 
 settings = get_settings()
@@ -59,6 +59,5 @@ app.add_middleware(
 
 # Include routers
 app.include_router(health.router)
-
-# TODO: Include job routes
-# app.include_router(jobs.router, prefix="/api/v1")
+app.include_router(jobs.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")

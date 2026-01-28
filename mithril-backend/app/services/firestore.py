@@ -1,0 +1,298 @@
+"""Firestore service for job queue operations."""
+
+import hashlib
+import logging
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from google.cloud import firestore
+from google.cloud.firestore_v1 import DocumentReference
+
+from app.config import get_settings
+from app.models.job import JobDocument, JobStatus, JobSubmitRequest
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
+
+# Firestore client (lazily initialized)
+_db: firestore.AsyncClient | None = None
+
+
+def get_db() -> firestore.AsyncClient:
+    """Get or create Firestore async client."""
+    global _db
+    if _db is None:
+        _db = firestore.AsyncClient(project=settings.firebase_project_id)
+    return _db
+
+
+def hash_api_key(api_key: str | None) -> str | None:
+    """Hash API key for audit purposes (never store plaintext)."""
+    if not api_key:
+        return None
+    return hashlib.sha256(api_key.encode()).hexdigest()[:16]
+
+
+class JobQueueService:
+    """Service for managing jobs in Firestore."""
+
+    COLLECTION = "job_queue"
+    DLQ_COLLECTION = "dead_letter_queue"
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _job_ref(self, job_id: str) -> DocumentReference:
+        """Get document reference for a job."""
+        return self.db.collection(self.COLLECTION).document(job_id)
+
+    async def create_job(
+        self,
+        request: JobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new job in the queue.
+
+        Args:
+            request: Job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            project_id=request.project_id,
+            scene_index=request.scene_index,
+            clip_index=request.clip_index,
+            provider_id=request.provider_id,
+            prompt=request.prompt,
+            image_url=request.image_url,
+            duration=request.duration,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created job {job_id} for project {request.project_id}")
+        return job
+
+    async def get_job(self, job_id: str) -> JobDocument | None:
+        """
+        Get a job by ID.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            JobDocument if found, None otherwise
+        """
+        doc = await self._job_ref(job_id).get()
+        if not doc.exists:
+            return None
+        return JobDocument(**doc.to_dict())
+
+    async def update_job(self, job_id: str, **updates: Any) -> None:
+        """
+        Update job fields.
+
+        Args:
+            job_id: The job ID
+            **updates: Fields to update
+        """
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        # Filter out None values
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        await self._job_ref(job_id).update(filtered_updates)
+        logger.debug(f"Updated job {job_id}: {list(filtered_updates.keys())}")
+
+    async def update_job_status(
+        self,
+        job_id: str,
+        status: JobStatus,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update job status with optional additional fields.
+
+        Args:
+            job_id: The job ID
+            status: New status
+            **kwargs: Additional fields to update
+        """
+        updates = {"status": status.value, **kwargs}
+
+        # Set timestamp based on status
+        if status == JobStatus.SUBMITTED:
+            updates["submitted_at"] = datetime.now(timezone.utc).isoformat()
+        elif status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED):
+            updates["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+        await self.update_job(job_id, **updates)
+        logger.info(f"Job {job_id} status changed to {status.value}")
+
+    async def mark_cancellation_requested(self, job_id: str) -> bool:
+        """
+        Mark a job for cancellation.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            True if cancellation was requested, False if job already terminal
+        """
+        job = await self.get_job(job_id)
+        if not job:
+            return False
+
+        # Can't cancel already completed/failed jobs
+        if job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED):
+            return False
+
+        await self.update_job(job_id, cancellation_requested=True)
+        logger.info(f"Cancellation requested for job {job_id}")
+        return True
+
+    async def get_project_jobs(
+        self,
+        project_id: str,
+        status_filter: list[JobStatus] | None = None,
+        limit: int = 50,
+    ) -> list[JobDocument]:
+        """
+        Get jobs for a project.
+
+        Args:
+            project_id: The project ID
+            status_filter: Optional list of statuses to filter by
+            limit: Maximum number of jobs to return
+
+        Returns:
+            List of JobDocuments
+        """
+        query = self.db.collection(self.COLLECTION).where(
+            "project_id", "==", project_id
+        )
+
+        if status_filter:
+            status_values = [s.value for s in status_filter]
+            query = query.where("status", "in", status_values)
+
+        query = query.order_by("created_at", direction=firestore.Query.DESCENDING)
+        query = query.limit(limit)
+
+        docs = await query.get()
+        return [JobDocument(**doc.to_dict()) for doc in docs]
+
+    async def move_to_dlq(
+        self,
+        job_id: str,
+        error_code: str,
+        error_message: str,
+        failure_history: list[dict],
+    ) -> None:
+        """
+        Move a failed job to the dead letter queue.
+
+        Args:
+            job_id: The job ID
+            error_code: Final error code
+            error_message: Final error message
+            failure_history: List of all failure attempts
+        """
+        job = await self.get_job(job_id)
+        if not job:
+            return
+
+        dlq_id = str(uuid.uuid4())
+        dlq_doc = {
+            "id": dlq_id,
+            "original_job_id": job_id,
+            "project_id": job.project_id,
+            "scene_index": job.scene_index,
+            "clip_index": job.clip_index,
+            "original_request": {
+                "prompt": job.prompt,
+                "image_url": job.image_url,
+                "duration": job.duration,
+                "aspect_ratio": job.aspect_ratio,
+                "provider_id": job.provider_id,
+            },
+            "final_error_code": error_code,
+            "final_error_message": error_message,
+            "total_attempts": job.retry_count + 1,
+            "failure_history": failure_history,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        await self.db.collection(self.DLQ_COLLECTION).document(dlq_id).set(dlq_doc)
+        logger.warning(f"Job {job_id} moved to DLQ as {dlq_id}")
+
+
+class VideoClipService:
+    """Service for updating video clips in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _clip_ref(self, project_id: str, scene_index: int, clip_index: int) -> DocumentReference:
+        """Get document reference for a video clip."""
+        clip_id = f"{scene_index}_{clip_index}"
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("video")
+            .collection("clips")
+            .document(clip_id)
+        )
+
+    async def update_clip_status(
+        self,
+        project_id: str,
+        scene_index: int,
+        clip_index: int,
+        status: str,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update video clip status in project Firestore.
+
+        Args:
+            project_id: The project ID
+            scene_index: Scene index
+            clip_index: Clip index
+            status: New status
+            **kwargs: Additional fields (video_url, job_id, error, etc.)
+        """
+        updates = {"status": status, **kwargs}
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        await self._clip_ref(project_id, scene_index, clip_index).set(
+            filtered_updates, merge=True
+        )
+        logger.debug(
+            f"Updated clip {scene_index}_{clip_index} in project {project_id}"
+        )
+
+
+# Service instances
+job_queue_service = JobQueueService()
+video_clip_service = VideoClipService()

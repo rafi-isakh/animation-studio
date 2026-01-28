@@ -39,7 +39,7 @@ interface SubmitBatchResponse {
   totalCount: number;
 }
 
-interface ClipUpdate {
+export interface ClipUpdate {
   sceneIndex: number;
   clipIndex: number;
   jobId: string;

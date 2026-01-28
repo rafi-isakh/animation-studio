@@ -32,10 +32,10 @@ import {
   saveVideoMeta,
   updateVideoClipStatus,
   clearVideo,
-  subscribeToProjectJobs,
   mapJobToClipUpdate,
+  getActiveProjectJobs,
 } from "../services/firestore";
-import { useVideoOrchestrator } from "./useVideoOrchestrator";
+import { useVideoOrchestrator, type ClipUpdate } from "./useVideoOrchestrator";
 
 interface LoaderProps {
   message: string;
@@ -89,29 +89,34 @@ export default function VideoGeneratorOrchestrator() {
   // Orchestrator hook
   const { submitJob, cancelJob } = useVideoOrchestrator({
     projectId: currentProjectId,
-    enabled: currentStage === 7,
+    enabled: currentStage === 8,
     onClipUpdate: useCallback(
-      (update) => {
+      (update: ClipUpdate) => {
         if (!isMountedRef.current) return;
 
+        // Only process updates for jobs we're actively tracking
+        if (!update.jobId || !activeJobsRef.current.has(update.jobId)) {
+          return;
+        }
+
         setClips((prev) => {
-          const clipIndex = prev.findIndex(
+          const clipArrayIndex = prev.findIndex(
             (c) =>
               c.sceneIndex === update.sceneIndex &&
               c.clipIndex === update.clipIndex
           );
 
-          if (clipIndex === -1) return prev;
+          if (clipArrayIndex === -1) return prev;
 
           const updatedClips = [...prev];
-          const clip = updatedClips[clipIndex];
+          const clip = updatedClips[clipArrayIndex];
 
-          // Only update if this is a job we're tracking
-          if (update.jobId && !activeJobsRef.current.has(update.jobId)) {
+          // Double-check: only update if this clip's jobId matches or clip has no jobId yet
+          if (clip.jobId && clip.jobId !== update.jobId) {
             return prev;
           }
 
-          updatedClips[clipIndex] = {
+          updatedClips[clipArrayIndex] = {
             ...clip,
             status: update.status,
             videoUrl: update.videoUrl,
@@ -140,13 +145,13 @@ export default function VideoGeneratorOrchestrator() {
           return updatedClips;
         });
 
-        // Show toast for completion/failure
-        if (update.status === "completed") {
+        // Show toast for completion/failure (only for tracked jobs)
+        if (update.status === "completed" && activeJobsRef.current.has(update.jobId)) {
           toast({
             title: phrase(dictionary, "sora_toast_success", language),
             description: `${phrase(dictionary, "sora_toast_clip_generated", language)} ${update.sceneIndex + 1}-${update.clipIndex + 1}`,
           });
-        } else if (update.status === "failed" && !shouldStopRef.current) {
+        } else if (update.status === "failed" && !shouldStopRef.current && activeJobsRef.current.has(update.jobId)) {
           toast({
             title: phrase(dictionary, "sora_toast_error", language),
             description: update.error || "Video generation failed",
@@ -169,20 +174,6 @@ export default function VideoGeneratorOrchestrator() {
       activeJobsRef.current.clear();
     };
   }, []);
-
-  // Get data from context
-  const storyboardData = getStageResult(5) as { scenes: Scene[] } | null;
-  const imageGenData = getStageResult(6) as {
-    settings: { stylePrompt: string; aspectRatio: string };
-    frames: Array<{
-      id: string;
-      sceneIndex: number;
-      clipIndex: number;
-      frameLabel: string;
-      imageRef: string | null;
-      status: string;
-    }>;
-  } | null;
 
   // Auto-save helper
   const autoSave = useCallback(
@@ -221,7 +212,7 @@ export default function VideoGeneratorOrchestrator() {
           providerId: selectedProvider,
           createdAt: Date.now(),
         };
-        setStageResult(7, metadata);
+        setStageResult(8, metadata);
         setIsSaved(true);
       } catch (err) {
         console.error("Error auto-saving video:", err);
@@ -232,7 +223,7 @@ export default function VideoGeneratorOrchestrator() {
 
   // Load data effect (same as original)
   useEffect(() => {
-    if (currentStage !== 7) {
+    if (currentStage !== 8) {
       setHasLoaded(false);
       return;
     }
@@ -243,7 +234,7 @@ export default function VideoGeneratorOrchestrator() {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        const imageGenResult = getStageResult(6) as {
+        const imageGenResult = getStageResult(7) as {
           settings: { stylePrompt: string; aspectRatio: string };
           frames: Array<{
             id: string;
@@ -255,7 +246,7 @@ export default function VideoGeneratorOrchestrator() {
           }>;
         } | null;
 
-        const storyboardResult = getStageResult(5) as {
+        const storyboardResult = getStageResult(4) as {
           scenes: Scene[];
         } | null;
 
@@ -334,6 +325,44 @@ export default function VideoGeneratorOrchestrator() {
           if (a.sceneIndex !== b.sceneIndex) return a.sceneIndex - b.sceneIndex;
           return a.clipIndex - b.clipIndex;
         });
+
+        // Fetch only ACTIVE (non-terminal) jobs from job_queue
+        // - Completed jobs are already loaded from video_clips collection
+        // - Active jobs need real-time tracking for status updates
+        // - This handles regeneration: new job will be active, old completed one is in video_clips
+        if (currentProjectId) {
+          try {
+            const activeJobs = await getActiveProjectJobs(currentProjectId);
+            console.log("[VideoGenerator] Active jobs from job_queue:", activeJobs.length);
+
+            activeJobs.forEach((job) => {
+              const clipIdx = allClips.findIndex(
+                (c) => c.sceneIndex === job.scene_index && c.clipIndex === job.clip_index
+              );
+              if (clipIdx !== -1) {
+                const update = mapJobToClipUpdate(job);
+
+                // Update clip with active job status (overrides saved completed state for regeneration)
+                allClips[clipIdx] = {
+                  ...allClips[clipIdx],
+                  status: update.status,
+                  videoUrl: update.videoUrl,
+                  s3FileName: update.s3FileName,
+                  error: update.error,
+                  providerId: update.providerId,
+                  jobId: update.jobId,
+                };
+
+                // Add to tracking for real-time updates
+                activeJobsRef.current.add(job.id);
+                console.log("[VideoGenerator] Tracking active job:", job.id, "status:", job.status);
+              }
+            });
+          } catch (err) {
+            console.error("Error fetching active jobs:", err);
+            // Continue without job tracking
+          }
+        }
 
         setClips(allClips);
         if (savedVideoClips.length > 0) {
@@ -591,7 +620,7 @@ export default function VideoGeneratorOrchestrator() {
         providerId: selectedProvider,
         createdAt: Date.now(),
       };
-      setStageResult(7, metadata);
+      setStageResult(8, metadata);
       setIsSaved(true);
 
       toast({

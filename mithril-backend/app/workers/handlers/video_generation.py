@@ -44,7 +44,11 @@ async def check_cancellation(job_id: str) -> None:
         raise CancellationRequested(f"Job {job_id} was cancelled by user")
 
 
-async def process_video_generation(job_id: str, worker_id: str = "worker-1") -> dict:
+async def process_video_generation(
+    job_id: str,
+    worker_id: str = "worker-1",
+    custom_api_key: str | None = None,
+) -> dict:
     """
     Main video generation pipeline.
 
@@ -57,6 +61,7 @@ async def process_video_generation(job_id: str, worker_id: str = "worker-1") -> 
     Args:
         job_id: The job ID to process
         worker_id: ID of the worker processing this job
+        custom_api_key: Optional custom API key (passed through task queue)
 
     Returns:
         dict with status and result information
@@ -87,8 +92,8 @@ async def process_video_generation(job_id: str, worker_id: str = "worker-1") -> 
         if not provider:
             raise VideoJobError.invalid_request(f"Unknown provider: {job.provider_id}")
 
-        # Get API key (from job or fallback to settings)
-        api_key = _get_api_key(job)
+        # Get API key (custom key from task queue, or fallback to settings)
+        api_key = _get_api_key(job, custom_api_key)
 
         # === Stage 1: Submit to provider ===
         result = await _stage_submit(job, provider, api_key, state_machine)
@@ -124,21 +129,33 @@ async def process_video_generation(job_id: str, worker_id: str = "worker-1") -> 
         return {"job_id": job_id, "status": "cancelled"}
 
     except VideoJobError as e:
-        return await _handle_error(job, e, state_machine)
+        return await _handle_error(job, e, state_machine, custom_api_key)
 
     except Exception as e:
         logger.exception(f"Unexpected error processing job {job_id}")
         video_error = classify_exception(e)
-        return await _handle_error(job, video_error, state_machine)
+        return await _handle_error(job, video_error, state_machine, custom_api_key)
 
 
-def _get_api_key(job: JobDocument) -> str:
-    """Get API key for the job's provider."""
-    # Note: In production, you'd decrypt/retrieve the actual key
-    # For now, we use the settings fallback
+def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
+    """Get API key for the job's provider.
+
+    Priority:
+    1. Custom API key passed through task queue
+    2. Fallback to environment variable settings
+    """
+    # Use custom API key if provided
+    if custom_api_key:
+        return custom_api_key
+
+    # Fall back to settings
     if job.provider_id == "sora":
+        if not settings.sora_api_key:
+            raise VideoJobError.invalid_request("No Sora API key configured")
         return settings.sora_api_key
     elif job.provider_id == "veo3":
+        if not settings.gemini_api_key:
+            raise VideoJobError.invalid_request("No Gemini API key configured")
         return settings.gemini_api_key
     else:
         raise VideoJobError.invalid_request(f"Unknown provider: {job.provider_id}")
@@ -338,8 +355,11 @@ async def _handle_error(
     job: JobDocument,
     error: VideoJobError,
     state_machine: JobStateMachine,
+    custom_api_key: str | None = None,
 ) -> dict:
     """Handle job error with potential retry."""
+    from app.workers.tasks import retry_failed_job
+
     job_queue_service = get_job_queue_service()
     video_clip_service = get_video_clip_service()
 
@@ -373,6 +393,9 @@ async def _handle_error(
             error_message=error.message,
             error_retryable=True,
         )
+
+        # Queue retry task with delay and API key
+        await retry_failed_job.kiq(job.id, delay, custom_api_key)
 
         return {
             "job_id": job.id,

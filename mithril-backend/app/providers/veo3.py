@@ -1,8 +1,10 @@
-"""Veo 3 (Google) video generation provider."""
+"""Veo 3 (Google) video generation provider using google-genai SDK."""
 
+import asyncio
 import logging
 
 import httpx
+from google import genai
 
 from app.models.provider import (
     PollingConfig,
@@ -16,7 +18,7 @@ from app.services.image_processor import prepare_image_for_provider
 
 logger = logging.getLogger(__name__)
 
-# Veo 3 API base URL
+# Veo 3 API base URL (for status polling)
 VEO3_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
 # Veo 3 constraints
@@ -61,7 +63,7 @@ class Veo3Provider(VideoProvider):
         request: VideoSubmitRequest,
         api_key: str,
     ) -> VideoSubmitResult:
-        """Submit video generation job to Veo 3."""
+        """Submit video generation job to Veo 3 using SDK."""
         # Validate request
         validation_error = self.validate_request(request)
         if validation_error:
@@ -70,18 +72,24 @@ class Veo3Provider(VideoProvider):
         # Map duration to valid Veo 3 duration
         duration = self.map_duration(request.duration)
 
-        # Build request body
-        request_body = {
-            "model": self.model_name,
-            "prompt": request.prompt,
-            "config": {
-                "aspectRatio": request.aspect_ratio,
-                "durationSeconds": duration,
-                "personGeneration": "allow_adult",
-            },
+        logger.info(f"[veo3] Submitting video generation job...")
+        logger.info(f"[veo3] Model: {self.model_name}")
+        logger.info(f"[veo3] Duration: {duration} seconds")
+        logger.info(f"[veo3] Aspect ratio: {request.aspect_ratio}")
+        logger.info(f"[veo3] Has image: {bool(request.image_base64 or request.image_url)}")
+
+        # Initialize the SDK client
+        client = genai.Client(api_key=api_key)
+
+        # Build config
+        config = {
+            "aspect_ratio": request.aspect_ratio,
+            "duration_seconds": duration,
+            "person_generation": "allow_adult",
         }
 
-        # Add image if provided (image-to-video)
+        # Prepare image if provided
+        image_data = None
         if request.image_base64 or request.image_url:
             resized_base64 = await prepare_image_for_provider(
                 request.image_base64,
@@ -89,57 +97,55 @@ class Veo3Provider(VideoProvider):
                 request.aspect_ratio,
             )
             if resized_base64:
-                request_body["image"] = {
-                    "imageBytes": resized_base64,
-                    "mimeType": "image/jpeg",
+                image_data = {
+                    "image_bytes": resized_base64,
+                    "mime_type": "image/jpeg",
                 }
 
-        logger.info(f"[veo3] Submitting video generation job...")
-        logger.info(f"[veo3] Model: {self.model_name}")
-        logger.info(f"[veo3] Duration: {duration} seconds")
-        logger.info(f"[veo3] Aspect ratio: {request.aspect_ratio}")
-        logger.info(f"[veo3] Has image: {bool(request.image_base64 or request.image_url)}")
+        try:
+            # Use the SDK to generate video (run sync SDK in thread pool)
+            def _submit():
+                if image_data:
+                    return client.models.generate_videos(
+                        model=self.model_name,
+                        prompt=request.prompt,
+                        config=config,
+                        image=image_data,
+                    )
+                else:
+                    return client.models.generate_videos(
+                        model=self.model_name,
+                        prompt=request.prompt,
+                        config=config,
+                    )
 
-        # Submit to Veo 3 API
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                f"{VEO3_API_BASE}/models/{self.model_name}:generateVideos",
-                params={"key": api_key},
-                json=request_body,
-                headers={"Content-Type": "application/json"},
-            )
+            operation = await asyncio.to_thread(_submit)
 
-            if response.status_code == 429:
-                raise Exception("Rate limit exceeded. Please try again later.")
+            logger.info(f"[veo3] Operation response: {operation}")
 
-            if response.status_code == 402:
-                raise Exception("Quota exceeded. Please check your API usage.")
-
-            response_data = response.json()
-
-            if not response.is_success:
-                error_msg = (
-                    response_data.get("error", {}).get("message")
-                    or response_data.get("error")
-                    or "Failed to create video job"
-                )
-                logger.error(f"[veo3] API Error: {response_data}")
-                raise Exception(error_msg)
-
-            # Get operation name (job ID)
-            job_id = (
-                response_data.get("name")
-                or response_data.get("operationName")
-                or response_data.get("id")
-                or response_data.get("operationId")
-            )
+            # Get the operation name (job ID)
+            job_id = getattr(operation, 'name', None) or getattr(operation, 'operation_name', None)
 
             if not job_id:
-                logger.error(f"[veo3] Response keys: {response_data.keys()}")
+                # Try to get from dict if it's a dict-like object
+                if hasattr(operation, '__getitem__'):
+                    job_id = operation.get('name') or operation.get('operationName')
+
+            if not job_id:
+                logger.error(f"[veo3] Operation object: {operation}")
                 raise Exception("Failed to get operation ID from Veo 3 response")
 
             logger.info(f"[veo3] Job submitted successfully. Operation name: {job_id}")
             return VideoSubmitResult(job_id=job_id, status="pending")
+
+        except Exception as e:
+            error_msg = str(e)
+            if "rate limit" in error_msg.lower() or "429" in error_msg:
+                raise Exception("Rate limit exceeded. Please try again later.")
+            if "quota" in error_msg.lower() or "402" in error_msg:
+                raise Exception("Quota exceeded. Please check your API usage.")
+            logger.error(f"[veo3] Error submitting job: {e}")
+            raise
 
     async def check_status(
         self,
@@ -149,6 +155,7 @@ class Veo3Provider(VideoProvider):
         """Check the status of a Veo 3 video generation job."""
         logger.info(f"[veo3] Checking status for operation: {job_id}")
 
+        # Use REST API to poll operation status (SDK polling is unreliable)
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 f"{VEO3_API_BASE}/{job_id}",
@@ -235,7 +242,7 @@ class Veo3Provider(VideoProvider):
                 video_uri if "key=" in video_uri else f"{video_uri}&key={api_key}"
             )
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
             video_response = await client.get(download_url)
 
             if not video_response.is_success:

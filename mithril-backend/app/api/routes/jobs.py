@@ -41,10 +41,10 @@ async def submit_job(
     # Create job in Firestore
     job = await job_queue_service.create_job(request, user.uid)
 
-    logger.info(f"Job {job.id} submitted by user {user.uid}")
+    logger.info(f"Job {job.id} submitted by user {user.uid} (custom_key: {bool(request.api_key)})")
 
-    # Queue for processing
-    await process_video_job.kiq(job.id)
+    # Queue for processing (pass API key through task queue, not stored in DB)
+    await process_video_job.kiq(job.id, request.api_key)
 
     return JobSubmitResponse(
         job_id=job.id,
@@ -80,8 +80,8 @@ async def submit_batch(
         # Create job in Firestore
         job = await job_queue_service.create_job(job_request, user.uid, batch_id)
 
-        # Queue for processing
-        await process_video_job.kiq(job.id)
+        # Queue for processing (pass API key through task queue)
+        await process_video_job.kiq(job.id, job_request.api_key)
 
         job_responses.append(
             JobSubmitResponse(

@@ -15,7 +15,7 @@ def get_worker_id() -> str:
 
 
 @broker.task
-async def process_video_job(job_id: str) -> dict:
+async def process_video_job(job_id: str, api_key: str | None = None) -> dict:
     """
     Main video generation task.
 
@@ -28,6 +28,7 @@ async def process_video_job(job_id: str) -> dict:
 
     Args:
         job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
 
     Returns:
         dict with status and result information
@@ -35,10 +36,10 @@ async def process_video_job(job_id: str) -> dict:
     from app.workers.handlers.video_generation import process_video_generation
 
     worker_id = get_worker_id()
-    logger.info(f"[{worker_id}] Processing video job: {job_id}")
+    logger.info(f"[{worker_id}] Processing video job: {job_id} (custom_key: {bool(api_key)})")
 
     try:
-        result = await process_video_generation(job_id, worker_id)
+        result = await process_video_generation(job_id, worker_id, api_key)
         logger.info(f"[{worker_id}] Job {job_id} finished with status: {result.get('status')}")
         return result
 
@@ -52,13 +53,18 @@ async def process_video_job(job_id: str) -> dict:
 
 
 @broker.task
-async def retry_failed_job(job_id: str, delay_seconds: float = 0) -> dict:
+async def retry_failed_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
     """
     Retry a failed job after a delay.
 
     Args:
         job_id: The job ID to retry
         delay_seconds: Delay before processing
+        api_key: Optional API key (if not provided, uses settings fallback)
 
     Returns:
         dict with status and result information
@@ -69,7 +75,7 @@ async def retry_failed_job(job_id: str, delay_seconds: float = 0) -> dict:
         logger.info(f"Waiting {delay_seconds}s before retrying job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_video_job(job_id)
+    return await process_video_job(job_id, api_key)
 
 
 @broker.task

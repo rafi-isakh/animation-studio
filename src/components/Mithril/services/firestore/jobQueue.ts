@@ -4,6 +4,7 @@ import {
   query,
   where,
   onSnapshot,
+  getDocs,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
@@ -131,6 +132,53 @@ export function subscribeToActiveProjectJobs(
       .filter((job) => !terminalStatuses.includes(job.status));
     callback(jobs);
   });
+}
+
+/**
+ * Get all active (non-terminal) jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active job documents
+ */
+export async function getActiveProjectJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId)
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Get all jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of all job documents
+ */
+export async function getProjectJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId)
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+
+  return snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
 }
 
 /**

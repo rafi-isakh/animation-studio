@@ -5,8 +5,8 @@ import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { Prop, DetectedId, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS } from "./types";
 import DetectionPanel from "./DetectionPanel";
-import PropGrid from "./PropGrid";
-import PropDetail from "./PropDetail";
+import PropListView from "./PropListView";
+import StoryboardTable from "./StoryboardTable";
 import {
   savePropDesignerSettings,
   saveProp,
@@ -16,13 +16,25 @@ import {
 } from "../services/firestore";
 
 // CSV clip structure for imported data
+// CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
+// Table display adds: Visual, Reference Image columns
 interface CsvClip {
   story: string;
   imagePrompt: string;
   imagePromptEnd: string;
   videoPrompt: string;
   dialogue: string;
+  dialogueEn: string;
   backgroundId: string;
+  backgroundPrompt: string;
+  length: string;
+  accumulatedTime: string;
+  soraVideoPrompt: string;
+  refFileName: string; // Reference Image - may not be in CSV but used in table display
+  sfx: string;
+  sfxEn: string;
+  bgm: string;
+  bgmEn: string;
 }
 
 interface CsvScene {
@@ -87,10 +99,12 @@ export default function PropDesigner() {
   // Local state
   const [props, setProps] = useState<Prop[]>([]);
   const [detectedIds, setDetectedIds] = useState<DetectedId[]>([]);
-  const [selectedPropId, setSelectedPropId] = useState<string | null>(null);
   const [genre, setGenre] = useState<string>("Modern");
+  const [isCharacterSheetOpen, setIsCharacterSheetOpen] = useState(false);
+  const [isObjectSheetOpen, setIsObjectSheetOpen] = useState(false);
   const [styleKeyword, setStyleKeyword] = useState<string>("anime 2d style");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
+  const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // CSV imported scenes (local storyboard data)
@@ -134,13 +148,27 @@ export default function PropDesigner() {
           labels.some((l) => h === l || h.toLowerCase() === l.toLowerCase())
         );
 
+      // Match CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
+      // Also try to find Reference Image if it exists
       const map = {
-        bgId: getIdx(["Background ID", "배경 ID"]),
-        story: getIdx(["Story", "스토리"]),
-        imgStart: getIdx(["Image prompt (Start)", "Image Prompt"]),
-        imgEnd: getIdx(["Image prompt (End)"]),
+        scene: getIdx(["Scene"]),
+        clip: getIdx(["Clip"]),
+        length: getIdx(["Length"]),
+        accTime: getIdx(["Accumulated Time"]),
+        bgId: getIdx(["Background ID"]),
+        bgPrompt: getIdx(["Background Prompt"]),
+        story: getIdx(["Story"]),
+        imgStart: getIdx(["Image Prompt (Start)"]),
+        imgEnd: getIdx(["Image Prompt (End)"]),
         vid: getIdx(["Video Prompt"]),
-        dia: getIdx(["Dialogue (Ko)", "Dialogue"]),
+        soraVid: getIdx(["Sora Video Prompt"]),
+        refImg: getIdx(["Reference Image", "Ref Image", "ref_filename"]),
+        dia: getIdx(["Dialogue (Ko)"]),
+        diaEn: getIdx(["Dialogue (En)"]),
+        sfx: getIdx(["SFX (Ko)"]),
+        sfxEn: getIdx(["SFX (En)"]),
+        bgm: getIdx(["BGM (Ko)"]),
+        bgmEn: getIdx(["BGM (En)"]),
       };
 
       console.log("[CSV Import] Column mapping:", map);
@@ -156,7 +184,17 @@ export default function PropDesigner() {
           imagePromptEnd: val(map.imgEnd),
           videoPrompt: val(map.vid),
           dialogue: val(map.dia),
+          dialogueEn: val(map.diaEn),
           backgroundId: val(map.bgId),
+          backgroundPrompt: val(map.bgPrompt),
+          length: val(map.length),
+          accumulatedTime: val(map.accTime),
+          soraVideoPrompt: val(map.soraVid),
+          refFileName: val(map.refImg),
+          sfx: val(map.sfx),
+          sfxEn: val(map.sfxEn),
+          bgm: val(map.bgm),
+          bgmEn: val(map.bgmEn),
         });
       }
 
@@ -270,7 +308,22 @@ export default function PropDesigner() {
     activeScenes.forEach((scene, sIdx) => {
       scene.clips.forEach((clip, cIdx) => {
         const clipId = `${sIdx + 1}-${cIdx + 1}`;
-        const combinedText = `${clip.story || ""} ${clip.imagePrompt || ""} ${clip.imagePromptEnd || ""} ${clip.videoPrompt || ""} ${clip.dialogue || ""} ${clip.backgroundId || ""}`;
+        // Include all text fields for ID extraction
+        const combinedText = [
+          clip.story || "",
+          clip.imagePrompt || "",
+          clip.imagePromptEnd || "",
+          clip.videoPrompt || "",
+          clip.dialogue || "",
+          clip.dialogueEn || "",
+          clip.backgroundId || "",
+          clip.backgroundPrompt || "",
+          clip.soraVideoPrompt || "",
+          clip.sfx || "",
+          clip.sfxEn || "",
+          clip.bgm || "",
+          clip.bgmEn || "",
+        ].join(" ");
         const matches = combinedText.match(ID_PATTERN);
 
         if (matches) {
@@ -335,17 +388,160 @@ export default function PropDesigner() {
     setDetectedIds((prev) => prev.filter((d) => d.id !== id));
   }, []);
 
-  // Detect props and characters using AI
-  const handleDetectProps = useCallback(async () => {
-    const objectIds = detectedIds.filter((d) => d.category === "object").map((d) => d.id);
+  // Helper to save props to Firestore and update context
+  const saveAndUpdateProps = useCallback(
+    async (newProps: Prop[], category: "character" | "object") => {
+      // Merge with existing props of the other category
+      const otherCategoryProps = props.filter((p) => p.category !== category);
+      const allProps = [...otherCategoryProps, ...newProps];
+      setProps(allProps);
+
+      // Save to Firestore
+      if (currentProjectId) {
+        await savePropDesignerSettings(currentProjectId, {
+          styleKeyword,
+          propBasePrompt: "",
+          genre,
+        });
+
+        await saveDetectedIds(
+          currentProjectId,
+          detectedIds.map((d) => ({
+            id: d.id,
+            category: d.category,
+            clipIds: d.clipIds,
+            contexts: d.contexts,
+            occurrences: d.occurrences,
+          }))
+        );
+
+        for (const prop of newProps) {
+          await saveProp(currentProjectId, {
+            id: prop.id,
+            name: prop.name,
+            category: prop.category,
+            description: prop.description,
+            descriptionKo: prop.descriptionKo,
+            appearingClips: prop.appearingClips,
+            contextPrompts: prop.contextPrompts,
+            designSheetPrompt: prop.designSheetPrompt,
+            designSheetImageRef: prop.designSheetImageUrl,
+            referenceImageRef: prop.referenceImageUrl,
+          });
+        }
+      }
+
+      // Update context
+      setPropDesignerResult({
+        settings: { styleKeyword, propBasePrompt: "", genre },
+        props: allProps.map((p) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          description: p.description,
+          descriptionKo: p.descriptionKo,
+          appearingClips: p.appearingClips,
+          designSheetPrompt: p.designSheetPrompt,
+          designSheetImageRef: p.designSheetImageUrl || "",
+          referenceImageRef: p.referenceImageUrl,
+        })),
+        detectedIds,
+      });
+    },
+    [currentProjectId, detectedIds, genre, props, setPropDesignerResult, styleKeyword]
+  );
+
+  // Detect characters using AI
+  const handleDetectCharacters = useCallback(async () => {
     const characterIds = detectedIds.filter((d) => d.category === "character").map((d) => d.id);
 
-    if (objectIds.length === 0 && characterIds.length === 0) {
-      setError("No IDs to analyze. Please detect IDs from the storyboard first.");
+    if (characterIds.length === 0) {
+      setError("No character IDs to analyze.");
       return;
     }
 
-    setIsAnalyzing(true);
+    setIsAnalyzingCharacters(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/generate_prop_sheet/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenes: activeScenes,
+          objectIds: [],
+          characterIds,
+          genre,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      // Create a map of existing props by name to preserve images
+      const existingPropsByName = new Map<string, Prop>();
+      props.forEach((p) => {
+        if (p.name) {
+          existingPropsByName.set(p.name.toLowerCase(), p);
+        }
+      });
+
+      // Convert API response to Prop objects for characters
+      const newCharacters: Prop[] = (data.characters || []).map((char: {
+        name: string;
+        description: string;
+        descriptionKo: string;
+        appearingClips: string[];
+        contextPrompts: { clipId: string; text: string }[];
+        characterSheetPrompt: string;
+      }) => {
+        const existing = existingPropsByName.get(char.name.toLowerCase());
+        return {
+          id: existing?.id || crypto.randomUUID(),
+          name: char.name,
+          category: "character" as const,
+          description: char.description,
+          descriptionKo: char.descriptionKo,
+          appearingClips: char.appearingClips,
+          contextPrompts: char.contextPrompts,
+          designSheetPrompt: existing?.designSheetPrompt || char.characterSheetPrompt,
+          designSheetImageUrl: existing?.designSheetImageUrl,
+          designSheetImageBase64: existing?.designSheetImageBase64,
+          referenceImageUrl: existing?.referenceImageUrl,
+          referenceImageBase64: existing?.referenceImageBase64,
+          isGenerating: false,
+        };
+      });
+
+      await saveAndUpdateProps(newCharacters, "character");
+
+      // Auto-open the character sheet modal
+      setIsCharacterSheetOpen(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to detect characters");
+    } finally {
+      setIsAnalyzingCharacters(false);
+    }
+  }, [
+    detectedIds,
+    activeScenes,
+    genre,
+    customApiKey,
+    props,
+    saveAndUpdateProps,
+  ]);
+
+  // Detect objects using AI
+  const handleDetectObjects = useCallback(async () => {
+    const objectIds = detectedIds.filter((d) => d.category === "object").map((d) => d.id);
+
+    if (objectIds.length === 0) {
+      setError("No object IDs to analyze.");
+      return;
+    }
+
+    setIsAnalyzingObjects(true);
     setError(null);
 
     try {
@@ -355,7 +551,7 @@ export default function PropDesigner() {
         body: JSON.stringify({
           scenes: activeScenes,
           objectIds,
-          characterIds,
+          characterIds: [],
           genre,
           customApiKey: customApiKey || undefined,
         }),
@@ -399,121 +595,45 @@ export default function PropDesigner() {
         };
       });
 
-      // Convert API response to Prop objects for characters
-      const newCharacters: Prop[] = (data.characters || []).map((char: {
-        name: string;
-        description: string;
-        descriptionKo: string;
-        appearingClips: string[];
-        contextPrompts: { clipId: string; text: string }[];
-        characterSheetPrompt: string;
-      }) => {
-        const existing = existingPropsByName.get(char.name.toLowerCase());
-        return {
-          id: existing?.id || crypto.randomUUID(),
-          name: char.name,
-          category: "character" as const,
-          description: char.description,
-          descriptionKo: char.descriptionKo,
-          appearingClips: char.appearingClips,
-          contextPrompts: char.contextPrompts,
-          designSheetPrompt: existing?.designSheetPrompt || char.characterSheetPrompt,
-          designSheetImageUrl: existing?.designSheetImageUrl,
-          designSheetImageBase64: existing?.designSheetImageBase64,
-          referenceImageUrl: existing?.referenceImageUrl,
-          referenceImageBase64: existing?.referenceImageBase64,
-          isGenerating: false,
-        };
-      });
+      await saveAndUpdateProps(newObjects, "object");
 
-      const allNewProps = [...newCharacters, ...newObjects];
-      setProps(allNewProps);
-
-      // Save to Firestore - first clear existing props, then save new ones
-      if (currentProjectId) {
-        // Clear existing props first to avoid duplicates
-        await clearPropDesignerData();
-
-        await savePropDesignerSettings(currentProjectId, {
-          styleKeyword,
-          propBasePrompt: "",
-          genre,
-        });
-
-        await saveDetectedIds(
-          currentProjectId,
-          detectedIds.map((d) => ({
-            id: d.id,
-            category: d.category,
-            clipIds: d.clipIds,
-            contexts: d.contexts,
-            occurrences: d.occurrences,
-          }))
-        );
-
-        for (const prop of allNewProps) {
-          await saveProp(currentProjectId, {
-            id: prop.id,
-            name: prop.name,
-            category: prop.category,
-            description: prop.description,
-            descriptionKo: prop.descriptionKo,
-            appearingClips: prop.appearingClips,
-            contextPrompts: prop.contextPrompts,
-            designSheetPrompt: prop.designSheetPrompt,
-            designSheetImageRef: prop.designSheetImageUrl,
-            referenceImageRef: prop.referenceImageUrl,
-          });
-        }
-      }
-
-      // Update context
-      setPropDesignerResult({
-        settings: { styleKeyword, propBasePrompt: "", genre },
-        props: allNewProps.map((p) => ({
-          id: p.id,
-          name: p.name,
-          category: p.category,
-          description: p.description,
-          descriptionKo: p.descriptionKo,
-          appearingClips: p.appearingClips,
-          designSheetPrompt: p.designSheetPrompt,
-          designSheetImageRef: p.designSheetImageUrl || "",
-          referenceImageRef: p.referenceImageUrl,
-        })),
-        detectedIds,
-      });
+      // Auto-open the object sheet modal
+      setIsObjectSheetOpen(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to detect props/characters");
+      setError(err instanceof Error ? err.message : "Failed to detect objects");
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzingObjects(false);
     }
   }, [
     detectedIds,
     activeScenes,
     genre,
     customApiKey,
-    currentProjectId,
-    styleKeyword,
-    setPropDesignerResult,
     props,
-    clearPropDesignerData,
+    saveAndUpdateProps,
   ]);
 
-  // Generate design sheet image for a prop
+  // Generate design sheet image for a prop (supports multiple reference images)
   const handleGenerateImage = useCallback(
-    async (propId: string, prompt: string, referenceImageBase64?: string) => {
+    async (propId: string, prompt: string, referenceImages?: string[]) => {
       setProps((prev) =>
         prev.map((p) => (p.id === propId ? { ...p, isGenerating: true } : p))
       );
 
       try {
+        // Support both single reference (legacy) and multiple references
+        const refImagesForApi = referenceImages?.map((img) =>
+          img.includes("base64,") ? img.split("base64,")[1] : img
+        );
+
         const response = await fetch("/api/generate_prop_sheet/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt,
-            referenceImageBase64,
+            referenceImages: refImagesForApi,
+            // Legacy support: also send first image as referenceImageBase64
+            referenceImageBase64: refImagesForApi?.[0],
             aspectRatio: "16:9",
             customApiKey: customApiKey || undefined,
           }),
@@ -605,57 +725,36 @@ export default function PropDesigner() {
     [currentProjectId, customApiKey, styleKeyword, genre, detectedIds, setPropDesignerResult]
   );
 
-  // Set reference image for a prop
-  const handleSetReferenceImage = useCallback(
-    async (propId: string, base64: string) => {
-      // Upload to S3
-      if (currentProjectId) {
-        try {
-          const uploadResponse = await fetch("/api/mithril/s3/image", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              projectId: currentProjectId,
-              imageType: "prop",
-              propId,
-              propSubtype: "reference",
-              base64: base64.includes("base64,") ? base64.split("base64,")[1] : base64,
-            }),
-          });
-
-          const uploadData = await uploadResponse.json();
-          if (uploadResponse.ok) {
-            await updatePropReferenceImage(currentProjectId, propId, uploadData.url);
-
-            setProps((prev) =>
-              prev.map((p) =>
-                p.id === propId ? { ...p, referenceImageUrl: uploadData.url } : p
-              )
-            );
-            return;
-          }
-        } catch (err) {
-          console.error("Failed to upload reference image:", err);
-        }
-      }
-
-      // Fallback to local base64
+  // Set reference images for a prop (supports multiple images)
+  const handleSetReferenceImages = useCallback(
+    async (propId: string, images: string[]) => {
+      // Update local state immediately with base64 images
       setProps((prev) =>
         prev.map((p) =>
-          p.id === propId ? { ...p, referenceImageBase64: base64 } : p
+          p.id === propId ? { ...p, referenceImages: images } : p
         )
       );
+
+      // TODO: In the future, upload all images to S3 and store URLs
+      // For now, just keep them as base64 in local state
     },
-    [currentProjectId]
+    []
   );
 
-  const selectedProp = props.find((p) => p.id === selectedPropId);
+  // Update prop fields
+  const handleUpdateProp = useCallback(
+    (propId: string, updates: Partial<Prop>) => {
+      setProps((prev) =>
+        prev.map((p) => (p.id === propId ? { ...p, ...updates } : p))
+      );
+    },
+    []
+  );
 
   // Clear all props (local state + context + Firestore)
   const handleClearAll = useCallback(async () => {
     // Clear local state
     setProps([]);
-    setSelectedPropId(null);
     // Clear context and Firestore
     await clearPropDesignerData();
   }, [clearPropDesignerData]);
@@ -803,48 +902,51 @@ export default function PropDesigner() {
 
       {hasStoryboard && (
         <>
+          {/* Storyboard Table */}
+          <StoryboardTable scenes={activeScenes} totalClips={totalClips} />
+
           {/* Detection Panel */}
           <DetectionPanel
             detectedIds={detectedIds}
             onToggleCategory={handleToggleCategory}
             onRemoveId={handleRemoveId}
-            onDetectProps={handleDetectProps}
-            isAnalyzing={isAnalyzing}
+            onDetectCharacters={handleDetectCharacters}
+            onDetectObjects={handleDetectObjects}
+            isAnalyzingCharacters={isAnalyzingCharacters}
+            isAnalyzingObjects={isAnalyzingObjects}
             totalClips={totalClips}
           />
 
-          {/* Props Grid */}
-          {props.length > 0 && (
-            <PropGrid
-              props={props}
-              selectedPropId={selectedPropId}
-              onSelectProp={setSelectedPropId}
-              onGenerateImage={handleGenerateImage}
-            />
-          )}
-
-          {/* Prop Detail */}
-          {selectedProp && (
-            <PropDetail
-              prop={selectedProp}
+          {/* Character Sheet Modal */}
+          {isCharacterSheetOpen && (
+            <PropListView
+              props={props.filter((p) => p.category === "character")}
               genre={genre}
               styleKeyword={styleKeyword}
-              onClose={() => setSelectedPropId(null)}
               onGenerateImage={handleGenerateImage}
-              onSetReferenceImage={handleSetReferenceImage}
+              onSetReferenceImages={handleSetReferenceImages}
+              onUpdateProp={handleUpdateProp}
+              onClose={() => setIsCharacterSheetOpen(false)}
+              onClearAll={handleClearAll}
+              title="Character Sheet Generator"
+              accentColor="purple"
             />
           )}
 
-          {/* Clear button */}
-          {props.length > 0 && (
-            <div className="flex justify-end">
-              <button
-                onClick={handleClearAll}
-                className="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-900/50 rounded text-sm font-bold transition-colors"
-              >
-                Clear All Props
-              </button>
-            </div>
+          {/* Object Sheet Modal */}
+          {isObjectSheetOpen && (
+            <PropListView
+              props={props.filter((p) => p.category === "object")}
+              genre={genre}
+              styleKeyword={styleKeyword}
+              onGenerateImage={handleGenerateImage}
+              onSetReferenceImages={handleSetReferenceImages}
+              onUpdateProp={handleUpdateProp}
+              onClose={() => setIsObjectSheetOpen(false)}
+              onClearAll={handleClearAll}
+              title="Object/Prop Sheet Generator"
+              accentColor="cyan"
+            />
           )}
         </>
       )}

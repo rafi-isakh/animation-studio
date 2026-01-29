@@ -16,7 +16,7 @@ import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { getProjectTypeConfig, ProjectType } from "./config/projectTypes";
+import { getProjectTypeConfig, getPipelineStages, ProjectType } from "./config/projectTypes";
 
 // Component mapping for dynamic rendering
 const STAGE_COMPONENTS: Record<string, ComponentType> = {
@@ -152,16 +152,19 @@ function MithrilContent() {
     { bg: 'bg-green-500', text: 'text-green-500', ring: 'ring-green-500/30' },
   ];
 
-  // Build stages dynamically from project type config
+  // Build stages dynamically from project type config (pipeline stages only)
   const projectTypeConfig = getProjectTypeConfig(projectType);
+  const pipelineStages = useMemo(() => getPipelineStages(projectType), [projectType]);
   const stages = useMemo(
-    () => projectTypeConfig.stages.map((stage, index) => ({
+    () => pipelineStages.map((stage, index) => ({
       id: stage.id,
+      // stepNumber is the user-facing number (1-based index), id is the internal stable key
+      stepNumber: index + 1,
       label: phrase(dictionary, stage.labelKey, language),
       component: stage.component,
       color: stageColors[index % stageColors.length],
     })),
-    [projectTypeConfig, dictionary, language]
+    [pipelineStages, dictionary, language]
   );
 
   // Get current stage component
@@ -209,7 +212,7 @@ function MithrilContent() {
                     }
                   `}
                 >
-                  {stage.id}
+                  {stage.stepNumber}
                 </div>
                 <span
                   className={`

@@ -128,6 +128,38 @@ const characterDetectionSchema = {
         description:
           "Image generation prompt for a character design sheet. Format: '2d anime white background character sheet of [CHARACTER], [VISUAL DESCRIPTION], front view, side view, back view, expression sheet, high quality, full body, no text'",
       },
+      // Easy Mode metadata fields
+      age: {
+        type: Type.STRING,
+        description: "Estimated age of the character as a number string (e.g., '25', '30')",
+      },
+      gender: {
+        type: Type.STRING,
+        description: "Gender of the character: 'Male' or 'Female'",
+      },
+      personality: {
+        type: Type.STRING,
+        description: "Character personality in max 4 English words (e.g., 'Smart and calm', 'Brave and loyal')",
+      },
+      role: {
+        type: Type.STRING,
+        description: "Relationship to protagonist in English (e.g., 'Partner', 'Rival', 'Enemy', 'Sister', 'Mentor', 'Protagonist')",
+      },
+      // Variant detection fields
+      isVariant: {
+        type: Type.BOOLEAN,
+        description: "True if this character is a variant/alternate version of another character (e.g., future self, dark mode, transformed state)",
+      },
+      variantDetails: {
+        type: Type.STRING,
+        nullable: true,
+        description: "If isVariant is true, describe what kind of variant (e.g., 'Future version', 'Dark mode', 'Transformed state'). Null if not a variant.",
+      },
+      variantVisuals: {
+        type: Type.STRING,
+        nullable: true,
+        description: "If isVariant is true, describe visual changes from the original (e.g., 'Longer hair, darker outfit, scar on face'). Null if not a variant.",
+      },
     },
     required: [
       "name",
@@ -136,6 +168,11 @@ const characterDetectionSchema = {
       "appearingClips",
       "contextPrompts",
       "characterSheetPrompt",
+      "age",
+      "gender",
+      "personality",
+      "role",
+      "isVariant",
     ],
   },
 };
@@ -206,6 +243,18 @@ async function detectCharacters(
 4. **묘사 스타일:** 'description' (영문 시각적 묘사)은 핵심 키워드와 구(phrase) 중심의 짧은 리스트 스타일로 작성하십시오.
 5. **캐릭터 디자인 시트 형식 (중요):**
    "2d anime white background character sheet, [VISUAL DESCRIPTION] of [CHARACTER NAME] in ${genre || "Modern"} setting, 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text"
+
+**[Easy Mode 데이터 추출 - 필수]**
+나중에 'Easy Mode' 템플릿을 생성하기 위해 다음 정보를 추가로 분석하십시오:
+- **role**: 주인공과의 관계 (예: Partner, Rival, Enemy, Sister, Mentor, Protagonist 등). 영어로 작성.
+- **age**: 추정 나이 (숫자 문자열로, 예: "25", "30").
+- **gender**: 성별 (Male 또는 Female).
+- **personality**: 성격 묘사 (최대 4단어 영어, 예: "Smart and calm", "Brave and loyal").
+
+**[변형(Variant) 캐릭터 감지]**
+- **isVariant**: 이 캐릭터가 기존 캐릭터의 변형인지 여부를 판단하십시오 (과거/미래 자신, 흑화, 변신 상태 등). Boolean 값.
+- **variantDetails**: 변형이라면 어떤 버전인가? (예: "Future version", "Dark mode", "Transformed state"). 일반이면 null.
+- **variantVisuals**: 변형에 따른 외모 변경점 묘사 (영어, 예: "Longer hair, darker outfit, scar on face"). 일반이면 null.
 
 결과는 반드시 JSON 배열 형태여야 합니다.
 

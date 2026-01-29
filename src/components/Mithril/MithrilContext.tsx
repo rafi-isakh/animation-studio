@@ -7,7 +7,7 @@ import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
 import { useProject } from "@/contexts/ProjectContext";
-import { ProjectType, getTotalStages, isValidStage, getDefaultProjectType } from "./config/projectTypes";
+import { ProjectType, getTotalStages, isValidStage, getDefaultProjectType, getPipelineStages, isPipelineStage, getStageConfig } from "./config/projectTypes";
 
 // Firestore services
 import {
@@ -242,6 +242,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Calculate total stages based on project type
   const totalStages = useMemo(() => getTotalStages(projectType), [projectType]);
 
+  // Helper: normalize a tool-only stage to a pipeline stage (e.g., stage 3 → stage 5)
+  // Declared early because it's used by useEffects below.
+  const normalizeStageForPipeline = useCallback((stage: number): number => {
+    const stageConfig = getStageConfig(projectType, stage);
+    // If stage exists but is tool-only, redirect to stage 5 (PropDesigner)
+    if (stageConfig && !isPipelineStage(stageConfig)) {
+      return 5;
+    }
+    return stage;
+  }, [projectType]);
+
   // Navigation state
   const [currentStage, setCurrentStageState] = useState(1);
 
@@ -265,27 +276,33 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const stage = parseInt(stageParam, 10);
       if (!isNaN(stage) && isValidStage(projectType, stage)) {
         initializedFromUrl.current = true;
-        setCurrentStageState(stage);
+        // Normalize tool-only stages to a pipeline stage (e.g., stage 3 → 5)
+        const normalized = normalizeStageForPipeline(stage);
+        setCurrentStageState(normalized);
       }
     }
-  }, [projectType]); // Re-run when projectType changes
+  }, [projectType, normalizeStageForPipeline]); // Re-run when projectType changes
 
   // Sync stage when URL changes (browser back/forward)
   useEffect(() => {
     const stageParam = searchParams.get('stage');
     if (stageParam && !isUpdatingUrl.current) {
       const stage = parseInt(stageParam, 10);
-      if (!isNaN(stage) && isValidStage(projectType, stage) && stage !== currentStage) {
-        setCurrentStageState(stage);
-        // Also update Firestore
-        if (currentProjectId) {
-          updateCurrentStageFirestore(currentProjectId, stage).catch(error => {
-            console.error("Error updating current stage in Firestore:", error);
-          });
+      if (!isNaN(stage) && isValidStage(projectType, stage)) {
+        // Normalize tool-only stages to a pipeline stage
+        const normalized = normalizeStageForPipeline(stage);
+        if (normalized !== currentStage) {
+          setCurrentStageState(normalized);
+          // Also update Firestore
+          if (currentProjectId) {
+            updateCurrentStageFirestore(currentProjectId, normalized).catch(error => {
+              console.error("Error updating current stage in Firestore:", error);
+            });
+          }
         }
       }
     }
-  }, [searchParams, currentProjectId, projectType]); // Note: currentStage intentionally omitted to avoid loops
+  }, [searchParams, currentProjectId, projectType, normalizeStageForPipeline]); // Note: currentStage intentionally omitted to avoid loops
 
   // Custom API Key state
   const [customApiKey, setCustomApiKeyState] = useState<string>("");
@@ -352,6 +369,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     return stage === 2 && uploadType === 'chapter';
   }, [uploadType]);
 
+  // Compute ordered list of pipeline stage IDs (excluding tool-only), respecting skipped stages
+  const pipelineStageIds = useMemo(() => {
+    return getPipelineStages(projectType)
+      .map(s => s.id)
+      .filter(id => !isStageSkipped(id));
+  }, [projectType, isStageSkipped]);
+
   // Load data from Firestore when projectId changes
   const loadFromFirestore = useCallback(async () => {
     if (!currentProjectId) {
@@ -367,7 +391,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (metadata) {
         // Only set stage from Firestore if URL didn't specify one
         if (!initializedFromUrl.current) {
-          setCurrentStageState(metadata.currentStage || 1);
+          // Normalize tool-only stages (e.g., stage 3 → 5)
+          const normalized = normalizeStageForPipeline(metadata.currentStage || 1);
+          setCurrentStageState(normalized);
         }
         setCustomApiKeyState(metadata.customApiKey || "");
         setVideoApiKeyState(metadata.videoApiKey || "");
@@ -592,7 +618,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setIsLoading(false);
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, normalizeStageForPipeline]);
 
   // Load data when projectId changes
   useEffect(() => {
@@ -740,7 +766,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!params.sourceText) {
       setStoryboardGenerator(prev => ({
         ...prev,
-        error: "No source text provided. Please select a part from Stage 3.",
+        error: "No source text provided. Please select a part from Stage 2.",
       }));
       return;
     }
@@ -1318,32 +1344,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [currentProjectId]);
 
-  // Navigation methods
+  // Navigation methods (follow pipeline order, skipping tool-only and skipped stages)
   const goToNextStage = useCallback(() => {
-    if (currentStage < totalStages) {
-      let nextStage = currentStage + 1;
-      // Skip Stage 2 if uploadType is 'chapter'
-      if (nextStage === 2 && uploadType === 'chapter') {
-        nextStage = 3;
-      }
-      if (nextStage <= totalStages) {
-        setCurrentStage(nextStage);
-      }
+    const idx = pipelineStageIds.indexOf(currentStage);
+    if (idx !== -1 && idx < pipelineStageIds.length - 1) {
+      setCurrentStage(pipelineStageIds[idx + 1]);
     }
-  }, [currentStage, totalStages, uploadType, setCurrentStage]);
+  }, [currentStage, pipelineStageIds, setCurrentStage]);
 
   const goToPreviousStage = useCallback(() => {
-    if (currentStage > 1) {
-      let prevStage = currentStage - 1;
-      // Skip Stage 2 if uploadType is 'chapter'
-      if (prevStage === 2 && uploadType === 'chapter') {
-        prevStage = 1;
-      }
-      if (prevStage >= 1) {
-        setCurrentStage(prevStage);
-      }
+    const idx = pipelineStageIds.indexOf(currentStage);
+    if (idx > 0) {
+      setCurrentStage(pipelineStageIds[idx - 1]);
     }
-  }, [currentStage, uploadType, setCurrentStage]);
+  }, [currentStage, pipelineStageIds, setCurrentStage]);
 
   // File management methods
   const addFile = (file: File) => {

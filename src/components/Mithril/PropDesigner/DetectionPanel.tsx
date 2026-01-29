@@ -7,8 +7,10 @@ interface DetectionPanelProps {
   detectedIds: DetectedId[];
   onToggleCategory: (id: string) => void;
   onRemoveId: (id: string) => void;
-  onDetectProps: () => void;
-  isAnalyzing: boolean;
+  onDetectCharacters: () => void;
+  onDetectObjects: () => void;
+  isAnalyzingCharacters: boolean;
+  isAnalyzingObjects: boolean;
   totalClips: number;
 }
 
@@ -16,8 +18,10 @@ export default function DetectionPanel({
   detectedIds,
   onToggleCategory,
   onRemoveId,
-  onDetectProps,
-  isAnalyzing,
+  onDetectCharacters,
+  onDetectObjects,
+  isAnalyzingCharacters,
+  isAnalyzingObjects,
   totalClips,
 }: DetectionPanelProps) {
   const characters = detectedIds.filter((d) => d.category === "character");
@@ -33,50 +37,65 @@ export default function DetectionPanel({
             Found {detectedIds.length} IDs across {totalClips} clips. Click to toggle category, &times; to remove.
           </p>
         </div>
-        <button
-          onClick={onDetectProps}
-          disabled={isAnalyzing || objects.length === 0}
-          className="px-4 py-2 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-sm font-bold transition-colors flex items-center gap-2"
-        >
-          {isAnalyzing ? (
-            <>
-              <svg
-                className="animate-spin h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              Analyzing...
-            </>
-          ) : (
-            "Detect Props"
-          )}
-        </button>
       </div>
 
       {/* Character IDs */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest">
-            Characters ({characters.length})
-          </span>
-          <span className="text-[9px] text-gray-600">
-            - will be skipped during prop detection
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">
+              Characters ({characters.length})
+            </span>
+          </div>
+          <button
+            onClick={onDetectCharacters}
+            disabled={isAnalyzingCharacters || isAnalyzingObjects || characters.length === 0}
+            className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors flex items-center gap-1.5"
+          >
+            {isAnalyzingCharacters ? (
+              <>
+                <svg
+                  className="animate-spin h-3 w-3"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-3 h-3"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                  />
+                </svg>
+                Detect Characters
+              </>
+            )}
+          </button>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {characters.length === 0 ? (
@@ -110,13 +129,61 @@ export default function DetectionPanel({
 
       {/* Object IDs */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest">
-            Objects ({objects.length})
-          </span>
-          <span className="text-[9px] text-gray-600">
-            - will be analyzed for prop details
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest">
+              Objects ({objects.length})
+            </span>
+          </div>
+          <button
+            onClick={onDetectObjects}
+            disabled={isAnalyzingCharacters || isAnalyzingObjects || objects.length === 0}
+            className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors flex items-center gap-1.5"
+          >
+            {isAnalyzingObjects ? (
+              <>
+                <svg
+                  className="animate-spin h-3 w-3"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-3 h-3"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                  />
+                </svg>
+                Detect Objects
+              </>
+            )}
+          </button>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {objects.length === 0 ? (
@@ -151,7 +218,7 @@ export default function DetectionPanel({
       {/* Help text */}
       <div className="text-[9px] text-gray-600 bg-gray-900/50 rounded p-2">
         <strong>Tip:</strong> IDs are auto-categorized based on keywords. Click an ID to switch between
-        Character/Object. Only Objects will be analyzed when you click &quot;Detect Props&quot;.
+        Character/Object. Use &quot;Detect Characters&quot; or &quot;Detect Objects&quot; to analyze each category separately.
       </div>
     </div>
   );

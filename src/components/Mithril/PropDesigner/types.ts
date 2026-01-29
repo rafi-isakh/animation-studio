@@ -43,9 +43,21 @@ export interface Prop {
   designSheetImageUrl?: string; // S3 URL for persisted images
   isGenerating: boolean;
 
-  // Reference image support (user can upload)
-  referenceImageBase64?: string;
-  referenceImageUrl?: string;
+  // Reference image support (user can upload) - supports multiple images
+  referenceImageBase64?: string; // Legacy: single image
+  referenceImageUrl?: string; // Legacy: single URL
+  referenceImages?: string[]; // NEW: Array of base64 or URLs for multiple references
+
+  // Character metadata (for Easy Mode)
+  age?: string;
+  gender?: string;
+  personality?: string;
+  role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
+
+  // Variant detection
+  isVariant?: boolean;
+  variantDetails?: string; // e.g., "Future version", "Dark mode"
+  variantVisuals?: string; // e.g., "Longer hair, darker outfit"
 }
 
 // Metadata stored in context for navigation persistence
@@ -58,7 +70,19 @@ export interface PropMetadata {
   appearingClips: string[];
   designSheetPrompt: string;
   designSheetImageRef: string; // S3 URL
-  referenceImageRef?: string; // S3 URL
+  referenceImageRef?: string; // S3 URL (legacy single)
+  referenceImageRefs?: string[]; // S3 URLs (multiple references)
+
+  // Character metadata
+  age?: string;
+  gender?: string;
+  personality?: string;
+  role?: string;
+
+  // Variant info
+  isVariant?: boolean;
+  variantDetails?: string;
+  variantVisuals?: string;
 }
 
 // Settings for the PropDesigner stage
@@ -140,4 +164,24 @@ export function getCharacterDesignSheetPrompt(
   styleKeyword: string
 ): string {
   return `2d anime white background character sheet, ${prop.description} of ${prop.name} in ${genre} setting, 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text. Style: ${styleKeyword}. No vfx or visual effects, no dust particles`;
+}
+
+// Easy Mode template for character design sheet
+export function getEasyModeCharacterPrompt(
+  prop: {
+    name: string;
+    description: string;
+    age?: string;
+    gender?: string;
+    personality?: string;
+    role?: string;
+  }
+): string {
+  const age = prop.age || "20";
+  const gender = prop.gender || "Female";
+  const personality = prop.personality || "Smart and calm";
+  const relationship = prop.role || "Companion";
+  const description = prop.description || "";
+
+  return `make 2d anime white background character sheet of who would be ${relationship} of this character, ${age}-year old ${gender}. ${personality}. ${description} Maintain 1 full body front view, 1 face close up front view, 1 hands close up template. No vfx or visual effects, no dust particles`;
 }

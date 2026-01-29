@@ -278,8 +278,12 @@ export default function ImageGenerator() {
               savedMeta.localAssets.map(async (asset) => {
                 try {
                   console.log(`[ImageGen] Fetching replacement asset: ${asset.id} (${asset.category}) from ${asset.imageUrl}`);
-                  // Fetch the image and convert to base64
-                  const response = await fetch(asset.imageUrl);
+                  // Fetch the image via proxy API to avoid CORS issues
+                  const proxyUrl = `/api/proxy-s3-image?url=${encodeURIComponent(asset.imageUrl)}`;
+                  const response = await fetch(proxyUrl);
+                  if (!response.ok) {
+                    throw new Error(`Failed to fetch: ${response.statusText}`);
+                  }
                   const blob = await response.blob();
                   const base64 = await new Promise<string>((resolve) => {
                     const reader = new FileReader();

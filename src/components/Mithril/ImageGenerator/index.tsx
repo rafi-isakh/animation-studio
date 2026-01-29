@@ -127,17 +127,24 @@ export default function ImageGenerator() {
 
   // Load character and background assets from previous stages
   const loadAssets = useCallback(() => {
-    // Load characters from PropDesigner (Stage 5) - filter by category='character'
+    // Load characters AND objects from PropDesigner (Stage 5)
     const propResult = propDesignerGenerator.result;
     if (propResult?.props) {
-      const characterProps = propResult.props.filter(p => p.category === 'character');
+      // Include both characters and objects as selectable assets
+      const characterAndObjectProps = propResult.props.filter(p => p.category === 'character' || p.category === 'object');
       setCharacterAssets(
-        characterProps.map((prop) => ({
-          id: prop.id,
-          name: prop.name,
-          // Use designSheetImageRef or referenceImageRef as the image URL
-          imageUrl: prop.designSheetImageRef || prop.referenceImageRef || "",
-        }))
+        characterAndObjectProps.map((prop) => {
+          // Use designSheetImageRef, referenceImageRef, or first item from referenceImageRefs
+          let imageUrl = prop.designSheetImageRef || prop.referenceImageRef || "";
+          if (!imageUrl && prop.referenceImageRefs && prop.referenceImageRefs.length > 0) {
+            imageUrl = prop.referenceImageRefs[0];
+          }
+          return {
+            id: prop.id,
+            name: prop.name,
+            imageUrl,
+          };
+        })
       );
     }
 
@@ -527,8 +534,8 @@ export default function ImageGenerator() {
           }
         }
 
-        // Check Prop Designer character assets (skip if already matched from local assets)
-        console.log(`[ImageGen] Checking ${characterAssets.length} PropDesigner character assets (already matched: ${matchedCharacterIds.size})`);
+        // Check Prop Designer character & object assets (skip if already matched from local assets)
+        console.log(`[ImageGen] Checking ${characterAssets.length} PropDesigner character/object assets (already matched: ${matchedCharacterIds.size})`);
         
         for (const char of characterAssets) {
           // Skip if this character was already matched from local assets (replacement)
@@ -1467,11 +1474,11 @@ export default function ImageGenerator() {
           )}
         </div>
 
-        {/* Character Assets */}
+        {/* Character & Prop Assets */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-yellow-500/30">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-[10px] font-black text-yellow-500 uppercase">
-              Characters ({characterAssets.length + localCharacterAssets.length})
+              Characters & Props ({characterAssets.length + localCharacterAssets.length})
             </h3>
             <label className="cursor-pointer bg-yellow-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors">
               UPLOAD
@@ -1486,11 +1493,11 @@ export default function ImageGenerator() {
           </div>
           {characterAssets.length === 0 && localCharacterAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
-              No characters - upload or use Prop Designer
+              No assets - upload or use Prop Designer
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
-              {/* Prop Designer characters */}
+              {/* Prop Designer characters & objects */}
               {characterAssets.map((char) => {
                 const replaced = isAssetReplaced(char.id);
                 const replacementAsset = localAssets.find((a) => a.id === char.id);

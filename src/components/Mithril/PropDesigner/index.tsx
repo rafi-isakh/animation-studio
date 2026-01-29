@@ -1041,6 +1041,60 @@ export default function PropDesigner() {
             </button>
           </div>
 
+          {/* Session Export/Import Buttons */}
+          <div className="flex items-center gap-1 border-l border-gray-700 pl-4">
+            <button
+              onClick={handleExportSession}
+              disabled={props.length === 0}
+              className="px-2 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-gray-300 border border-gray-600 rounded text-xs font-bold transition-colors flex items-center gap-1"
+              title="Export session as JSON"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-3.5 h-3.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                />
+              </svg>
+              Export
+            </button>
+            <input
+              ref={jsonInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportSession}
+              className="hidden"
+            />
+            <button
+              onClick={() => jsonInputRef.current?.click()}
+              className="px-2 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600 rounded text-xs font-bold transition-colors flex items-center gap-1"
+              title="Import session from JSON"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-3.5 h-3.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                />
+              </svg>
+              Import
+            </button>
+          </div>
+
           {/* Genre selector */}
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-gray-500 uppercase">Genre:</label>

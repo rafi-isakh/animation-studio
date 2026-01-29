@@ -18,6 +18,7 @@ import {
   SavePropInput,
   UpdatePropInput,
 } from './types';
+import { deletePropImages } from '../s3';
 
 // ============================================
 // Document References
@@ -137,7 +138,8 @@ export async function saveProp(
     ? doc(collectionRef, input.id)
     : doc(collectionRef);
 
-  await setDoc(docRef, {
+  // Build the document data with all fields
+  const data: Record<string, unknown> = {
     name: input.name,
     category: input.category,
     description: input.description,
@@ -147,7 +149,25 @@ export async function saveProp(
     designSheetPrompt: input.designSheetPrompt || '',
     designSheetImageRef: input.designSheetImageRef || '',
     referenceImageRef: input.referenceImageRef || '',
-  });
+  };
+
+  // Add multiple reference images if provided
+  if (input.referenceImageRefs) {
+    data.referenceImageRefs = input.referenceImageRefs;
+  }
+
+  // Add character metadata (Easy Mode fields)
+  if (input.age !== undefined) data.age = input.age;
+  if (input.gender !== undefined) data.gender = input.gender;
+  if (input.personality !== undefined) data.personality = input.personality;
+  if (input.role !== undefined) data.role = input.role;
+
+  // Add variant detection fields
+  if (input.isVariant !== undefined) data.isVariant = input.isVariant;
+  if (input.variantDetails !== undefined) data.variantDetails = input.variantDetails;
+  if (input.variantVisuals !== undefined) data.variantVisuals = input.variantVisuals;
+
+  await setDoc(docRef, data);
 
   return docRef.id;
 }
@@ -264,8 +284,27 @@ export async function updateDetectedIdCategory(
 
 /**
  * Clear all prop designer data (settings + all props + detected IDs)
+ * Also deletes all prop images from S3
  */
 export async function clearPropDesigner(projectId: string): Promise<void> {
+  // Step 1: Delete all prop images from S3 first
+  try {
+    const props = await getProps(projectId);
+    console.log(`[clearPropDesigner] Deleting ${props.length} props from S3`);
+    
+    for (const prop of props) {
+      try {
+        await deletePropImages(projectId, prop.id);
+        console.log(`[clearPropDesigner] Deleted S3 images for prop: ${prop.id}`);
+      } catch (error) {
+        console.warn(`[clearPropDesigner] Failed to delete S3 images for prop ${prop.id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.warn("[clearPropDesigner] Error deleting prop images from S3:", error);
+  }
+
+  // Step 2: Delete Firestore documents
   const batch = writeBatch(db);
   let hasDeletes = false;
 
@@ -279,7 +318,7 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
     }
   } catch (error) {
     // BloomFilter errors can occur on empty/new collections - safe to ignore
-    console.warn("Error fetching props for deletion (may be empty):", error);
+    console.warn("[clearPropDesigner] Error fetching props for deletion (may be empty):", error);
   }
 
   // Delete all detected IDs - wrap in try-catch to handle BloomFilter errors
@@ -292,7 +331,7 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
     }
   } catch (error) {
     // BloomFilter errors can occur on empty/new collections - safe to ignore
-    console.warn("Error fetching detected IDs for deletion (may be empty):", error);
+    console.warn("[clearPropDesigner] Error fetching detected IDs for deletion (may be empty):", error);
   }
 
   // Delete settings - always try to delete

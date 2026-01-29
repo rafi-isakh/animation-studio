@@ -7,6 +7,12 @@ export interface StageDefinition {
   key: string;           // Unique identifier (e.g., 'upload', 'image-splitter')
   labelKey: string;      // i18n key for stage label
   component: string;     // Component name for dynamic rendering
+  /**
+   * Visibility of this stage in the main pipeline stepper.
+   * - 'pipeline': shows as a step (default)
+   * - 'tool': not shown as a step, but can still be rendered/used if navigated directly
+   */
+  visibility?: 'pipeline' | 'tool';
 }
 
 // Project type configuration
@@ -22,7 +28,8 @@ export interface ProjectTypeConfig {
 const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 1, key: 'upload', labelKey: 'mithril_stage1', component: 'UploadManager' },
   { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
-  { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator' },
+  // Tool-only: kept for backwards compatibility + on-demand usage, but removed from the pipeline stepper.
+  { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator', visibility: 'tool' },
   { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'StoryboardGenerator' },
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
@@ -64,11 +71,20 @@ export function getProjectTypeConfig(type: ProjectType): ProjectTypeConfig {
   return PROJECT_TYPE_CONFIGS[type];
 }
 
+export function isPipelineStage(stage: StageDefinition): boolean {
+  return (stage.visibility ?? 'pipeline') === 'pipeline';
+}
+
+export function getPipelineStages(type: ProjectType): StageDefinition[] {
+  return PROJECT_TYPE_CONFIGS[type].stages.filter(isPipelineStage);
+}
+
 /**
  * Get the total number of stages for a project type
  */
 export function getTotalStages(type: ProjectType): number {
-  return PROJECT_TYPE_CONFIGS[type].stages.length;
+  // Total *pipeline* steps (what the user sees in the stepper)
+  return getPipelineStages(type).length;
 }
 
 /**
@@ -82,8 +98,8 @@ export function getStageConfig(type: ProjectType, stageId: number): StageDefinit
  * Check if a stage ID is valid for a project type
  */
 export function isValidStage(type: ProjectType, stageId: number): boolean {
-  const totalStages = getTotalStages(type);
-  return stageId >= 1 && stageId <= totalStages;
+  // IDs are not guaranteed to be contiguous anymore.
+  return getStageConfig(type, stageId) != null;
 }
 
 /**

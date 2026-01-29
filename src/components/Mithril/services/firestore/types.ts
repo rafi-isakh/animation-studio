@@ -197,7 +197,19 @@ export interface PropDocument {
   contextPrompts: PropContextDocument[];
   designSheetPrompt: string;
   designSheetImageRef: string; // S3 URL
-  referenceImageRef?: string; // S3 URL
+  referenceImageRef?: string; // S3 URL (legacy single reference)
+  referenceImageRefs?: string[]; // S3 URLs (multiple references)
+
+  // Character metadata (for Easy Mode)
+  age?: string;
+  gender?: string;
+  personality?: string;
+  role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
+
+  // Variant detection
+  isVariant?: boolean;
+  variantDetails?: string; // e.g., "Future version", "Dark mode"
+  variantVisuals?: string; // e.g., "Longer hair, darker outfit"
 }
 
 export interface DetectedIdDocument {
@@ -224,7 +236,19 @@ export interface SavePropInput {
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
   designSheetImageRef?: string;
-  referenceImageRef?: string;
+  referenceImageRef?: string; // Legacy single reference
+  referenceImageRefs?: string[]; // Multiple references
+
+  // Character metadata (for Easy Mode)
+  age?: string;
+  gender?: string;
+  personality?: string;
+  role?: string;
+
+  // Variant detection
+  isVariant?: boolean;
+  variantDetails?: string;
+  variantVisuals?: string;
 }
 
 export interface UpdatePropInput {
@@ -236,7 +260,19 @@ export interface UpdatePropInput {
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
   designSheetImageRef?: string;
-  referenceImageRef?: string;
+  referenceImageRef?: string; // Legacy single reference
+  referenceImageRefs?: string[]; // Multiple references
+
+  // Character metadata (for Easy Mode)
+  age?: string;
+  gender?: string;
+  personality?: string;
+  role?: string;
+
+  // Variant detection
+  isVariant?: boolean;
+  variantDetails?: string;
+  variantVisuals?: string;
 }
 
 // ============================================
@@ -296,6 +332,12 @@ export interface ImageGenDocument {
   stylePrompt: string;
   aspectRatio: ImageGenAspectRatio;
   generatedAt: Timestamp;
+  localAssets?: Array<{
+    id: string;
+    name: string;
+    imageUrl: string; // S3 URL instead of base64
+    category: 'character' | 'background';
+  }>;
 }
 
 export interface ImageGenFrameDocument {

@@ -32,13 +32,17 @@ export default function ProjectListPage() {
   }
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    if (user) {
+      loadProjects();
+    }
+  }, [user]);
 
   async function loadProjects() {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const data = await listProjects();
+      const data = await listProjects({ id: user.id, role: user.role });
       setProjects(data);
     } catch (error) {
       console.error('Failed to load projects:', error);
@@ -55,6 +59,8 @@ export default function ProjectListPage() {
 
   async function handleDeleteProject(e: React.MouseEvent, projectId: string) {
     e.stopPropagation();
+
+    if (!user) return;
 
     if (!confirm('Are you sure you want to delete this project? This will permanently delete all data including images and videos.')) {
       return;
@@ -73,7 +79,7 @@ export default function ProjectListPage() {
       }
 
       // 2. Delete Firestore data (project + subcollections)
-      await deleteProject(projectId);
+      await deleteProject(projectId, { id: user.id, role: user.role });
 
       setProjects(projects.filter(p => p.id !== projectId));
     } catch (error) {

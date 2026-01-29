@@ -13,6 +13,7 @@ import { Button } from '@/components/shadcnUI/Button';
 import { Input } from '@/components/shadcnUI/Input';
 import { Label } from '@/components/shadcnUI/Label';
 import { updateProject, ProjectMetadata } from './services/firestore';
+import { useMithrilAuth } from './auth/MithrilAuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface RenameProjectModalProps {
@@ -28,6 +29,7 @@ export default function RenameProjectModal({
   project,
   onProjectRenamed,
 }: RenameProjectModalProps) {
+  const { user } = useMithrilAuth();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export default function RenameProjectModal({
       return;
     }
 
-    if (!project) {
+    if (!project || !user) {
       return;
     }
 
@@ -59,7 +61,7 @@ export default function RenameProjectModal({
       setLoading(true);
       setError(null);
 
-      await updateProject(project.id, { name: name.trim() });
+      await updateProject(project.id, { name: name.trim() }, { id: user.id, role: user.role });
 
       onProjectRenamed({
         ...project,

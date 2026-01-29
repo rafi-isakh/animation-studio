@@ -278,29 +278,19 @@ export default function ImageGenerator() {
               savedMeta.localAssets.map(async (asset) => {
                 try {
                   console.log(`[ImageGen] Fetching replacement asset: ${asset.id} (${asset.category}) from ${asset.imageUrl}`);
-                  // Fetch the image via proxy API to avoid CORS issues
-                  const proxyUrl = `/api/proxy-s3-image?url=${encodeURIComponent(asset.imageUrl)}`;
+                  // Fetch the image via existing proxy API to avoid CORS issues
+                  const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(asset.imageUrl)}`;
                   const response = await fetch(proxyUrl);
                   if (!response.ok) {
                     throw new Error(`Failed to fetch: ${response.statusText}`);
                   }
-                  const blob = await response.blob();
-                  const base64 = await new Promise<string>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      const result = reader.result as string;
-                      // Extract base64 part (remove data:image/...;base64, prefix)
-                      const base64Data = result.split(',')[1];
-                      resolve(base64Data);
-                    };
-                    reader.readAsDataURL(blob);
-                  });
-                  console.log(`[ImageGen] ✓ Loaded replacement asset: ${asset.id}, base64 length: ${base64.length}`);
+                  const data = await response.json();
+                  console.log(`[ImageGen] ✓ Loaded replacement asset: ${asset.id}, base64 length: ${data.base64.length}`);
                   return {
                     id: asset.id,
                     name: asset.name,
-                    base64,
-                    mimeType: blob.type || 'image/webp',
+                    base64: data.base64,
+                    mimeType: data.contentType || 'image/webp',
                     category: asset.category,
                   };
                 } catch (err) {

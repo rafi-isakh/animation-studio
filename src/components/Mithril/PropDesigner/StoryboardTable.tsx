@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 
+// Matches CSV: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
+// Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,
+// Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
 interface Clip {
   story?: string;
   imagePrompt?: string;
@@ -14,7 +17,6 @@ interface Clip {
   length?: string;
   accumulatedTime?: string;
   soraVideoPrompt?: string;
-  refFileName?: string;
   sfx?: string;
   sfxEn?: string;
   bgm?: string;
@@ -31,12 +33,11 @@ interface StoryboardTableProps {
 }
 
 export default function StoryboardTable({ scenes, totalClips }: StoryboardTableProps) {
-  // Headers matching the reference: 클립, Visual, 길이, 누적 시간, 배경 ID, 배경 프롬프트, 스토리,
-  // Image Prompt (Start), Image Prompt (End), 비디오 프롬프트, Sora 비디오 프롬프트,
-  // Reference Image, 대사 (Ko), 대사 (En), 효과음 (Ko), 효과음 (En), BGM (Ko), BGM (En)
+  // Headers matching CSV: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
+  // Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,Dialogue (Ko),Dialogue (En),
+  // SFX (Ko),SFX (En),BGM (Ko),BGM (En)
   const allHeaders = [
     "클립",
-    "Visual",
     "길이",
     "누적 시간",
     "배경 ID",
@@ -46,7 +47,6 @@ export default function StoryboardTable({ scenes, totalClips }: StoryboardTableP
     "Image Prompt (End)",
     "비디오 프롬프트",
     "Sora 비디오 프롬프트",
-    "Reference Image",
     "대사 (Ko)",
     "대사 (En)",
     "효과음 (Ko)",
@@ -56,9 +56,9 @@ export default function StoryboardTable({ scenes, totalClips }: StoryboardTableP
   ];
 
   // Default collapsed columns - show only essential ones initially
-  // Hide: Visual, 길이, 누적 시간, 배경 프롬프트, Image End, Sora, Ref Image, 대사 En, 효과음, BGM
+  // Hide: 길이, 누적 시간, 배경 프롬프트, Image End, Sora, 대사 En, 효과음, BGM
   const [collapsedCols, setCollapsedCols] = useState<Set<number>>(
-    new Set([1, 2, 3, 5, 8, 10, 11, 13, 14, 15, 16, 17])
+    new Set([1, 2, 4, 7, 9, 11, 12, 13, 14, 15])
   );
 
   const toggleColumn = (idx: number) => {
@@ -144,104 +144,92 @@ export default function StoryboardTable({ scenes, totalClips }: StoryboardTableP
                       {`${sIdx + 1}.${cIdx + 1}`}
                     </td>
                   )}
-                  {/* 1: Visual (placeholder for generated image) */}
+                  {/* 1: 길이 (Length) */}
                   {!collapsedCols.has(1) && (
-                    <td className="px-3 py-2 text-[10px] text-gray-600 italic border-r border-gray-800/50">
-                      -
-                    </td>
-                  )}
-                  {/* 2: 길이 (Length) */}
-                  {!collapsedCols.has(2) && (
                     <td className="px-3 py-2 text-[10px] text-gray-400 border-r border-gray-800/50">
                       {getVal(clip, "length")}
                     </td>
                   )}
-                  {/* 3: 누적 시간 (Accumulated Time) */}
-                  {!collapsedCols.has(3) && (
+                  {/* 2: 누적 시간 (Accumulated Time) */}
+                  {!collapsedCols.has(2) && (
                     <td className="px-3 py-2 text-[10px] text-gray-400 font-mono border-r border-gray-800/50">
                       {getVal(clip, "accumulatedTime")}
                     </td>
                   )}
-                  {/* 4: 배경 ID (Background ID) */}
-                  {!collapsedCols.has(4) && (
+                  {/* 3: 배경 ID (Background ID) */}
+                  {!collapsedCols.has(3) && (
                     <td className="px-3 py-2 text-[10px] text-purple-400 font-mono border-r border-gray-800/50">
                       {getVal(clip, "backgroundId")}
                     </td>
                   )}
-                  {/* 5: 배경 프롬프트 (Background Prompt) */}
-                  {!collapsedCols.has(5) && (
+                  {/* 4: 배경 프롬프트 (Background Prompt) */}
+                  {!collapsedCols.has(4) && (
                     <td className="px-3 py-2 text-[10px] text-gray-500 italic border-r border-gray-800/50 max-w-[150px] truncate" title={getVal(clip, "backgroundPrompt")}>
                       {getVal(clip, "backgroundPrompt")}
                     </td>
                   )}
-                  {/* 6: 스토리 (Story) */}
-                  {!collapsedCols.has(6) && (
+                  {/* 5: 스토리 (Story) */}
+                  {!collapsedCols.has(5) && (
                     <td className="px-3 py-2 text-[11px] text-gray-300 border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "story")}>
                       {getVal(clip, "story")}
                     </td>
                   )}
-                  {/* 7: Image Prompt (Start) */}
-                  {!collapsedCols.has(7) && (
+                  {/* 6: Image Prompt (Start) */}
+                  {!collapsedCols.has(6) && (
                     <td className="px-3 py-2 text-[10px] text-gray-400 italic border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "imagePrompt")}>
                       {getVal(clip, "imagePrompt")}
                     </td>
                   )}
-                  {/* 8: Image Prompt (End) */}
-                  {!collapsedCols.has(8) && (
+                  {/* 7: Image Prompt (End) */}
+                  {!collapsedCols.has(7) && (
                     <td className="px-3 py-2 text-[10px] text-gray-400 italic border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "imagePromptEnd")}>
                       {getVal(clip, "imagePromptEnd")}
                     </td>
                   )}
-                  {/* 9: 비디오 프롬프트 (Video Prompt) */}
-                  {!collapsedCols.has(9) && (
+                  {/* 8: 비디오 프롬프트 (Video Prompt) */}
+                  {!collapsedCols.has(8) && (
                     <td className="px-3 py-2 text-[10px] text-gray-300 border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "videoPrompt")}>
                       {getVal(clip, "videoPrompt")}
                     </td>
                   )}
-                  {/* 10: Sora 비디오 프롬프트 (Sora Video Prompt) */}
-                  {!collapsedCols.has(10) && (
+                  {/* 9: Sora 비디오 프롬프트 (Sora Video Prompt) */}
+                  {!collapsedCols.has(9) && (
                     <td className="px-3 py-2 text-[10px] text-blue-400 font-mono border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "soraVideoPrompt")}>
                       {getVal(clip, "soraVideoPrompt")}
                     </td>
                   )}
-                  {/* 11: Reference Image */}
-                  {!collapsedCols.has(11) && (
-                    <td className="px-3 py-2 text-[9px] text-lime-400 font-black border-r border-gray-800/50 uppercase tracking-tighter">
-                      {getVal(clip, "refFileName")}
-                    </td>
-                  )}
-                  {/* 12: 대사 (Ko) (Dialogue Ko) */}
-                  {!collapsedCols.has(12) && (
+                  {/* 10: 대사 (Ko) (Dialogue Ko) */}
+                  {!collapsedCols.has(10) && (
                     <td className="px-3 py-2 text-[11px] text-gray-200 border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "dialogue")}>
                       {getVal(clip, "dialogue")}
                     </td>
                   )}
-                  {/* 13: 대사 (En) (Dialogue En) */}
-                  {!collapsedCols.has(13) && (
+                  {/* 11: 대사 (En) (Dialogue En) */}
+                  {!collapsedCols.has(11) && (
                     <td className="px-3 py-2 text-[10px] text-gray-500 italic border-r border-gray-800/50 max-w-[200px] truncate" title={getVal(clip, "dialogueEn")}>
                       {getVal(clip, "dialogueEn")}
                     </td>
                   )}
-                  {/* 14: 효과음 (Ko) (SFX Ko) */}
-                  {!collapsedCols.has(14) && (
+                  {/* 12: 효과음 (Ko) (SFX Ko) */}
+                  {!collapsedCols.has(12) && (
                     <td className="px-3 py-2 text-[10px] text-purple-400 border-r border-gray-800/50">
                       {getVal(clip, "sfx")}
                     </td>
                   )}
-                  {/* 15: 효과음 (En) (SFX En) */}
-                  {!collapsedCols.has(15) && (
+                  {/* 13: 효과음 (En) (SFX En) */}
+                  {!collapsedCols.has(13) && (
                     <td className="px-3 py-2 text-[9px] text-gray-600 border-r border-gray-800/50">
                       {getVal(clip, "sfxEn")}
                     </td>
                   )}
-                  {/* 16: BGM (Ko) */}
-                  {!collapsedCols.has(16) && (
+                  {/* 14: BGM (Ko) */}
+                  {!collapsedCols.has(14) && (
                     <td className="px-3 py-2 text-[10px] text-green-400 border-r border-gray-800/50">
                       {getVal(clip, "bgm")}
                     </td>
                   )}
-                  {/* 17: BGM (En) */}
-                  {!collapsedCols.has(17) && (
+                  {/* 15: BGM (En) */}
+                  {!collapsedCols.has(15) && (
                     <td className="px-3 py-2 text-[9px] text-gray-600">
                       {getVal(clip, "bgmEn")}
                     </td>

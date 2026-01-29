@@ -18,6 +18,7 @@ interface PropListViewProps {
   onClearAll: () => void;
   title?: string;
   accentColor?: "purple" | "cyan";
+  initialMinimized?: boolean; // Start minimized (as floating button)
 }
 
 export default function PropListView({
@@ -31,9 +32,10 @@ export default function PropListView({
   onClearAll,
   title = "Design Sheet Generator",
   accentColor = "cyan",
+  initialMinimized = false,
 }: PropListViewProps) {
-  // Minimized state
-  const [isMinimized, setIsMinimized] = useState(false);
+  // Minimized state - use initialMinimized prop
+  const [isMinimized, setIsMinimized] = useState(initialMinimized);
   // Easy Mode state
   const [isEasyMode, setIsEasyMode] = useState(false);
 
@@ -149,13 +151,27 @@ export default function PropListView({
     [props, editablePrompts, onGenerateImage]
   );
 
-  // Download generated image
-  const downloadImage = useCallback((url: string, name: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    const safeName = name.replace(/[^a-zA-Z0-9\s_]/g, "").replace(/\s+/g, "_");
-    link.download = `${safeName}.png`;
-    link.click();
+  // Download generated image (handles cross-origin S3 URLs)
+  const downloadImage = useCallback(async (url: string, name: string) => {
+    try {
+      // Fetch the image and convert to blob for cross-origin download
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      const safeName = name.replace(/[^a-zA-Z0-9\s_]/g, "").replace(/\s+/g, "_");
+      link.download = `${safeName}.png`;
+      link.click();
+
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Failed to download image:", error);
+      // Fallback: open in new tab
+      window.open(url, "_blank");
+    }
   }, []);
 
   // Get image URL for a prop
@@ -370,18 +386,41 @@ export default function PropListView({
 
                 {/* Easy Mode Metadata Display (for characters with metadata) */}
                 {isCharacter && prop.role && (
-                  <div className="flex gap-2 text-[9px] text-gray-500 font-mono border-b border-gray-700/30 pb-1 mb-1">
+                  <div className="flex flex-wrap gap-x-2 gap-y-1 text-[9px] text-gray-500 font-mono border-b border-gray-700/30 pb-1 mb-1">
                     <span>
                       Role: <b className="text-gray-300">{prop.role}</b>
                     </span>
-                    <span>*</span>
+                    <span className="text-gray-700">|</span>
                     <span>
                       Age: <b className="text-gray-300">{prop.age}</b>
                     </span>
-                    <span>*</span>
+                    <span className="text-gray-700">|</span>
+                    <span>
+                      Gender: <b className="text-gray-300">{prop.gender}</b>
+                    </span>
+                    <span className="text-gray-700">|</span>
                     <span>
                       Personality: <b className="text-gray-300">{prop.personality}</b>
                     </span>
+                  </div>
+                )}
+
+                {/* Variant Details Display */}
+                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals) && (
+                  <div className="bg-purple-950/30 border border-purple-800/50 rounded p-2 text-[9px] space-y-1">
+                    <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest">
+                      Variant Information
+                    </span>
+                    {prop.variantDetails && (
+                      <p className="text-purple-300">
+                        <b>Type:</b> {prop.variantDetails}
+                      </p>
+                    )}
+                    {prop.variantVisuals && (
+                      <p className="text-purple-200 italic">
+                        <b>Visual Changes:</b> {prop.variantVisuals}
+                      </p>
+                    )}
                   </div>
                 )}
 

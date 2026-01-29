@@ -16,8 +16,9 @@ import {
 } from "../services/firestore";
 
 // CSV clip structure for imported data
-// CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
-// Table display adds: Visual, Reference Image columns
+// CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
+// Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,
+// Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
 interface CsvClip {
   story: string;
   imagePrompt: string;
@@ -30,7 +31,6 @@ interface CsvClip {
   length: string;
   accumulatedTime: string;
   soraVideoPrompt: string;
-  refFileName: string; // Reference Image - may not be in CSV but used in table display
   sfx: string;
   sfxEn: string;
   bgm: string;
@@ -102,6 +102,9 @@ export default function PropDesigner() {
   const [genre, setGenre] = useState<string>("Modern");
   const [isCharacterSheetOpen, setIsCharacterSheetOpen] = useState(false);
   const [isObjectSheetOpen, setIsObjectSheetOpen] = useState(false);
+  // Track if modals were opened from refresh (should start minimized) vs detection (should start expanded)
+  const [charactersLoadedFromContext, setCharactersLoadedFromContext] = useState(false);
+  const [objectsLoadedFromContext, setObjectsLoadedFromContext] = useState(false);
   const [styleKeyword, setStyleKeyword] = useState<string>("anime 2d style");
   const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
   const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
@@ -148,8 +151,9 @@ export default function PropDesigner() {
           labels.some((l) => h === l || h.toLowerCase() === l.toLowerCase())
         );
 
-      // Match CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
-      // Also try to find Reference Image if it exists
+      // Match CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
+      // Image Prompt (Start),Image Prompt (End),Video Prompt,Sora Video Prompt,
+      // Dialogue (Ko),Dialogue (En),SFX (Ko),SFX (En),BGM (Ko),BGM (En)
       const map = {
         scene: getIdx(["Scene"]),
         clip: getIdx(["Clip"]),
@@ -162,7 +166,6 @@ export default function PropDesigner() {
         imgEnd: getIdx(["Image Prompt (End)"]),
         vid: getIdx(["Video Prompt"]),
         soraVid: getIdx(["Sora Video Prompt"]),
-        refImg: getIdx(["Reference Image", "Ref Image", "ref_filename"]),
         dia: getIdx(["Dialogue (Ko)"]),
         diaEn: getIdx(["Dialogue (En)"]),
         sfx: getIdx(["SFX (Ko)"]),
@@ -190,7 +193,6 @@ export default function PropDesigner() {
           length: val(map.length),
           accumulatedTime: val(map.accTime),
           soraVideoPrompt: val(map.soraVid),
-          refFileName: val(map.refImg),
           sfx: val(map.sfx),
           sfxEn: val(map.sfxEn),
           bgm: val(map.bgm),
@@ -273,21 +275,45 @@ export default function PropDesigner() {
       if (!hasImportedScenes) {
         setDetectedIds(result.detectedIds || []);
       }
-      setProps(
-        result.props.map((p) => ({
-          id: p.id,
-          name: p.name,
-          category: p.category,
-          description: p.description,
-          descriptionKo: p.descriptionKo,
-          appearingClips: p.appearingClips || [],
-          contextPrompts: [],
-          designSheetPrompt: p.designSheetPrompt || "",
-          designSheetImageUrl: p.designSheetImageRef,
-          referenceImageUrl: p.referenceImageRef,
-          isGenerating: false,
-        }))
-      );
+
+      const loadedProps = result.props.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        description: p.description,
+        descriptionKo: p.descriptionKo,
+        appearingClips: p.appearingClips || [],
+        contextPrompts: [],
+        designSheetPrompt: p.designSheetPrompt || "",
+        designSheetImageUrl: p.designSheetImageRef,
+        referenceImageUrl: p.referenceImageRef,
+        // Multiple reference images
+        referenceImages: p.referenceImageRefs,
+        // Character metadata (Easy Mode)
+        age: p.age,
+        gender: p.gender,
+        personality: p.personality,
+        role: p.role,
+        // Variant detection
+        isVariant: p.isVariant,
+        variantDetails: p.variantDetails,
+        variantVisuals: p.variantVisuals,
+        isGenerating: false,
+      }));
+
+      setProps(loadedProps);
+
+      // Auto-open modals if there are props of that category (start minimized since loaded from context)
+      const hasCharacters = loadedProps.some((p) => p.category === "character");
+      const hasObjects = loadedProps.some((p) => p.category === "object");
+      if (hasCharacters) {
+        setIsCharacterSheetOpen(true);
+        setCharactersLoadedFromContext(true); // Start minimized
+      }
+      if (hasObjects) {
+        setIsObjectSheetOpen(true);
+        setObjectsLoadedFromContext(true); // Start minimized
+      }
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
 
@@ -427,6 +453,17 @@ export default function PropDesigner() {
             designSheetPrompt: prop.designSheetPrompt,
             designSheetImageRef: prop.designSheetImageUrl,
             referenceImageRef: prop.referenceImageUrl,
+            // Multiple reference images
+            referenceImageRefs: prop.referenceImages,
+            // Character metadata (Easy Mode)
+            age: prop.age,
+            gender: prop.gender,
+            personality: prop.personality,
+            role: prop.role,
+            // Variant detection
+            isVariant: prop.isVariant,
+            variantDetails: prop.variantDetails,
+            variantVisuals: prop.variantVisuals,
           });
         }
       }
@@ -444,6 +481,17 @@ export default function PropDesigner() {
           designSheetPrompt: p.designSheetPrompt,
           designSheetImageRef: p.designSheetImageUrl || "",
           referenceImageRef: p.referenceImageUrl,
+          // Multiple reference images
+          referenceImageRefs: p.referenceImages,
+          // Character metadata (Easy Mode)
+          age: p.age,
+          gender: p.gender,
+          personality: p.personality,
+          role: p.role,
+          // Variant detection
+          isVariant: p.isVariant,
+          variantDetails: p.variantDetails,
+          variantVisuals: p.variantVisuals,
         })),
         detectedIds,
       });
@@ -495,6 +543,15 @@ export default function PropDesigner() {
         appearingClips: string[];
         contextPrompts: { clipId: string; text: string }[];
         characterSheetPrompt: string;
+        // Easy Mode metadata
+        age?: string;
+        gender?: string;
+        personality?: string;
+        role?: string;
+        // Variant detection
+        isVariant?: boolean;
+        variantDetails?: string | null;
+        variantVisuals?: string | null;
       }) => {
         const existing = existingPropsByName.get(char.name.toLowerCase());
         return {
@@ -511,12 +568,22 @@ export default function PropDesigner() {
           referenceImageUrl: existing?.referenceImageUrl,
           referenceImageBase64: existing?.referenceImageBase64,
           isGenerating: false,
+          // Easy Mode metadata (preserve existing if available)
+          age: existing?.age || char.age,
+          gender: existing?.gender || char.gender,
+          personality: existing?.personality || char.personality,
+          role: existing?.role || char.role,
+          // Variant detection
+          isVariant: char.isVariant || false,
+          variantDetails: char.variantDetails || undefined,
+          variantVisuals: char.variantVisuals || undefined,
         };
       });
 
       await saveAndUpdateProps(newCharacters, "character");
 
-      // Auto-open the character sheet modal
+      // Auto-open the character sheet modal (expanded, not minimized)
+      setCharactersLoadedFromContext(false);
       setIsCharacterSheetOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to detect characters");
@@ -597,7 +664,8 @@ export default function PropDesigner() {
 
       await saveAndUpdateProps(newObjects, "object");
 
-      // Auto-open the object sheet modal
+      // Auto-open the object sheet modal (expanded, not minimized)
+      setObjectsLoadedFromContext(false);
       setIsObjectSheetOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to detect objects");
@@ -692,6 +760,17 @@ export default function PropDesigner() {
                   designSheetPrompt: p.designSheetPrompt,
                   designSheetImageRef: p.designSheetImageUrl || "",
                   referenceImageRef: p.referenceImageUrl,
+                  // Multiple reference images
+                  referenceImageRefs: p.referenceImages,
+                  // Character metadata (Easy Mode)
+                  age: p.age,
+                  gender: p.gender,
+                  personality: p.personality,
+                  role: p.role,
+                  // Variant detection
+                  isVariant: p.isVariant,
+                  variantDetails: p.variantDetails,
+                  variantVisuals: p.variantVisuals,
                 })),
                 detectedIds,
               });
@@ -729,16 +808,43 @@ export default function PropDesigner() {
   const handleSetReferenceImages = useCallback(
     async (propId: string, images: string[]) => {
       // Update local state immediately with base64 images
-      setProps((prev) =>
-        prev.map((p) =>
+      setProps((prev) => {
+        const newProps = prev.map((p) =>
           p.id === propId ? { ...p, referenceImages: images } : p
-        )
-      );
+        );
+
+        // Also update context so reference images persist
+        setPropDesignerResult({
+          settings: { styleKeyword, propBasePrompt: "", genre },
+          props: newProps.map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            description: p.description,
+            descriptionKo: p.descriptionKo,
+            appearingClips: p.appearingClips,
+            designSheetPrompt: p.designSheetPrompt,
+            designSheetImageRef: p.designSheetImageUrl || "",
+            referenceImageRef: p.referenceImageUrl,
+            referenceImageRefs: p.referenceImages,
+            age: p.age,
+            gender: p.gender,
+            personality: p.personality,
+            role: p.role,
+            isVariant: p.isVariant,
+            variantDetails: p.variantDetails,
+            variantVisuals: p.variantVisuals,
+          })),
+          detectedIds,
+        });
+
+        return newProps;
+      });
 
       // TODO: In the future, upload all images to S3 and store URLs
       // For now, just keep them as base64 in local state
     },
-    []
+    [styleKeyword, genre, detectedIds, setPropDesignerResult]
   );
 
   // Update prop fields
@@ -758,6 +864,129 @@ export default function PropDesigner() {
     // Clear context and Firestore
     await clearPropDesignerData();
   }, [clearPropDesignerData]);
+
+  // JSON file input ref for session import
+  const jsonInputRef = useRef<HTMLInputElement>(null);
+
+  // Export session as JSON
+  const handleExportSession = useCallback(() => {
+    const session = {
+      version: "1.0",
+      exportedAt: new Date().toISOString(),
+      settings: {
+        styleKeyword,
+        genre,
+      },
+      detectedIds: detectedIds.map((d) => ({
+        id: d.id,
+        category: d.category,
+        clipIds: d.clipIds,
+        contexts: d.contexts,
+        occurrences: d.occurrences,
+      })),
+      props: props.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        description: p.description,
+        descriptionKo: p.descriptionKo,
+        appearingClips: p.appearingClips,
+        contextPrompts: p.contextPrompts,
+        designSheetPrompt: p.designSheetPrompt,
+        designSheetImageUrl: p.designSheetImageUrl,
+        referenceImages: p.referenceImages,
+        age: p.age,
+        gender: p.gender,
+        personality: p.personality,
+        role: p.role,
+        isVariant: p.isVariant,
+        variantDetails: p.variantDetails,
+        variantVisuals: p.variantVisuals,
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `propdesigner_session_${new Date().toISOString().split("T")[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [styleKeyword, genre, detectedIds, props]);
+
+  // Import session from JSON
+  const handleImportSession = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const session = JSON.parse(text);
+
+        // Validate session structure
+        if (!session.props || !Array.isArray(session.props)) {
+          setError("Invalid session file: missing props array");
+          return;
+        }
+
+        // Load settings
+        if (session.settings) {
+          if (session.settings.styleKeyword) setStyleKeyword(session.settings.styleKeyword);
+          if (session.settings.genre) setGenre(session.settings.genre);
+        }
+
+        // Load detected IDs
+        if (session.detectedIds && Array.isArray(session.detectedIds)) {
+          setDetectedIds(session.detectedIds);
+        }
+
+        // Load props
+        const loadedProps: Prop[] = session.props.map((p: Record<string, unknown>) => ({
+          id: (p.id as string) || crypto.randomUUID(),
+          name: (p.name as string) || "",
+          category: (p.category as "character" | "object") || "object",
+          description: (p.description as string) || "",
+          descriptionKo: (p.descriptionKo as string) || "",
+          appearingClips: (p.appearingClips as string[]) || [],
+          contextPrompts: (p.contextPrompts as { clipId: string; text: string }[]) || [],
+          designSheetPrompt: (p.designSheetPrompt as string) || "",
+          designSheetImageUrl: p.designSheetImageUrl as string | undefined,
+          referenceImages: p.referenceImages as string[] | undefined,
+          age: p.age as string | undefined,
+          gender: p.gender as string | undefined,
+          personality: p.personality as string | undefined,
+          role: p.role as string | undefined,
+          isVariant: p.isVariant as boolean | undefined,
+          variantDetails: p.variantDetails as string | undefined,
+          variantVisuals: p.variantVisuals as string | undefined,
+          isGenerating: false,
+        }));
+
+        setProps(loadedProps);
+
+        // Auto-open modals if there are props (start minimized)
+        const hasCharacters = loadedProps.some((p) => p.category === "character");
+        const hasObjects = loadedProps.some((p) => p.category === "object");
+        if (hasCharacters) {
+          setCharactersLoadedFromContext(true);
+          setIsCharacterSheetOpen(true);
+        }
+        if (hasObjects) {
+          setObjectsLoadedFromContext(true);
+          setIsObjectSheetOpen(true);
+        }
+
+        setError(null);
+      } catch (err) {
+        setError("Failed to parse session file: " + (err instanceof Error ? err.message : "Unknown error"));
+      }
+    };
+
+    reader.readAsText(file);
+    if (e.target) e.target.value = "";
+  }, []);
 
   // Check if storyboard is available (from context or imported CSV)
   const hasStoryboard = activeScenes && activeScenes.length > 0;
@@ -902,9 +1131,6 @@ export default function PropDesigner() {
 
       {hasStoryboard && (
         <>
-          {/* Storyboard Table */}
-          <StoryboardTable scenes={activeScenes} totalClips={totalClips} />
-
           {/* Detection Panel */}
           <DetectionPanel
             detectedIds={detectedIds}
@@ -916,6 +1142,9 @@ export default function PropDesigner() {
             isAnalyzingObjects={isAnalyzingObjects}
             totalClips={totalClips}
           />
+
+          {/* Storyboard Table */}
+          <StoryboardTable scenes={activeScenes} totalClips={totalClips} />
 
           {/* Character Sheet Modal */}
           {isCharacterSheetOpen && (
@@ -930,6 +1159,7 @@ export default function PropDesigner() {
               onClearAll={handleClearAll}
               title="Character Sheet Generator"
               accentColor="purple"
+              initialMinimized={charactersLoadedFromContext}
             />
           )}
 
@@ -946,6 +1176,7 @@ export default function PropDesigner() {
               onClearAll={handleClearAll}
               title="Object/Prop Sheet Generator"
               accentColor="cyan"
+              initialMinimized={objectsLoadedFromContext}
             />
           )}
         </>

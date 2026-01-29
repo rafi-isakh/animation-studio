@@ -3,7 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 
 interface GenerateImageRequest {
   prompt: string;
-  referenceImageBase64?: string; // Optional reference image for guided generation
+  referenceImageBase64?: string; // Legacy: single reference image
+  referenceImages?: string[]; // NEW: multiple reference images for guided generation
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   customApiKey?: string;
 }
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { prompt, referenceImageBase64, aspectRatio = "16:9", customApiKey } = body;
+    const { prompt, referenceImageBase64, referenceImages, aspectRatio = "16:9", customApiKey } = body;
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
@@ -57,30 +58,53 @@ export async function POST(request: NextRequest) {
     // Prepare prompt with suffix
     const finalPrompt = appendSuffix(prompt);
 
+    // Collect all reference images (support both legacy single and new multiple)
+    const allReferenceImages: string[] = [];
+    if (referenceImages && referenceImages.length > 0) {
+      allReferenceImages.push(...referenceImages);
+    } else if (referenceImageBase64) {
+      allReferenceImages.push(referenceImageBase64);
+    }
+
     console.log("[generate-prop-image] Model: gemini-3-pro-image-preview");
     console.log("[generate-prop-image] Aspect ratio:", aspectRatio);
-    console.log("[generate-prop-image] Has reference image:", !!referenceImageBase64);
+    console.log("[generate-prop-image] Reference images count:", allReferenceImages.length);
 
     // Build content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
-    // Add reference image if provided
-    if (referenceImageBase64) {
-      // Remove data:image/...;base64, prefix if exists
-      const base64Data = referenceImageBase64.includes("base64,")
-        ? referenceImageBase64.split("base64,")[1]
-        : referenceImageBase64;
+    // Add visual continuity instruction if reference images are provided
+    if (allReferenceImages.length > 0) {
+      const continuityInstruction = `
+STRICT VISUAL CONTINUITY REQUIRED:
+Use the attached reference images (manga/anime panels or character designs) as the absolute source
+for the visual appearance, character features, clothing, and art style.
+Interpret the 2D manga/anime material and expand it into the requested multiple views
+while maintaining 100% consistency with the source design.
+If references are black and white manga, color them according to typical anime standards.
+Do not invent features that contradict these references.
+Maintain consistent proportions, facial features, and outfit details across all generated views.
+`;
+      parts.push({ text: continuityInstruction });
 
-      parts.push({
-        inlineData: {
-          data: base64Data,
-          mimeType: "image/png",
-        },
-      });
+      // Add all reference images
+      for (const refImage of allReferenceImages) {
+        // Remove data:image/...;base64, prefix if exists
+        const base64Data = refImage.includes("base64,")
+          ? refImage.split("base64,")[1]
+          : refImage;
+
+        parts.push({
+          inlineData: {
+            data: base64Data,
+            mimeType: "image/png",
+          },
+        });
+      }
     }
 
-    // Add text prompt
-    parts.push({ text: finalPrompt });
+    // Add final prompt
+    parts.push({ text: `Final Request: ${finalPrompt}` });
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

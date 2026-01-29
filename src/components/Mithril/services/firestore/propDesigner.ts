@@ -137,7 +137,8 @@ export async function saveProp(
     ? doc(collectionRef, input.id)
     : doc(collectionRef);
 
-  await setDoc(docRef, {
+  // Build the document data with all fields
+  const data: Record<string, unknown> = {
     name: input.name,
     category: input.category,
     description: input.description,
@@ -147,7 +148,25 @@ export async function saveProp(
     designSheetPrompt: input.designSheetPrompt || '',
     designSheetImageRef: input.designSheetImageRef || '',
     referenceImageRef: input.referenceImageRef || '',
-  });
+  };
+
+  // Add multiple reference images if provided
+  if (input.referenceImageRefs) {
+    data.referenceImageRefs = input.referenceImageRefs;
+  }
+
+  // Add character metadata (Easy Mode fields)
+  if (input.age !== undefined) data.age = input.age;
+  if (input.gender !== undefined) data.gender = input.gender;
+  if (input.personality !== undefined) data.personality = input.personality;
+  if (input.role !== undefined) data.role = input.role;
+
+  // Add variant detection fields
+  if (input.isVariant !== undefined) data.isVariant = input.isVariant;
+  if (input.variantDetails !== undefined) data.variantDetails = input.variantDetails;
+  if (input.variantVisuals !== undefined) data.variantVisuals = input.variantVisuals;
+
+  await setDoc(docRef, data);
 
   return docRef.id;
 }

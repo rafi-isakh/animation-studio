@@ -8,6 +8,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
+import { deleteImageGenFrameImage, deleteImageGenRemixImage, deleteImageGenEditedImage } from '../s3';
 import {
   ImageGenDocument,
   ImageGenFrameDocument,
@@ -55,15 +56,28 @@ export async function getImageGenMeta(
 export async function saveImageGenMeta(
   projectId: string,
   stylePrompt: string,
-  aspectRatio: ImageGenAspectRatio
+  aspectRatio: ImageGenAspectRatio,
+  localAssets?: Array<{
+    id: string;
+    name: string;
+    imageUrl: string;
+    category: 'character' | 'background';
+  }>
 ): Promise<void> {
   const docRef = getImageGenRef(projectId);
 
-  await setDoc(docRef, {
+  const data: any = {
     stylePrompt,
     aspectRatio,
     generatedAt: Timestamp.now(),
-  });
+  };
+
+  // Include localAssets if provided
+  if (localAssets !== undefined) {
+    data.localAssets = localAssets;
+  }
+
+  await setDoc(docRef, data, { merge: true });
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);
@@ -218,12 +232,47 @@ export async function updateImageGenFrameEdited(
 
 /**
  * Clear all ImageGen data (settings + all frames)
+ * Also deletes all frame images from S3
  */
 export async function clearImageGen(projectId: string): Promise<void> {
+  // Step 1: Delete all frame images from S3 first
+  const frames = await getImageGenFrames(projectId);
+  console.log(`[clearImageGen] Deleting ${frames.length} frames from S3`);
+  
+  for (const frame of frames) {
+    try {
+      // Delete main frame image
+      await deleteImageGenFrameImage(projectId, frame.id);
+      console.log(`[clearImageGen] Deleted frame image: ${frame.id}`);
+    } catch (error) {
+      console.warn(`[clearImageGen] Failed to delete frame image ${frame.id}:`, error);
+    }
+
+    // Delete remix image if exists
+    if (frame.remixImageRef) {
+      try {
+        await deleteImageGenRemixImage(projectId, frame.id);
+        console.log(`[clearImageGen] Deleted remix image: ${frame.id}`);
+      } catch (error) {
+        console.warn(`[clearImageGen] Failed to delete remix image ${frame.id}:`, error);
+      }
+    }
+
+    // Delete edited image if exists
+    if (frame.editedImageRef) {
+      try {
+        await deleteImageGenEditedImage(projectId, frame.id);
+        console.log(`[clearImageGen] Deleted edited image: ${frame.id}`);
+      } catch (error) {
+        console.warn(`[clearImageGen] Failed to delete edited image ${frame.id}:`, error);
+      }
+    }
+  }
+
+  // Step 2: Delete Firestore documents
   const batch = writeBatch(db);
 
-  // Delete all frames
-  const frames = await getImageGenFrames(projectId);
+  // Delete all frame documents
   for (const frame of frames) {
     const frameRef = getImageGenFrameRef(projectId, frame.id);
     batch.delete(frameRef);

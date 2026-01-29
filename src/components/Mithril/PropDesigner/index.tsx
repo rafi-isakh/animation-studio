@@ -14,6 +14,7 @@ import {
   updatePropDesignSheetImage,
   updatePropReferenceImage,
 } from "../services/firestore";
+import { deletePropDesignSheetImage } from "../services/s3";
 
 // CSV clip structure for imported data
 // CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
@@ -212,12 +213,16 @@ export default function PropDesigner() {
 
       console.log("[CSV Import] Setting importedScenes with", clips.length, "clips");
 
+      // Clear existing props and detected IDs to start fresh with imported data
+      setProps([]);
+      setDetectedIds([]);
+
       // Set the scenes and increment version to force re-computation
       const newScenes: CsvScene[] = [{ clips }];
       setImportedScenes(newScenes);
       setImportVersion(prev => prev + 1);
 
-      console.log("[CSV Import] State updates dispatched");
+      console.log("[CSV Import] State updates dispatched - props and detectedIds cleared");
 
       // Auto-detect genre from content
       const sampleText = clips.slice(0, 10).map((c) => `${c.story} ${c.imagePrompt}`).join(" ");
@@ -263,18 +268,19 @@ export default function PropDesigner() {
     return [];
   }, [contextScenes, importedScenes, hasContextScenes, hasImportedScenes]);
 
-  // Load from context on mount
+  // Load from context on mount (only if we don't have imported scenes)
   useEffect(() => {
+    // Skip loading from context if we have imported scenes (CSV import should take precedence)
+    if (hasImportedScenes) {
+      return;
+    }
+
     if (propDesignerGenerator.result) {
       const result = propDesignerGenerator.result;
 
       setGenre(result.settings?.genre || "Modern");
       setStyleKeyword(result.settings?.styleKeyword || "anime 2d style");
-      // Only set detected IDs from context if we don't have imported scenes
-      // (imported scenes will trigger their own ID extraction)
-      if (!hasImportedScenes) {
-        setDetectedIds(result.detectedIds || []);
-      }
+      setDetectedIds(result.detectedIds || []);
 
       const loadedProps = result.props.map((p) => ({
         id: p.id,
@@ -321,6 +327,7 @@ export default function PropDesigner() {
   // Use useEffect for the side effect (setDetectedIds) instead of useMemo
   // Include importVersion to force re-run when CSV is imported
   useEffect(() => {
+    console.log("[PropDesigner] Extracting IDs from", activeScenes.length, "scenes (importVersion:", importVersion, ")");
 
     if (!activeScenes || activeScenes.length === 0) {
       setDetectedIds([]);
@@ -396,6 +403,7 @@ export default function PropDesigner() {
     });
 
     setDetectedIds(allDetected);
+    console.log("[PropDesigner] Extracted", allDetected.length, "IDs:", allDetected.map(d => d.id).join(", "));
   }, [activeScenes, importVersion]);
 
   // Toggle ID category
@@ -689,6 +697,16 @@ export default function PropDesigner() {
       );
 
       try {
+        // Delete old design sheet image from S3 before generating new one
+        if (currentProjectId) {
+          try {
+            await deletePropDesignSheetImage(currentProjectId, propId);
+            console.log(`[PropDesigner] Deleted old design sheet for prop: ${propId}`);
+          } catch (error) {
+            console.warn(`[PropDesigner] Failed to delete old design sheet (may not exist):`, error);
+          }
+        }
+
         // Support both single reference (legacy) and multiple references
         const refImagesForApi = referenceImages?.map((img) =>
           img.includes("base64,") ? img.split("base64,")[1] : img

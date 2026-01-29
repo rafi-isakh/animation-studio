@@ -670,6 +670,154 @@ export async function deleteStyleSlotImage(
 }
 
 // ============================================================================
+// Prop Designer Images (Stage 5)
+// ============================================================================
+
+/**
+ * Upload a prop design sheet image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadPropDesignSheetImage(
+  projectId: string,
+  propId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'prop',
+    propId,
+    propSubtype: 'designsheet',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload prop design sheet image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload a prop reference image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadPropReferenceImage(
+  projectId: string,
+  propId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'prop',
+    propId,
+    propSubtype: 'reference',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload prop reference image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a prop design sheet image from S3
+ */
+export async function deletePropDesignSheetImage(
+  projectId: string,
+  propId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'prop',
+    propId,
+    propSubtype: 'designsheet',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete prop design sheet image');
+  }
+}
+
+/**
+ * Delete a prop reference image from S3
+ */
+export async function deletePropReferenceImage(
+  projectId: string,
+  propId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'prop',
+    propId,
+    propSubtype: 'reference',
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete prop reference image');
+  }
+}
+
+/**
+ * Delete all images for a prop (both design sheet and reference)
+ */
+export async function deletePropImages(
+  projectId: string,
+  propId: string
+): Promise<void> {
+  // Delete design sheet
+  try {
+    await deletePropDesignSheetImage(projectId, propId);
+  } catch (error) {
+    console.warn(`Failed to delete prop design sheet for ${propId}:`, error);
+  }
+
+  // Delete reference image
+  try {
+    await deletePropReferenceImage(projectId, propId);
+  } catch (error) {
+    console.warn(`Failed to delete prop reference for ${propId}:`, error);
+  }
+}
+
+// ============================================================================
 // ImageGen Images (Stage 6)
 // ============================================================================
 
@@ -853,6 +1001,71 @@ export async function deleteImageGenEditedImage(
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to delete imagegen edited image');
+  }
+}
+
+// ============================================================================
+// ImageGen Replacement Assets
+// ============================================================================
+
+/**
+ * Upload a replacement asset (character or background) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadImageGenReplacementAsset(
+  projectId: string,
+  assetId: string,
+  category: 'character' | 'background',
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId: `replacement_${category}_${assetId}`,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload replacement asset');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a replacement asset from S3
+ */
+export async function deleteImageGenReplacementAsset(
+  projectId: string,
+  assetId: string,
+  category: 'character' | 'background'
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId: `replacement_${category}_${assetId}`,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete replacement asset');
   }
 }
 

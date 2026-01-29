@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useToast } from "@/hooks/use-toast";
 import type { Scene, Continuity } from "../StoryboardGenerator/types";
-import type { CharacterSheetResultMetadata } from "../CharacterSheetGenerator/types";
+import type { PropDesignerResultMetadata } from "../PropDesigner/types";
 import type { BgSheetResultMetadata } from "../BgSheetGenerator/types";
 import type {
   ImageGenFrame,
@@ -29,6 +29,10 @@ import {
 import {
   uploadImageGenFrameImage,
   uploadImageGenRemixImage,
+  deleteImageGenFrameImage,
+  deleteImageGenRemixImage,
+  uploadImageGenReplacementAsset,
+  deleteImageGenReplacementAsset,
 } from "../services/s3/images";
 import FrameCard from "./FrameCard";
 import ImageModal from "./ImageModal";
@@ -63,6 +67,7 @@ export default function ImageGenerator() {
     setStageResult,
     customApiKey,
     isLoading: isContextLoading,
+    propDesignerGenerator,
   } = useMithril();
   const { language, dictionary } = useLanguage();
   const { toast } = useToast();
@@ -122,14 +127,16 @@ export default function ImageGenerator() {
 
   // Load character and background assets from previous stages
   const loadAssets = useCallback(() => {
-    // Load characters from Stage 3
-    const charResult = getStageResult(3) as CharacterSheetResultMetadata | null;
-    if (charResult?.characters) {
+    // Load characters from PropDesigner (Stage 5) - filter by category='character'
+    const propResult = propDesignerGenerator.result;
+    if (propResult?.props) {
+      const characterProps = propResult.props.filter(p => p.category === 'character');
       setCharacterAssets(
-        charResult.characters.map((char) => ({
-          id: char.id,
-          name: char.name,
-          imageUrl: char.masterSheetImageId || char.profileImageId || char.imageId || "",
+        characterProps.map((prop) => ({
+          id: prop.id,
+          name: prop.name,
+          // Use designSheetImageRef or referenceImageRef as the image URL
+          imageUrl: prop.designSheetImageRef || prop.referenceImageRef || "",
         }))
       );
     }
@@ -148,7 +155,14 @@ export default function ImageGenerator() {
         }))
       );
     }
-  }, [getStageResult]);
+  }, [propDesignerGenerator.result, getStageResult]);
+
+  // Reload assets whenever PropDesigner or Stage 6 data changes
+  useEffect(() => {
+    if (currentStage === 7 && hasLoaded) {
+      loadAssets();
+    }
+  }, [currentStage, hasLoaded, loadAssets]);
 
   // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
@@ -256,6 +270,46 @@ export default function ImageGenerator() {
             stylePrompt: savedMeta.stylePrompt || "",
             aspectRatio: savedMeta.aspectRatio || "16:9",
           });
+          // Load local assets (replacement assets) from S3 URLs
+          if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
+            console.log(`[ImageGen] Loading ${savedMeta.localAssets.length} replacement assets from S3...`);
+            // Convert S3 URLs back to base64 for local state
+            const loadedAssets = await Promise.all(
+              savedMeta.localAssets.map(async (asset) => {
+                try {
+                  console.log(`[ImageGen] Fetching replacement asset: ${asset.id} (${asset.category}) from ${asset.imageUrl}`);
+                  // Fetch the image and convert to base64
+                  const response = await fetch(asset.imageUrl);
+                  const blob = await response.blob();
+                  const base64 = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const result = reader.result as string;
+                      // Extract base64 part (remove data:image/...;base64, prefix)
+                      const base64Data = result.split(',')[1];
+                      resolve(base64Data);
+                    };
+                    reader.readAsDataURL(blob);
+                  });
+                  console.log(`[ImageGen] ✓ Loaded replacement asset: ${asset.id}, base64 length: ${base64.length}`);
+                  return {
+                    id: asset.id,
+                    name: asset.name,
+                    base64,
+                    mimeType: blob.type || 'image/webp',
+                    category: asset.category,
+                  };
+                } catch (err) {
+                  console.error(`[ImageGen] ✗ Failed to load replacement asset ${asset.id}:`, err);
+                  return null;
+                }
+              })
+            );
+            // Filter out failed loads
+            const successfulAssets = loadedAssets.filter((a) => a !== null) as LocalAssetRef[];
+            console.log(`[ImageGen] Successfully loaded ${successfulAssets.length}/${savedMeta.localAssets.length} replacement assets`);
+            setLocalAssets(successfulAssets);
+          }
         }
 
         if (savedFrames.length > 0) {
@@ -357,6 +411,16 @@ export default function ImageGenerator() {
       );
 
       try {
+        // Delete old frame image from S3 before generating new one
+        if (currentProjectId) {
+          try {
+            await deleteImageGenFrameImage(currentProjectId, frameId);
+            console.log(`[ImageGen] Deleted old frame image for: ${frameId}`);
+          } catch (error) {
+            console.warn(`[ImageGen] Failed to delete old frame image (may not exist):`, error);
+          }
+        }
+
         // Build references
         const references: { backgrounds: any[]; characters: any[] } = {
           backgrounds: [],
@@ -424,14 +488,28 @@ export default function ImageGenerator() {
         // Track which character IDs have been matched to avoid duplicates
         const matchedCharacterIds = new Set<string>();
 
-        // Check local uploaded/replacement character assets FIRST (priority over Stage 3)
-        for (const asset of localAssets.filter((a) => a.category === "character")) {
+        // Check local uploaded/replacement character assets FIRST (priority over Prop Designer)
+        const localCharacters = localAssets.filter((a) => a.category === "character");
+        console.log(`[ImageGen] Checking ${localCharacters.length} local/replacement character assets against prompt: "${promptText.substring(0, 100)}..."`);
+        
+        for (const asset of localCharacters) {
           const escapedId = asset.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           const escapedName = asset.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
-          if (regexId.test(promptText) || regexName.test(promptText)) {
+          const idMatch = regexId.test(promptText);
+          const nameMatch = regexName.test(promptText);
+          
+          if (idMatch || nameMatch) {
+            console.log(`[ImageGen] ✓ Matched replacement asset: id="${asset.id}", name="${asset.name}" (idMatch=${idMatch}, nameMatch=${nameMatch}), hasBase64=${!!asset.base64}, base64Length=${asset.base64?.length || 0}`);
+            
+            // Validate base64 data exists
+            if (!asset.base64 || asset.base64.length < 100) {
+              console.error(`[ImageGen] ⚠ Replacement asset "${asset.id}" has invalid/empty base64 data! Skipping.`);
+              continue;
+            }
+            
             // Compress local character image before adding
             try {
               const compressed = await compressImage(asset.base64, asset.mimeType, 768, 768, 0.7);
@@ -439,22 +517,29 @@ export default function ImageGenerator() {
                 base64: compressed.base64,
                 mimeType: compressed.mimeType,
               });
-            } catch {
+              console.log(`[ImageGen] Added compressed replacement image for: ${asset.id}, compressed length: ${compressed.base64.length}`);
+            } catch (err) {
+              console.warn(`[ImageGen] Compression failed for ${asset.id}, using original:`, err);
               // Fall back to original if compression fails
               references.characters.push({
                 base64: asset.base64,
                 mimeType: asset.mimeType,
               });
             }
-            // Mark this ID as matched so Stage 3 won't add it again
+            // Mark this ID as matched so Prop Designer won't add it again
             matchedCharacterIds.add(asset.id);
+          } else {
+            console.log(`[ImageGen] ✗ No match for replacement asset: id="${asset.id}", name="${asset.name}"`);
           }
         }
 
-        // Check Stage 3 character assets (skip if already matched from local assets)
+        // Check Prop Designer character assets (skip if already matched from local assets)
+        console.log(`[ImageGen] Checking ${characterAssets.length} PropDesigner character assets (already matched: ${matchedCharacterIds.size})`);
+        
         for (const char of characterAssets) {
           // Skip if this character was already matched from local assets (replacement)
           if (matchedCharacterIds.has(char.id)) {
+            console.log(`[ImageGen] ⏭ Skipping PropDesigner asset "${char.id}" - using replacement instead`);
             continue;
           }
 
@@ -466,6 +551,7 @@ export default function ImageGenerator() {
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
           if (regexId.test(promptText) || regexName.test(promptText)) {
+            console.log(`[ImageGen] ✓ Matched PropDesigner asset: id="${char.id}", name="${char.name}"`);
             // Character found in prompt, fetch and compress their image
             if (char.imageUrl) {
               try {
@@ -560,11 +646,12 @@ export default function ImageGenerator() {
         // Upload to S3
         const imageBase64 = data.imageBase64;
         let imageUrl = `data:image/png;base64,${imageBase64}`;
-        console.log("[ImageGen] Initial imageUrl (base64):", imageUrl.substring(0, 50) + "...");
+        
+        let savedToFirestore = false;
         if (currentProjectId) {
           try {
             imageUrl = await uploadImageGenFrameImage(currentProjectId, frameId, imageBase64);
-            console.log("[ImageGen] S3 upload successful, URL:", imageUrl);
+            
             // Save full frame data to Firestore
             await saveImageGenFrame(currentProjectId, frameId, {
               sceneIndex: frame.sceneIndex,
@@ -581,13 +668,17 @@ export default function ImageGenerator() {
               remixImageRef: frame.remixImageUrl || null,
               editedImageRef: frame.editedImageUrl || null,
             });
+            savedToFirestore = true;
           } catch (uploadErr) {
-            console.error("[ImageGen] Error uploading to S3:", uploadErr);
-            // Keep the base64 URL as fallback
+            console.error("[ImageGen] Error uploading to S3 or saving to Firestore:", uploadErr);
+            // Keep the base64 URL as fallback but warn user
+            toast({
+              title: "Save Warning",
+              description: "Image generated but failed to save. Click 'Save All' to retry.",
+              variant: "destructive",
+            });
           }
         }
-
-        console.log("[ImageGen] Setting frame state with imageUrl:", imageUrl.substring(0, 80) + "...");
 
         // Track image generation cost
         trackImageGeneration(1);
@@ -711,7 +802,39 @@ export default function ImageGenerator() {
     if (!currentProjectId) return;
 
     try {
-      await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio);
+      // Upload local assets to S3 first and get URLs
+      const localAssetsForFirestore = await Promise.all(
+        localAssets.map(async (asset) => {
+          try {
+            const imageUrl = await uploadImageGenReplacementAsset(
+              currentProjectId,
+              asset.id,
+              asset.category,
+              asset.base64,
+              asset.mimeType
+            );
+            return {
+              id: asset.id,
+              name: asset.name,
+              imageUrl,
+              category: asset.category,
+            };
+          } catch (err) {
+            console.error(`Failed to upload replacement asset ${asset.id}:`, err);
+            return null;
+          }
+        })
+      );
+
+      // Filter out failed uploads
+      const successfulAssets = localAssetsForFirestore.filter((a) => a !== null) as Array<{
+        id: string;
+        name: string;
+        imageUrl: string;
+        category: 'character' | 'background';
+      }>;
+
+      await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, successfulAssets);
 
       // Save all frames
       const frameInputs = frames.map((f) => ({
@@ -761,7 +884,7 @@ export default function ImageGenerator() {
         variant: "destructive",
       });
     }
-  }, [currentProjectId, settings, frames, setStageResult, toast]);
+  }, [currentProjectId, settings, frames, localAssets, setStageResult, toast]);
 
   // Clear all data
   const handleClear = useCallback(async () => {
@@ -1101,11 +1224,23 @@ export default function ImageGenerator() {
   );
 
   // Remove a local asset
-  const handleRemoveAsset = useCallback((assetId: string) => {
-    setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
-  }, []);
+  const handleRemoveAsset = useCallback(async (assetId: string) => {
+    const asset = localAssets.find((a) => a.id === assetId);
+    if (!asset) return;
 
-  // Replace a Stage 3/4 asset with uploaded file
+    // Delete from S3 if project exists
+    if (currentProjectId) {
+      try {
+        await deleteImageGenReplacementAsset(currentProjectId, assetId, asset.category);
+      } catch (err) {
+        console.warn(`Failed to delete replacement asset from S3:`, err);
+      }
+    }
+
+    setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
+  }, [localAssets, currentProjectId]);
+
+  // Replace a Prop Designer/BgSheet asset with uploaded file
   const handleReplaceAsset = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>, assetId: string, assetName: string, category: "character" | "background") => {
       const file = e.target.files?.[0];
@@ -1153,13 +1288,20 @@ export default function ImageGenerator() {
   );
 
   // Filter local assets by category
+  // Exclude replacement assets (those with IDs matching PropDesigner/BgSheet assets)
   const localCharacterAssets = useMemo(
-    () => localAssets.filter((a) => a.category === "character"),
-    [localAssets]
+    () => {
+      const propDesignerIds = new Set(characterAssets.map((c) => c.id));
+      return localAssets.filter((a) => a.category === "character" && !propDesignerIds.has(a.id));
+    },
+    [localAssets, characterAssets]
   );
   const localBackgroundAssets = useMemo(
-    () => localAssets.filter((a) => a.category === "background"),
-    [localAssets]
+    () => {
+      const bgSheetIds = new Set(backgroundAssets.flatMap((bg) => bg.angles?.map((angle) => angle.angle) || []));
+      return localAssets.filter((a) => a.category === "background" && !bgSheetIds.has(a.id));
+    },
+    [localAssets, backgroundAssets]
   );
 
   // Loading state
@@ -1350,11 +1492,11 @@ export default function ImageGenerator() {
           </div>
           {characterAssets.length === 0 && localCharacterAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
-              No characters - upload or complete Stage 3
+              No characters - upload or use Prop Designer
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
-              {/* Stage 3 characters */}
+              {/* Prop Designer characters */}
               {characterAssets.map((char) => {
                 const replaced = isAssetReplaced(char.id);
                 const replacementAsset = localAssets.find((a) => a.id === char.id);

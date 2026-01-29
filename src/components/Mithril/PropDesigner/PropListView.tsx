@@ -558,7 +558,7 @@ export default function PropListView({
                         d="M12 4.5v15m7.5-7.5h-15"
                       />
                     </svg>
-                    <span>+Ref</span>
+                    <span>Ref</span>
                   </button>
                   <input
                     type="file"

@@ -21,6 +21,12 @@ export {
   // Style slot images
   uploadStyleSlotImage,
   deleteStyleSlotImage,
+  // Prop Designer images
+  uploadPropDesignSheetImage,
+  uploadPropReferenceImage,
+  deletePropDesignSheetImage,
+  deletePropReferenceImage,
+  deletePropImages,
   // Background images
   uploadBackgroundImage,
   deleteBackgroundImage,
@@ -37,6 +43,9 @@ export {
   deleteImageGenFrameImage,
   deleteImageGenRemixImage,
   deleteImageGenEditedImage,
+  // ImageGen replacement assets
+  uploadImageGenReplacementAsset,
+  deleteImageGenReplacementAsset,
   // I2V (Image-to-Video) images
   uploadI2VPageImage,
   uploadI2VPanelImage,

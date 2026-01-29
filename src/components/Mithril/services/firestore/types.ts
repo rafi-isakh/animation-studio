@@ -332,6 +332,12 @@ export interface ImageGenDocument {
   stylePrompt: string;
   aspectRatio: ImageGenAspectRatio;
   generatedAt: Timestamp;
+  localAssets?: Array<{
+    id: string;
+    name: string;
+    imageUrl: string; // S3 URL instead of base64
+    category: 'character' | 'background';
+  }>;
 }
 
 export interface ImageGenFrameDocument {

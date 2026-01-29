@@ -58,12 +58,12 @@ export interface ImageGenSettings {
 }
 
 /**
- * Character asset reference (from Stage 3)
+ * Character asset reference (from Prop Designer)
  */
 export interface CharacterAssetRef {
   id: string;
   name: string;
-  imageUrl: string; // Master sheet or profile image URL
+  imageUrl: string; // Design sheet or reference image URL
   modes?: {
     id: string;
     name: string;

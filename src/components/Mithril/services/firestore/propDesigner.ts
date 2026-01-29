@@ -18,6 +18,7 @@ import {
   SavePropInput,
   UpdatePropInput,
 } from './types';
+import { deletePropImages } from '../s3';
 
 // ============================================
 // Document References
@@ -283,8 +284,27 @@ export async function updateDetectedIdCategory(
 
 /**
  * Clear all prop designer data (settings + all props + detected IDs)
+ * Also deletes all prop images from S3
  */
 export async function clearPropDesigner(projectId: string): Promise<void> {
+  // Step 1: Delete all prop images from S3 first
+  try {
+    const props = await getProps(projectId);
+    console.log(`[clearPropDesigner] Deleting ${props.length} props from S3`);
+    
+    for (const prop of props) {
+      try {
+        await deletePropImages(projectId, prop.id);
+        console.log(`[clearPropDesigner] Deleted S3 images for prop: ${prop.id}`);
+      } catch (error) {
+        console.warn(`[clearPropDesigner] Failed to delete S3 images for prop ${prop.id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.warn("[clearPropDesigner] Error deleting prop images from S3:", error);
+  }
+
+  // Step 2: Delete Firestore documents
   const batch = writeBatch(db);
   let hasDeletes = false;
 
@@ -298,7 +318,7 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
     }
   } catch (error) {
     // BloomFilter errors can occur on empty/new collections - safe to ignore
-    console.warn("Error fetching props for deletion (may be empty):", error);
+    console.warn("[clearPropDesigner] Error fetching props for deletion (may be empty):", error);
   }
 
   // Delete all detected IDs - wrap in try-catch to handle BloomFilter errors
@@ -311,7 +331,7 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
     }
   } catch (error) {
     // BloomFilter errors can occur on empty/new collections - safe to ignore
-    console.warn("Error fetching detected IDs for deletion (may be empty):", error);
+    console.warn("[clearPropDesigner] Error fetching detected IDs for deletion (may be empty):", error);
   }
 
   // Delete settings - always try to delete

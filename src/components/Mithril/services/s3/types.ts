@@ -319,3 +319,21 @@ export function getI2VPanelsFolderPrefix(projectId: string): string {
 export function getI2VFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/`;
 }
+
+// ============================================
+// ImageGen Replacement Assets Key Generators
+// ============================================
+
+/**
+ * Get S3 key for ImageGen replacement asset (character or background)
+ */
+export function getImageGenReplacementAssetKey(projectId: string, assetId: string, category: 'character' | 'background'): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/replacements/${category}/${assetId}.webp`;
+}
+
+/**
+ * Get S3 folder prefix for ImageGen replacement assets
+ */
+export function getImageGenReplacementsFolderPrefix(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/replacements/`;
+}

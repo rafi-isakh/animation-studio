@@ -84,14 +84,15 @@ export interface BackgroundAssetRef {
 }
 
 /**
- * Locally uploaded asset (stored in memory with base64)
+ * Locally uploaded asset (supports lazy loading - base64 loaded on-demand)
  */
 export interface LocalAssetRef {
   id: string;
   name: string;
-  base64: string;
+  base64?: string; // Loaded on-demand, not at page load
   mimeType: string;
   category: "character" | "background";
+  imageUrl?: string; // S3 URL for lazy loading
 }
 
 /**

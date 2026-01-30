@@ -53,7 +53,12 @@ export default function FrameCard({
         onClick={() => frame.imageUrl && onOpenModal(frame.imageUrl)}
       >
         {frame.isLoading && !frame.remixImageUrl ? (
-          <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className={`w-8 h-8 animate-spin ${frame.status === 'retrying' ? 'text-orange-500' : 'text-cyan-500'}`} />
+            {frame.status === 'retrying' && (
+              <span className="text-[10px] text-orange-400 font-bold">Retrying...</span>
+            )}
+          </div>
         ) : frame.imageUrl ? (
           <img
             src={frame.imageUrl.startsWith("data:") ? frame.imageUrl : `${frame.imageUrl}${frame.imageUpdatedAt ? `?t=${frame.imageUpdatedAt}` : ""}`}
@@ -76,6 +81,11 @@ export default function FrameCard({
             <span className="text-[10px] font-black text-yellow-500">
               #{frame.frameNumber}
             </span>
+            {frame.status === 'retrying' && (
+              <span className="text-[10px] font-black text-orange-400 bg-orange-900/40 px-2 py-0.5 rounded animate-pulse">
+                RETRYING
+              </span>
+            )}
           </div>
           <div className="flex gap-1">
             {frame.imageUrl && (

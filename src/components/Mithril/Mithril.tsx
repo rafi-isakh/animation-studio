@@ -8,7 +8,7 @@ import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
 import PropDesigner from "./PropDesigner";
 import BgSheetGenerator from "./BgSheetGenerator";
-import ImageGenerator from "./ImageGenerator";
+import ImageGeneratorWrapper from "./ImageGenerator/ImageGeneratorWrapper";
 import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
@@ -26,7 +26,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'StoryboardGenerator': StoryboardGenerator,
   'PropDesigner': PropDesigner,
   'BgSheetGenerator': BgSheetGenerator,
-  'ImageGenerator': ImageGenerator,
+  'ImageGenerator': ImageGeneratorWrapper,
   'VideoGenerator': VideoGeneratorWrapper,
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,

@@ -10,12 +10,19 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
+ * Job type (video or image)
+ */
+export type JobType = 'video' | 'image';
+
+/**
  * Job status from the orchestrator
  */
 export type JobStatus =
   | 'pending'
   | 'submitted'
   | 'polling'
+  | 'preparing'   // Image: fetching references
+  | 'generating'  // Image: calling AI provider
   | 'uploading'
   | 'completed'
   | 'failed'
@@ -26,18 +33,20 @@ export type JobStatus =
  */
 export interface JobQueueDocument {
   id: string;
+  type?: JobType;  // 'video' (default) or 'image'
   project_id: string;
   scene_index: number;
   clip_index: number;
   provider_id: string;
   prompt: string;
-  image_url?: string;
-  duration: number;
+  image_url?: string;  // Video: source image for video generation
+  duration?: number;   // Video only
   aspect_ratio: string;
   status: JobStatus;
   provider_job_id?: string;
   progress: number;
-  video_url?: string;
+  video_url?: string;  // Video result
+  result_image_url?: string;  // Image result (named differently to avoid confusion with source image_url)
   s3_file_name?: string;
   error_code?: string;
   error_message?: string;
@@ -53,6 +62,11 @@ export interface JobQueueDocument {
   user_id: string;
   batch_id?: string;
   worker_id?: string;
+  // Image-specific fields
+  frame_id?: string;
+  frame_label?: string;
+  style_prompt?: string;
+  reference_urls?: string[];
 }
 
 /**
@@ -206,7 +220,7 @@ export function mapJobToClipUpdate(job: JobQueueDocument) {
 }
 
 /**
- * Map job status to clip status
+ * Map job status to clip status (for video)
  * - "pending" with retry_count > 0 means it's retrying after a failure
  * - "pending" with retry_count = 0 means it's a new unstarted job
  */
@@ -222,6 +236,148 @@ function mapJobStatusToClipStatus(
     case 'polling':
     case 'uploading':
       return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+    case 'cancelled':
+      return 'failed';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Image Job Functions
+// ============================================================================
+
+/**
+ * Frame status for ImageGenerator
+ */
+export type FrameStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'retrying';
+
+/**
+ * Frame update object for ImageGenerator
+ */
+export interface FrameUpdate {
+  frameId: string;
+  sceneIndex: number;
+  clipIndex: number;
+  frameLabel: string;
+  jobId: string;
+  status: FrameStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Callback for frame updates
+ */
+export type FrameUpdateCallback = (update: FrameUpdate) => void;
+
+/**
+ * Callback for multiple frame updates
+ */
+export type FrameUpdatesCallback = (updates: FrameUpdate[]) => void;
+
+/**
+ * Subscribe to image jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any image job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectImageJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'image')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) image jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active image job documents
+ */
+export async function getActiveProjectImageJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'image')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to a format compatible with ImageGenerator frames
+ */
+export function mapImageJobToFrameUpdate(job: JobQueueDocument): FrameUpdate {
+  return {
+    frameId: job.frame_id || job.id,
+    sceneIndex: job.scene_index,
+    clipIndex: job.clip_index,
+    frameLabel: job.frame_label || '',
+    jobId: job.id,
+    status: mapJobStatusToFrameStatus(job.status, job.retry_count),
+    imageUrl: job.result_image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to frame status (for images)
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToFrameStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): FrameStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
     case 'completed':
       return 'completed';
     case 'failed':

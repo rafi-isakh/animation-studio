@@ -13,6 +13,7 @@ class JobType(str, Enum):
     VIDEO = "video"
     IMAGE = "image"
     BACKGROUND = "background"
+    PROP_DESIGN_SHEET = "prop_design_sheet"
 
 
 class JobStatus(str, Enum):
@@ -114,6 +115,11 @@ class JobDocument(BaseModel):
     bg_id: str | None = None  # Background ID
     bg_angle: str | None = None  # Angle: "Front View", "Worm View", etc.
     bg_name: str | None = None  # Background name for display
+
+    # Prop design sheet-specific fields (for type=PROP_DESIGN_SHEET)
+    prop_id: str | None = None  # Prop ID
+    prop_name: str | None = None  # Prop name for display
+    prop_category: str | None = None  # "character" or "object"
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -264,6 +270,58 @@ class BgBatchSubmitRequest(BaseModel):
 
 class BgBatchSubmitResponse(BaseModel):
     """Response model for batch background job submission."""
+
+    batch_id: str
+    jobs: list[JobSubmitResponse]
+    total_count: int
+    status: str = "submitted"
+
+
+# ============================================================================
+# Prop Design Sheet Job Models
+# ============================================================================
+
+
+class PropDesignSheetJobSubmitRequest(BaseModel):
+    """Request model for submitting a prop design sheet generation job."""
+
+    project_id: str
+    prop_id: str
+    prop_name: str
+    category: Literal["character", "object"]
+    prompt: str
+    reference_urls: list[str] = []  # Pre-uploaded S3 URLs for reference images
+    aspect_ratio: Literal["16:9", "9:16", "1:1"] = "1:1"
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class PropDesignSheetJobStatusResponse(BaseModel):
+    """Response model for prop design sheet job status queries."""
+
+    job_id: str
+    prop_id: str
+    prop_name: str
+    category: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+class PropDesignSheetBatchSubmitRequest(BaseModel):
+    """Request model for submitting multiple prop design sheet jobs."""
+
+    project_id: str
+    jobs: list[PropDesignSheetJobSubmitRequest]
+    api_key: str | None = None  # Batch-level fallback
+
+
+class PropDesignSheetBatchSubmitResponse(BaseModel):
+    """Response model for batch prop design sheet job submission."""
 
     batch_id: str
     jobs: list[JobSubmitResponse]

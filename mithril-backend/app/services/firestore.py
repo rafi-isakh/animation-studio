@@ -20,6 +20,7 @@ from app.models.job import (
     JobStatus,
     JobSubmitRequest,
     JobType,
+    PropDesignSheetJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -240,6 +241,55 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created bg job {job_id} for project {request.project_id}, bg {request.bg_id}, angle {request.bg_angle}")
+        return job
+
+    async def create_prop_design_sheet_job(
+        self,
+        request: PropDesignSheetJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new prop design sheet generation job in the queue.
+
+        Args:
+            request: Prop design sheet job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PROP_DESIGN_SHEET,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for props
+            clip_index=0,  # Not used for props
+            provider_id="gemini",  # Currently only Gemini for prop design sheets
+            prompt=request.prompt,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Prop design sheet-specific fields
+            prop_id=request.prop_id,
+            prop_name=request.prop_name,
+            prop_category=request.category,
+            reference_urls=request.reference_urls,
+            max_retries=2,  # Fewer retries for prop design sheets
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created prop design sheet job {job_id} for project {request.project_id}, prop {request.prop_id} ({request.prop_name})")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -583,11 +633,101 @@ class BackgroundAngleService:
         )
 
 
+class PropDesignSheetService:
+    """Service for updating prop design sheets in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _result_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for propDesignerResult."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("mithril")
+            .document("propDesignerResult")
+        )
+
+    async def update_prop_design_sheet(
+        self,
+        project_id: str,
+        prop_id: str,
+        status: str,
+        designSheetImageRef: str | None = None,
+        designSheetPrompt: str | None = None,
+        s3FileName: str | None = None,
+        jobId: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update prop design sheet in project Firestore.
+
+        The propDesignerResult document stores a 'props' array.
+        Each prop has: { id, name, category, designSheetImageRef, isGenerating, etc. }
+
+        Args:
+            project_id: The project ID
+            prop_id: Prop ID
+            status: New status ("generating", "completed", "failed")
+            designSheetImageRef: S3 URL of generated design sheet
+            designSheetPrompt: The prompt used for generation
+            s3FileName: S3 file path
+            jobId: Job ID for tracking
+            error: Error message if failed
+        """
+        result_ref = self._result_ref(project_id)
+        result_doc = await result_ref.get()
+
+        if not result_doc.exists:
+            logger.warning(f"propDesignerResult not found in project {project_id}")
+            return
+
+        result_data = result_doc.to_dict()
+        props = result_data.get("props", [])
+
+        # Find and update the specific prop
+        updated = False
+        for i, prop in enumerate(props):
+            if prop.get("id") == prop_id:
+                # Update status-related fields
+                if status == "generating":
+                    props[i]["isGenerating"] = True
+                    props[i]["generationError"] = None
+                elif status == "completed":
+                    props[i]["isGenerating"] = False
+                    props[i]["generationError"] = None
+                    if designSheetImageRef is not None:
+                        props[i]["designSheetImageRef"] = designSheetImageRef
+                    if designSheetPrompt is not None:
+                        props[i]["designSheetPrompt"] = designSheetPrompt
+                elif status == "failed":
+                    props[i]["isGenerating"] = False
+                    props[i]["generationError"] = error
+
+                if jobId is not None:
+                    props[i]["jobId"] = jobId
+                if s3FileName is not None:
+                    props[i]["s3FileName"] = s3FileName
+
+                updated = True
+                break
+
+        if not updated:
+            logger.warning(f"Prop {prop_id} not found in project {project_id}")
+            return
+
+        await result_ref.update({"props": props})
+        logger.debug(
+            f"Updated prop {prop_id} design sheet in project {project_id} (status: {status})"
+        )
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
 _image_frame_service: ImageFrameService | None = None
 _bg_angle_service: BackgroundAngleService | None = None
+_prop_design_sheet_service: PropDesignSheetService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -620,6 +760,14 @@ def get_bg_angle_service() -> BackgroundAngleService:
     if _bg_angle_service is None:
         _bg_angle_service = BackgroundAngleService()
     return _bg_angle_service
+
+
+def get_prop_design_sheet_service() -> PropDesignSheetService:
+    """Get or create PropDesignSheetService instance."""
+    global _prop_design_sheet_service
+    if _prop_design_sheet_service is None:
+        _prop_design_sheet_service = PropDesignSheetService()
+    return _prop_design_sheet_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

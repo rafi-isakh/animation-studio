@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import admin, bg_jobs, health, image_jobs, jobs
+from app.api.routes import admin, bg_jobs, health, image_jobs, jobs, prop_design_jobs
 from app.config import get_settings
 
 settings = get_settings()
@@ -62,4 +62,5 @@ app.include_router(health.router)
 app.include_router(jobs.router, prefix="/api/v1")
 app.include_router(image_jobs.router, prefix="/api/v1")
 app.include_router(bg_jobs.router, prefix="/api/v1")
+app.include_router(prop_design_jobs.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")

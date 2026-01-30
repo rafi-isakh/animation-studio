@@ -270,6 +270,29 @@ def generate_bg_filename(
     return f"backgrounds/{safe_project_id}/{safe_bg_id}/{safe_angle}_{timestamp}.png"
 
 
+def generate_prop_design_sheet_filename(
+    project_id: str,
+    prop_id: str,
+) -> str:
+    """
+    Generate a unique filename for a generated prop design sheet image.
+
+    Args:
+        project_id: Project ID
+        prop_id: Prop ID
+
+    Returns:
+        Filename like 'props/project123/prop001/design_sheet_1234567890.png'
+    """
+    import time
+
+    timestamp = int(time.time() * 1000)
+    # Sanitize IDs (replace / with _, spaces with _)
+    safe_project_id = project_id.replace("/", "_")
+    safe_prop_id = prop_id.replace("/", "_").replace(" ", "_")
+    return f"props/{safe_project_id}/{safe_prop_id}/design_sheet_{timestamp}.png"
+
+
 async def upload_reference_images(
     project_id: str,
     frame_id: str,

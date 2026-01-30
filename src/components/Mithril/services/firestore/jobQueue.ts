@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, or background)
+ * Job type (video, image, background, or prop_design_sheet)
  */
-export type JobType = 'video' | 'image' | 'background';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet';
 
 /**
  * Job status from the orchestrator
@@ -33,13 +33,13 @@ export type JobStatus =
  */
 export interface JobQueueDocument {
   id: string;
-  type?: JobType;  // 'video' (default) or 'image'
+  type?: JobType;  // 'video' (default), 'image', 'background', or 'prop_design_sheet'
   project_id: string;
   scene_index: number;
   clip_index: number;
   provider_id: string;
   prompt: string;
-  image_url?: string;  // Video: source image for video generation
+  image_url?: string;  // Video: source image for video generation; Image/Bg/Prop: generated image result
   duration?: number;   // Video only
   aspect_ratio: string;
   status: JobStatus;
@@ -71,6 +71,10 @@ export interface JobQueueDocument {
   bg_id?: string;
   bg_angle?: string;
   bg_name?: string;
+  // Prop design sheet-specific fields
+  prop_id?: string;
+  prop_name?: string;
+  prop_category?: string;  // "character" or "object"
 }
 
 /**
@@ -530,6 +534,149 @@ function mapJobStatusToAngleStatus(
     case 'failed':
     case 'cancelled':
       return 'failed';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Prop Design Sheet Job Functions
+// ============================================================================
+
+/**
+ * Prop design sheet status
+ */
+export type PropStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Prop update object for PropDesigner
+ */
+export interface PropUpdate {
+  propId: string;
+  propName: string;
+  category: string;
+  jobId: string;
+  status: PropStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Callback for prop updates
+ */
+export type PropUpdateCallback = (update: PropUpdate) => void;
+
+/**
+ * Callback for multiple prop updates
+ */
+export type PropUpdatesCallback = (updates: PropUpdate[]) => void;
+
+/**
+ * Subscribe to prop design sheet jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any prop design sheet job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectPropDesignJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'prop_design_sheet')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) prop design sheet jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active prop design sheet job documents
+ */
+export async function getActiveProjectPropDesignJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'prop_design_sheet')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to a format compatible with PropDesigner props
+ * Note: For prop design sheet jobs, the backend uses `image_url` for the generated result
+ */
+export function mapPropJobToPropUpdate(job: JobQueueDocument): PropUpdate {
+  return {
+    propId: job.prop_id || '',
+    propName: job.prop_name || '',
+    category: job.prop_category || '',
+    jobId: job.id,
+    status: mapJobStatusToPropStatus(job.status, job.retry_count),
+    imageUrl: job.image_url || null,  // Backend uses image_url for generated image result
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to prop status (for prop design sheets)
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToPropStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): PropStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
     default:
       return 'pending';
   }

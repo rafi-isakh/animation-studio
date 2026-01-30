@@ -14,6 +14,7 @@ from google.oauth2 import service_account
 
 from app.config import get_settings
 from app.models.job import (
+    BgJobSubmitRequest,
     ImageJobSubmitRequest,
     JobDocument,
     JobStatus,
@@ -187,6 +188,54 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created image job {job_id} for project {request.project_id}, frame {request.frame_id}")
+        return job
+
+    async def create_bg_job(
+        self,
+        request: BgJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new background angle generation job in the queue.
+
+        Args:
+            request: Background job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.BACKGROUND,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for backgrounds
+            clip_index=0,  # Not used for backgrounds
+            provider_id="gemini",  # Currently only Gemini for backgrounds
+            prompt=request.prompt,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Background-specific fields
+            bg_id=request.bg_id,
+            bg_angle=request.bg_angle,
+            bg_name=request.bg_name,
+            max_retries=2,  # Fewer retries for backgrounds
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created bg job {job_id} for project {request.project_id}, bg {request.bg_id}, angle {request.bg_angle}")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -447,10 +496,94 @@ class ImageFrameService:
         )
 
 
+class BackgroundAngleService:
+    """Service for updating background angles in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _bg_ref(self, project_id: str, bg_id: str) -> DocumentReference:
+        """Get document reference for a background."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("bgSheet")
+            .document("settings")
+            .collection("backgrounds")
+            .document(bg_id)
+        )
+
+    async def update_angle_status(
+        self,
+        project_id: str,
+        bg_id: str,
+        angle: str,
+        status: str,
+        imageRef: str | None = None,
+        s3FileName: str | None = None,
+        jobId: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update background angle status in project Firestore.
+
+        The backgrounds collection stores documents with an 'angles' array.
+        Each angle has: { angle: string, imageRef: string, status: string, jobId: string }
+
+        Args:
+            project_id: The project ID
+            bg_id: Background ID
+            angle: Angle name (e.g., "Front View", "Worm View")
+            status: New status
+            imageRef: S3 URL of generated image
+            s3FileName: S3 file path
+            jobId: Job ID for tracking
+            error: Error message if failed
+        """
+        bg_ref = self._bg_ref(project_id, bg_id)
+        bg_doc = await bg_ref.get()
+
+        if not bg_doc.exists:
+            logger.warning(f"Background {bg_id} not found in project {project_id}")
+            return
+
+        bg_data = bg_doc.to_dict()
+        angles = bg_data.get("angles", [])
+
+        # Find and update the specific angle
+        updated = False
+        for i, angle_data in enumerate(angles):
+            if angle_data.get("angle") == angle:
+                angles[i]["status"] = status
+                if imageRef is not None:
+                    angles[i]["imageRef"] = imageRef
+                if s3FileName is not None:
+                    angles[i]["s3FileName"] = s3FileName
+                if jobId is not None:
+                    angles[i]["jobId"] = jobId
+                if error is not None:
+                    angles[i]["error"] = error
+                elif status == "completed":
+                    # Clear error on success
+                    angles[i].pop("error", None)
+                updated = True
+                break
+
+        if not updated:
+            logger.warning(f"Angle {angle} not found in background {bg_id}")
+            return
+
+        await bg_ref.update({"angles": angles})
+        logger.debug(
+            f"Updated angle {angle} in background {bg_id} in project {project_id}"
+        )
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
 _image_frame_service: ImageFrameService | None = None
+_bg_angle_service: BackgroundAngleService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -475,6 +608,14 @@ def get_image_frame_service() -> ImageFrameService:
     if _image_frame_service is None:
         _image_frame_service = ImageFrameService()
     return _image_frame_service
+
+
+def get_bg_angle_service() -> BackgroundAngleService:
+    """Get or create BackgroundAngleService instance."""
+    global _bg_angle_service
+    if _bg_angle_service is None:
+        _bg_angle_service = BackgroundAngleService()
+    return _bg_angle_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

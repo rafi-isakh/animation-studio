@@ -244,6 +244,32 @@ def generate_image_filename(
     return f"images/{safe_project_id}/{safe_frame_id}_{timestamp}.png"
 
 
+def generate_bg_filename(
+    project_id: str,
+    bg_id: str,
+    angle: str,
+) -> str:
+    """
+    Generate a unique filename for a generated background image.
+
+    Args:
+        project_id: Project ID
+        bg_id: Background ID
+        angle: Angle name (e.g., "Front View", "Worm View")
+
+    Returns:
+        Filename like 'backgrounds/project123/bg001/front_view_1234567890.png'
+    """
+    import time
+
+    timestamp = int(time.time() * 1000)
+    # Sanitize IDs (replace / with _, spaces with _)
+    safe_project_id = project_id.replace("/", "_")
+    safe_bg_id = bg_id.replace("/", "_")
+    safe_angle = angle.replace(" ", "_").replace("/", "_").lower()
+    return f"backgrounds/{safe_project_id}/{safe_bg_id}/{safe_angle}_{timestamp}.png"
+
+
 async def upload_reference_images(
     project_id: str,
     frame_id: str,

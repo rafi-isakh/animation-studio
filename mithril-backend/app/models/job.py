@@ -12,6 +12,7 @@ class JobType(str, Enum):
 
     VIDEO = "video"
     IMAGE = "image"
+    BACKGROUND = "background"
 
 
 class JobStatus(str, Enum):
@@ -108,6 +109,11 @@ class JobDocument(BaseModel):
     frame_label: str | None = None
     style_prompt: str | None = None
     reference_urls: list[str] = []  # S3 URLs for reference images (backgrounds, characters)
+
+    # Background-specific fields (for type=BACKGROUND)
+    bg_id: str | None = None  # Background ID
+    bg_angle: str | None = None  # Angle: "Front View", "Worm View", etc.
+    bg_name: str | None = None  # Background name for display
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -206,6 +212,57 @@ class ImageBatchSubmitRequest(BaseModel):
 
 class ImageBatchSubmitResponse(BaseModel):
     """Response model for batch image job submission."""
+
+    batch_id: str
+    jobs: list[JobSubmitResponse]
+    total_count: int
+    status: str = "submitted"
+
+
+# ============================================================================
+# Background Job Models
+# ============================================================================
+
+
+class BgJobSubmitRequest(BaseModel):
+    """Request model for submitting a background angle generation job."""
+
+    project_id: str
+    bg_id: str
+    bg_angle: str  # "Front View", "Worm View", etc.
+    bg_name: str
+    prompt: str
+    aspect_ratio: Literal["16:9", "9:16", "1:1"] = "16:9"
+    api_key: str | None = None
+
+
+class BgJobStatusResponse(BaseModel):
+    """Response model for background job status queries."""
+
+    job_id: str
+    bg_id: str
+    bg_angle: str
+    bg_name: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+class BgBatchSubmitRequest(BaseModel):
+    """Request model for submitting multiple background jobs."""
+
+    project_id: str
+    jobs: list[BgJobSubmitRequest]
+    api_key: str | None = None  # Batch-level fallback
+
+
+class BgBatchSubmitResponse(BaseModel):
+    """Response model for batch background job submission."""
 
     batch_id: str
     jobs: list[JobSubmitResponse]

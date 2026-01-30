@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video or image)
+ * Job type (video, image, or background)
  */
-export type JobType = 'video' | 'image';
+export type JobType = 'video' | 'image' | 'background';
 
 /**
  * Job status from the orchestrator
@@ -67,6 +67,10 @@ export interface JobQueueDocument {
   frame_label?: string;
   style_prompt?: string;
   reference_urls?: string[];
+  // Background-specific fields
+  bg_id?: string;
+  bg_angle?: string;
+  bg_name?: string;
 }
 
 /**
@@ -344,6 +348,8 @@ export async function getActiveProjectImageJobs(
 
 /**
  * Map JobQueueDocument to a format compatible with ImageGenerator frames
+ * Note: For image jobs, the backend uses `image_url` for the generated result
+ * (not `result_image_url` which was a frontend-only distinction)
  */
 export function mapImageJobToFrameUpdate(job: JobQueueDocument): FrameUpdate {
   return {
@@ -353,7 +359,7 @@ export function mapImageJobToFrameUpdate(job: JobQueueDocument): FrameUpdate {
     frameLabel: job.frame_label || '',
     jobId: job.id,
     status: mapJobStatusToFrameStatus(job.status, job.retry_count),
-    imageUrl: job.result_image_url || null,
+    imageUrl: job.image_url || null,  // Backend uses image_url for generated image result
     s3FileName: job.s3_file_name || null,
     error: job.error_message,
     progress: job.progress,
@@ -369,6 +375,147 @@ function mapJobStatusToFrameStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): FrameStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+    case 'cancelled':
+      return 'failed';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Background Job Functions
+// ============================================================================
+
+/**
+ * Background angle status
+ */
+export type AngleStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'retrying';
+
+/**
+ * Angle update object for BgSheetGenerator
+ */
+export interface AngleUpdate {
+  bgId: string;
+  angle: string;
+  bgName: string;
+  jobId: string;
+  status: AngleStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Callback for angle updates
+ */
+export type AngleUpdateCallback = (update: AngleUpdate) => void;
+
+/**
+ * Callback for multiple angle updates
+ */
+export type AngleUpdatesCallback = (updates: AngleUpdate[]) => void;
+
+/**
+ * Subscribe to background jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any background job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectBgJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'background')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) background jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active background job documents
+ */
+export async function getActiveProjectBgJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'background')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to a format compatible with BgSheetGenerator angles
+ * Note: For background jobs, the backend uses `image_url` for the generated result
+ */
+export function mapBgJobToAngleUpdate(job: JobQueueDocument): AngleUpdate {
+  return {
+    bgId: job.bg_id || '',
+    angle: job.bg_angle || '',
+    bgName: job.bg_name || '',
+    jobId: job.id,
+    status: mapJobStatusToAngleStatus(job.status, job.retry_count),
+    imageUrl: job.image_url || null,  // Backend uses image_url for generated image result
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to angle status (for backgrounds)
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToAngleStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): AngleStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

@@ -466,6 +466,7 @@ export default function ImageGeneratorOrchestrator() {
                 backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                 refFrame: savedFrame.refFrame || sbFrame.refFrame,
                 imageUrl: savedFrame.imageRef || null,
+                imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                 status: savedFrame.status || sbFrame.status,
                 remixPrompt: savedFrame.remixPrompt || "",
                 remixImageUrl: savedFrame.remixImageRef || null,

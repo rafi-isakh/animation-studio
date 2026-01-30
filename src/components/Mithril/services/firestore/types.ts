@@ -351,6 +351,7 @@ export interface ImageGenFrameDocument {
   backgroundId: string;
   refFrame: string;
   imageRef: string; // S3 URL
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status: ImageGenFrameStatus;
   remixPrompt: string;
   remixImageRef: string | null;
@@ -367,6 +368,7 @@ export interface SaveImageGenFrameInput {
   backgroundId: string;
   refFrame: string;
   imageRef?: string;
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status?: ImageGenFrameStatus;
   remixPrompt?: string;
   remixImageRef?: string | null;
@@ -378,6 +380,7 @@ export interface UpdateImageGenFrameInput {
   backgroundId?: string;
   refFrame?: string;
   imageRef?: string;
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status?: ImageGenFrameStatus;
   remixPrompt?: string;
   remixImageRef?: string | null;

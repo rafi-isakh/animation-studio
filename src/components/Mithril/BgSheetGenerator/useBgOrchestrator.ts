@@ -13,6 +13,7 @@ interface SubmitBgJobParams {
   bgName: string;
   prompt: string;
   aspectRatio: '16:9' | '9:16' | '1:1';
+  referenceUrl?: string;  // Master reference image URL for style consistency
   apiKey?: string;
 }
 

@@ -13,6 +13,7 @@ interface OrchestratorBgSubmitRequest {
   bgName: string;
   prompt: string;
   aspectRatio: "16:9" | "9:16" | "1:1";
+  referenceUrl?: string;  // Master reference image URL for style consistency
   apiKey?: string;
 }
 
@@ -77,6 +78,7 @@ async function handleSingleSubmit(
       bg_name: body.bgName,
       prompt: body.prompt,
       aspect_ratio: body.aspectRatio,
+      reference_url: body.referenceUrl,
       api_key: body.apiKey,
     }),
   });
@@ -133,6 +135,7 @@ async function handleBatchSubmit(
         bg_name: job.bgName,
         prompt: job.prompt,
         aspect_ratio: job.aspectRatio,
+        reference_url: job.referenceUrl,
         api_key: job.apiKey,
       })),
       api_key: body.apiKey,

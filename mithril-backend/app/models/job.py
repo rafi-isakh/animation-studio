@@ -233,6 +233,7 @@ class BgJobSubmitRequest(BaseModel):
     bg_name: str
     prompt: str
     aspect_ratio: Literal["16:9", "9:16", "1:1"] = "16:9"
+    reference_url: str | None = None  # Master reference image URL for style consistency
     api_key: str | None = None
 
 

@@ -210,6 +210,9 @@ class JobQueueService:
         job_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
 
+        # Build reference URLs list from single reference URL if provided
+        reference_urls = [request.reference_url] if request.reference_url else []
+
         job = JobDocument(
             id=job_id,
             type=JobType.BACKGROUND,
@@ -229,6 +232,7 @@ class JobQueueService:
             bg_id=request.bg_id,
             bg_angle=request.bg_angle,
             bg_name=request.bg_name,
+            reference_urls=reference_urls,  # Master reference image for style consistency
             max_retries=2,  # Fewer retries for backgrounds
         )
 

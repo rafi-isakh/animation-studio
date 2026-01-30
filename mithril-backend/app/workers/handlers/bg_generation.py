@@ -15,7 +15,7 @@ from app.models.job import JobDocument, JobStatus
 from app.providers.image import gemini_image_provider
 from app.providers.image.base import ImageGenerateRequest
 from app.services.firestore import get_job_queue_service, get_bg_angle_service
-from app.services.s3 import generate_bg_filename, upload_image
+from app.services.s3 import generate_bg_filename, upload_image, download_image
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -93,14 +93,14 @@ async def process_bg_generation(
         # Get API key
         api_key = _get_api_key(job, custom_api_key)
 
-        # === Stage 1: Prepare (validate only for backgrounds) ===
-        await _stage_prepare(job, state_machine)
+        # === Stage 1: Prepare (validate and fetch reference images) ===
+        reference_images = await _stage_prepare(job, state_machine)
 
         # === CHECKPOINT 2: Before generating ===
         await check_cancellation(job_id)
 
         # === Stage 2: Generate image ===
-        image_bytes = await _stage_generate(job, api_key, state_machine)
+        image_bytes = await _stage_generate(job, reference_images, api_key, state_machine)
 
         # === CHECKPOINT 3: Before upload ===
         await check_cancellation(job_id)
@@ -154,11 +154,11 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
 async def _stage_prepare(
     job: JobDocument,
     state_machine: JobStateMachine,
-) -> None:
-    """Stage 1: Validate job (no reference images for backgrounds)."""
+) -> list[bytes]:
+    """Stage 1: Validate job and fetch reference images."""
     job_queue_service = get_job_queue_service()
 
-    logger.info(f"[BG-GEN] {job.id} - Stage 1: PREPARING (validation)")
+    logger.info(f"[BG-GEN] {job.id} - Stage 1: PREPARING (validation + reference fetch)")
 
     state_machine.transition_to(JobStatus.PREPARING)
     await job_queue_service.update_job_status(job.id, JobStatus.PREPARING, progress=0.1)
@@ -172,16 +172,34 @@ async def _stage_prepare(
     if not job.prompt:
         raise VideoJobError.invalid_request("Missing prompt")
 
+    # Fetch reference images if provided
+    reference_images: list[bytes] = []
+    if job.reference_urls:
+        logger.info(f"[BG-GEN] {job.id} - Fetching {len(job.reference_urls)} reference images from S3")
+        for i, url in enumerate(job.reference_urls):
+            logger.debug(f"[BG-GEN] {job.id} - Fetching reference {i+1}/{len(job.reference_urls)}: {url}")
+            try:
+                img_bytes = await download_image(url)
+                reference_images.append(img_bytes)
+                logger.info(f"[BG-GEN] {job.id} - ✓ Fetched reference {i+1}: {len(img_bytes)} bytes")
+            except Exception as e:
+                logger.warning(f"[BG-GEN] {job.id} - ✗ Failed to fetch reference image {url}: {e}")
+                # Continue without this reference
+    else:
+        logger.info(f"[BG-GEN] {job.id} - No reference images provided")
+
     await job_queue_service.update_job(job.id, progress=0.2)
-    logger.info(f"[BG-GEN] {job.id} - Stage 1 complete: validation passed")
+    logger.info(f"[BG-GEN] {job.id} - Stage 1 complete: validation passed, {len(reference_images)} references loaded")
+    return reference_images
 
 
 async def _stage_generate(
     job: JobDocument,
+    reference_images: list[bytes],
     api_key: str,
     state_machine: JobStateMachine,
 ) -> bytes:
-    """Stage 2: Generate image using Gemini (text-only prompt)."""
+    """Stage 2: Generate image using Gemini with optional reference images."""
     job_queue_service = get_job_queue_service()
 
     logger.info(f"[BG-GEN] {job.id} - Stage 2: GENERATING background with Gemini")
@@ -190,14 +208,14 @@ async def _stage_generate(
     await job_queue_service.update_job_status(job.id, JobStatus.GENERATING, progress=0.3)
     logger.debug(f"[BG-GEN] {job.id} - Status updated to GENERATING in Firestore")
 
-    # Build request (no reference images for backgrounds)
+    # Build request with reference images for style consistency
     request = ImageGenerateRequest(
         prompt=job.prompt,
         style_prompt=None,  # No style prompt for backgrounds
-        reference_images=[],  # No reference images
+        reference_images=reference_images,  # Master reference for style consistency
         aspect_ratio=job.aspect_ratio,
     )
-    logger.info(f"[BG-GEN] {job.id} - Request built: prompt_len={len(job.prompt)}, ratio={job.aspect_ratio}")
+    logger.info(f"[BG-GEN] {job.id} - Request built: prompt_len={len(job.prompt)}, refs={len(reference_images)}, ratio={job.aspect_ratio}")
 
     # Validate
     validation_error = gemini_image_provider.validate_request(request)

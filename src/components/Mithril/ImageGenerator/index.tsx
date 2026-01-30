@@ -317,7 +317,7 @@ export default function ImageGenerator() {
                 refFrame: savedFrame.refFrame || sbFrame.refFrame,
                 imageUrl: savedFrame.imageRef || null, // Don't fall back to sbFrame.imageUrl
                 imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined), // For cache busting
-                status: savedFrame.status || sbFrame.status,
+                status: savedFrame.status ?? sbFrame.status,
                 remixPrompt: savedFrame.remixPrompt || "",
                 remixImageUrl: savedFrame.remixImageRef || null,
                 hasDrawingEdits: !!savedFrame.editedImageRef,

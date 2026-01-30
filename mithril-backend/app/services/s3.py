@@ -148,3 +148,128 @@ def generate_video_filename(
     safe_job_id = job_id.replace("/", "_")
     timestamp = int(time.time() * 1000)
     return f"{provider_id}_{timestamp}_{safe_job_id}.mp4"
+
+
+# ============================================================================
+# Image-specific S3 operations
+# ============================================================================
+
+
+def get_image_url(file_name: str) -> str:
+    """
+    Get the CloudFront URL for an image file.
+
+    Args:
+        file_name: S3 object key
+
+    Returns:
+        Full CloudFront URL
+    """
+    return f"https://{settings.cloudfront_domain}/{file_name}"
+
+
+async def upload_image(
+    image_bytes: bytes,
+    file_name: str,
+    content_type: str = "image/png",
+) -> str:
+    """
+    Upload image to S3.
+
+    Args:
+        image_bytes: Image file content
+        file_name: S3 object key
+        content_type: MIME type
+
+    Returns:
+        CloudFront URL of the uploaded image
+    """
+    client = get_s3_client()
+
+    try:
+        client.put_object(
+            Bucket=settings.videos_bucket,  # Using same bucket for images
+            Key=file_name,
+            Body=image_bytes,
+            ContentType=content_type,
+        )
+        logger.info(f"Uploaded image to S3: {file_name}")
+        return get_image_url(file_name)
+    except ClientError as e:
+        logger.error(f"Failed to upload image to S3: {e}")
+        raise
+
+
+async def download_image(url: str) -> bytes:
+    """
+    Download image from URL (supports S3/CloudFront URLs and external URLs).
+
+    Args:
+        url: Image URL
+
+    Returns:
+        Image bytes
+    """
+    import httpx
+
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+        response = await client.get(url)
+        if not response.is_success:
+            raise Exception(f"Failed to download image: {response.status_code}")
+        return response.content
+
+
+def generate_image_filename(
+    project_id: str,
+    frame_id: str,
+    job_id: str,
+) -> str:
+    """
+    Generate a unique filename for a generated image.
+
+    Args:
+        project_id: Project ID
+        frame_id: Frame ID
+        job_id: Job ID
+
+    Returns:
+        Filename like 'images/project123/frame456_1234567890.png'
+    """
+    import time
+
+    timestamp = int(time.time() * 1000)
+    # Sanitize IDs (replace / with _)
+    safe_project_id = project_id.replace("/", "_")
+    safe_frame_id = frame_id.replace("/", "_")
+    return f"images/{safe_project_id}/{safe_frame_id}_{timestamp}.png"
+
+
+async def upload_reference_images(
+    project_id: str,
+    frame_id: str,
+    images: list[tuple[bytes, str]],  # List of (image_bytes, category)
+) -> list[str]:
+    """
+    Upload reference images to S3 for job processing.
+
+    Args:
+        project_id: Project ID
+        frame_id: Frame ID
+        images: List of (image_bytes, category) tuples
+
+    Returns:
+        List of S3 URLs
+    """
+    import time
+
+    urls = []
+    timestamp = int(time.time() * 1000)
+    safe_project_id = project_id.replace("/", "_")
+    safe_frame_id = frame_id.replace("/", "_")
+
+    for i, (img_bytes, category) in enumerate(images):
+        file_name = f"refs/{safe_project_id}/{safe_frame_id}_{timestamp}_{category}_{i}.webp"
+        url = await upload_image(img_bytes, file_name, "image/webp")
+        urls.append(url)
+
+    return urls

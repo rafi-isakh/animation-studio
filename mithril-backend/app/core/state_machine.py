@@ -10,22 +10,36 @@ logger = logging.getLogger(__name__)
 # Valid state transitions
 # Format: {current_state: {allowed_next_states}}
 VALID_TRANSITIONS: dict[JobStatus, Set[JobStatus]] = {
+    # === Common/Video job transitions ===
     JobStatus.PENDING: {
-        JobStatus.SUBMITTED,  # Job picked up by worker
+        JobStatus.SUBMITTED,  # Video: Job picked up by worker
+        JobStatus.PREPARING,  # Image: Job picked up, fetching references
         JobStatus.FAILED,     # Validation failed
         JobStatus.CANCELLED,  # Cancelled before start
     },
     JobStatus.SUBMITTED: {
-        JobStatus.POLLING,    # Provider accepted job
-        JobStatus.FAILED,     # Provider rejected job
+        JobStatus.POLLING,    # Video: Provider accepted job
+        JobStatus.FAILED,     # Video: Provider rejected job
         JobStatus.CANCELLED,  # Cancelled after submit
     },
     JobStatus.POLLING: {
         JobStatus.POLLING,    # Still polling (self-transition)
-        JobStatus.UPLOADING,  # Provider completed, downloading video
+        JobStatus.UPLOADING,  # Video: Provider completed, downloading video
         JobStatus.FAILED,     # Provider failed or timeout
         JobStatus.CANCELLED,  # Cancelled during polling
     },
+    # === Image job transitions ===
+    JobStatus.PREPARING: {
+        JobStatus.GENERATING,  # Image: References fetched, calling AI
+        JobStatus.FAILED,      # Failed to fetch references
+        JobStatus.CANCELLED,   # Cancelled during preparation
+    },
+    JobStatus.GENERATING: {
+        JobStatus.UPLOADING,  # Image: Generation complete, uploading
+        JobStatus.FAILED,     # Generation failed
+        JobStatus.CANCELLED,  # Cancelled during generation
+    },
+    # === Common transitions ===
     JobStatus.UPLOADING: {
         JobStatus.COMPLETED,  # S3 upload success
         JobStatus.FAILED,     # S3 upload failed
@@ -106,6 +120,8 @@ def is_active_state(status: JobStatus) -> bool:
     return status in (
         JobStatus.SUBMITTED,
         JobStatus.POLLING,
+        JobStatus.PREPARING,
+        JobStatus.GENERATING,
         JobStatus.UPLOADING,
     )
 

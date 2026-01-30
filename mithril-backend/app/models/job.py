@@ -1,4 +1,4 @@
-"""Job models for the video generation queue."""
+"""Job models for the video and image generation queue."""
 
 from datetime import datetime
 from enum import Enum
@@ -7,12 +7,21 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+class JobType(str, Enum):
+    """Job type enumeration."""
+
+    VIDEO = "video"
+    IMAGE = "image"
+
+
 class JobStatus(str, Enum):
     """Job status enumeration."""
 
     PENDING = "pending"
-    SUBMITTED = "submitted"
-    POLLING = "polling"
+    SUBMITTED = "submitted"  # Video: submitted to provider
+    POLLING = "polling"  # Video: polling provider for completion
+    PREPARING = "preparing"  # Image: fetching reference images from S3
+    GENERATING = "generating"  # Image: calling AI provider
     UPLOADING = "uploading"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -81,6 +90,7 @@ class JobDocument(BaseModel):
     """Firestore document model for job_queue collection."""
 
     id: str
+    type: JobType = JobType.VIDEO  # Job type (video or image)
     project_id: str
     scene_index: int
     clip_index: int
@@ -88,10 +98,16 @@ class JobDocument(BaseModel):
 
     # Request parameters
     prompt: str
-    image_url: str | None = None
-    duration: int
+    image_url: str | None = None  # Video: source image for video generation
+    duration: int | None = None  # Video only
     aspect_ratio: str
     api_key_hash: str | None = None  # Hashed for audit
+
+    # Image-specific fields
+    frame_id: str | None = None
+    frame_label: str | None = None
+    style_prompt: str | None = None
+    reference_urls: list[str] = []  # S3 URLs for reference images (backgrounds, characters)
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -99,7 +115,8 @@ class JobDocument(BaseModel):
     progress: float = 0.0
 
     # Results
-    video_url: str | None = None
+    video_url: str | None = None  # Video result
+    image_url: str | None = None  # Image result
     s3_file_name: str | None = None
 
     # Error handling
@@ -138,6 +155,57 @@ class BatchSubmitRequest(BaseModel):
 
 class BatchSubmitResponse(BaseModel):
     """Response model for batch job submission."""
+
+    batch_id: str
+    jobs: list[JobSubmitResponse]
+    total_count: int
+    status: str = "submitted"
+
+
+# ============================================================================
+# Image Job Models
+# ============================================================================
+
+
+class ImageJobSubmitRequest(BaseModel):
+    """Request model for submitting an image generation job."""
+
+    project_id: str
+    frame_id: str
+    scene_index: int
+    clip_index: int
+    frame_label: str
+    prompt: str
+    style_prompt: str | None = None
+    reference_urls: list[str] = []  # Pre-uploaded S3 URLs for reference images
+    aspect_ratio: Literal["16:9", "9:16", "1:1"] = "16:9"
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class ImageJobStatusResponse(BaseModel):
+    """Response model for image job status queries."""
+
+    job_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+class ImageBatchSubmitRequest(BaseModel):
+    """Request model for submitting multiple image jobs."""
+
+    project_id: str
+    jobs: list[ImageJobSubmitRequest]
+    api_key: str | None = None
+
+
+class ImageBatchSubmitResponse(BaseModel):
+    """Response model for batch image job submission."""
 
     batch_id: str
     jobs: list[JobSubmitResponse]

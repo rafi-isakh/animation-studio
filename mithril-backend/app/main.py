@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import admin, health, jobs
+from app.api.routes import admin, health, image_jobs, jobs
 from app.config import get_settings
 
 settings = get_settings()
@@ -39,8 +39,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="Mithril Backend",
-    description="Async job orchestrator for video generation pipeline",
-    version="0.1.0",
+    description="Async job orchestrator for video and image generation pipeline",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -60,4 +60,5 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router)
 app.include_router(jobs.router, prefix="/api/v1")
+app.include_router(image_jobs.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")

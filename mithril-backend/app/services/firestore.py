@@ -13,7 +13,13 @@ from google.cloud.firestore_v1 import DocumentReference
 from google.oauth2 import service_account
 
 from app.config import get_settings
-from app.models.job import JobDocument, JobStatus, JobSubmitRequest
+from app.models.job import (
+    ImageJobSubmitRequest,
+    JobDocument,
+    JobStatus,
+    JobSubmitRequest,
+    JobType,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -134,6 +140,55 @@ class JobQueueService:
         logger.info(f"Created job {job_id} for project {request.project_id}")
         return job
 
+    async def create_image_job(
+        self,
+        request: ImageJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new image generation job in the queue.
+
+        Args:
+            request: Image job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.IMAGE,
+            project_id=request.project_id,
+            scene_index=request.scene_index,
+            clip_index=request.clip_index,
+            provider_id="gemini",  # Currently only Gemini for images
+            prompt=request.prompt,
+            style_prompt=request.style_prompt,
+            reference_urls=request.reference_urls,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Image-specific fields
+            frame_id=request.frame_id,
+            frame_label=request.frame_label,
+            max_retries=2,  # Fewer retries for images
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created image job {job_id} for project {request.project_id}, frame {request.frame_id}")
+        return job
+
     async def get_job(self, job_id: str) -> JobDocument | None:
         """
         Get a job by ID.
@@ -149,18 +204,30 @@ class JobQueueService:
             return None
         return JobDocument(**doc.to_dict())
 
-    async def update_job(self, job_id: str, **updates: Any) -> None:
+    async def update_job(
+        self,
+        job_id: str,
+        *,
+        unset_fields: list[str] | None = None,
+        **updates: Any,
+    ) -> None:
         """
         Update job fields.
 
         Args:
             job_id: The job ID
+            unset_fields: Optional list of fields to remove from the document.
             **updates: Fields to update
         """
         updates["updated_at"] = datetime.now(timezone.utc).isoformat()
 
-        # Filter out None values
+        # Filter out None values (default behavior is to avoid overwriting with nulls).
         filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        # Explicitly unset fields when requested.
+        if unset_fields:
+            for field_name in unset_fields:
+                filtered_updates[field_name] = firestore.DELETE_FIELD
 
         await self._job_ref(job_id).update(filtered_updates)
         logger.debug(f"Updated job {job_id}: {list(filtered_updates.keys())}")
@@ -336,9 +403,54 @@ class VideoClipService:
         )
 
 
+class ImageFrameService:
+    """Service for updating image frames in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _frame_ref(self, project_id: str, frame_id: str) -> DocumentReference:
+        """Get document reference for an image frame."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("imageGen")
+            .document("settings")
+            .collection("frames")
+            .document(frame_id)
+        )
+
+    async def update_frame_status(
+        self,
+        project_id: str,
+        frame_id: str,
+        status: str,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update image frame status in project Firestore.
+
+        Args:
+            project_id: The project ID
+            frame_id: Frame ID
+            status: New status
+            **kwargs: Additional fields (imageRef, s3FileName, jobId, error, etc.)
+        """
+        updates = {"status": status, **kwargs}
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        await self._frame_ref(project_id, frame_id).set(
+            filtered_updates, merge=True
+        )
+        logger.debug(
+            f"Updated frame {frame_id} in project {project_id}"
+        )
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
+_image_frame_service: ImageFrameService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -357,6 +469,15 @@ def get_video_clip_service() -> VideoClipService:
     return _video_clip_service
 
 
+def get_image_frame_service() -> ImageFrameService:
+    """Get or create ImageFrameService instance."""
+    global _image_frame_service
+    if _image_frame_service is None:
+        _image_frame_service = ImageFrameService()
+    return _image_frame_service
+
+
 # Backwards compatible aliases (use getter functions for lazy init)
 job_queue_service = None  # Use get_job_queue_service() instead
 video_clip_service = None  # Use get_video_clip_service() instead
+image_frame_service = None  # Use get_image_frame_service() instead

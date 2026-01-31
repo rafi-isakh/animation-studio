@@ -1,0 +1,27 @@
+# Production overrides for EC2 deployment
+# Run: docker compose -p mithril -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  redis:
+    restart: unless-stopped
+    # No published ports - keep Redis internal only
+
+  api:
+    restart: unless-stopped
+    ports:
+      # Bind to localhost only, nginx will proxy to this
+      - "127.0.0.1:18000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --workers 4
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

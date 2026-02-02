@@ -20,6 +20,7 @@ from app.models.job import (
     JobStatus,
     JobSubmitRequest,
     JobType,
+    PanelJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
 )
 
@@ -290,6 +291,54 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created prop design sheet job {job_id} for project {request.project_id}, prop {request.prop_id} ({request.prop_name})")
+        return job
+
+    async def create_panel_job(
+        self,
+        request: PanelJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new panel editor job in the queue.
+
+        Args:
+            request: Panel job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PANEL,
+            project_id=request.project_id,  # Use actual project_id for S3 storage
+            scene_index=0,  # Not used for panels
+            clip_index=0,  # Not used for panels
+            provider_id="gemini",  # Currently only Gemini for panels
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Panel-specific fields
+            session_id=request.session_id,  # For real-time tracking
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_image_base64=request.image_base64,
+            source_mime_type=request.mime_type,
+            refinement_mode=request.refinement_mode,
+            max_retries=2,  # Fewer retries for panels
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created panel job {job_id} for session {request.session_id}, panel {request.panel_id}")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:

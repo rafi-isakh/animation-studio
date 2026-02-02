@@ -283,6 +283,74 @@ async def retry_failed_prop_design_sheet_job(
 
 
 # ============================================================================
+# Panel Editor Generation Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Main panel editor generation task.
+
+    This task handles the full lifecycle:
+    1. Load source image and build prompt
+    2. Call Gemini API to generate transformed panel
+    3. Upload result to S3
+    4. Update Firestore
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.panel_generation import process_panel_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing panel job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_panel_generation(job_id, worker_id, api_key)
+        logger.info(f"[{worker_id}] Panel job {job_id} finished with status: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in panel job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_panel_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed panel job after a delay.
+
+    Args:
+        job_id: The job ID to retry
+        delay_seconds: Delay before processing
+        api_key: Optional API key (if not provided, uses settings fallback)
+
+    Returns:
+        dict with status and result information
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying panel job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_panel_job(job_id, api_key)
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

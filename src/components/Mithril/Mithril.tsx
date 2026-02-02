@@ -12,6 +12,7 @@ import ImageGeneratorWrapper from "./ImageGenerator/ImageGeneratorWrapper";
 import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
+import PanelEditor from "./ImageToVideo/PanelEditor";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,6 +31,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'VideoGenerator': VideoGeneratorWrapper,
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
+  'PanelEditor': PanelEditor,
 };
 
 // Cost Tracker Dashboard Component

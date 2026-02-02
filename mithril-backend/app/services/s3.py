@@ -293,6 +293,35 @@ def generate_prop_design_sheet_filename(
     return f"props/{safe_project_id}/{safe_prop_id}/design_sheet_{timestamp}.png"
 
 
+def generate_panel_filename(
+    project_id: str,
+    panel_id: str,
+    job_id: str,
+) -> str:
+    """
+    Generate a unique filename for a generated panel image.
+
+    Uses project-based path to match ImageSplitter's pattern:
+    - ImageSplitter stores at: mithril/{projectId}/i2v/panels/
+    - Panel Editor stores at:  mithril/{projectId}/i2v/edited-panels/
+
+    Args:
+        project_id: Project ID
+        panel_id: Panel ID
+        job_id: Job ID
+
+    Returns:
+        Filename like 'mithril/project123/i2v/edited-panels/panel456_1234567890.png'
+    """
+    import time
+
+    timestamp = int(time.time() * 1000)
+    # Sanitize IDs (replace / with _)
+    safe_project_id = project_id.replace("/", "_")
+    safe_panel_id = panel_id.replace("/", "_")
+    return f"mithril/{safe_project_id}/i2v/edited-panels/{safe_panel_id}_{timestamp}.png"
+
+
 async def upload_reference_images(
     project_id: str,
     frame_id: str,

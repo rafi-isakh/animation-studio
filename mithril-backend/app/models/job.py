@@ -14,6 +14,7 @@ class JobType(str, Enum):
     IMAGE = "image"
     BACKGROUND = "background"
     PROP_DESIGN_SHEET = "prop_design_sheet"
+    PANEL = "panel"
 
 
 class JobStatus(str, Enum):
@@ -120,6 +121,14 @@ class JobDocument(BaseModel):
     prop_id: str | None = None  # Prop ID
     prop_name: str | None = None  # Prop name for display
     prop_category: str | None = None  # "character" or "object"
+
+    # Panel editor-specific fields (for type=PANEL)
+    session_id: str | None = None  # Session ID for standalone panel editor
+    panel_id: str | None = None  # Panel ID within session
+    file_name: str | None = None  # Original filename
+    source_image_base64: str | None = None  # Base64 encoded source image
+    source_mime_type: str | None = None  # MIME type of source image
+    refinement_mode: str | None = None  # "default", "zoom", or "expand"
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -327,3 +336,38 @@ class PropDesignSheetBatchSubmitResponse(BaseModel):
     jobs: list[JobSubmitResponse]
     total_count: int
     status: str = "submitted"
+
+
+# ============================================================================
+# Panel Editor Job Models
+# ============================================================================
+
+
+class PanelJobSubmitRequest(BaseModel):
+    """Request model for submitting a panel editor job."""
+
+    project_id: str  # Project ID for S3 storage (consistent with ImageSplitter)
+    session_id: str  # Session ID for real-time tracking
+    panel_id: str  # Panel ID within session
+    file_name: str  # Original filename
+    image_base64: str  # Base64 encoded source image
+    mime_type: str = "image/png"  # MIME type of source image
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
+    refinement_mode: Literal["default", "zoom", "expand"] = "default"
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class PanelJobStatusResponse(BaseModel):
+    """Response model for panel job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None

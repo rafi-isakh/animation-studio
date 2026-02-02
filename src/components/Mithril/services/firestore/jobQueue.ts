@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, background, or prop_design_sheet)
+ * Job type (video, image, background, prop_design_sheet, or panel)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel';
 
 /**
  * Job status from the orchestrator
@@ -75,6 +75,12 @@ export interface JobQueueDocument {
   prop_id?: string;
   prop_name?: string;
   prop_category?: string;  // "character" or "object"
+  // Panel editor-specific fields
+  panel_id?: string;
+  session_id?: string;
+  file_name?: string;
+  target_aspect_ratio?: string;
+  refinement_mode?: string;  // "default" | "zoom" | "expand"
 }
 
 /**
@@ -662,6 +668,149 @@ function mapJobStatusToPropStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): PropStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Panel Editor Job Functions
+// ============================================================================
+
+/**
+ * Panel job status
+ */
+export type PanelJobStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Panel update object for PanelEditor
+ */
+export interface PanelUpdate {
+  panelId: string;
+  sessionId: string;
+  fileName: string;
+  jobId: string;
+  status: PanelJobStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Callback for panel updates
+ */
+export type PanelUpdateCallback = (update: PanelUpdate) => void;
+
+/**
+ * Callback for multiple panel updates
+ */
+export type PanelUpdatesCallback = (updates: PanelUpdate[]) => void;
+
+/**
+ * Subscribe to panel jobs for a session
+ *
+ * @param sessionId - The session ID (unique identifier for the panel editor session)
+ * @param callback - Called whenever any panel job in the session changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToSessionPanelJobs(
+  sessionId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'panel')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) panel jobs for a session (one-time fetch)
+ *
+ * @param sessionId - The session ID
+ * @returns Array of active panel job documents
+ */
+export async function getActiveSessionPanelJobs(
+  sessionId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'panel')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to a format compatible with PanelEditor panels
+ * Note: For panel jobs, the backend uses `image_url` for the generated result
+ */
+export function mapPanelJobToPanelUpdate(job: JobQueueDocument): PanelUpdate {
+  return {
+    panelId: job.panel_id || '',
+    sessionId: job.session_id || '',
+    fileName: job.file_name || '',
+    jobId: job.id,
+    status: mapJobStatusToPanelStatus(job.status, job.retry_count),
+    imageUrl: job.image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to panel status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToPanelStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): PanelJobStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

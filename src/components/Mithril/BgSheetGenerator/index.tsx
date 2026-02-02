@@ -29,6 +29,8 @@ import {
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import BgSheetImageEditor from "./BgSheetImageEditor";
+import { useBgOrchestrator, type AngleUpdate } from "./useBgOrchestrator";
+import { getActiveProjectBgJobs, mapBgJobToAngleUpdate } from "../services/firestore/jobQueue";
 import type { Background, BgSheetResultMetadata, ReferenceAnalysis } from "./types";
 
 // 9 specialized camera angles matching storyboard production workflow
@@ -406,6 +408,140 @@ export default function BgSheetGenerator() {
 
   // AbortController for canceling in-flight requests on unmount
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // === Orchestrator Integration ===
+  // Enable orchestrator mode (can be controlled by env variable)
+  const useOrchestrator = process.env.NEXT_PUBLIC_USE_BG_ORCHESTRATOR === 'true';
+
+  // Track active jobs: Map<`${bgId}-${angle}`, jobId>
+  const activeJobsRef = useRef<Map<string, string>>(new Map());
+  const isMountedRef = useRef(true);
+
+  // Handle angle updates from orchestrator
+  const handleAngleUpdate = useCallback((update: AngleUpdate) => {
+    if (!isMountedRef.current) return;
+
+    const angleKey = `${update.bgId}-${update.angle}`;
+    const trackedJobId = activeJobsRef.current.get(angleKey);
+    const isTrackedJob = trackedJobId === update.jobId;
+    const hasNewImageUrl = update.imageUrl && update.imageUrl.trim() !== "";
+
+    // Only process updates from the job we're tracking for this angle
+    // This prevents old completed jobs from overwriting the generating state of new jobs
+    if (!isTrackedJob && trackedJobId) {
+      // We have a different job tracked for this angle - ignore this update
+      return;
+    }
+
+    // Find the background and angle index
+    setBackgrounds(prevBgs => {
+      const bgIndex = prevBgs.findIndex(bg => bg.id === update.bgId);
+      if (bgIndex === -1) return prevBgs;
+
+      const bg = prevBgs[bgIndex];
+      const angleIndex = bg.images?.findIndex(img => img.angle === update.angle);
+      if (angleIndex === undefined || angleIndex === -1) return prevBgs;
+
+      const updatedBgs = [...prevBgs];
+      const updatedImages = [...bg.images];
+
+      // Preserve old imageUrl/imageBase64 during generation unless new one is valid
+      const existingImage = updatedImages[angleIndex];
+      let newImageUrl = existingImage.imageUrl;
+      if (hasNewImageUrl) {
+        // Add cache-busting timestamp to force browser to fetch new image
+        const baseUrl = update.imageUrl!.split('?')[0];
+        newImageUrl = `${baseUrl}?t=${Date.now()}`;
+      }
+
+      updatedImages[angleIndex] = {
+        ...existingImage,
+        imageUrl: newImageUrl,
+        imageBase64: hasNewImageUrl ? "" : existingImage.imageBase64, // Clear base64 when S3 URL arrives
+        isGenerating: update.status !== "completed" && update.status !== "failed",
+      };
+
+      updatedBgs[bgIndex] = { ...bg, images: updatedImages };
+
+      // Sync to MithrilContext when job completes successfully (so navigation preserves new image)
+      if (update.status === "completed" && hasNewImageUrl) {
+        const metadata: BgSheetResultMetadata = {
+          backgrounds: updatedBgs.map((b) => ({
+            id: b.id,
+            name: b.name,
+            description: b.description,
+            referenceImageUrl: b.referenceImageUrl,
+            referenceAnalysis: b.referenceAnalysis,
+            plannedPrompts: b.plannedPrompts,
+            images: b.images.map((img) => ({
+              angle: img.angle,
+              prompt: img.prompt,
+              imageId: img.imageUrl || "",
+            })),
+          })),
+          styleKeyword: styleKeywordRef.current,
+          backgroundBasePrompt: backgroundBasePromptRef.current,
+        };
+        setBgSheetResult(metadata);
+        setStageResult(6, metadata);
+      }
+
+      return updatedBgs;
+    });
+
+    // Cleanup on completion/failure (no success toast to avoid noise with batch generation)
+    if (update.status === "completed" && isTrackedJob) {
+      activeJobsRef.current.delete(angleKey);
+    } else if (update.status === "failed" && isTrackedJob) {
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: `${update.bgName} - ${update.angle}: ${update.error || "Unknown error"}`,
+      });
+      activeJobsRef.current.delete(angleKey);
+    }
+  }, [toast, setBgSheetResult, setStageResult]);
+
+  // Initialize orchestrator hook
+  const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob } = useBgOrchestrator({
+    projectId: currentProjectId,
+    onAngleUpdate: handleAngleUpdate,
+    enabled: useOrchestrator,
+  });
+
+  // Load active jobs on mount
+  useEffect(() => {
+    if (!useOrchestrator || !currentProjectId) return;
+
+    const loadActiveJobs = async () => {
+      try {
+        const activeJobs = await getActiveProjectBgJobs(currentProjectId);
+        console.log(`[BgSheet] Found ${activeJobs.length} active bg jobs`);
+
+        activeJobs.forEach(job => {
+          if (job.bg_id && job.bg_angle) {
+            const angleKey = `${job.bg_id}-${job.bg_angle}`;
+            activeJobsRef.current.set(angleKey, job.id);
+            // Process update to sync UI state
+            const update = mapBgJobToAngleUpdate(job);
+            handleAngleUpdate(update);
+          }
+        });
+      } catch (error) {
+        console.error("[BgSheet] Failed to load active jobs:", error);
+      }
+    };
+
+    loadActiveJobs();
+  }, [useOrchestrator, currentProjectId, handleAngleUpdate]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // === Cost Tracking (Phase 6) ===
   // Cost rates per API usage
@@ -1856,6 +1992,66 @@ Image Cost: $${currentImageCost.toFixed(4)}
       )
     );
 
+    // === Orchestrator Mode ===
+    if (useOrchestrator && currentProjectId) {
+      try {
+        // Clean up any existing job for this angle
+        const angleKey = `${bgId}-${imageInfo.angle}`;
+        const existingJobId = activeJobsRef.current.get(angleKey);
+
+        if (existingJobId) {
+          try {
+            await cancelBgJob({ jobId: existingJobId });
+          } catch (e) {
+            console.warn("[BgSheet] Failed to cancel existing job:", e);
+          }
+          activeJobsRef.current.delete(angleKey);
+        }
+
+        // Submit to orchestrator with reference URL for style consistency
+        const referenceUrl = background.referenceImageUrl || undefined;
+        const result = await submitBgJob({
+          projectId: currentProjectId,
+          bgId: bgId,
+          bgAngle: imageInfo.angle,
+          bgName: background.name,
+          prompt: prompt,
+          aspectRatio: "16:9",
+          referenceUrl: referenceUrl,
+          apiKey: customApiKey || undefined,
+        });
+
+        // Track the job
+        activeJobsRef.current.set(angleKey, result.jobId);
+
+        // Don't reset isGenerating here - let the Firestore subscription handle it
+        return;
+      } catch (e) {
+        console.error(`[BgSheet] Failed to submit orchestrator job for ${imageInfo.angle}:`, e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+        toast({
+          variant: "destructive",
+          title: "Failed to submit job",
+          description: `${background.name} (${imageInfo.angle}): ${errorMessage}`,
+        });
+        // Reset generating state on error
+        setBackgrounds(prevBgs =>
+          prevBgs.map(bg =>
+            bg.id === bgId
+              ? {
+                  ...bg,
+                  images: bg.images.map((img, idx) =>
+                    idx === index ? { ...img, isGenerating: false } : img
+                  ),
+                }
+              : bg
+          )
+        );
+        return;
+      }
+    }
+
+    // === Direct Mode (existing logic) ===
     try {
       let response;
 

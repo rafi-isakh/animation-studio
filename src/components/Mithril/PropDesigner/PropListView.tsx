@@ -1,12 +1,45 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Prop, getEasyModeCharacterPrompt } from "./types";
+import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
+
+// Status badge component for job statuses
+function JobStatusBadge({ status }: { status: PropJobStatus | null }) {
+  if (!status) return null;
+
+  const statusConfig: Record<
+    PropJobStatus,
+    { bg: string; text: string; label: string; animate?: boolean }
+  > = {
+    pending: { bg: "bg-yellow-900/50", text: "text-yellow-400", label: "Queued" },
+    preparing: { bg: "bg-blue-900/50", text: "text-blue-400", label: "Preparing", animate: true },
+    generating: { bg: "bg-purple-900/50", text: "text-purple-400", label: "Generating", animate: true },
+    uploading: { bg: "bg-cyan-900/50", text: "text-cyan-400", label: "Uploading", animate: true },
+    completed: { bg: "bg-green-900/50", text: "text-green-400", label: "Done" },
+    failed: { bg: "bg-red-900/50", text: "text-red-400", label: "Failed" },
+    cancelled: { bg: "bg-gray-900/50", text: "text-gray-400", label: "Cancelled" },
+    retrying: { bg: "bg-orange-900/50", text: "text-orange-400", label: "Retrying", animate: true },
+  };
+
+  const config = statusConfig[status];
+  return (
+    <span
+      className={`text-[8px] px-1.5 py-0.5 rounded border ${config.bg} ${config.text} border-current/30 uppercase font-bold ${
+        config.animate ? "animate-pulse" : ""
+      }`}
+    >
+      {config.label}
+    </span>
+  );
+}
 
 interface PropListViewProps {
   props: Prop[];
   genre: string;
   styleKeyword: string;
+  projectId?: string; // Required for async orchestrator
+  customApiKey?: string; // Optional custom API key
   onGenerateImage: (
     propId: string,
     prompt: string,
@@ -25,6 +58,8 @@ export default function PropListView({
   props,
   genre,
   styleKeyword,
+  projectId,
+  customApiKey,
   onGenerateImage,
   onSetReferenceImages,
   onUpdateProp,
@@ -38,6 +73,51 @@ export default function PropListView({
   const [isMinimized, setIsMinimized] = useState(initialMinimized);
   // Easy Mode state
   const [isEasyMode, setIsEasyMode] = useState(false);
+
+  // Job statuses from orchestrator (real-time updates)
+  const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
+  const [jobIds, setJobIds] = useState<Record<string, string>>({});
+  
+  // Batch generation state
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number } | null>(null);
+
+  // Async orchestrator hook
+  const orchestrator = usePropImageOrchestrator({
+    projectId: projectId || "",
+    customApiKey,
+    onPropUpdate: useCallback((update: PropUpdate) => {
+      // Update job status from real-time Firestore updates
+      setJobStatuses((prev) => ({ ...prev, [update.propId]: update.status }));
+      
+      // If completed, update the prop with the new image URL
+      if (update.status === "completed" && update.imageUrl) {
+        onUpdateProp(update.propId, { 
+          designSheetImageUrl: update.imageUrl,
+          isGenerating: false 
+        });
+      }
+      
+      // If failed, mark as not generating
+      if (update.status === "failed" || update.status === "cancelled") {
+        onUpdateProp(update.propId, { isGenerating: false });
+      }
+      
+      // Update batch progress if batch generating
+      if (isBatchGenerating) {
+        const completedCount = Object.values(jobStatuses).filter(
+          (s) => s === "completed" || s === "failed" || s === "cancelled"
+        ).length;
+        setBatchProgress((prev) => prev ? { ...prev, completed: completedCount } : null);
+        
+        // Check if batch is complete
+        if (completedCount >= (batchProgress?.total || 0)) {
+          setIsBatchGenerating(false);
+          setBatchProgress(null);
+        }
+      }
+    }, [onUpdateProp, isBatchGenerating, batchProgress, jobStatuses]),
+  });
 
   // Editable prompts per prop (keyed by prop id)
   const [editablePrompts, setEditablePrompts] = useState<Record<string, string>>(() => {
@@ -136,19 +216,155 @@ export default function PropListView({
     [props, onSetReferenceImages]
   );
 
-  // Handle generate button click
+  // Handle generate button click - uses async orchestrator when projectId is available
   const handleGenerate = useCallback(
     async (propId: string) => {
-      setActiveLoadingId(propId);
-      try {
-        const prop = props.find((p) => p.id === propId);
-        const prompt = editablePrompts[propId] || prop?.designSheetPrompt || "";
-        await onGenerateImage(propId, prompt, prop?.referenceImages);
-      } finally {
-        setActiveLoadingId(null);
+      const prop = props.find((p) => p.id === propId);
+      if (!prop) return;
+
+      const prompt = editablePrompts[propId] || prop.designSheetPrompt || "";
+
+      // Use async orchestrator if projectId is available
+      if (projectId && orchestrator) {
+        try {
+          // Mark as generating
+          onUpdateProp(propId, { isGenerating: true });
+          setJobStatuses((prev) => ({ ...prev, [propId]: "pending" as PropJobStatus }));
+
+          const result = await orchestrator.submitJob({
+            propId,
+            propName: prop.name,
+            category: prop.category,
+            prompt,
+            genre,
+            styleKeyword,
+            referenceImages: prop.referenceImages,
+          });
+
+          if (result.success && result.jobId) {
+            setJobIds((prev) => ({ ...prev, [propId]: result.jobId! }));
+          } else {
+            // Submission failed
+            setJobStatuses((prev) => ({ ...prev, [propId]: "failed" as PropJobStatus }));
+            onUpdateProp(propId, { isGenerating: false });
+            console.error("Failed to submit prop design job:", result.error);
+          }
+        } catch (error) {
+          console.error("Error submitting prop design job:", error);
+          setJobStatuses((prev) => ({ ...prev, [propId]: "failed" as PropJobStatus }));
+          onUpdateProp(propId, { isGenerating: false });
+        }
+      } else {
+        // Fallback to sync generation (legacy)
+        setActiveLoadingId(propId);
+        try {
+          await onGenerateImage(propId, prompt, prop.referenceImages);
+        } finally {
+          setActiveLoadingId(null);
+        }
       }
     },
-    [props, editablePrompts, onGenerateImage]
+    [props, editablePrompts, onGenerateImage, projectId, orchestrator, genre, styleKeyword, onUpdateProp]
+  );
+
+  // Handle batch generation for all props without images
+  const handleBatchGenerate = useCallback(async () => {
+    if (!projectId || !orchestrator) {
+      console.error("Batch generation requires projectId");
+      return;
+    }
+
+    // Filter props that don't have images yet
+    const propsToGenerate = props.filter((p) => !p.designSheetImageUrl && !p.designSheetImageBase64);
+    
+    if (propsToGenerate.length === 0) {
+      console.log("All props already have images");
+      return;
+    }
+
+    setIsBatchGenerating(true);
+    setBatchProgress({ completed: 0, total: propsToGenerate.length });
+
+    // Mark all as pending
+    const initialStatuses: Record<string, PropJobStatus> = {};
+    propsToGenerate.forEach((p) => {
+      initialStatuses[p.id] = "pending";
+      onUpdateProp(p.id, { isGenerating: true });
+    });
+    setJobStatuses((prev) => ({ ...prev, ...initialStatuses }));
+
+    try {
+      const jobs = propsToGenerate.map((prop) => ({
+        propId: prop.id,
+        propName: prop.name,
+        category: prop.category as 'character' | 'object',
+        prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
+        genre,
+        styleKeyword,
+        referenceImages: prop.referenceImages,
+      }));
+
+      const result = await orchestrator.submitBatch({ jobs });
+
+      if (result.success && result.jobs) {
+        const newJobIds: Record<string, string> = {};
+        result.jobs.forEach((job) => {
+          newJobIds[job.propId] = job.jobId;
+        });
+        setJobIds((prev) => ({ ...prev, ...newJobIds }));
+      } else {
+        console.error("Batch submission failed:", result.error);
+        // Reset statuses
+        propsToGenerate.forEach((p) => {
+          onUpdateProp(p.id, { isGenerating: false });
+        });
+        setIsBatchGenerating(false);
+        setBatchProgress(null);
+      }
+    } catch (error) {
+      console.error("Error in batch generation:", error);
+      propsToGenerate.forEach((p) => {
+        onUpdateProp(p.id, { isGenerating: false });
+      });
+      setIsBatchGenerating(false);
+      setBatchProgress(null);
+    }
+  }, [projectId, orchestrator, props, editablePrompts, genre, styleKeyword, onUpdateProp]);
+
+  // Handle retry for failed jobs
+  const handleRetry = useCallback(
+    async (propId: string) => {
+      const jobId = jobIds[propId];
+      if (!jobId || !orchestrator) {
+        // If no job ID, just regenerate
+        await handleGenerate(propId);
+        return;
+      }
+
+      // Clear failed status and regenerate
+      setJobStatuses((prev) => ({ ...prev, [propId]: "pending" as PropJobStatus }));
+      await handleGenerate(propId);
+    },
+    [jobIds, orchestrator, handleGenerate]
+  );
+
+  // Handle cancel for in-progress jobs
+  const handleCancel = useCallback(
+    async (propId: string) => {
+      const jobId = jobIds[propId];
+      if (!jobId || !orchestrator) return;
+
+      try {
+        const result = await orchestrator.cancelJob({ jobId });
+        if (result.success) {
+          setJobStatuses((prev) => ({ ...prev, [propId]: "cancelled" as PropJobStatus }));
+          onUpdateProp(propId, { isGenerating: false });
+        }
+      } catch (error) {
+        console.error("Error cancelling job:", error);
+      }
+    },
+    [jobIds, orchestrator, onUpdateProp]
   );
 
   // Download generated image (handles cross-origin S3 URLs)
@@ -270,6 +486,68 @@ export default function PropListView({
               </button>
             </div>
 
+            {/* Batch Generate Button */}
+            {projectId && (
+              <button
+                onClick={handleBatchGenerate}
+                disabled={isBatchGenerating || props.every((p) => p.designSheetImageUrl || p.designSheetImageBase64)}
+                className={`px-3 py-1.5 ${
+                  accentColor === "purple"
+                    ? "bg-purple-700 hover:bg-purple-600 disabled:bg-purple-900/50"
+                    : "bg-cyan-700 hover:bg-cyan-600 disabled:bg-cyan-900/50"
+                } text-white text-[10px] font-bold rounded transition-colors flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50`}
+                title="Generate all missing design sheets"
+              >
+                {isBatchGenerating ? (
+                  <>
+                    <svg
+                      className="animate-spin h-3.5 w-3.5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                    <span>
+                      {batchProgress
+                        ? `${batchProgress.completed}/${batchProgress.total}`
+                        : "Processing..."}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-3.5 h-3.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
+                      />
+                    </svg>
+                    <span>Generate All</span>
+                  </>
+                )}
+              </button>
+            )}
+
             {/* Window Controls */}
             <div className="flex items-center gap-2 border-l border-gray-700 pl-4">
               <button
@@ -318,6 +596,9 @@ export default function PropListView({
           const isItemLoading = activeLoadingId === prop.id;
           const imageUrl = getImageUrl(prop);
           const isCharacter = prop.category === "character";
+          const jobStatus = jobStatuses[prop.id] || null;
+          const isAsyncLoading = jobStatus && !["completed", "failed", "cancelled"].includes(jobStatus);
+          const isAnyLoading = isItemLoading || isAsyncLoading || prop.isGenerating;
 
           return (
             <div
@@ -349,6 +630,8 @@ export default function PropListView({
                     >
                       {prop.category}
                     </span>
+                    {/* Job Status Badge */}
+                    <JobStatusBadge status={jobStatus} />
                   </h3>
                   {prop.appearingClips && prop.appearingClips.length > 0 && (
                     <div className="text-[8px] font-bold text-cyan-500 bg-cyan-950/50 px-1.5 py-0.5 rounded border border-cyan-800 uppercase shrink-0">
@@ -487,18 +770,33 @@ export default function PropListView({
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-auto pt-2 border-t border-gray-700/50">
-                  <button
-                    onClick={() => handleGenerate(prop.id)}
-                    disabled={isItemLoading}
-                    className={`flex-1 py-1.5 hover:opacity-90 disabled:bg-gray-700 text-white text-[10px] font-bold rounded transition-all flex items-center justify-center gap-1.5 ${
-                      isEasyMode && isCharacter
-                        ? "bg-green-700 hover:bg-green-600"
-                        : isCharacter
-                        ? "bg-purple-600 hover:bg-purple-500"
-                        : "bg-cyan-600 hover:bg-cyan-500"
-                    }`}
-                  >
-                    {isItemLoading ? (
+                  {/* Main Generate Button - changes based on job status */}
+                  {jobStatus === "failed" ? (
+                    <button
+                      onClick={() => handleRetry(prop.id)}
+                      className="flex-1 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-bold rounded transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-3.5 h-3.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                        />
+                      </svg>
+                      <span>Retry</span>
+                    </button>
+                  ) : isAsyncLoading ? (
+                    <button
+                      onClick={() => handleCancel(prop.id)}
+                      className="flex-1 py-1.5 bg-red-700 hover:bg-red-600 text-white text-[10px] font-bold rounded transition-all flex items-center justify-center gap-1.5"
+                    >
                       <svg
                         className="animate-spin h-4 w-4"
                         xmlns="http://www.w3.org/2000/svg"
@@ -519,29 +817,66 @@ export default function PropListView({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                    ) : (
-                      <>
+                      <span>Cancel</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleGenerate(prop.id)}
+                      disabled={isAnyLoading}
+                      className={`flex-1 py-1.5 hover:opacity-90 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-[10px] font-bold rounded transition-all flex items-center justify-center gap-1.5 ${
+                        isEasyMode && isCharacter
+                          ? "bg-green-700 hover:bg-green-600"
+                          : isCharacter
+                          ? "bg-purple-600 hover:bg-purple-500"
+                          : "bg-cyan-600 hover:bg-cyan-500"
+                      }`}
+                    >
+                      {isItemLoading ? (
                         <svg
+                          className="animate-spin h-4 w-4"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-3.5 h-3.5"
                         >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
                           <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                           />
                         </svg>
-                        <span>Generate Design</span>
-                      </>
-                    )}
-                  </button>
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-3.5 h-3.5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                            />
+                          </svg>
+                          <span>Generate Design</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={() => fileInputRefs.current[prop.id]?.click()}
-                    className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-[10px] font-bold rounded transition-colors flex items-center gap-1"
+                    disabled={isAnyLoading}
+                    className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-bold rounded transition-colors flex items-center gap-1"
                     title="Upload Reference Images (Multiple)"
                   >
                     <svg
@@ -599,7 +934,7 @@ export default function PropListView({
               <div className="w-full md:w-1/2 flex flex-col gap-2">
                 {/* Generated Design Sheet */}
                 <div className="flex-1 w-full bg-black/60 rounded border border-gray-900 flex items-center justify-center relative shadow-inner overflow-hidden min-h-[200px]">
-                  {prop.isGenerating || isItemLoading ? (
+                  {isAnyLoading ? (
                     <div className="flex flex-col items-center gap-2 text-gray-500">
                       <svg
                         className="animate-spin h-10 w-10"
@@ -621,7 +956,36 @@ export default function PropListView({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                      <span className="text-sm">Generating...</span>
+                      <span className="text-sm capitalize">
+                        {jobStatus === "preparing" ? "Preparing..." : 
+                         jobStatus === "generating" ? "Generating..." : 
+                         jobStatus === "uploading" ? "Uploading..." :
+                         jobStatus === "retrying" ? "Retrying..." :
+                         "Processing..."}
+                      </span>
+                    </div>
+                  ) : jobStatus === "failed" ? (
+                    <div className="text-center text-red-500 flex flex-col items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-10 h-10 mb-1 opacity-50"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                        />
+                      </svg>
+                      <p className="text-[10px] font-bold uppercase">
+                        Generation Failed
+                      </p>
+                      <p className="text-[8px] text-red-400/70 mt-0.5">
+                        Click Retry to try again
+                      </p>
                     </div>
                   ) : imageUrl ? (
                     <img

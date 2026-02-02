@@ -3,7 +3,7 @@
 // ============================================
 
 export type ImageGenAspectRatio = '1:1' | '16:9' | '9:16';
-export type ImageGenFrameStatus = 'pending' | 'generating' | 'completed' | 'failed';
+export type ImageGenFrameStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'retrying';
 
 /**
  * Image variant for storing multiple generated versions

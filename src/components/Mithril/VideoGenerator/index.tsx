@@ -304,6 +304,7 @@ export default function VideoGenerator() {
               s3FileName: clip.s3FileName,
               status: clip.status,
               providerId: clip.providerId,
+              error: null,
             });
           }
         }
@@ -351,21 +352,20 @@ export default function VideoGenerator() {
   // Generate a single clip
   const generateClip = useCallback(
     async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
-      const clipArrayIndex = clips.findIndex(
+      // Find clip data (but don't rely on array index for later updates)
+      const clip = clips.find(
         (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
       );
-      if (clipArrayIndex === -1) return;
-
-      const clip = clips[clipArrayIndex];
+      if (!clip) return;
 
       // Create AbortController for this generation
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Update status to generating
+      // Update status to generating (find by sceneIndex/clipIndex, not array index)
       setClips((prev) =>
-        prev.map((c, i) =>
-          i === clipArrayIndex
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
             ? { ...c, status: "generating", error: undefined }
             : c
         )
@@ -417,7 +417,11 @@ export default function VideoGenerator() {
 
         // Update with job ID
         setClips((prev) =>
-          prev.map((c, i) => (i === clipArrayIndex ? { ...c, jobId } : c))
+          prev.map((c) =>
+            c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+              ? { ...c, jobId }
+              : c
+          )
         );
 
         // 2. Poll for completion
@@ -461,8 +465,8 @@ export default function VideoGenerator() {
         // 3. Update with completed video and auto-save (only if still mounted)
         if (isMountedRef.current) {
           setClips((prev) => {
-            const updatedClips = prev.map((c, i) =>
-              i === clipArrayIndex
+            const updatedClips = prev.map((c) =>
+              c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
                 ? {
                     ...c,
                     status: "completed" as const,
@@ -496,8 +500,8 @@ export default function VideoGenerator() {
           err instanceof Error ? err.message : "Unknown error";
 
         setClips((prev) =>
-          prev.map((c, i) =>
-            i === clipArrayIndex
+          prev.map((c) =>
+            c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
               ? { ...c, status: "failed", error: errorMessage }
               : c
           )
@@ -527,15 +531,10 @@ export default function VideoGenerator() {
   // Regenerate a single clip (reset and generate)
   const regenerateClip = useCallback(
     async (clipIndex: number, sceneIndex: number, customPrompt?: string) => {
-      const clipArrayIndex = clips.findIndex(
-        (c) => c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
-      );
-      if (clipArrayIndex === -1) return;
-
-      // Reset the clip status first
+      // Reset the clip status first (find by sceneIndex/clipIndex, not array index)
       setClips((prev) =>
-        prev.map((c, i) =>
-          i === clipArrayIndex
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
             ? {
                 ...c,
                 status: "pending" as const,
@@ -551,7 +550,7 @@ export default function VideoGenerator() {
       // Then generate with custom prompt if provided
       await generateClip(clipIndex, sceneIndex, customPrompt);
     },
-    [clips, generateClip]
+    [generateClip]
   );
 
   // Generate all clips sequentially

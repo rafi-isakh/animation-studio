@@ -1,0 +1,19 @@
+# Local development overrides
+# This file is automatically loaded by docker compose
+# Run: docker compose up --build
+
+services:
+  redis:
+    ports:
+      - "6379:6379"
+
+  api:
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app:ro
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    volumes:
+      - ./app:/app/app:ro

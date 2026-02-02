@@ -8,10 +8,11 @@ import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
 import PropDesigner from "./PropDesigner";
 import BgSheetGenerator from "./BgSheetGenerator";
-import ImageGenerator from "./ImageGenerator";
-import VideoGenerator from "./VideoGenerator";
+import ImageGeneratorWrapper from "./ImageGenerator/ImageGeneratorWrapper";
+import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
+import PanelEditor from "./ImageToVideo/PanelEditor";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,10 +27,11 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'StoryboardGenerator': StoryboardGenerator,
   'PropDesigner': PropDesigner,
   'BgSheetGenerator': BgSheetGenerator,
-  'ImageGenerator': ImageGenerator,
-  'VideoGenerator': VideoGenerator,
+  'ImageGenerator': ImageGeneratorWrapper,
+  'VideoGenerator': VideoGeneratorWrapper,
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
+  'PanelEditor': PanelEditor,
 };
 
 // Cost Tracker Dashboard Component

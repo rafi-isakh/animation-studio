@@ -316,7 +316,8 @@ export default function ImageGenerator() {
                 backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                 refFrame: savedFrame.refFrame || sbFrame.refFrame,
                 imageUrl: savedFrame.imageRef || null, // Don't fall back to sbFrame.imageUrl
-                status: savedFrame.status || sbFrame.status,
+                imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined), // For cache busting
+                status: savedFrame.status ?? sbFrame.status,
                 remixPrompt: savedFrame.remixPrompt || "",
                 remixImageUrl: savedFrame.remixImageRef || null,
                 hasDrawingEdits: !!savedFrame.editedImageRef,
@@ -681,6 +682,7 @@ export default function ImageGenerator() {
             imageUrl = await uploadImageGenFrameImage(currentProjectId, frameId, imageBase64);
             
             // Save full frame data to Firestore
+            const imageUpdatedAt = Date.now();
             await saveImageGenFrame(currentProjectId, frameId, {
               sceneIndex: frame.sceneIndex,
               clipIndex: frame.clipIndex,
@@ -691,6 +693,7 @@ export default function ImageGenerator() {
               backgroundId: frame.backgroundId,
               refFrame: frame.refFrame,
               imageRef: imageUrl,
+              imageUpdatedAt,
               status: "completed",
               remixPrompt: frame.remixPrompt || "",
               remixImageRef: frame.remixImageUrl || null,
@@ -895,6 +898,7 @@ export default function ImageGenerator() {
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
           imageRef: f.imageUrl || "",
+          imageUpdatedAt: f.imageUpdatedAt,
           status: f.status,
           remixPrompt: f.remixPrompt,
           remixImageRef: f.remixImageUrl,

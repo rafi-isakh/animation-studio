@@ -1,0 +1,38 @@
+# Base configuration (shared across all environments)
+# For local dev: docker compose up --build
+# For production: docker compose -p mithril -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: taskiq worker app.workers.broker:broker app.workers.tasks
+
+volumes:
+  redis_data:

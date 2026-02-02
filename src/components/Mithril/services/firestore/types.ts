@@ -326,7 +326,7 @@ export interface ClipDocument {
 // ============================================
 
 export type ImageGenAspectRatio = '1:1' | '16:9' | '9:16';
-export type ImageGenFrameStatus = 'pending' | 'generating' | 'completed' | 'failed';
+export type ImageGenFrameStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'retrying';
 
 export interface ImageGenDocument {
   stylePrompt: string;
@@ -351,6 +351,7 @@ export interface ImageGenFrameDocument {
   backgroundId: string;
   refFrame: string;
   imageRef: string; // S3 URL
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status: ImageGenFrameStatus;
   remixPrompt: string;
   remixImageRef: string | null;
@@ -367,6 +368,7 @@ export interface SaveImageGenFrameInput {
   backgroundId: string;
   refFrame: string;
   imageRef?: string;
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status?: ImageGenFrameStatus;
   remixPrompt?: string;
   remixImageRef?: string | null;
@@ -378,6 +380,7 @@ export interface UpdateImageGenFrameInput {
   backgroundId?: string;
   refFrame?: string;
   imageRef?: string;
+  imageUpdatedAt?: number; // Timestamp for cache busting
   status?: ImageGenFrameStatus;
   remixPrompt?: string;
   remixImageRef?: string | null;
@@ -389,7 +392,7 @@ export interface UpdateImageGenFrameInput {
 // ============================================
 
 export type AspectRatio = '16:9' | '9:16';
-export type VideoStatus = 'pending' | 'generating' | 'completed' | 'failed';
+export type VideoStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'retrying';
 
 export interface VideoDocument {
   aspectRatio: AspectRatio;
@@ -589,7 +592,7 @@ export interface UpdateVideoClipInput {
   jobId?: string | null;
   s3FileName?: string | null;
   status?: VideoStatus;
-  error?: string;
+  error?: string | null;
   providerId?: string;
 }
 

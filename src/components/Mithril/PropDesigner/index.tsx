@@ -865,14 +865,47 @@ export default function PropDesigner() {
     [styleKeyword, genre, detectedIds, setPropDesignerResult]
   );
 
-  // Update prop fields
+  // Update prop fields and sync to context
   const handleUpdateProp = useCallback(
     (propId: string, updates: Partial<Prop>) => {
-      setProps((prev) =>
-        prev.map((p) => (p.id === propId ? { ...p, ...updates } : p))
-      );
+      setProps((prev) => {
+        const newProps = prev.map((p) => (p.id === propId ? { ...p, ...updates } : p));
+        
+        // Also update context so ImageGenerator can see the changes
+        setPropDesignerResult({
+          settings: { styleKeyword, propBasePrompt: "", genre },
+          props: newProps.map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            description: p.description,
+            descriptionKo: p.descriptionKo,
+            appearingClips: p.appearingClips,
+            designSheetPrompt: p.designSheetPrompt,
+            designSheetImageRef: p.designSheetImageUrl || "",
+            referenceImageRef: p.referenceImageUrl,
+            referenceImageRefs: p.referenceImages,
+            age: p.age,
+            gender: p.gender,
+            personality: p.personality,
+            role: p.role,
+            isVariant: p.isVariant,
+            variantDetails: p.variantDetails,
+            variantVisuals: p.variantVisuals,
+          })),
+          detectedIds: detectedIds.map((d) => ({
+            id: d.id,
+            category: d.category,
+            clipIds: d.clipIds,
+            contexts: d.contexts,
+            occurrences: d.occurrences,
+          })),
+        });
+        
+        return newProps;
+      });
     },
-    []
+    [styleKeyword, genre, detectedIds, setPropDesignerResult]
   );
 
   // Clear all props (local state + context + Firestore)
@@ -1224,6 +1257,8 @@ export default function PropDesigner() {
               props={props.filter((p) => p.category === "character")}
               genre={genre}
               styleKeyword={styleKeyword}
+              projectId={currentProjectId || undefined}
+              customApiKey={customApiKey || undefined}
               onGenerateImage={handleGenerateImage}
               onSetReferenceImages={handleSetReferenceImages}
               onUpdateProp={handleUpdateProp}
@@ -1241,6 +1276,8 @@ export default function PropDesigner() {
               props={props.filter((p) => p.category === "object")}
               genre={genre}
               styleKeyword={styleKeyword}
+              projectId={currentProjectId || undefined}
+              customApiKey={customApiKey || undefined}
               onGenerateImage={handleGenerateImage}
               onSetReferenceImages={handleSetReferenceImages}
               onUpdateProp={handleUpdateProp}

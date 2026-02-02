@@ -1,0 +1,825 @@
+"""Firestore service for job queue operations."""
+
+import base64
+import hashlib
+import json
+import logging
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from google.cloud import firestore
+from google.cloud.firestore_v1 import DocumentReference
+from google.oauth2 import service_account
+
+from app.config import get_settings
+from app.models.job import (
+    BgJobSubmitRequest,
+    ImageJobSubmitRequest,
+    JobDocument,
+    JobStatus,
+    JobSubmitRequest,
+    JobType,
+    PanelJobSubmitRequest,
+    PropDesignSheetJobSubmitRequest,
+)
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
+
+# Firestore client (lazily initialized)
+_db: firestore.AsyncClient | None = None
+
+
+def _parse_service_account(value: str) -> dict:
+    """
+    Parse service account JSON from env var.
+
+    Supports:
+    - Raw JSON string: {"type":"service_account",...}
+    - Base64 encoded JSON
+    """
+    value = value.strip()
+
+    # Try raw JSON first (starts with '{')
+    if value.startswith("{"):
+        return json.loads(value)
+
+    # Try base64 decode
+    try:
+        decoded = base64.b64decode(value).decode("utf-8")
+        return json.loads(decoded)
+    except Exception:
+        pass
+
+    raise ValueError("Invalid service account format")
+
+
+def get_db() -> firestore.AsyncClient:
+    """Get or create Firestore async client."""
+    global _db
+    if _db is None:
+        if settings.firebase_service_account_json:
+            # Use service account credentials
+            service_account_info = _parse_service_account(
+                settings.firebase_service_account_json
+            )
+            credentials = service_account.Credentials.from_service_account_info(
+                service_account_info
+            )
+            _db = firestore.AsyncClient(
+                project=settings.firebase_project_id,
+                credentials=credentials,
+            )
+            logger.info("Firestore client initialized with service account")
+        else:
+            # Fall back to default credentials (for local dev with gcloud auth)
+            _db = firestore.AsyncClient(project=settings.firebase_project_id)
+            logger.warning("Firestore client initialized with default credentials")
+    return _db
+
+
+def hash_api_key(api_key: str | None) -> str | None:
+    """Hash API key for audit purposes (never store plaintext)."""
+    if not api_key:
+        return None
+    return hashlib.sha256(api_key.encode()).hexdigest()[:16]
+
+
+class JobQueueService:
+    """Service for managing jobs in Firestore."""
+
+    COLLECTION = "job_queue"
+    DLQ_COLLECTION = "dead_letter_queue"
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _job_ref(self, job_id: str) -> DocumentReference:
+        """Get document reference for a job."""
+        return self.db.collection(self.COLLECTION).document(job_id)
+
+    async def create_job(
+        self,
+        request: JobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new job in the queue.
+
+        Args:
+            request: Job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            project_id=request.project_id,
+            scene_index=request.scene_index,
+            clip_index=request.clip_index,
+            provider_id=request.provider_id,
+            prompt=request.prompt,
+            image_url=request.image_url,
+            duration=request.duration,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created job {job_id} for project {request.project_id}")
+        return job
+
+    async def create_image_job(
+        self,
+        request: ImageJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new image generation job in the queue.
+
+        Args:
+            request: Image job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.IMAGE,
+            project_id=request.project_id,
+            scene_index=request.scene_index,
+            clip_index=request.clip_index,
+            provider_id="gemini",  # Currently only Gemini for images
+            prompt=request.prompt,
+            style_prompt=request.style_prompt,
+            reference_urls=request.reference_urls,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Image-specific fields
+            frame_id=request.frame_id,
+            frame_label=request.frame_label,
+            max_retries=2,  # Fewer retries for images
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created image job {job_id} for project {request.project_id}, frame {request.frame_id}")
+        return job
+
+    async def create_bg_job(
+        self,
+        request: BgJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new background angle generation job in the queue.
+
+        Args:
+            request: Background job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        # Build reference URLs list from single reference URL if provided
+        reference_urls = [request.reference_url] if request.reference_url else []
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.BACKGROUND,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for backgrounds
+            clip_index=0,  # Not used for backgrounds
+            provider_id="gemini",  # Currently only Gemini for backgrounds
+            prompt=request.prompt,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Background-specific fields
+            bg_id=request.bg_id,
+            bg_angle=request.bg_angle,
+            bg_name=request.bg_name,
+            reference_urls=reference_urls,  # Master reference image for style consistency
+            max_retries=2,  # Fewer retries for backgrounds
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created bg job {job_id} for project {request.project_id}, bg {request.bg_id}, angle {request.bg_angle}")
+        return job
+
+    async def create_prop_design_sheet_job(
+        self,
+        request: PropDesignSheetJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new prop design sheet generation job in the queue.
+
+        Args:
+            request: Prop design sheet job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PROP_DESIGN_SHEET,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for props
+            clip_index=0,  # Not used for props
+            provider_id="gemini",  # Currently only Gemini for prop design sheets
+            prompt=request.prompt,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Prop design sheet-specific fields
+            prop_id=request.prop_id,
+            prop_name=request.prop_name,
+            prop_category=request.category,
+            reference_urls=request.reference_urls,
+            max_retries=2,  # Fewer retries for prop design sheets
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created prop design sheet job {job_id} for project {request.project_id}, prop {request.prop_id} ({request.prop_name})")
+        return job
+
+    async def create_panel_job(
+        self,
+        request: PanelJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new panel editor job in the queue.
+
+        Args:
+            request: Panel job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PANEL,
+            project_id=request.project_id,  # Use actual project_id for S3 storage
+            scene_index=0,  # Not used for panels
+            clip_index=0,  # Not used for panels
+            provider_id="gemini",  # Currently only Gemini for panels
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Panel-specific fields
+            session_id=request.session_id,  # For real-time tracking
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_image_base64=request.image_base64,
+            source_mime_type=request.mime_type,
+            refinement_mode=request.refinement_mode,
+            max_retries=2,  # Fewer retries for panels
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created panel job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def get_job(self, job_id: str) -> JobDocument | None:
+        """
+        Get a job by ID.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            JobDocument if found, None otherwise
+        """
+        doc = await self._job_ref(job_id).get()
+        if not doc.exists:
+            return None
+        return JobDocument(**doc.to_dict())
+
+    async def update_job(
+        self,
+        job_id: str,
+        *,
+        unset_fields: list[str] | None = None,
+        **updates: Any,
+    ) -> None:
+        """
+        Update job fields.
+
+        Args:
+            job_id: The job ID
+            unset_fields: Optional list of fields to remove from the document.
+            **updates: Fields to update
+        """
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        # Filter out None values (default behavior is to avoid overwriting with nulls).
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        # Explicitly unset fields when requested.
+        if unset_fields:
+            for field_name in unset_fields:
+                filtered_updates[field_name] = firestore.DELETE_FIELD
+
+        await self._job_ref(job_id).update(filtered_updates)
+        logger.debug(f"Updated job {job_id}: {list(filtered_updates.keys())}")
+
+    async def update_job_status(
+        self,
+        job_id: str,
+        status: JobStatus,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update job status with optional additional fields.
+
+        Args:
+            job_id: The job ID
+            status: New status
+            **kwargs: Additional fields to update
+        """
+        updates = {"status": status.value, **kwargs}
+
+        # Set timestamp based on status
+        if status == JobStatus.SUBMITTED:
+            updates["submitted_at"] = datetime.now(timezone.utc).isoformat()
+        elif status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED):
+            updates["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+        await self.update_job(job_id, **updates)
+        logger.info(f"Job {job_id} status changed to {status.value}")
+
+    async def mark_cancellation_requested(self, job_id: str) -> bool:
+        """
+        Mark a job for cancellation.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            True if cancellation was requested, False if job already terminal
+        """
+        job = await self.get_job(job_id)
+        if not job:
+            return False
+
+        # Can't cancel already completed/failed jobs
+        if job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED):
+            return False
+
+        await self.update_job(job_id, cancellation_requested=True)
+        logger.info(f"Cancellation requested for job {job_id}")
+        return True
+
+    async def get_project_jobs(
+        self,
+        project_id: str,
+        status_filter: list[JobStatus] | None = None,
+        limit: int = 50,
+    ) -> list[JobDocument]:
+        """
+        Get jobs for a project.
+
+        Args:
+            project_id: The project ID
+            status_filter: Optional list of statuses to filter by
+            limit: Maximum number of jobs to return
+
+        Returns:
+            List of JobDocuments
+        """
+        query = self.db.collection(self.COLLECTION).where(
+            "project_id", "==", project_id
+        )
+
+        if status_filter:
+            status_values = [s.value for s in status_filter]
+            query = query.where("status", "in", status_values)
+
+        query = query.order_by("created_at", direction=firestore.Query.DESCENDING)
+        query = query.limit(limit)
+
+        docs = await query.get()
+        return [JobDocument(**doc.to_dict()) for doc in docs]
+
+    async def move_to_dlq(
+        self,
+        job_id: str,
+        error_code: str,
+        error_message: str,
+        failure_history: list[dict],
+    ) -> None:
+        """
+        Move a failed job to the dead letter queue.
+
+        Args:
+            job_id: The job ID
+            error_code: Final error code
+            error_message: Final error message
+            failure_history: List of all failure attempts
+        """
+        job = await self.get_job(job_id)
+        if not job:
+            return
+
+        dlq_id = str(uuid.uuid4())
+        dlq_doc = {
+            "id": dlq_id,
+            "original_job_id": job_id,
+            "project_id": job.project_id,
+            "scene_index": job.scene_index,
+            "clip_index": job.clip_index,
+            "original_request": {
+                "prompt": job.prompt,
+                "image_url": job.image_url,
+                "duration": job.duration,
+                "aspect_ratio": job.aspect_ratio,
+                "provider_id": job.provider_id,
+            },
+            "final_error_code": error_code,
+            "final_error_message": error_message,
+            "total_attempts": job.retry_count + 1,
+            "failure_history": failure_history,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        await self.db.collection(self.DLQ_COLLECTION).document(dlq_id).set(dlq_doc)
+        logger.warning(f"Job {job_id} moved to DLQ as {dlq_id}")
+
+
+class VideoClipService:
+    """Service for updating video clips in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _clip_ref(self, project_id: str, scene_index: int, clip_index: int) -> DocumentReference:
+        """Get document reference for a video clip."""
+        clip_id = f"{scene_index}_{clip_index}"
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("video")
+            .collection("clips")
+            .document(clip_id)
+        )
+
+    async def update_clip_status(
+        self,
+        project_id: str,
+        scene_index: int,
+        clip_index: int,
+        status: str,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update video clip status in project Firestore.
+
+        Args:
+            project_id: The project ID
+            scene_index: Scene index
+            clip_index: Clip index
+            status: New status
+            **kwargs: Additional fields (video_url, job_id, error, etc.)
+        """
+        updates = {"status": status, **kwargs}
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        await self._clip_ref(project_id, scene_index, clip_index).set(
+            filtered_updates, merge=True
+        )
+        logger.debug(
+            f"Updated clip {scene_index}_{clip_index} in project {project_id}"
+        )
+
+
+class ImageFrameService:
+    """Service for updating image frames in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _frame_ref(self, project_id: str, frame_id: str) -> DocumentReference:
+        """Get document reference for an image frame."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("imageGen")
+            .document("settings")
+            .collection("frames")
+            .document(frame_id)
+        )
+
+    async def update_frame_status(
+        self,
+        project_id: str,
+        frame_id: str,
+        status: str,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Update image frame status in project Firestore.
+
+        Args:
+            project_id: The project ID
+            frame_id: Frame ID
+            status: New status
+            **kwargs: Additional fields (imageRef, s3FileName, jobId, error, etc.)
+        """
+        updates = {"status": status, **kwargs}
+        filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+        await self._frame_ref(project_id, frame_id).set(
+            filtered_updates, merge=True
+        )
+        logger.debug(
+            f"Updated frame {frame_id} in project {project_id}"
+        )
+
+
+class BackgroundAngleService:
+    """Service for updating background angles in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _bg_ref(self, project_id: str, bg_id: str) -> DocumentReference:
+        """Get document reference for a background."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("bgSheet")
+            .document("settings")
+            .collection("backgrounds")
+            .document(bg_id)
+        )
+
+    async def update_angle_status(
+        self,
+        project_id: str,
+        bg_id: str,
+        angle: str,
+        status: str,
+        imageRef: str | None = None,
+        s3FileName: str | None = None,
+        jobId: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update background angle status in project Firestore.
+
+        The backgrounds collection stores documents with an 'angles' array.
+        Each angle has: { angle: string, imageRef: string, status: string, jobId: string }
+
+        Args:
+            project_id: The project ID
+            bg_id: Background ID
+            angle: Angle name (e.g., "Front View", "Worm View")
+            status: New status
+            imageRef: S3 URL of generated image
+            s3FileName: S3 file path
+            jobId: Job ID for tracking
+            error: Error message if failed
+        """
+        bg_ref = self._bg_ref(project_id, bg_id)
+        bg_doc = await bg_ref.get()
+
+        if not bg_doc.exists:
+            logger.warning(f"Background {bg_id} not found in project {project_id}")
+            return
+
+        bg_data = bg_doc.to_dict()
+        angles = bg_data.get("angles", [])
+
+        # Find and update the specific angle
+        updated = False
+        for i, angle_data in enumerate(angles):
+            if angle_data.get("angle") == angle:
+                angles[i]["status"] = status
+                if imageRef is not None:
+                    angles[i]["imageRef"] = imageRef
+                if s3FileName is not None:
+                    angles[i]["s3FileName"] = s3FileName
+                if jobId is not None:
+                    angles[i]["jobId"] = jobId
+                if error is not None:
+                    angles[i]["error"] = error
+                elif status == "completed":
+                    # Clear error on success
+                    angles[i].pop("error", None)
+                updated = True
+                break
+
+        if not updated:
+            logger.warning(f"Angle {angle} not found in background {bg_id}")
+            return
+
+        await bg_ref.update({"angles": angles})
+        logger.debug(
+            f"Updated angle {angle} in background {bg_id} in project {project_id}"
+        )
+
+
+class PropDesignSheetService:
+    """Service for updating prop design sheets in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _result_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for propDesignerResult."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("mithril")
+            .document("propDesignerResult")
+        )
+
+    async def update_prop_design_sheet(
+        self,
+        project_id: str,
+        prop_id: str,
+        status: str,
+        designSheetImageRef: str | None = None,
+        designSheetPrompt: str | None = None,
+        s3FileName: str | None = None,
+        jobId: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update prop design sheet in project Firestore.
+
+        The propDesignerResult document stores a 'props' array.
+        Each prop has: { id, name, category, designSheetImageRef, isGenerating, etc. }
+
+        Args:
+            project_id: The project ID
+            prop_id: Prop ID
+            status: New status ("generating", "completed", "failed")
+            designSheetImageRef: S3 URL of generated design sheet
+            designSheetPrompt: The prompt used for generation
+            s3FileName: S3 file path
+            jobId: Job ID for tracking
+            error: Error message if failed
+        """
+        result_ref = self._result_ref(project_id)
+        result_doc = await result_ref.get()
+
+        if not result_doc.exists:
+            logger.warning(f"propDesignerResult not found in project {project_id}")
+            return
+
+        result_data = result_doc.to_dict()
+        props = result_data.get("props", [])
+
+        # Find and update the specific prop
+        updated = False
+        for i, prop in enumerate(props):
+            if prop.get("id") == prop_id:
+                # Update status-related fields
+                if status == "generating":
+                    props[i]["isGenerating"] = True
+                    props[i]["generationError"] = None
+                elif status == "completed":
+                    props[i]["isGenerating"] = False
+                    props[i]["generationError"] = None
+                    if designSheetImageRef is not None:
+                        props[i]["designSheetImageRef"] = designSheetImageRef
+                    if designSheetPrompt is not None:
+                        props[i]["designSheetPrompt"] = designSheetPrompt
+                elif status == "failed":
+                    props[i]["isGenerating"] = False
+                    props[i]["generationError"] = error
+
+                if jobId is not None:
+                    props[i]["jobId"] = jobId
+                if s3FileName is not None:
+                    props[i]["s3FileName"] = s3FileName
+
+                updated = True
+                break
+
+        if not updated:
+            logger.warning(f"Prop {prop_id} not found in project {project_id}")
+            return
+
+        await result_ref.update({"props": props})
+        logger.debug(
+            f"Updated prop {prop_id} design sheet in project {project_id} (status: {status})"
+        )
+
+
+# Lazy service instances
+_job_queue_service: JobQueueService | None = None
+_video_clip_service: VideoClipService | None = None
+_image_frame_service: ImageFrameService | None = None
+_bg_angle_service: BackgroundAngleService | None = None
+_prop_design_sheet_service: PropDesignSheetService | None = None
+
+
+def get_job_queue_service() -> JobQueueService:
+    """Get or create JobQueueService instance."""
+    global _job_queue_service
+    if _job_queue_service is None:
+        _job_queue_service = JobQueueService()
+    return _job_queue_service
+
+
+def get_video_clip_service() -> VideoClipService:
+    """Get or create VideoClipService instance."""
+    global _video_clip_service
+    if _video_clip_service is None:
+        _video_clip_service = VideoClipService()
+    return _video_clip_service
+
+
+def get_image_frame_service() -> ImageFrameService:
+    """Get or create ImageFrameService instance."""
+    global _image_frame_service
+    if _image_frame_service is None:
+        _image_frame_service = ImageFrameService()
+    return _image_frame_service
+
+
+def get_bg_angle_service() -> BackgroundAngleService:
+    """Get or create BackgroundAngleService instance."""
+    global _bg_angle_service
+    if _bg_angle_service is None:
+        _bg_angle_service = BackgroundAngleService()
+    return _bg_angle_service
+
+
+def get_prop_design_sheet_service() -> PropDesignSheetService:
+    """Get or create PropDesignSheetService instance."""
+    global _prop_design_sheet_service
+    if _prop_design_sheet_service is None:
+        _prop_design_sheet_service = PropDesignSheetService()
+    return _prop_design_sheet_service
+
+
+# Backwards compatible aliases (use getter functions for lazy init)
+job_queue_service = None  # Use get_job_queue_service() instead
+video_clip_service = None  # Use get_video_clip_service() instead
+image_frame_service = None  # Use get_image_frame_service() instead

@@ -146,8 +146,9 @@ export default function ProjectListPage() {
       'mithril_stage6': 'Image Clips',
       'mithril_stage7': 'Videos',
       'mithril_i2v_stage1': 'Panel Splitter',
-      'mithril_i2v_stage2': 'Script Writer',
-      'mithril_i2v_stage3': 'Panel Editor',
+      'mithril_i2v_stage2': 'Panel Editor',
+      'mithril_i2v_stage3': 'Script Writer',
+      'mithril_i2v_stage4': 'Storyboard Editor',
     };
 
     return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;

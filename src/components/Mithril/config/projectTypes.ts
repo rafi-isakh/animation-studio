@@ -42,6 +42,7 @@ const IMAGE_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter', labelKey: 'mithril_i2v_stage1', component: 'ImageSplitter' },
   { id: 2, key: 'panel-editor', labelKey: 'mithril_i2v_stage2', component: 'PanelEditor' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3', component: 'ImageToScriptWriter' },
+  { id: 4, key: 'storyboard-editor', labelKey: 'mithril_i2v_stage4', component: 'StoryboardEditor' },
   // Future stages will be added here (e.g., character generation, video generation)
 ];
 

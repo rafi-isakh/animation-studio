@@ -32,7 +32,7 @@ import {
 } from '../../services/firestore';
 
 export function useScriptWriter() {
-  const { getStageResult, setStageResult, currentProjectId } = useMithril();
+  const { getStageResult, setStageResult, currentProjectId, customApiKey } = useMithril();
   const [state, dispatch] = useReducer(scriptWriterReducer, initialState);
   const [loadedStage1Pages, setLoadedStage1Pages] = useState<MangaPage[]>([]);
   const isLoadingRef = useRef(false);
@@ -501,6 +501,7 @@ export function useScriptWriter() {
           soundCondition: currentState.config.conditions.sound,
           imageGuide: currentState.config.guides.image || undefined,
           videoGuide: currentState.config.guides.video || undefined,
+          apiKey: customApiKey || undefined,
         }),
         signal,
       });

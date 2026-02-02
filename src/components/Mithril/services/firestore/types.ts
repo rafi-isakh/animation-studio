@@ -392,7 +392,7 @@ export interface UpdateImageGenFrameInput {
 // ============================================
 
 export type AspectRatio = '16:9' | '9:16';
-export type VideoStatus = 'pending' | 'generating' | 'completed' | 'failed';
+export type VideoStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'retrying';
 
 export interface VideoDocument {
   aspectRatio: AspectRatio;

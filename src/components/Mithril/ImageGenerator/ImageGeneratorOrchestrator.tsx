@@ -855,11 +855,11 @@ export default function ImageGeneratorOrchestrator() {
           prompt: f.prompt,
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
-          imageRef: f.imageUrl || "",
           status: f.status,
-          remixPrompt: f.remixPrompt,
-          remixImageRef: f.remixImageUrl,
-          editedImageRef: f.editedImageUrl,
+          ...(f.imageUrl && { imageRef: f.imageUrl }),
+          ...(f.remixPrompt && { remixPrompt: f.remixPrompt }),
+          ...(f.remixImageUrl !== null && { remixImageRef: f.remixImageUrl }),
+          ...(f.editedImageUrl !== null && { editedImageRef: f.editedImageUrl }),
         },
       }));
       await saveImageGenFrames(currentProjectId, frameInputs);

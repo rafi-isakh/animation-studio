@@ -13,6 +13,7 @@ import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
 import PanelEditor from "./ImageToVideo/PanelEditor";
+import StoryboardEditor from "./ImageToVideo/StoryboardEditor";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +33,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
   'PanelEditor': PanelEditor,
+  'StoryboardEditor': StoryboardEditor,
 };
 
 // Cost Tracker Dashboard Component
@@ -175,7 +177,13 @@ function MithrilContent() {
 
   // Determine if we need API keys based on project type and stage
   const isTextToVideo = projectType === 'text-to-video';
-  const needsImageApiKey = isTextToVideo && (currentStage >= 3 && currentStage <= 7);
+  const isImageToVideo = projectType === 'image-to-video';
+
+  // API key needs based on project type and stage
+  const needsImageApiKey = (
+    (isTextToVideo && currentStage >= 3 && currentStage <= 7) ||
+    isImageToVideo  // All image-to-video stages can use API key
+  );
   const needsVideoApiKey = isTextToVideo && currentStage === 8;
   const showCostTracker = isTextToVideo && currentStage === 7;
 

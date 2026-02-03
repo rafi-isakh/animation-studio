@@ -643,6 +643,8 @@ table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
 table_dialogue_en,대사 (En),,Dialogue (En)
+table_narration_ko,나레이션 (Ko),,Narration (Ko)
+table_narration_en,나레이션 (En),,Narration (En)
 table_sfx_ko,효과음 (Ko),,SFX (Ko)
 table_sfx_en,효과음 (En),,SFX (En)
 table_bgm_ko,BGM (Ko),,BGM (Ko)
@@ -763,6 +765,9 @@ nano_toast_saved,저장됨,,Saved
 nano_toast_saved_desc,결과가 성공적으로 저장되었습니다!,,Result saved successfully!
 nano_toast_save_failed,결과 저장에 실패했습니다.,,Failed to save result.
 mithril_stage1,스토리 선택기,,Story Selector
+mithril_stage_id_converter,ID 변환기,,ID Converter
+id_converter_title,웹소설 ID 변환기,,Webnovel ID Converter
+id_converter_subtitle,웹소설을 캐릭터 ID가 포함된 스토리보드 스크립트로 변환,,Convert webnovels to storyboard scripts with character IDs
 mithril_stage2,스토리 분할기,,Story Splitter
 mithril_stage3,캐릭터 시트 생성기,,Character Sheet Generator
 mithril_stage4,스토리보드 생성기,,Storyboard Generator

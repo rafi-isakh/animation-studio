@@ -17,6 +17,9 @@ export {
 // Stage 1: Chapter
 export * from './chapter';
 
+// Stage 1: ID Converter (replaces Chapter/Upload)
+export * from './idConverter';
+
 // Stage 2: Story Splitter
 export * from './storySplitter';
 

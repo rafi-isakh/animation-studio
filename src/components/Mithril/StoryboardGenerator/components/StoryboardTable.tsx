@@ -32,6 +32,8 @@ export default function StoryboardTable({
     phrase(dictionary, "table_sora_video_prompt", language),
     phrase(dictionary, "table_dialogue_ko", language),
     phrase(dictionary, "table_dialogue_en", language),
+    phrase(dictionary, "table_narration_ko", language),
+    phrase(dictionary, "table_narration_en", language),
     phrase(dictionary, "table_sfx_ko", language),
     phrase(dictionary, "table_sfx_en", language),
     phrase(dictionary, "table_bgm_ko", language),

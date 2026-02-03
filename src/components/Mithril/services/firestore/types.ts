@@ -308,6 +308,9 @@ export interface ClipDocument {
   // Dialogue
   dialogue: string;
   dialogueEn: string;
+  // Narration (for clips without dialogue)
+  narration?: string;
+  narrationEn?: string;
   // Sound
   sfx: string;
   sfxEn: string;
@@ -547,6 +550,8 @@ export interface SaveClipInput {
   backgroundId: string;
   dialogue: string;
   dialogueEn: string;
+  narration?: string;
+  narrationEn?: string;
   sfx: string;
   sfxEn: string;
   bgm: string;
@@ -567,6 +572,8 @@ export interface UpdateClipInput {
   backgroundId?: string;
   dialogue?: string;
   dialogueEn?: string;
+  narration?: string;
+  narrationEn?: string;
   sfx?: string;
   sfxEn?: string;
   bgm?: string;

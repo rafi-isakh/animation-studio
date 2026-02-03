@@ -6,6 +6,8 @@ export interface Continuity {
   soraVideoPrompt: string;
   dialogue: string;
   dialogueEn: string;
+  narration: string; // Narration text (Korean) - for clips without dialogue
+  narrationEn: string; // Narration text (English)
   sfx: string;
   sfxEn: string;
   bgm: string;

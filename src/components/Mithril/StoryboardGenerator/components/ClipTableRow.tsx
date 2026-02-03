@@ -236,6 +236,16 @@ export default function ClipTableRow({
           />
         </td>
 
+        {/* Narration (Ko) - read-only, yellow styling like standalone */}
+        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-600 dark:text-yellow-300 min-w-[150px]">
+          {row.narration || ""}
+        </td>
+
+        {/* Narration (En) - read-only, yellow styling */}
+        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-500 dark:text-yellow-100 italic min-w-[150px]">
+          {row.narrationEn || ""}
+        </td>
+
         {/* Editable SFX (Ko) */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell

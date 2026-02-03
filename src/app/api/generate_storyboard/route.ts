@@ -169,11 +169,20 @@ async function generateStoryboardWithRetry(
     6.  **dialogue**:
         - 한국어로 작성합니다.
         - **규칙**: ${soundCondition}
-        - **지침**: 캐릭터의 **대사**나 **내레이션**이 있는 경우에만 작성합니다. 대사가 없는 클립은 반드시 빈 문자열 ""로 둡니다.
-        - 형식: '캐릭터이름: [감정] "대사내용"' 또는 '내레이션: [어조] "내용"'. (예: '리파나: [놀라며] "이럴 수가!"')
+        - **지침**: 캐릭터가 직접 말하는 **대사**가 있는 경우에만 작성합니다. 대사가 없는 클립은 반드시 빈 문자열 ""로 둡니다.
+        - 형식: '캐릭터이름: [감정] "대사내용"'. (예: '리파나: [놀라며] "이럴 수가!"')
 
     7.  **dialogueEn**:
         - 'dialogue' 필드의 영어 번역본입니다. 대사가 없으면 빈 문자열 ""로 둡니다.
+
+    7-1. **narration**:
+        - 한국어로 작성합니다.
+        - **지침**: 캐릭터 대사(dialogue)가 없는 클립의 경우, 해당 클립의 'story' 열 내용을 바탕으로 영상의 흐름을 설명하는 **나레이션**을 반드시 작성하십시오.
+        - 캐릭터가 직접 말하는 장면(dialogue 존재)인 경우 나레이션은 비워두거나, 대사 전후의 상황을 설명하는 매우 짧은 나레이션만 포함하십시오.
+        - 형식: '[어조] "나레이션 내용"'. (예: '[차분하게] "그녀는 조용히 문을 열었다."')
+
+    7-2. **narrationEn**:
+        - 'narration' 필드의 영어 번역본입니다. 나레이션이 없으면 빈 문자열 ""로 둡니다.
 
     8.  **sfx**:
         - 한국어로 작성합니다.
@@ -293,7 +302,17 @@ async function generateStoryboardWithRetry(
                   dialogueEn: {
                     type: Type.STRING,
                     description:
-                      "Character dialogue or narration in English. Empty if none.",
+                      "Character dialogue in English. Empty if none.",
+                  },
+                  narration: {
+                    type: Type.STRING,
+                    description:
+                      "Narration text in Korean for clips without dialogue. Describes the scene flow. Empty if dialogue exists.",
+                  },
+                  narrationEn: {
+                    type: Type.STRING,
+                    description:
+                      "Narration text in English. Empty if none.",
                   },
                   sfx: {
                     type: Type.STRING,
@@ -335,6 +354,8 @@ async function generateStoryboardWithRetry(
                   "soraVideoPrompt",
                   "dialogue",
                   "dialogueEn",
+                  "narration",
+                  "narrationEn",
                   "sfx",
                   "sfxEn",
                   "bgm",
@@ -347,6 +368,8 @@ async function generateStoryboardWithRetry(
                 propertyOrdering: [
                   "dialogue",
                   "dialogueEn",
+                  "narration",
+                  "narrationEn",
                   "sfx",
                   "sfxEn",
                   "bgm",

@@ -26,7 +26,7 @@ export interface ProjectTypeConfig {
 
 // Stage configurations for Text-to-Video (existing pipeline)
 const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
-  { id: 1, key: 'upload', labelKey: 'mithril_stage1', component: 'UploadManager' },
+  { id: 1, key: 'id-converter', labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
   { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
   // Tool-only: kept for backwards compatibility + on-demand usage, but removed from the pipeline stepper.
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator', visibility: 'tool' },

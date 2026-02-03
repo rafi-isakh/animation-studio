@@ -765,3 +765,58 @@ export interface SaveI2VClipInput {
   length: string;
   accumulatedTime: string;
 }
+
+// ============================================
+// ID Converter (Stage 1 - replaces Upload)
+// ============================================
+
+export type IdConverterEntityType = 'CHARACTER' | 'ITEM' | 'LOCATION';
+export type IdConverterStep = 'upload' | 'analysis' | 'processing' | 'completed';
+export type IdConverterChunkStatus = 'pending' | 'processing' | 'completed' | 'error';
+
+export interface IdConverterVariant {
+  id: string;           // e.g., "ELISA_BEFORE_30"
+  description: string;  // Korean description
+  tags: string[];
+}
+
+export interface IdConverterEntity {
+  name: string;
+  type: IdConverterEntityType;
+  variants: IdConverterVariant[];
+}
+
+export interface IdConverterChunk {
+  originalIndex: number;
+  originalText: string;
+  translatedText: string;
+  status: IdConverterChunkStatus;
+}
+
+export interface IdConverterDocument {
+  fileName: string;
+  originalFullText: string;
+  fileUri?: string;          // Gemini File API URI
+  glossary: IdConverterEntity[];
+  chunks: IdConverterChunk[];
+  currentStep: IdConverterStep;
+  generatedAt: Timestamp;
+}
+
+export interface SaveIdConverterInput {
+  fileName: string;
+  originalFullText: string;
+  fileUri?: string;
+  glossary?: IdConverterEntity[];
+  chunks?: IdConverterChunk[];
+  currentStep?: IdConverterStep;
+}
+
+export interface UpdateIdConverterInput {
+  fileName?: string;
+  originalFullText?: string;
+  fileUri?: string;
+  glossary?: IdConverterEntity[];
+  chunks?: IdConverterChunk[];
+  currentStep?: IdConverterStep;
+}

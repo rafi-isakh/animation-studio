@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect, ComponentType } from "react";
 import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import UploadManager from "./UploadManager";
+import IdConverter from "./IdConverter";
 import StorySplitter from "./StorySplitter";
 import CharacterSheetGenerator from "./CharacterSheetGenerator";
 import StoryboardGenerator from "./StoryboardGenerator";
@@ -23,6 +24,7 @@ import { getProjectTypeConfig, getPipelineStages, ProjectType } from "./config/p
 // Component mapping for dynamic rendering
 const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'UploadManager': UploadManager,
+  'IdConverter': IdConverter,
   'StorySplitter': StorySplitter,
   'CharacterSheetGenerator': CharacterSheetGenerator,
   'StoryboardGenerator': StoryboardGenerator,
@@ -180,8 +182,9 @@ function MithrilContent() {
   const isImageToVideo = projectType === 'image-to-video';
 
   // API key needs based on project type and stage
+  // Stage 1 (IdConverter) needs API for entity analysis, stages 3-7 for image generation
   const needsImageApiKey = (
-    (isTextToVideo && currentStage >= 3 && currentStage <= 7) ||
+    (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7))) ||
     isImageToVideo  // All image-to-video stages can use API key
   );
   const needsVideoApiKey = isTextToVideo && currentStage === 8;

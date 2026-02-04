@@ -122,12 +122,27 @@ export default function IdConverter() {
         console.log("[IdConverter] Loaded data:", {
           currentStep: doc.currentStep,
           glossaryCount: doc.glossary?.length,
-          chunksCount: doc.chunks?.length
+          chunksCount: doc.chunks?.length,
+          hasTextFileUrl: !!doc.textFileUrl,
         });
+
+        // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
+        let originalFullText = doc.originalFullText || "";
+        if (doc.textFileUrl) {
+          try {
+            console.log("[IdConverter] reloadData - Fetching text from S3:", doc.textFileUrl);
+            const textResponse = await fetch(doc.textFileUrl);
+            if (textResponse.ok) {
+              originalFullText = await textResponse.text();
+            }
+          } catch (fetchErr) {
+            console.error("[IdConverter] reloadData - Error fetching text from S3:", fetchErr);
+          }
+        }
 
         setState({
           fileName: doc.fileName,
-          originalFullText: doc.originalFullText,
+          originalFullText,
           fileUri: doc.fileUri,
           glossary: doc.glossary || [],
           chunks: doc.chunks || [],
@@ -222,13 +237,31 @@ export default function IdConverter() {
           glossaryJobId: doc?.glossaryJobId,
           currentStep: doc?.currentStep,
           hasOriginalFullText: !!doc?.originalFullText,
+          hasTextFileUrl: !!doc?.textFileUrl,
           glossaryLength: doc?.glossary?.length,
         });
 
         if (doc) {
+          // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
+          let originalFullText = doc.originalFullText || "";
+          if (doc.textFileUrl) {
+            try {
+              console.log("[IdConverter] Fetching text from S3:", doc.textFileUrl);
+              const textResponse = await fetch(doc.textFileUrl);
+              if (textResponse.ok) {
+                originalFullText = await textResponse.text();
+                console.log("[IdConverter] Text fetched from S3, length:", originalFullText.length);
+              } else {
+                console.error("[IdConverter] Failed to fetch text from S3:", textResponse.status);
+              }
+            } catch (fetchErr) {
+              console.error("[IdConverter] Error fetching text from S3:", fetchErr);
+            }
+          }
+
           setState({
             fileName: doc.fileName,
-            originalFullText: doc.originalFullText,
+            originalFullText,
             fileUri: doc.fileUri,
             glossary: doc.glossary || [],
             chunks: doc.chunks || [],
@@ -237,27 +270,29 @@ export default function IdConverter() {
           });
 
           // Check if there's an active glossary job
-          const shouldRestoreJob = doc.glossaryJobId && doc.currentStep === "upload" && doc.originalFullText;
+          const hasText = !!originalFullText || !!doc.textFileUrl;
+          const shouldRestoreJob = doc.glossaryJobId && doc.currentStep === "upload" && hasText;
           console.log("[IdConverter] Should restore job?", shouldRestoreJob, {
             hasGlossaryJobId: !!doc.glossaryJobId,
             isUploadStep: doc.currentStep === "upload",
-            hasText: !!doc.originalFullText,
+            hasText,
           });
 
-          if (shouldRestoreJob) {
+          if (shouldRestoreJob && doc.glossaryJobId) {
             // There might be a glossary job in progress - restore tracking
-            console.log("[IdConverter] Found glossaryJobId on mount:", doc.glossaryJobId);
+            const jobId = doc.glossaryJobId;
+            console.log("[IdConverter] Found glossaryJobId on mount:", jobId);
 
             // Set the ref first so subscription can handle updates
-            glossaryJobIdRef.current = doc.glossaryJobId;
-            setGlossaryJobId(doc.glossaryJobId);
+            glossaryJobIdRef.current = jobId;
+            setGlossaryJobId(jobId);
             setIsLoading(true);
             setLoadingStatus("Analyzing narrative entities...");
 
             // Manually fetch job status to handle the race condition where
             // the Firestore subscription fired before we restored the jobId
             try {
-              const jobStatus = await getJobStatus(doc.glossaryJobId);
+              const jobStatus = await getJobStatus(jobId);
               console.log("[IdConverter] Fetched job status on mount:", jobStatus);
 
               if (jobStatus.status === "completed") {
@@ -333,10 +368,24 @@ export default function IdConverter() {
             const loadedState = JSON.parse(text) as ProjectState;
             setState(loadedState);
 
-            // Save to Firestore
+            // Upload text to S3 first (to avoid Firestore 1MB limit)
+            setLoadingStatus("Uploading file...");
+            const s3Response = await fetch("/api/mithril/s3/text", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ projectId: currentProjectId, text: loadedState.originalFullText }),
+            });
+            const s3Data = await s3Response.json();
+            if (!s3Response.ok || !s3Data.success) {
+              throw new Error(s3Data.error || "Failed to upload text to S3");
+            }
+            const textFileUrl = s3Data.url;
+            console.log("[IdConverter] JSON project text uploaded to S3:", textFileUrl);
+
+            // Save to Firestore (with S3 URL, not the actual text)
             await saveIdConverter(currentProjectId, {
               fileName: loadedState.fileName,
-              originalFullText: loadedState.originalFullText,
+              textFileUrl,
               fileUri: loadedState.fileUri,
               glossary: loadedState.glossary,
               chunks: loadedState.chunks,
@@ -354,9 +403,9 @@ export default function IdConverter() {
         }
 
         // New text file - clear old state first, then submit async glossary analysis job
-        setLoadingStatus("Submitting for analysis...");
+        setLoadingStatus("Uploading file...");
 
-        // Immediately clear old state
+        // Immediately clear old state (keep text in local state for UI)
         setState({
           fileName: name,
           originalFullText: text,
@@ -365,10 +414,24 @@ export default function IdConverter() {
           currentStep: "upload",
         });
 
-        // Save initial state to Firestore (without glossary)
+        // Upload text to S3 first (to avoid Firestore 1MB limit)
+        const s3Response = await fetch("/api/mithril/s3/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: currentProjectId, text }),
+        });
+        const s3Data = await s3Response.json();
+        if (!s3Response.ok || !s3Data.success) {
+          throw new Error(s3Data.error || "Failed to upload text to S3");
+        }
+        const textFileUrl = s3Data.url;
+        console.log("[IdConverter] Text uploaded to S3:", textFileUrl);
+
+        // Save initial state to Firestore (with S3 URL, not the actual text)
+        setLoadingStatus("Submitting for analysis...");
         await saveIdConverter(currentProjectId, {
           fileName: name,
-          originalFullText: text,
+          textFileUrl,
           glossary: [],
           chunks: [],
           currentStep: "upload", // Will be updated to "analysis" when job completes
@@ -432,7 +495,7 @@ export default function IdConverter() {
         }
         const text = await response.text();
 
-        // Immediately clear old state
+        // Immediately clear old state (keep text in local state for UI)
         setState({
           fileName: file.name,
           originalFullText: text,
@@ -441,11 +504,25 @@ export default function IdConverter() {
           currentStep: "upload",
         });
 
-        // Save initial state to Firestore (without glossary)
+        // Upload text to S3 first (to avoid Firestore 1MB limit)
+        setLoadingStatus("Uploading file...");
+        const s3Response = await fetch("/api/mithril/s3/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: currentProjectId, text }),
+        });
+        const s3Data = await s3Response.json();
+        if (!s3Response.ok || !s3Data.success) {
+          throw new Error(s3Data.error || "Failed to upload text to S3");
+        }
+        const textFileUrl = s3Data.url;
+        console.log("[IdConverter] Sample text uploaded to S3:", textFileUrl);
+
+        // Save initial state to Firestore (with S3 URL, not the actual text)
         setLoadingStatus("Submitting for analysis...");
         await saveIdConverter(currentProjectId, {
           fileName: file.name,
-          originalFullText: text,
+          textFileUrl,
           glossary: [],
           chunks: [],
           currentStep: "upload",
@@ -556,6 +633,18 @@ export default function IdConverter() {
     setState((prev) => ({ ...prev, currentStep: "completed" }));
     await updateIdConverter(currentProjectId, { currentStep: "completed" });
   }, [currentProjectId]);
+
+  // Save batch job ID to Firestore for resume after page refresh
+  const handleBatchJobStarted = useCallback(
+    async (jobId: string) => {
+      if (!currentProjectId) return;
+
+      console.log("[IdConverter] Saving batchJobId to Firestore:", jobId);
+      setState((prev) => ({ ...prev, batchJobId: jobId }));
+      await updateIdConverter(currentProjectId, { batchJobId: jobId });
+    },
+    [currentProjectId]
+  );
 
   // Save project as JSON
   const saveProject = useCallback(() => {
@@ -822,6 +911,7 @@ export default function IdConverter() {
                 initialChunks={state.chunks}
                 existingBatchJobId={state.batchJobId}
                 onSaveProgress={handleUpdateChunks}
+                onBatchJobStarted={handleBatchJobStarted}
                 onComplete={handleComplete}
                 apiKey={customApiKey}
               />

@@ -804,19 +804,20 @@ export interface IdConverterChunk {
 
 export interface IdConverterDocument {
   fileName: string;
-  originalFullText: string;
-  fileUri?: string;          // Gemini File API URI
+  originalFullText?: string;  // Deprecated: now stored in S3 (for backward compat)
+  textFileUrl?: string;       // S3 URL for source text
+  fileUri?: string;           // Gemini File API URI
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
   generatedAt: Timestamp;
-  glossaryJobId?: string;    // Active/last glossary job ID
-  batchJobId?: string;       // Active/last batch job ID
+  glossaryJobId?: string;     // Active/last glossary job ID
+  batchJobId?: string;        // Active/last batch job ID
 }
 
 export interface SaveIdConverterInput {
   fileName: string;
-  originalFullText: string;
+  textFileUrl?: string;        // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
@@ -827,7 +828,7 @@ export interface SaveIdConverterInput {
 
 export interface UpdateIdConverterInput {
   fileName?: string;
-  originalFullText?: string;
+  textFileUrl?: string;         // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];

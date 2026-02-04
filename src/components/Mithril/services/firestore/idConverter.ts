@@ -39,7 +39,9 @@ export async function saveIdConverter(
 
   const data: Record<string, unknown> = {
     fileName: input.fileName,
-    originalFullText: input.originalFullText,
+    // Note: originalFullText is no longer stored in Firestore (too large)
+    // Text is stored in S3 and referenced via textFileUrl
+    textFileUrl: input.textFileUrl || null,
     fileUri: input.fileUri || null,
     glossary: input.glossary || [],
     chunks: input.chunks || [],
@@ -66,9 +68,11 @@ export async function updateIdConverter(
   const docRef = getIdConverterRef(projectId);
 
   // Build update object with only defined fields
+  // Note: originalFullText is no longer stored in Firestore (too large)
+  // Text is stored in S3 and referenced via textFileUrl
   const updateData: Record<string, unknown> = {};
   if (input.fileName !== undefined) updateData.fileName = input.fileName;
-  if (input.originalFullText !== undefined) updateData.originalFullText = input.originalFullText;
+  if (input.textFileUrl !== undefined) updateData.textFileUrl = input.textFileUrl;
   if (input.fileUri !== undefined) updateData.fileUri = input.fileUri;
   if (input.glossary !== undefined) updateData.glossary = input.glossary;
   if (input.chunks !== undefined) updateData.chunks = input.chunks;

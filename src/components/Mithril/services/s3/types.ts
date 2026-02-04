@@ -337,3 +337,14 @@ export function getImageGenReplacementAssetKey(projectId: string, assetId: strin
 export function getImageGenReplacementsFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/imagegen/replacements/`;
 }
+
+// ============================================
+// IdConverter Key Generators
+// ============================================
+
+/**
+ * Get S3 key for IdConverter source text file
+ */
+export function getIdConverterTextKey(projectId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/id-converter/source.txt`;
+}

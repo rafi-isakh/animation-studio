@@ -26,6 +26,7 @@ interface ProcessingViewProps {
   initialChunks: IdConverterChunk[];
   existingBatchJobId?: string | null;
   onSaveProgress: (chunks: IdConverterChunk[]) => void;
+  onBatchJobStarted?: (jobId: string) => void;
   onComplete: () => void;
   apiKey?: string;
 }
@@ -66,6 +67,7 @@ export function ProcessingView({
   initialChunks,
   existingBatchJobId,
   onSaveProgress,
+  onBatchJobStarted,
   onComplete,
   apiKey,
 }: ProcessingViewProps) {
@@ -258,6 +260,12 @@ export function ProcessingView({
       batchJobIdRef.current = result.jobId || null;
       setBatchJobId(result.jobId || null);
       console.log("[ProcessingView] Batch job submitted:", result.jobId);
+
+      // Notify parent to persist the jobId to Firestore (for resume after page refresh)
+      if (result.jobId && onBatchJobStarted) {
+        onBatchJobStarted(result.jobId);
+      }
+
       // Job is now running in background - progress updates come via Firestore subscription
     } catch (error) {
       console.error("Error starting batch processing:", error);

@@ -116,7 +116,7 @@ export function usePropImageOrchestrator({
         return { success: false, error: data.error || 'Failed to submit prop design job' };
       }
 
-      return { success: true, jobId: data.job_id, status: data.status, createdAt: data.created_at };
+      return { success: true, jobId: data.jobId, status: data.status, createdAt: data.createdAt };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -145,9 +145,9 @@ export function usePropImageOrchestrator({
 
       return {
         success: true,
-        batchId: data.batch_id,
-        jobs: data.jobs?.map((j: { prop_id: string; job_id: string }) => ({ propId: j.prop_id, jobId: j.job_id })) || [],
-        totalCount: data.total_count,
+        batchId: data.batchId,
+        jobs: data.jobs?.map((j: { propId?: string; jobId: string }) => ({ propId: j.propId, jobId: j.jobId })) || [],
+        totalCount: data.totalCount,
       };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };

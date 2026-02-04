@@ -101,7 +101,7 @@ export function ProcessingView({
       return;
     }
 
-    console.log("[ProcessingView] Job update for our job:", update);
+    console.log("[ProcessingView] Job update for our job:", update.jobId, "status:", update.status);
 
     if (update.status === "generating") {
       setIsProcessing(true);
@@ -283,11 +283,15 @@ export function ProcessingView({
       const result = await cancelJob(batchJobId);
       if (!result.success) {
         console.error("Failed to cancel job:", result.error);
+        // Reset cancelling state if the cancel request failed
+        setIsCancelling(false);
+        setJobError(result.error || "Failed to cancel job");
       }
-      // Status update will come via Firestore subscription
+      // If success, status update will come via Firestore subscription
     } catch (error) {
       console.error("Error cancelling job:", error);
       setIsCancelling(false);
+      setJobError(error instanceof Error ? error.message : "Failed to cancel job");
     }
   }, [batchJobId, cancelJob]);
 

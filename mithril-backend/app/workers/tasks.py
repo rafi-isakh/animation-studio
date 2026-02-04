@@ -479,6 +479,68 @@ async def retry_failed_id_converter_job(
 
 
 # ============================================================================
+# Story Splitter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_story_splitter_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Story splitter task.
+
+    Splits a story into multiple parts with cliffhanger analysis.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to analyze and split text
+    2. GENERATING -> COMPLETED: Update Firestore with split parts
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.story_splitter_generation import process_story_splitter
+
+    logger.info(f"[STORY-SPLITTER-TASK] ========== Starting story splitter job {job_id} ==========")
+    logger.info(f"[STORY-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_story_splitter(job_id, api_key)
+        logger.info(f"[STORY-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORY-SPLITTER-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_story_splitter_job(
+    job_id: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed story splitter job after a delay.
+
+    This task is scheduled when a transient error occurs and the job
+    should be retried after some backoff period.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying story splitter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_story_splitter_job(job_id, api_key)
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

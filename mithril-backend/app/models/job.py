@@ -17,6 +17,7 @@ class JobType(str, Enum):
     PANEL = "panel"
     ID_CONVERTER_GLOSSARY = "id_converter_glossary"
     ID_CONVERTER_BATCH = "id_converter_batch"
+    STORY_SPLITTER = "story_splitter"
 
 
 class JobStatus(str, Enum):
@@ -140,6 +141,12 @@ class JobDocument(BaseModel):
     completed_chunks: int | None = None  # Completed chunk count
     current_chunk_index: int | None = None  # Currently processing chunk
     chunks_data: list[dict] | None = None  # Array of chunk conversion data
+
+    # Story Splitter-specific fields (for type=STORY_SPLITTER)
+    story_text: str | None = None  # Full story text to split
+    guidelines: str | None = None  # Genre-specific splitting guidelines
+    num_parts: int | None = None  # Number of parts to split into
+    split_result: list[dict] | None = None  # Array of {text, cliffhangers} parts
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -430,6 +437,51 @@ class IdConverterJobStatusResponse(BaseModel):
     total_chunks: int | None = None
     completed_chunks: int | None = None
     current_chunk_index: int | None = None
+    # Error handling
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Story Splitter Job Models
+# ============================================================================
+
+
+class StorySplitterJobSubmitRequest(BaseModel):
+    """Request model for submitting a story splitter job."""
+
+    project_id: str
+    text: str  # Full story text to split
+    guidelines: str = ""  # Genre-specific splitting guidelines
+    num_parts: int = Field(ge=2, le=50, default=8)  # Number of parts to split into
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class StorySplitterCliffhanger(BaseModel):
+    """Cliffhanger analysis for a story part."""
+
+    sentence: str
+    reason: str
+
+
+class StorySplitterPart(BaseModel):
+    """A single part of the split story."""
+
+    text: str
+    cliffhangers: list[StorySplitterCliffhanger] = []
+
+
+class StorySplitterJobStatusResponse(BaseModel):
+    """Response model for story splitter job status queries."""
+
+    job_id: str
+    status: JobStatus
+    progress: float = 0.0
+    # Result
+    parts: list[StorySplitterPart] | None = None
+    parts_count: int | None = None
     # Error handling
     error: JobError | None = None
     created_at: datetime

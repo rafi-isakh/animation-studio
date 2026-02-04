@@ -199,16 +199,17 @@ export default function IdConverter() {
   }, [reloadData]);
 
   // Initialize orchestrator hook
-  const { submitGlossaryJob } = useIdConverterOrchestrator({
+  const { submitGlossaryJob, getJobStatus } = useIdConverterOrchestrator({
     projectId: currentProjectId || "",
     customApiKey,
     onJobUpdate: handleJobUpdate,
     enabled: !!currentProjectId,
   });
 
-  // Load from Firestore on mount
+  // Load from Firestore on mount and check for active jobs
   useEffect(() => {
     const loadData = async () => {
+      console.log("[IdConverter] loadData called, projectId:", currentProjectId);
       if (!currentProjectId) {
         setIsInitialLoading(false);
         return;
@@ -216,6 +217,14 @@ export default function IdConverter() {
 
       try {
         const doc = await getIdConverter(currentProjectId);
+        console.log("[IdConverter] Loaded doc from Firestore:", {
+          hasDoc: !!doc,
+          glossaryJobId: doc?.glossaryJobId,
+          currentStep: doc?.currentStep,
+          hasOriginalFullText: !!doc?.originalFullText,
+          glossaryLength: doc?.glossary?.length,
+        });
+
         if (doc) {
           setState({
             fileName: doc.fileName,
@@ -226,6 +235,55 @@ export default function IdConverter() {
             currentStep: doc.currentStep || "upload",
             batchJobId: doc.batchJobId,
           });
+
+          // Check if there's an active glossary job
+          const shouldRestoreJob = doc.glossaryJobId && doc.currentStep === "upload" && doc.originalFullText;
+          console.log("[IdConverter] Should restore job?", shouldRestoreJob, {
+            hasGlossaryJobId: !!doc.glossaryJobId,
+            isUploadStep: doc.currentStep === "upload",
+            hasText: !!doc.originalFullText,
+          });
+
+          if (shouldRestoreJob) {
+            // There might be a glossary job in progress - restore tracking
+            console.log("[IdConverter] Found glossaryJobId on mount:", doc.glossaryJobId);
+
+            // Set the ref first so subscription can handle updates
+            glossaryJobIdRef.current = doc.glossaryJobId;
+            setGlossaryJobId(doc.glossaryJobId);
+            setIsLoading(true);
+            setLoadingStatus("Analyzing narrative entities...");
+
+            // Manually fetch job status to handle the race condition where
+            // the Firestore subscription fired before we restored the jobId
+            try {
+              const jobStatus = await getJobStatus(doc.glossaryJobId);
+              console.log("[IdConverter] Fetched job status on mount:", jobStatus);
+
+              if (jobStatus.status === "completed") {
+                // Job completed while we were away - reload data
+                glossaryJobIdRef.current = null;
+                setGlossaryJobId(null);
+                setError(null);
+                setTimeout(() => reloadData(0, true), 500);
+              } else if (jobStatus.status === "failed") {
+                // Job failed while we were away
+                setError(jobStatus.error || "Glossary analysis failed");
+                setIsLoading(false);
+                setLoadingStatus("");
+                glossaryJobIdRef.current = null;
+                setGlossaryJobId(null);
+              }
+              // If status is pending/generating, keep loading state - subscription will handle updates
+            } catch (statusErr) {
+              console.error("[IdConverter] Error fetching job status:", statusErr);
+              // Job might not exist anymore - clear loading state
+              setIsLoading(false);
+              setLoadingStatus("");
+              glossaryJobIdRef.current = null;
+              setGlossaryJobId(null);
+            }
+          }
         }
       } catch (err) {
         console.error("Error loading IdConverter from Firestore:", err);
@@ -235,7 +293,7 @@ export default function IdConverter() {
     };
 
     loadData();
-  }, [currentProjectId]);
+  }, [currentProjectId, getJobStatus, reloadData]);
 
   // Process uploaded file using async job orchestrator
   const processFile = useCallback(
@@ -329,6 +387,13 @@ export default function IdConverter() {
         setGlossaryJobId(result.jobId || null);
         console.log("[IdConverter] Glossary job submitted:", result.jobId);
 
+        // Save jobId to Firestore so it persists across page navigations
+        if (result.jobId) {
+          console.log("[IdConverter] Saving glossaryJobId to Firestore:", result.jobId);
+          await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
+          console.log("[IdConverter] glossaryJobId saved successfully");
+        }
+
         // Job is now running in background - UI will update via Firestore subscription
         // The loading state will be cleared when the job completes (in handleJobUpdate)
       } catch (err) {
@@ -398,6 +463,13 @@ export default function IdConverter() {
         glossaryJobIdRef.current = result.jobId || null;
         setGlossaryJobId(result.jobId || null);
         console.log("[IdConverter] Glossary job submitted for sample:", result.jobId);
+
+        // Save jobId to Firestore so it persists across page navigations
+        if (result.jobId) {
+          console.log("[IdConverter] Saving glossaryJobId to Firestore (sample):", result.jobId);
+          await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
+          console.log("[IdConverter] glossaryJobId saved successfully (sample)");
+        }
 
         // Job is now running in background - UI will update via Firestore subscription
       } catch (err) {

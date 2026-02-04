@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, background, prop_design_sheet, panel, or id_converter)
+ * Job type (video, image, background, prop_design_sheet, panel, id_converter, or story_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter';
 
 /**
  * Job status from the orchestrator
@@ -972,6 +972,152 @@ function mapJobStatusToIdConverterStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): IdConverterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'generating':
+      return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Story Splitter Job Functions
+// ============================================================================
+
+/**
+ * Story splitter job status
+ */
+export type StorySplitterJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Cliffhanger in a story part
+ */
+export interface StorySplitterCliffhanger {
+  sentence: string;
+  reason: string;
+}
+
+/**
+ * Story part with cliffhangers
+ */
+export interface StorySplitterPart {
+  text: string;
+  cliffhangers: StorySplitterCliffhanger[];
+}
+
+/**
+ * Story splitter job update object
+ */
+export interface StorySplitterJobUpdate {
+  jobId: string;
+  status: StorySplitterJobStatus;
+  progress: number;
+  // Results
+  parts?: StorySplitterPart[];
+  partsCount?: number;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for story splitter job updates
+ */
+export type StorySplitterJobUpdateCallback = (update: StorySplitterJobUpdate) => void;
+
+/**
+ * Subscribe to story splitter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any story splitter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStorySplitterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'story_splitter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) story splitter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active story splitter job documents
+ */
+export async function getActiveProjectStorySplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'story_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StorySplitterJobUpdate
+ */
+export function mapStorySplitterJobToUpdate(job: JobQueueDocument): StorySplitterJobUpdate {
+  // Extract split_result from job document
+  const splitResult = (job as unknown as { split_result?: StorySplitterPart[] }).split_result;
+
+  return {
+    jobId: job.id,
+    status: mapJobStatusToStorySplitterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    parts: splitResult,
+    partsCount: splitResult?.length,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to story splitter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToStorySplitterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StorySplitterJobStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

@@ -19,10 +19,13 @@ export async function getIdConverter(projectId: string): Promise<IdConverterDocu
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
+    console.log("[Firestore:idConverter] getIdConverter - document not found for project:", projectId);
     return null;
   }
 
-  return docSnap.data() as IdConverterDocument;
+  const data = docSnap.data() as IdConverterDocument;
+  console.log("[Firestore:idConverter] getIdConverter - loaded document, glossaryJobId:", data.glossaryJobId, "currentStep:", data.currentStep);
+  return data;
 }
 
 /**
@@ -34,7 +37,7 @@ export async function saveIdConverter(
 ): Promise<void> {
   const docRef = getIdConverterRef(projectId);
 
-  await setDoc(docRef, {
+  const data: Record<string, unknown> = {
     fileName: input.fileName,
     originalFullText: input.originalFullText,
     fileUri: input.fileUri || null,
@@ -42,7 +45,11 @@ export async function saveIdConverter(
     chunks: input.chunks || [],
     currentStep: input.currentStep || 'upload',
     generatedAt: Timestamp.now(),
-  });
+  };
+  if (input.glossaryJobId !== undefined) data.glossaryJobId = input.glossaryJobId;
+  if (input.batchJobId !== undefined) data.batchJobId = input.batchJobId;
+
+  await setDoc(docRef, data);
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);
@@ -66,9 +73,14 @@ export async function updateIdConverter(
   if (input.glossary !== undefined) updateData.glossary = input.glossary;
   if (input.chunks !== undefined) updateData.chunks = input.chunks;
   if (input.currentStep !== undefined) updateData.currentStep = input.currentStep;
+  if (input.glossaryJobId !== undefined) updateData.glossaryJobId = input.glossaryJobId;
+  if (input.batchJobId !== undefined) updateData.batchJobId = input.batchJobId;
   updateData.generatedAt = Timestamp.now();
 
+  console.log("[Firestore:idConverter] updateIdConverter - fields to write:", Object.keys(updateData));
+
   await setDoc(docRef, updateData, { merge: true });
+  console.log("[Firestore:idConverter] updateIdConverter - write complete");
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);

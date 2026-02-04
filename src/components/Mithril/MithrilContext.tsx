@@ -9,6 +9,14 @@ import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings
 import { useProject } from "@/contexts/ProjectContext";
 import { ProjectType, getTotalStages, isValidStage, getDefaultProjectType, getPipelineStages, isPipelineStage, getStageConfig } from "./config/projectTypes";
 
+// Story Splitter orchestrator
+import {
+  subscribeToProjectStorySplitterJobs,
+  mapStorySplitterJobToUpdate,
+  JobQueueDocument,
+  StorySplitterJobUpdate,
+} from "./services/firestore/jobQueue";
+
 // Firestore services
 import {
   getMetadata,
@@ -19,6 +27,7 @@ import {
   getStorySplits,
   saveStorySplits,
   deleteStorySplits,
+  updateStorySplitsJobId,
   getCharacterSheetSettings,
   getCharacters,
   saveCharacterSheetSettings,
@@ -322,6 +331,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     result: null,
   });
+  const [storySplitterJobId, setStorySplitterJobId] = useState<string | null>(null);
+  const storySplitterJobIdRef = useRef<string | null>(null);
 
   // Storyboard Generator state (Stage 5)
   const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
@@ -430,6 +441,56 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }));
         // Also set stageResult for components that read from it
         setStageResults(prev => ({ ...prev, 2: splitResult }));
+      } else if (storySplitsData?.jobId) {
+        // No results yet but there's an active job - restore tracking state
+        console.log("[MithrilContext] Restoring story splitter job tracking:", storySplitsData.jobId);
+        storySplitterJobIdRef.current = storySplitsData.jobId;
+        setStorySplitterJobId(storySplitsData.jobId);
+        setStorySplitter(prev => ({
+          ...prev,
+          isLoading: true,
+          error: null,
+        }));
+
+        // Manually fetch job status to handle the race condition where
+        // the Firestore subscription fired before we restored the jobId
+        try {
+          const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${storySplitsData.jobId}`);
+          const jobStatus = await response.json();
+          console.log("[MithrilContext] Fetched story splitter job status on mount:", jobStatus);
+
+          if (jobStatus.status === "completed" && jobStatus.parts) {
+            // Job completed while we were away - update state with results
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter({
+              isLoading: false,
+              error: null,
+              result: { parts: jobStatus.parts },
+            });
+            setStageResults(prev => ({ ...prev, 2: { parts: jobStatus.parts } }));
+          } else if (jobStatus.status === "failed") {
+            // Job failed while we were away
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({
+              ...prev,
+              isLoading: false,
+              error: jobStatus.error || "Story splitting failed",
+            }));
+          }
+          // If status is pending/generating, keep loading state - subscription will handle updates
+        } catch (statusErr) {
+          console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
+          // Job might not exist anymore - clear loading state
+          storySplitterJobIdRef.current = null;
+          setStorySplitterJobId(null);
+          setStorySplitter(prev => ({
+            ...prev,
+            isLoading: false,
+            error: null,
+          }));
+        }
       }
 
       // Load character sheet data
@@ -684,12 +745,68 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, []);
 
+  // Story Splitter job subscription
+  useEffect(() => {
+    if (!currentProjectId) return;
+
+    const unsubscribe = subscribeToProjectStorySplitterJobs(currentProjectId, (jobs: JobQueueDocument[]) => {
+      jobs.forEach((job) => {
+        const update = mapStorySplitterJobToUpdate(job);
+        const currentJobId = storySplitterJobIdRef.current;
+
+        // Only process updates for the current job
+        if (!currentJobId || update.jobId !== currentJobId) {
+          return;
+        }
+
+        console.log("[MithrilContext] Story splitter job update:", update);
+
+        if (update.status === "completed" && update.parts) {
+          // Job completed - update state with results
+          storySplitterJobIdRef.current = null;
+          setStorySplitterJobId(null);
+          setStorySplitter({
+            isLoading: false,
+            error: null,
+            result: { parts: update.parts },
+          });
+        } else if (update.status === "failed") {
+          // Job failed
+          storySplitterJobIdRef.current = null;
+          setStorySplitterJobId(null);
+          setStorySplitter(prev => ({
+            ...prev,
+            isLoading: false,
+            error: update.error || "Story splitting failed",
+          }));
+        } else if (update.status === "generating") {
+          // Job is processing
+          setStorySplitter(prev => ({
+            ...prev,
+            isLoading: true,
+            error: null,
+          }));
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [currentProjectId]);
+
   // Story Splitter methods
   const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
     if (!text) {
       setStorySplitter(prev => ({
         ...prev,
         error: "No script found. Please upload a file in Stage 1 first.",
+      }));
+      return;
+    }
+
+    if (!currentProjectId) {
+      setStorySplitter(prev => ({
+        ...prev,
+        error: "No project selected.",
       }));
       return;
     }
@@ -701,39 +818,38 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
-      const response = await fetch("/api/split_story", {
+      // Submit job to orchestrator
+      const response = await fetch("/api/story-splitter/orchestrator/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          projectId: currentProjectId,
           text,
           guidelines,
           numParts,
+          apiKey: customApiKey,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "API request failed");
+        throw new Error(data.error || "Failed to submit story splitter job");
       }
 
-      const result = { parts: data.parts };
+      // Store job ID for tracking (both ref and state)
+      storySplitterJobIdRef.current = data.jobId || null;
+      setStorySplitterJobId(data.jobId || null);
+      console.log("[MithrilContext] Story splitter job submitted:", data.jobId);
 
-      // Save to Firestore
-      if (currentProjectId) {
-        await saveStorySplits(currentProjectId, {
-          guidelines,
-          parts: data.parts,
-        });
+      // Save jobId to Firestore so it persists across page navigations
+      if (data.jobId) {
+        await updateStorySplitsJobId(currentProjectId, data.jobId);
       }
 
-      setStorySplitter({
-        isLoading: false,
-        error: null,
-        result,
-      });
+      // Job is now running in background - UI will update via Firestore subscription
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
@@ -743,9 +859,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: errorMessage,
       }));
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, customApiKey]);
 
   const clearStorySplit = useCallback(async () => {
+    // Clear job tracking
+    storySplitterJobIdRef.current = null;
+    setStorySplitterJobId(null);
+
     setStorySplitter({
       isLoading: false,
       error: null,

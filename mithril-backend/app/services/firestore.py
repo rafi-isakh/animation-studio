@@ -24,6 +24,7 @@ from app.models.job import (
     JobType,
     PanelJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
+    StorySplitterJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -443,6 +444,51 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created ID converter batch job {job_id} for project {request.project_id} with {len(chunks_data)} chunks")
+        return job
+
+    async def create_story_splitter_job(
+        self,
+        request: StorySplitterJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new story splitter job in the queue.
+
+        Args:
+            request: Story splitter job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.STORY_SPLITTER,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for story splitter
+            clip_index=0,  # Not used for story splitter
+            provider_id="gemini",
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio="",  # Not used for story splitter
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Story splitter-specific fields
+            story_text=request.text,
+            guidelines=request.guidelines,
+            num_parts=request.num_parts,
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created story splitter job {job_id} for project {request.project_id} with {request.num_parts} parts")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -967,6 +1013,73 @@ class IdConverterService:
         return doc.to_dict()
 
 
+class StorySplitsService:
+    """Service for updating story splits data in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _doc_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for mithril/storySplits."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("mithril")
+            .document("storySplits")
+        )
+
+    async def save_story_splits(
+        self,
+        project_id: str,
+        guidelines: str,
+        parts: list[dict],
+        job_id: str | None = None,
+    ) -> None:
+        """
+        Save story split results to project's storySplits document.
+
+        Args:
+            project_id: The project ID
+            guidelines: Guidelines used for splitting
+            parts: List of part objects with text and cliffhangers
+            job_id: Optional job ID for tracking
+        """
+        data: dict[str, Any] = {
+            "guidelines": guidelines,
+            "parts": parts,
+        }
+        if job_id is not None:
+            data["jobId"] = job_id
+
+        await self._doc_ref(project_id).set(data, merge=True)
+        logger.debug(f"Saved story splits in project {project_id} ({len(parts)} parts)")
+
+    async def get_story_splits(self, project_id: str) -> dict | None:
+        """
+        Get the story splits data for a project.
+
+        Args:
+            project_id: The project ID
+
+        Returns:
+            The storySplits data dict or None if not found
+        """
+        doc = await self._doc_ref(project_id).get()
+        if not doc.exists:
+            return None
+        return doc.to_dict()
+
+    async def delete_story_splits(self, project_id: str) -> None:
+        """
+        Delete story splits data for a project.
+
+        Args:
+            project_id: The project ID
+        """
+        await self._doc_ref(project_id).delete()
+        logger.debug(f"Deleted story splits for project {project_id}")
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
@@ -974,6 +1087,7 @@ _image_frame_service: ImageFrameService | None = None
 _bg_angle_service: BackgroundAngleService | None = None
 _prop_design_sheet_service: PropDesignSheetService | None = None
 _id_converter_service: IdConverterService | None = None
+_story_splits_service: StorySplitsService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -1022,6 +1136,14 @@ def get_id_converter_service() -> IdConverterService:
     if _id_converter_service is None:
         _id_converter_service = IdConverterService()
     return _id_converter_service
+
+
+def get_story_splits_service() -> StorySplitsService:
+    """Get or create StorySplitsService instance."""
+    global _story_splits_service
+    if _story_splits_service is None:
+        _story_splits_service = StorySplitsService()
+    return _story_splits_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

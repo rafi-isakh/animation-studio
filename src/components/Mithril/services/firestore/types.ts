@@ -61,6 +61,7 @@ export interface StorySplitsDocument {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
   generatedAt: Timestamp;
+  jobId?: string;  // Active/last story splitter job ID
 }
 
 // ============================================
@@ -430,6 +431,7 @@ export interface SaveChapterInput {
 export interface SaveStorySplitsInput {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
+  jobId?: string;
 }
 
 export interface SaveCharacterSheetSettingsInput {

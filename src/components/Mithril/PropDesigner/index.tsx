@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
-import { Prop, DetectedId, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS } from "./types";
+import { Prop, DetectedId, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt } from "./types";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -562,6 +562,17 @@ export default function PropDesigner() {
         variantVisuals?: string | null;
       }) => {
         const existing = existingPropsByName.get(char.name.toLowerCase());
+        
+        // Fallback: If AI returns empty prompt, generate one using template
+        let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
+        if (!designPrompt || designPrompt.trim() === "") {
+          designPrompt = getCharacterDesignSheetPrompt(
+            { name: char.name, description: char.description },
+            genre,
+            styleKeyword
+          );
+        }
+        
         return {
           id: existing?.id || crypto.randomUUID(),
           name: char.name,
@@ -570,7 +581,7 @@ export default function PropDesigner() {
           descriptionKo: char.descriptionKo,
           appearingClips: char.appearingClips,
           contextPrompts: char.contextPrompts,
-          designSheetPrompt: existing?.designSheetPrompt || char.characterSheetPrompt,
+          designSheetPrompt: designPrompt,
           designSheetImageUrl: existing?.designSheetImageUrl,
           designSheetImageBase64: existing?.designSheetImageBase64,
           referenceImageUrl: existing?.referenceImageUrl,
@@ -653,6 +664,17 @@ export default function PropDesigner() {
         productSheetPrompt: string;
       }) => {
         const existing = existingPropsByName.get(obj.name.toLowerCase());
+        
+        // Fallback: If AI returns empty prompt, generate one using template
+        let designPrompt = existing?.designSheetPrompt || obj.productSheetPrompt;
+        if (!designPrompt || designPrompt.trim() === "") {
+          designPrompt = getObjectDesignSheetPrompt(
+            { name: obj.name, description: obj.description },
+            genre,
+            styleKeyword
+          );
+        }
+        
         return {
           id: existing?.id || crypto.randomUUID(),
           name: obj.name,
@@ -661,7 +683,7 @@ export default function PropDesigner() {
           descriptionKo: obj.descriptionKo,
           appearingClips: obj.appearingClips,
           contextPrompts: obj.contextPrompts,
-          designSheetPrompt: existing?.designSheetPrompt || obj.productSheetPrompt,
+          designSheetPrompt: designPrompt,
           designSheetImageUrl: existing?.designSheetImageUrl,
           designSheetImageBase64: existing?.designSheetImageBase64,
           referenceImageUrl: existing?.referenceImageUrl,

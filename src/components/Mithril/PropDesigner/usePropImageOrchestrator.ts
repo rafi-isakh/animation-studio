@@ -80,8 +80,22 @@ export function usePropImageOrchestrator({
 
     // Subscribe to project prop design sheet jobs
     const unsubscribe = subscribeToProjectPropDesignJobs(projectId, (jobs: JobQueueDocument[]) => {
-      // Notify callback for each job update
+      // Group jobs by prop_id and keep only the latest job for each prop
+      const latestJobsByProp = new Map<string, JobQueueDocument>();
+      
       jobs.forEach((job) => {
+        const propId = job.prop_id || '';
+        if (!propId) return;
+        
+        const existing = latestJobsByProp.get(propId);
+        // Keep the job with the latest created_at timestamp
+        if (!existing || (job.created_at && (!existing.created_at || job.created_at > existing.created_at))) {
+          latestJobsByProp.set(propId, job);
+        }
+      });
+      
+      // Notify callback only for the latest job of each prop
+      latestJobsByProp.forEach((job) => {
         const update = mapPropJobToPropUpdate(job);
         onPropUpdateRef.current?.(update);
       });
@@ -100,6 +114,15 @@ export function usePropImageOrchestrator({
    */
   const submitJob = useCallback(async (params: SubmitPropDesignJobParams): Promise<SubmitJobResponse> => {
     try {
+      console.log('[PropDesignOrchestrator] submitJob called with params:', {
+        propId: params.propId,
+        propName: params.propName,
+        promptLength: params.prompt?.length,
+        referenceImages: params.referenceImages?.length || 0,
+        genre: params.genre,
+        styleKeyword: params.styleKeyword,
+      });
+
       const response = await fetch('/api/prop-design/orchestrator/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -68,7 +68,7 @@ const objectDetectionSchema = {
       productSheetPrompt: {
         type: Type.STRING,
         description:
-          "Image generation prompt for a product/design sheet. Format: '2d anime white background product sheet of [OBJECT], [VISUAL DESCRIPTION], front view, side view, top view, high quality, shading detail, no text'",
+          "Image generation prompt for a product/design sheet. Format: '2d anime white background product sheet. Infer and maintain the object's exact visual features, shape, material, color palette, and overall art style from the provided reference images (manga panels). Include front view, side view, top view, detail close-ups, high quality, character design sheet style, shading detail, no text. Colors should match exact hexcolor. Object: [OBJECT NAME] in [GENRE] setting. [DETAILED VISUAL DESCRIPTION]'",
       },
     },
     required: [
@@ -126,7 +126,7 @@ const characterDetectionSchema = {
       characterSheetPrompt: {
         type: Type.STRING,
         description:
-          "Image generation prompt for a character design sheet. Format: '2d anime white background character sheet of [CHARACTER], [VISUAL DESCRIPTION], front view, side view, back view, expression sheet, high quality, full body, no text'",
+          "Image generation prompt for a character design sheet. Format: '2d anime white background character sheet. Infer and maintain the character's exact visual features, face, hair, outfit, color palette, and overall art style from the provided reference images (manga panels). Don't mistake strong manga shading on skin for innerwear. Include 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text. Hair color and eye colors should match exact hexcolor. Character: [CHARACTER NAME] in [GENRE] setting. [DETAILED VISUAL DESCRIPTION]'",
       },
       // Easy Mode metadata fields
       age: {

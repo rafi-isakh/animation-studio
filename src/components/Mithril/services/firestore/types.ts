@@ -808,6 +808,8 @@ export interface IdConverterDocument {
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
   generatedAt: Timestamp;
+  glossaryJobId?: string;    // Active/last glossary job ID
+  batchJobId?: string;       // Active/last batch job ID
 }
 
 export interface SaveIdConverterInput {
@@ -817,6 +819,8 @@ export interface SaveIdConverterInput {
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  glossaryJobId?: string;
+  batchJobId?: string;
 }
 
 export interface UpdateIdConverterInput {
@@ -826,4 +830,6 @@ export interface UpdateIdConverterInput {
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  glossaryJobId?: string;
+  batchJobId?: string;
 }

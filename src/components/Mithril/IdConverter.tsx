@@ -20,6 +20,7 @@ import type {
 } from "./services/firestore/types";
 import { AnalysisView } from "./IdConverter/AnalysisView";
 import { ProcessingView } from "./IdConverter/ProcessingView";
+import { useIdConverterOrchestrator, IdConverterJobUpdate } from "./IdConverter/hooks/useIdConverterOrchestrator";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -84,6 +85,7 @@ interface ProjectState {
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  batchJobId?: string;
 }
 
 const INITIAL_STATE: ProjectState = {
@@ -92,6 +94,7 @@ const INITIAL_STATE: ProjectState = {
   glossary: [],
   chunks: [],
   currentStep: "upload",
+  batchJobId: undefined,
 };
 
 export default function IdConverter() {
@@ -106,7 +109,61 @@ export default function IdConverter() {
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string>("");
+  const [glossaryJobId, setGlossaryJobId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reload data from Firestore
+  const reloadData = useCallback(async () => {
+    if (!currentProjectId) return;
+
+    try {
+      const doc = await getIdConverter(currentProjectId);
+      if (doc) {
+        setState({
+          fileName: doc.fileName,
+          originalFullText: doc.originalFullText,
+          fileUri: doc.fileUri,
+          glossary: doc.glossary || [],
+          chunks: doc.chunks || [],
+          currentStep: doc.currentStep || "upload",
+          batchJobId: doc.batchJobId,
+        });
+      }
+    } catch (err) {
+      console.error("Error reloading IdConverter from Firestore:", err);
+    }
+  }, [currentProjectId]);
+
+  // Handle job updates from orchestrator
+  const handleJobUpdate = useCallback((update: IdConverterJobUpdate) => {
+    console.log("[IdConverter] Job update:", update);
+
+    if (update.jobType === "id_converter_glossary") {
+      if (update.status === "completed") {
+        // Glossary analysis complete - reload data from Firestore
+        setIsLoading(false);
+        setLoadingStatus("");
+        setGlossaryJobId(null);
+        reloadData();
+      } else if (update.status === "failed") {
+        setError(update.error || "Glossary analysis failed");
+        setIsLoading(false);
+        setLoadingStatus("");
+        setGlossaryJobId(null);
+      } else if (update.status === "generating") {
+        setLoadingStatus("Analyzing narrative entities (async)...");
+      }
+    }
+    // Batch job updates are handled by ProcessingView
+  }, [reloadData]);
+
+  // Initialize orchestrator hook
+  const { submitGlossaryJob } = useIdConverterOrchestrator({
+    projectId: currentProjectId || "",
+    customApiKey,
+    onJobUpdate: handleJobUpdate,
+    enabled: !!currentProjectId,
+  });
 
   // Load from Firestore on mount
   useEffect(() => {
@@ -126,6 +183,7 @@ export default function IdConverter() {
             glossary: doc.glossary || [],
             chunks: doc.chunks || [],
             currentStep: doc.currentStep || "upload",
+            batchJobId: doc.batchJobId,
           });
         }
       } catch (err) {
@@ -138,30 +196,7 @@ export default function IdConverter() {
     loadData();
   }, [currentProjectId]);
 
-  // Analyze glossary using AI
-  const analyzeGlossary = useCallback(
-    async (text: string): Promise<IdConverterEntity[]> => {
-      const response = await fetch("/api/id-converter/analyze-glossary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          apiKey: customApiKey,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to analyze glossary");
-      }
-
-      const data = await response.json();
-      return data.entities || [];
-    },
-    [customApiKey]
-  );
-
-  // Process uploaded file
+  // Process uploaded file using async job orchestrator
   const processFile = useCallback(
     async (file: File) => {
       if (!currentProjectId) {
@@ -213,41 +248,52 @@ export default function IdConverter() {
           }
         }
 
-        // New text file - analyze for entities
-        setLoadingStatus("Analyzing narrative entities...");
+        // New text file - save metadata first, then submit async glossary analysis job
+        setLoadingStatus("Submitting for analysis...");
 
-        const glossary = await analyzeGlossary(text);
-
-        const newState: ProjectState = {
-          fileName: name,
-          originalFullText: text,
-          glossary,
-          chunks: [],
-          currentStep: "analysis",
-        };
-
-        setState(newState);
-
-        // Save to Firestore
+        // Save initial state to Firestore (without glossary)
         await saveIdConverter(currentProjectId, {
           fileName: name,
           originalFullText: text,
-          glossary,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
+          currentStep: "upload", // Will be updated to "analysis" when job completes
         });
+
+        // Update local state with file info
+        setState({
+          fileName: name,
+          originalFullText: text,
+          glossary: [],
+          chunks: [],
+          currentStep: "upload",
+        });
+
+        // Submit glossary analysis job via orchestrator
+        setLoadingStatus("Analyzing narrative entities (async)...");
+        const result = await submitGlossaryJob({ originalText: text });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to submit glossary job");
+        }
+
+        // Store job ID for tracking
+        setGlossaryJobId(result.jobId || null);
+        console.log("[IdConverter] Glossary job submitted:", result.jobId);
+
+        // Job is now running in background - UI will update via Firestore subscription
+        // The loading state will be cleared when the job completes (in handleJobUpdate)
       } catch (err) {
         console.error("Error processing file:", err);
         setError(err instanceof Error ? err.message : "Failed to process file");
-      } finally {
         setIsLoading(false);
         setLoadingStatus("");
       }
     },
-    [currentProjectId, dictionary, language, analyzeGlossary]
+    [currentProjectId, dictionary, language, submitGlossaryJob]
   );
 
-  // Handle sample file selection
+  // Handle sample file selection using async job orchestrator
   const handleFileSelect = useCallback(
     async (file: (typeof SAMPLE_FILES)[0]) => {
       if (!currentProjectId) {
@@ -270,37 +316,47 @@ export default function IdConverter() {
         }
         const text = await response.text();
 
-        setLoadingStatus("Analyzing narrative entities...");
-        const glossary = await analyzeGlossary(text);
-
-        const newState: ProjectState = {
-          fileName: file.name,
-          originalFullText: text,
-          glossary,
-          chunks: [],
-          currentStep: "analysis",
-        };
-
-        setState(newState);
-
-        // Save to Firestore
+        // Save initial state to Firestore (without glossary)
+        setLoadingStatus("Submitting for analysis...");
         await saveIdConverter(currentProjectId, {
           fileName: file.name,
           originalFullText: text,
-          glossary,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
+          currentStep: "upload",
         });
+
+        // Update local state
+        setState({
+          fileName: file.name,
+          originalFullText: text,
+          glossary: [],
+          chunks: [],
+          currentStep: "upload",
+        });
+
+        // Submit glossary analysis job via orchestrator
+        setLoadingStatus("Analyzing narrative entities (async)...");
+        const result = await submitGlossaryJob({ originalText: text });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to submit glossary job");
+        }
+
+        // Store job ID for tracking
+        setGlossaryJobId(result.jobId || null);
+        console.log("[IdConverter] Glossary job submitted for sample:", result.jobId);
+
+        // Job is now running in background - UI will update via Firestore subscription
       } catch (err) {
         console.error("Error loading file:", err);
         setError(err instanceof Error ? err.message : "Failed to load file");
         setSelectedFile("");
-      } finally {
         setIsLoading(false);
         setLoadingStatus("");
       }
     },
-    [currentProjectId, analyzeGlossary, setUploadType]
+    [currentProjectId, submitGlossaryJob, setUploadType]
   );
 
   // Drag and drop handlers
@@ -625,12 +681,14 @@ export default function IdConverter() {
           )}
 
           {/* Processing View */}
-          {(state.currentStep === "processing" || state.currentStep === "completed") && (
+          {(state.currentStep === "processing" || state.currentStep === "completed") && currentProjectId && (
             <div className="relative">
               <ProcessingView
+                projectId={currentProjectId}
                 originalText={state.originalFullText}
                 glossary={state.glossary}
                 initialChunks={state.chunks}
+                existingBatchJobId={state.batchJobId}
                 onSaveProgress={handleUpdateChunks}
                 onComplete={handleComplete}
                 apiKey={customApiKey}

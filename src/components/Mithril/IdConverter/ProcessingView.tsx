@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import {
   Play,
-  Pause,
   Download,
   RefreshCw,
   FileText,
@@ -11,16 +10,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  StopCircle,
 } from "lucide-react";
 import type {
   IdConverterEntity,
   IdConverterChunk,
 } from "../services/firestore/types";
+import { useIdConverterOrchestrator, IdConverterJobUpdate } from "./hooks/useIdConverterOrchestrator";
 
 interface ProcessingViewProps {
+  projectId: string;
   originalText: string;
   glossary: IdConverterEntity[];
   initialChunks: IdConverterChunk[];
+  existingBatchJobId?: string | null;
   onSaveProgress: (chunks: IdConverterChunk[]) => void;
   onComplete: () => void;
   apiKey?: string;
@@ -55,9 +58,11 @@ const createChunks = (text: string): IdConverterChunk[] => {
 };
 
 export function ProcessingView({
+  projectId,
   originalText,
   glossary,
   initialChunks,
+  existingBatchJobId,
   onSaveProgress,
   onComplete,
   apiKey,
@@ -65,6 +70,9 @@ export function ProcessingView({
   const [chunks, setChunks] = useState<IdConverterChunk[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<"preview" | "raw">("preview");
+  const [batchJobId, setBatchJobId] = useState<string | null>(existingBatchJobId || null);
+  const [jobError, setJobError] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Navigation State
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -72,7 +80,98 @@ export function ProcessingView({
   const [totalMatches, setTotalMatches] = useState(0);
 
   const initialized = useRef(false);
-  const processingRef = useRef(false);
+
+  // Handle job updates from orchestrator
+  const handleJobUpdate = useCallback((update: IdConverterJobUpdate) => {
+    console.log("[ProcessingView] Job update:", update);
+
+    if (update.jobType !== "id_converter_batch") {
+      return;
+    }
+
+    // Track job ID if provided
+    if (update.jobId && update.jobId !== batchJobId) {
+      setBatchJobId(update.jobId);
+    }
+
+    if (update.status === "generating") {
+      setIsProcessing(true);
+      setJobError(null);
+
+      // Update chunks progress from job data
+      if (update.completedChunks !== undefined && update.totalChunks !== undefined) {
+        setChunks((prevChunks) => {
+          const newChunks = [...prevChunks];
+          // Mark completed chunks
+          for (let i = 0; i < update.completedChunks!; i++) {
+            if (newChunks[i] && newChunks[i].status !== "completed") {
+              newChunks[i] = { ...newChunks[i], status: "completed" };
+            }
+          }
+          // Mark current chunk as processing
+          const currentIdx = update.currentChunkIndex;
+          if (currentIdx !== undefined && currentIdx < newChunks.length) {
+            newChunks[currentIdx] = { ...newChunks[currentIdx], status: "processing" };
+          }
+          return newChunks;
+        });
+      }
+
+      // Update chunk content if provided
+      if (update.chunksData) {
+        setChunks((prevChunks) => {
+          const newChunks = [...prevChunks];
+          update.chunksData!.forEach((chunkData, idx) => {
+            if (newChunks[idx] && chunkData.translatedText) {
+              newChunks[idx] = {
+                ...newChunks[idx],
+                translatedText: chunkData.translatedText,
+                status: "completed",
+              };
+            }
+          });
+          return newChunks;
+        });
+      }
+    } else if (update.status === "completed") {
+      setIsProcessing(false);
+      setIsCancelling(false);
+
+      // Update all chunks from final data
+      if (update.chunksData) {
+        setChunks((prevChunks) => {
+          const newChunks = [...prevChunks];
+          update.chunksData!.forEach((chunkData, idx) => {
+            if (newChunks[idx]) {
+              newChunks[idx] = {
+                ...newChunks[idx],
+                translatedText: chunkData.translatedText || "",
+                status: "completed",
+              };
+            }
+          });
+          return newChunks;
+        });
+      }
+
+      onComplete();
+    } else if (update.status === "failed") {
+      setIsProcessing(false);
+      setIsCancelling(false);
+      setJobError(update.error || "Batch processing failed");
+    } else if (update.status === "cancelled") {
+      setIsProcessing(false);
+      setIsCancelling(false);
+    }
+  }, [batchJobId, onComplete]);
+
+  // Initialize orchestrator hook
+  const { submitBatchJob, cancelJob } = useIdConverterOrchestrator({
+    projectId,
+    customApiKey: apiKey,
+    onJobUpdate: handleJobUpdate,
+    enabled: !!projectId,
+  });
 
   // Get all unique variant IDs
   const allVariantIds = useMemo(() => {
@@ -100,79 +199,79 @@ export function ProcessingView({
     }
   }, [chunks, onSaveProgress]);
 
-  // Process a single chunk
-  const processChunk = useCallback(
-    async (index: number, currentChunks: IdConverterChunk[]) => {
-      const prevText = index > 0 ? currentChunks[index - 1].translatedText : "";
-      const context = prevText.slice(-1000);
-
-      try {
-        const response = await fetch("/api/id-converter/convert-chunk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            textChunk: currentChunks[index].originalText,
-            glossary,
-            previousContext: context,
-            apiKey,
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to convert chunk");
-        }
-
-        const data = await response.json();
-        return data.translatedText || "";
-      } catch (e) {
-        console.error("Chunk processing failed", e);
-        throw e;
-      }
-    },
-    [glossary, apiKey]
-  );
-
-  // Processing Loop
+  // Check for existing job on mount (resume scenario)
   useEffect(() => {
-    if (!isProcessing || processingRef.current) return;
+    if (existingBatchJobId && !batchJobId) {
+      setBatchJobId(existingBatchJobId);
+      // If there's an existing job, it might still be processing
+      // The Firestore subscription will update us with the current status
+      const hasIncompleteChunks = initialChunks.some(c => c.status === "pending" || c.status === "processing");
+      if (hasIncompleteChunks) {
+        setIsProcessing(true);
+      }
+    }
+  }, [existingBatchJobId, batchJobId, initialChunks]);
 
-    const processNextChunk = async () => {
-      processingRef.current = true;
+  // Start batch processing via orchestrator
+  const startProcessing = useCallback(async () => {
+    if (!projectId || chunks.length === 0) return;
 
-      const currentChunks = [...chunks];
-      const nextIdx = currentChunks.findIndex((c) => c.status === "pending");
+    setIsProcessing(true);
+    setJobError(null);
 
-      if (nextIdx === -1) {
-        setIsProcessing(false);
-        processingRef.current = false;
-        onComplete();
-        return;
+    try {
+      // Prepare glossary for submission
+      const glossaryForSubmission = glossary.map((entity) => ({
+        name: entity.name,
+        type: entity.type,
+        variants: entity.variants.map((v) => ({
+          id: v.id,
+          description: v.description,
+          tags: v.tags,
+        })),
+      }));
+
+      // Prepare chunks for submission
+      const chunksForSubmission = chunks.map((chunk) => ({
+        originalIndex: chunk.originalIndex,
+        originalText: chunk.originalText,
+      }));
+
+      const result = await submitBatchJob({
+        glossary: glossaryForSubmission,
+        chunks: chunksForSubmission,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to submit batch job");
       }
 
-      // Mark as processing
-      currentChunks[nextIdx] = { ...currentChunks[nextIdx], status: "processing" };
-      setChunks([...currentChunks]);
+      setBatchJobId(result.jobId || null);
+      console.log("[ProcessingView] Batch job submitted:", result.jobId);
+      // Job is now running in background - progress updates come via Firestore subscription
+    } catch (error) {
+      console.error("Error starting batch processing:", error);
+      setJobError(error instanceof Error ? error.message : "Failed to start processing");
+      setIsProcessing(false);
+    }
+  }, [projectId, chunks, glossary, submitBatchJob]);
 
-      try {
-        const translatedText = await processChunk(nextIdx, currentChunks);
-        currentChunks[nextIdx] = {
-          ...currentChunks[nextIdx],
-          translatedText,
-          status: "completed",
-        };
-        setChunks([...currentChunks]);
-      } catch {
-        currentChunks[nextIdx] = { ...currentChunks[nextIdx], status: "error" };
-        setChunks([...currentChunks]);
-        setIsProcessing(false);
+  // Cancel current job
+  const handleCancel = useCallback(async () => {
+    if (!batchJobId) return;
+
+    setIsCancelling(true);
+    try {
+      const result = await cancelJob(batchJobId);
+      if (!result.success) {
+        console.error("Failed to cancel job:", result.error);
       }
-
-      processingRef.current = false;
-    };
-
-    processNextChunk();
-  }, [isProcessing, chunks, processChunk, onComplete]);
+      // Status update will come via Firestore subscription
+    } catch (error) {
+      console.error("Error cancelling job:", error);
+      setIsCancelling(false);
+    }
+  }, [batchJobId, cancelJob]);
 
   // Entity Navigation Logic
   const updateEntityMatches = useCallback((id: string | null) => {
@@ -289,18 +388,21 @@ export function ProcessingView({
     scrollToMatch(prevIndex);
   }, [currentMatchIndex, totalMatches, scrollToMatch]);
 
-  const toggleProcessing = () => {
-    setIsProcessing(!isProcessing);
-  };
-
-  const retryChunk = (index: number) => {
+  // Retry failed chunks by resubmitting the batch job
+  const retryFailed = useCallback(() => {
+    // Reset failed chunks to pending and start a new job
     setChunks((prev) => {
       const next = [...prev];
-      next[index] = { ...next[index], status: "pending" };
+      next.forEach((chunk, idx) => {
+        if (chunk.status === "error") {
+          next[idx] = { ...next[idx], status: "pending" };
+        }
+      });
       return next;
     });
-    setIsProcessing(true);
-  };
+    // After reset, user can click Start to resubmit
+    setJobError(null);
+  }, []);
 
   const downloadTxt = () => {
     const fullText = chunks.map((c) => c.translatedText).join("\n\n");
@@ -365,12 +467,19 @@ export function ProcessingView({
             <span className="text-xs text-gray-500 uppercase">Status</span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">
-                {isProcessing
-                  ? "Translating..."
-                  : progressPercent === 100
-                    ? "Completed"
-                    : "Paused"}
+                {isCancelling
+                  ? "Cancelling..."
+                  : isProcessing
+                    ? "Processing (async)..."
+                    : progressPercent === 100
+                      ? "Completed"
+                      : "Ready"}
               </span>
+              {batchJobId && isProcessing && (
+                <span className="text-xs text-gray-500 font-mono">
+                  Job: {batchJobId.slice(0, 8)}...
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col w-48 md:w-64 gap-1">
@@ -387,25 +496,40 @@ export function ProcessingView({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={toggleProcessing}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
-              isProcessing
-                ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
-                : "bg-[#DB2777] text-white hover:bg-[#DB2777]/80"
-            }`}
-            disabled={progressPercent === 100}
-          >
-            {isProcessing ? (
-              <>
-                <Pause size={18} /> Pause
-              </>
-            ) : (
-              <>
-                <Play size={18} /> {completedCount > 0 ? "Resume" : "Start"}
-              </>
-            )}
-          </button>
+          {isProcessing ? (
+            <button
+              onClick={handleCancel}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/30"
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <>
+                  <RefreshCw className="animate-spin" size={18} /> Cancelling...
+                </>
+              ) : (
+                <>
+                  <StopCircle size={18} /> Stop
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={startProcessing}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all bg-[#DB2777] text-white hover:bg-[#DB2777]/80"
+              disabled={progressPercent === 100 || chunks.length === 0}
+            >
+              <Play size={18} /> {completedCount > 0 ? "Resume" : "Start"}
+            </button>
+          )}
+
+          {jobError && (
+            <button
+              onClick={retryFailed}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/30"
+            >
+              <RefreshCw size={18} /> Retry
+            </button>
+          )}
 
           <button
             onClick={downloadTxt}
@@ -534,30 +658,39 @@ export function ProcessingView({
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
-            {chunks.every((c) => c.status === "pending") && (
+            {/* Job Error Banner */}
+            {jobError && (
+              <div className="mb-6 border border-red-900/50 bg-red-900/10 p-4 rounded text-red-400 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={18} />
+                  <span>{jobError}</span>
+                </div>
+                <button
+                  onClick={retryFailed}
+                  className="text-xs bg-red-900/30 px-3 py-1 rounded hover:bg-red-900/50"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {chunks.every((c) => c.status === "pending") && !isProcessing && (
               <div className="h-full flex flex-col items-center justify-center text-gray-600 opacity-50">
                 <FileText size={48} className="mb-4" />
                 <p>Ready to start processing...</p>
+                <p className="text-sm mt-2">Click &quot;Start&quot; to begin async batch conversion</p>
               </div>
             )}
 
             {chunks.map((chunk) => (
               <div key={chunk.originalIndex} className="mb-8">
-                {/* Error State */}
+                {/* Error State - simplified since errors are handled at job level */}
                 {chunk.status === "error" && (
-                  <div className="border border-red-900/50 bg-red-900/10 p-4 rounded text-red-400 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle size={18} />
-                      <span>
-                        Error translating chunk #{chunk.originalIndex + 1}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => retryChunk(chunk.originalIndex)}
-                      className="text-xs bg-red-900/30 px-3 py-1 rounded hover:bg-red-900/50"
-                    >
-                      Retry
-                    </button>
+                  <div className="border border-red-900/50 bg-red-900/10 p-4 rounded text-red-400 flex items-center gap-2">
+                    <AlertTriangle size={18} />
+                    <span>
+                      Error processing chunk #{chunk.originalIndex + 1}
+                    </span>
                   </div>
                 )}
 

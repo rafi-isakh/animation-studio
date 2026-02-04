@@ -351,6 +351,134 @@ async def retry_failed_panel_job(
 
 
 # ============================================================================
+# ID Converter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_id_converter_glossary_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    ID Converter glossary analysis task.
+
+    Extracts entities (characters, items, locations) from webnovel text.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to analyze text
+    2. GENERATING -> COMPLETED: Update Firestore with entities
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.id_converter_generation import process_glossary_analysis
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing ID converter glossary job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_glossary_analysis(job_id, worker_id, api_key)
+        logger.info(f"[{worker_id}] ID converter glossary job {job_id} finished with status: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in ID converter glossary job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def process_id_converter_batch_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    ID Converter batch chunk conversion task.
+
+    Converts all text chunks sequentially using the glossary.
+    Each chunk is processed with context from the previous chunk.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Process chunks one by one
+    2. For each chunk: Update progress in Firestore
+    3. GENERATING -> COMPLETED: All chunks done
+
+    The worker maintains state in Firestore so it can resume after restart.
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.id_converter_generation import process_batch_conversion
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing ID converter batch job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_batch_conversion(job_id, worker_id, api_key)
+        logger.info(f"[{worker_id}] ID converter batch job {job_id} finished with status: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in ID converter batch job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_id_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed ID converter job after a delay.
+
+    Automatically determines job type (glossary or batch) and routes
+    to the appropriate handler.
+
+    Args:
+        job_id: The job ID to retry
+        delay_seconds: Delay before processing
+        api_key: Optional API key (if not provided, uses settings fallback)
+
+    Returns:
+        dict with status and result information
+    """
+    import asyncio
+    from app.models.job import JobType
+    from app.services.firestore import get_job_queue_service
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying ID converter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    # Determine job type and route to correct handler
+    job_queue_service = get_job_queue_service()
+    job = await job_queue_service.get_job(job_id)
+
+    if not job:
+        logger.error(f"Cannot retry ID converter job {job_id}: job not found")
+        return {"job_id": job_id, "status": "error", "error": "Job not found"}
+
+    if job.type == JobType.ID_CONVERTER_GLOSSARY:
+        return await process_id_converter_glossary_job(job_id, api_key)
+    elif job.type == JobType.ID_CONVERTER_BATCH:
+        return await process_id_converter_batch_job(job_id, api_key)
+    else:
+        logger.error(f"Cannot retry job {job_id}: unexpected type {job.type}")
+        return {"job_id": job_id, "status": "error", "error": f"Unexpected job type: {job.type}"}
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

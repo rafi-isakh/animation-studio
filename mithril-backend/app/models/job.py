@@ -15,6 +15,8 @@ class JobType(str, Enum):
     BACKGROUND = "background"
     PROP_DESIGN_SHEET = "prop_design_sheet"
     PANEL = "panel"
+    ID_CONVERTER_GLOSSARY = "id_converter_glossary"
+    ID_CONVERTER_BATCH = "id_converter_batch"
 
 
 class JobStatus(str, Enum):
@@ -129,6 +131,15 @@ class JobDocument(BaseModel):
     source_image_base64: str | None = None  # Base64 encoded source image
     source_mime_type: str | None = None  # MIME type of source image
     refinement_mode: str | None = None  # "default", "zoom", or "expand"
+
+    # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
+    original_text: str | None = None  # Full text for glossary analysis
+    file_uri: str | None = None  # Gemini File API URI
+    glossary_result: list[dict] | None = None  # Extracted entities
+    total_chunks: int | None = None  # For batch conversion
+    completed_chunks: int | None = None  # Completed chunk count
+    current_chunk_index: int | None = None  # Currently processing chunk
+    chunks_data: list[dict] | None = None  # Array of chunk conversion data
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -367,6 +378,59 @@ class PanelJobStatusResponse(BaseModel):
     progress: float = 0.0
     image_url: str | None = None
     s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# ID Converter Job Models
+# ============================================================================
+
+
+class IdConverterGlossaryJobSubmitRequest(BaseModel):
+    """Request model for submitting a glossary analysis job."""
+
+    project_id: str
+    original_text: str  # Full text for entity analysis
+    file_uri: str | None = None  # Optional Gemini File API URI
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class IdConverterBatchJobSubmitRequest(BaseModel):
+    """Request model for submitting a batch chunk conversion job."""
+
+    project_id: str
+    glossary: list[dict]  # List of entity objects with variants
+    chunks: list[dict]  # List of {originalIndex, originalText}
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class IdConverterChunkData(BaseModel):
+    """Data model for a single chunk in batch conversion."""
+
+    original_index: int
+    original_text: str
+    translated_text: str = ""
+    status: Literal["pending", "processing", "completed", "error"] = "pending"
+
+
+class IdConverterJobStatusResponse(BaseModel):
+    """Response model for ID converter job status queries."""
+
+    job_id: str
+    job_type: Literal["glossary", "batch"]
+    status: JobStatus
+    progress: float = 0.0
+    # Glossary job results
+    entities: list[dict] | None = None
+    entities_count: int | None = None
+    # Batch job results
+    total_chunks: int | None = None
+    completed_chunks: int | None = None
+    current_chunk_index: int | None = None
+    # Error handling
     error: JobError | None = None
     created_at: datetime
     updated_at: datetime

@@ -15,6 +15,8 @@ from google.oauth2 import service_account
 from app.config import get_settings
 from app.models.job import (
     BgJobSubmitRequest,
+    IdConverterBatchJobSubmitRequest,
+    IdConverterGlossaryJobSubmitRequest,
     ImageJobSubmitRequest,
     JobDocument,
     JobStatus,
@@ -339,6 +341,108 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created panel job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_id_converter_glossary_job(
+        self,
+        request: IdConverterGlossaryJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new ID converter glossary analysis job in the queue.
+
+        Args:
+            request: Glossary analysis job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.ID_CONVERTER_GLOSSARY,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for ID converter
+            clip_index=0,  # Not used for ID converter
+            provider_id="gemini",
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio="",  # Not used for ID converter
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # ID Converter glossary-specific fields
+            original_text=request.original_text,
+            file_uri=request.file_uri,
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created ID converter glossary job {job_id} for project {request.project_id}")
+        return job
+
+    async def create_id_converter_batch_job(
+        self,
+        request: IdConverterBatchJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new ID converter batch conversion job in the queue.
+
+        Args:
+            request: Batch conversion job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        # Prepare chunks data with proper structure
+        chunks_data = [
+            {
+                "originalIndex": chunk.get("originalIndex", i),
+                "originalText": chunk.get("originalText", ""),
+                "translatedText": "",
+                "status": "pending",
+            }
+            for i, chunk in enumerate(request.chunks)
+        ]
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.ID_CONVERTER_BATCH,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for ID converter
+            clip_index=0,  # Not used for ID converter
+            provider_id="gemini",
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio="",  # Not used for ID converter
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # ID Converter batch-specific fields
+            glossary_result=request.glossary,
+            chunks_data=chunks_data,
+            total_chunks=len(chunks_data),
+            completed_chunks=0,
+            current_chunk_index=0,
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created ID converter batch job {job_id} for project {request.project_id} with {len(chunks_data)} chunks")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -771,12 +875,105 @@ class PropDesignSheetService:
         )
 
 
+class IdConverterService:
+    """Service for updating ID converter data in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _doc_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for idConverter/data."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("idConverter")
+            .document("data")
+        )
+
+    async def update_glossary(
+        self,
+        project_id: str,
+        glossary: list[dict],
+        current_step: str | None = None,
+        glossary_job_id: str | None = None,
+    ) -> None:
+        """
+        Update glossary entities in project's idConverter document.
+
+        Args:
+            project_id: The project ID
+            glossary: List of entity objects with variants
+            current_step: Optional step to update ("analysis", "processing", etc.)
+            glossary_job_id: Optional job ID for tracking
+        """
+        updates: dict[str, Any] = {"glossary": glossary}
+        if current_step is not None:
+            updates["currentStep"] = current_step
+        if glossary_job_id is not None:
+            updates["glossaryJobId"] = glossary_job_id
+
+        await self._doc_ref(project_id).set(updates, merge=True)
+        logger.debug(f"Updated glossary in project {project_id} ({len(glossary)} entities)")
+
+    async def update_chunks(
+        self,
+        project_id: str,
+        chunks: list[dict],
+        batch_job_id: str | None = None,
+    ) -> None:
+        """
+        Update converted chunks in project's idConverter document.
+
+        Args:
+            project_id: The project ID
+            chunks: List of chunk data with translated text
+            batch_job_id: Optional job ID for tracking
+        """
+        updates: dict[str, Any] = {"chunks": chunks}
+        if batch_job_id is not None:
+            updates["batchJobId"] = batch_job_id
+
+        await self._doc_ref(project_id).set(updates, merge=True)
+        logger.debug(f"Updated chunks in project {project_id} ({len(chunks)} chunks)")
+
+    async def update_step(
+        self,
+        project_id: str,
+        current_step: str,
+    ) -> None:
+        """
+        Update current step in project's idConverter document.
+
+        Args:
+            project_id: The project ID
+            current_step: The step to set ("upload", "analysis", "processing", "completed")
+        """
+        await self._doc_ref(project_id).set({"currentStep": current_step}, merge=True)
+        logger.debug(f"Updated idConverter step in project {project_id} to {current_step}")
+
+    async def get_data(self, project_id: str) -> dict | None:
+        """
+        Get the idConverter data for a project.
+
+        Args:
+            project_id: The project ID
+
+        Returns:
+            The idConverter data dict or None if not found
+        """
+        doc = await self._doc_ref(project_id).get()
+        if not doc.exists:
+            return None
+        return doc.to_dict()
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
 _image_frame_service: ImageFrameService | None = None
 _bg_angle_service: BackgroundAngleService | None = None
 _prop_design_sheet_service: PropDesignSheetService | None = None
+_id_converter_service: IdConverterService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -817,6 +1014,14 @@ def get_prop_design_sheet_service() -> PropDesignSheetService:
     if _prop_design_sheet_service is None:
         _prop_design_sheet_service = PropDesignSheetService()
     return _prop_design_sheet_service
+
+
+def get_id_converter_service() -> IdConverterService:
+    """Get or create IdConverterService instance."""
+    global _id_converter_service
+    if _id_converter_service is None:
+        _id_converter_service = IdConverterService()
+    return _id_converter_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

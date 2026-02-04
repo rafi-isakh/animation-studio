@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, background, prop_design_sheet, or panel)
+ * Job type (video, image, background, prop_design_sheet, panel, or id_converter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch';
 
 /**
  * Job status from the orchestrator
@@ -820,6 +820,163 @@ function mapJobStatusToPanelStatus(
       return 'generating';
     case 'uploading':
       return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// ID Converter Job Functions
+// ============================================================================
+
+/**
+ * ID Converter job type
+ */
+export type IdConverterJobType = 'id_converter_glossary' | 'id_converter_batch';
+
+/**
+ * ID Converter job status
+ */
+export type IdConverterJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * ID Converter job update object
+ */
+export interface IdConverterJobUpdate {
+  jobId: string;
+  jobType: IdConverterJobType;
+  status: IdConverterJobStatus;
+  progress: number;
+  // Glossary results
+  entitiesCount?: number;
+  // Batch results
+  totalChunks?: number;
+  completedChunks?: number;
+  currentChunkIndex?: number;
+  chunksData?: Array<{ originalIndex: number; originalText: string; translatedText?: string }>;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for ID converter job updates
+ */
+export type IdConverterJobUpdateCallback = (update: IdConverterJobUpdate) => void;
+
+/**
+ * Callback for multiple ID converter job updates
+ */
+export type IdConverterJobUpdatesCallback = (updates: IdConverterJobUpdate[]) => void;
+
+/**
+ * Subscribe to ID converter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any ID converter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectIdConverterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', 'in', ['id_converter_glossary', 'id_converter_batch'])
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) ID converter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active ID converter job documents
+ */
+export async function getActiveProjectIdConverterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', 'in', ['id_converter_glossary', 'id_converter_batch'])
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to IdConverterJobUpdate
+ */
+export function mapIdConverterJobToUpdate(job: JobQueueDocument): IdConverterJobUpdate {
+  const jobType = job.type as IdConverterJobType;
+
+  // Extract chunks_data from job document
+  const chunksData = (job as unknown as { chunks_data?: Array<{ original_index: number; original_text: string; translated_text?: string }> }).chunks_data;
+
+  return {
+    jobId: job.id,
+    jobType,
+    status: mapJobStatusToIdConverterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    // Glossary results (from glossary_result field)
+    entitiesCount: (job as unknown as { glossary_result?: unknown[] }).glossary_result?.length,
+    // Batch results
+    totalChunks: (job as unknown as { total_chunks?: number }).total_chunks,
+    completedChunks: (job as unknown as { completed_chunks?: number }).completed_chunks,
+    currentChunkIndex: (job as unknown as { current_chunk_index?: number }).current_chunk_index,
+    chunksData: chunksData?.map(chunk => ({
+      originalIndex: chunk.original_index,
+      originalText: chunk.original_text,
+      translatedText: chunk.translated_text,
+    })),
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to ID converter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToIdConverterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): IdConverterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'generating':
+      return 'generating';
     case 'completed':
       return 'completed';
     case 'failed':

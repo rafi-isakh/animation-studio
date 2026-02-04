@@ -20,6 +20,7 @@ import { useIdConverterOrchestrator, IdConverterJobUpdate } from "./hooks/useIdC
 
 interface ProcessingViewProps {
   projectId: string;
+  fileName: string;
   originalText: string;
   glossary: IdConverterEntity[];
   initialChunks: IdConverterChunk[];
@@ -59,6 +60,7 @@ const createChunks = (text: string): IdConverterChunk[] => {
 
 export function ProcessingView({
   projectId,
+  fileName,
   originalText,
   glossary,
   initialChunks,
@@ -74,6 +76,9 @@ export function ProcessingView({
   const [jobError, setJobError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
+  // Ref to track job ID synchronously (avoids race condition with state)
+  const batchJobIdRef = useRef<string | null>(existingBatchJobId || null);
+
   // Navigation State
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
@@ -83,20 +88,22 @@ export function ProcessingView({
 
   // Handle job updates from orchestrator
   const handleJobUpdate = useCallback((update: IdConverterJobUpdate) => {
-    console.log("[ProcessingView] Job update:", update);
-
     if (update.jobType !== "id_converter_batch") {
       return;
     }
 
-    // Track job ID if provided
-    if (update.jobId && update.jobId !== batchJobId) {
-      setBatchJobId(update.jobId);
+    // Only process updates for our specific batch job (use ref for synchronous check)
+    // If we don't have a batchJobId yet, don't process any updates (we haven't started)
+    const currentJobId = batchJobIdRef.current;
+    if (!currentJobId || update.jobId !== currentJobId) {
+      return;
     }
+
+    console.log("[ProcessingView] Job update for our job:", update);
 
     if (update.status === "generating") {
       setIsProcessing(true);
-      setJobError(null);
+      setJobError(null); // Clear errors when job is processing
 
       // Update chunks progress from job data
       if (update.completedChunks !== undefined && update.totalChunks !== undefined) {
@@ -136,6 +143,7 @@ export function ProcessingView({
     } else if (update.status === "completed") {
       setIsProcessing(false);
       setIsCancelling(false);
+      setJobError(null); // Clear errors on successful completion
 
       // Update all chunks from final data
       if (update.chunksData) {
@@ -163,7 +171,7 @@ export function ProcessingView({
       setIsProcessing(false);
       setIsCancelling(false);
     }
-  }, [batchJobId, onComplete]);
+  }, [onComplete]); // batchJobIdRef is used instead of batchJobId state
 
   // Initialize orchestrator hook
   const { submitBatchJob, cancelJob } = useIdConverterOrchestrator({
@@ -178,19 +186,23 @@ export function ProcessingView({
     return glossary.flatMap((g) => g.variants.map((v) => v.id));
   }, [glossary]);
 
-  // Initialize chunks
+  // Initialize chunks - only run once or when component remounts
   useEffect(() => {
-    if (initialized.current && chunks.length > 0) return;
+    if (initialized.current) return; // Already initialized
 
     if (initialChunks && initialChunks.length > 0) {
       setChunks(initialChunks);
+      // Check if there are incomplete chunks
+      const hasIncomplete = initialChunks.some(c => c.status === "pending" || c.status === "processing");
+      setIsProcessing(hasIncomplete && !!existingBatchJobId);
       initialized.current = true;
     } else if (originalText) {
       const newChunks = createChunks(originalText);
       setChunks(newChunks);
+      setIsProcessing(false);
       initialized.current = true;
     }
-  }, [originalText, initialChunks, chunks.length]);
+  }, [originalText, initialChunks, existingBatchJobId]);
 
   // Report progress
   useEffect(() => {
@@ -199,18 +211,14 @@ export function ProcessingView({
     }
   }, [chunks, onSaveProgress]);
 
-  // Check for existing job on mount (resume scenario)
+  // Check for existing job on mount (resume scenario) - only run once
   useEffect(() => {
-    if (existingBatchJobId && !batchJobId) {
+    if (existingBatchJobId) {
+      batchJobIdRef.current = existingBatchJobId;
       setBatchJobId(existingBatchJobId);
-      // If there's an existing job, it might still be processing
-      // The Firestore subscription will update us with the current status
-      const hasIncompleteChunks = initialChunks.some(c => c.status === "pending" || c.status === "processing");
-      if (hasIncompleteChunks) {
-        setIsProcessing(true);
-      }
     }
-  }, [existingBatchJobId, batchJobId, initialChunks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount
 
   // Start batch processing via orchestrator
   const startProcessing = useCallback(async () => {
@@ -246,6 +254,8 @@ export function ProcessingView({
         throw new Error(result.error || "Failed to submit batch job");
       }
 
+      // Set ref first (synchronous) so job updates are accepted immediately
+      batchJobIdRef.current = result.jobId || null;
       setBatchJobId(result.jobId || null);
       console.log("[ProcessingView] Batch job submitted:", result.jobId);
       // Job is now running in background - progress updates come via Firestore subscription
@@ -409,7 +419,7 @@ export function ProcessingView({
     const element = document.createElement("a");
     const file = new Blob([fullText], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "converted_storyboard.txt";
+    element.download = `converted_storyboard_${fileName}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -470,7 +480,7 @@ export function ProcessingView({
                 {isCancelling
                   ? "Cancelling..."
                   : isProcessing
-                    ? "Processing (async)..."
+                    ? "Processing..."
                     : progressPercent === 100
                       ? "Completed"
                       : "Ready"}

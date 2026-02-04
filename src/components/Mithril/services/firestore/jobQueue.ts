@@ -940,8 +940,8 @@ export async function getActiveProjectIdConverterJobs(
 export function mapIdConverterJobToUpdate(job: JobQueueDocument): IdConverterJobUpdate {
   const jobType = job.type as IdConverterJobType;
 
-  // Extract chunks_data from job document
-  const chunksData = (job as unknown as { chunks_data?: Array<{ original_index: number; original_text: string; translated_text?: string }> }).chunks_data;
+  // Extract chunks_data from job document (backend uses camelCase)
+  const chunksData = (job as unknown as { chunks_data?: Array<{ originalIndex: number; originalText: string; translatedText?: string }> }).chunks_data;
 
   return {
     jobId: job.id,
@@ -955,9 +955,9 @@ export function mapIdConverterJobToUpdate(job: JobQueueDocument): IdConverterJob
     completedChunks: (job as unknown as { completed_chunks?: number }).completed_chunks,
     currentChunkIndex: (job as unknown as { current_chunk_index?: number }).current_chunk_index,
     chunksData: chunksData?.map(chunk => ({
-      originalIndex: chunk.original_index,
-      originalText: chunk.original_text,
-      translatedText: chunk.translated_text,
+      originalIndex: chunk.originalIndex,
+      originalText: chunk.originalText,
+      translatedText: chunk.translatedText,
     })),
     error: job.error_message,
   };

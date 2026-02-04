@@ -199,14 +199,14 @@ Return a JSON object containing a list of entities.
 """
 
     # Build content parts
-    parts = [types.Part.from_text(system_prompt)]
+    parts = [types.Part.from_text(text=system_prompt)]
 
     if file_uri:
         parts.append(types.Part.from_uri(file_uri=file_uri, mime_type="text/plain"))
     else:
         # Limit to ~800k characters to be safe
         truncated_text = text[:800000] if len(text) > 800000 else text
-        parts.append(types.Part.from_text(f"TEXT CONTENT:\n{truncated_text}"))
+        parts.append(types.Part.from_text(text=f"TEXT CONTENT:\n{truncated_text}"))
 
     response = await client.aio.models.generate_content(
         model=MODEL_NAME,
@@ -564,8 +564,8 @@ PREVIOUS CONTEXT (for continuity):
         model=MODEL_NAME,
         contents=[
             types.Content(role="user", parts=[
-                types.Part.from_text(system_prompt),
-                types.Part.from_text(f"TEXT TO TRANSLATE:\n{chunk_text}")
+                types.Part.from_text(text=system_prompt),
+                types.Part.from_text(text=f"TEXT TO TRANSLATE:\n{chunk_text}")
             ])
         ]
     )

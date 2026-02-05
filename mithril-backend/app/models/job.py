@@ -19,6 +19,7 @@ class JobType(str, Enum):
     ID_CONVERTER_BATCH = "id_converter_batch"
     STORY_SPLITTER = "story_splitter"
     PANEL_SPLITTER = "panel_splitter"
+    STORYBOARD = "storyboard"
 
 
 class JobStatus(str, Enum):
@@ -154,6 +155,22 @@ class JobDocument(BaseModel):
     page_index: int | None = None  # Page index in sequence
     reading_direction: str | None = None  # 'rtl' or 'ltr'
     detected_panels: list[dict] | None = None  # Array of detected panels with box_2d
+
+    # Storyboard-specific fields (for type=STORYBOARD)
+    source_text: str | None = None  # Source text for storyboard generation
+    part_index: int | None = None  # Part index from story splitter
+    target_time: str | None = None  # Target duration (MM:SS format)
+    story_condition: str | None = None  # Story generation conditions
+    image_condition: str | None = None  # Image prompt conditions
+    video_condition: str | None = None  # Video prompt conditions
+    sound_condition: str | None = None  # Sound conditions
+    image_guide: str | None = None  # Additional image guide
+    video_guide: str | None = None  # Additional video guide
+    custom_instruction: str | None = None  # Custom story instructions
+    background_instruction: str | None = None  # Background ID rules
+    negative_instruction: str | None = None  # Negative prompts
+    video_instruction: str | None = None  # Video prompt rules
+    storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -567,3 +584,86 @@ class PanelSplitterBatchSubmitResponse(BaseModel):
     jobs: list[JobSubmitResponse]
     total_count: int
     status: str = "submitted"
+
+
+# ============================================================================
+# Storyboard Generation Job Models
+# ============================================================================
+
+
+class StoryboardJobSubmitRequest(BaseModel):
+    """Request model for submitting a storyboard generation job."""
+
+    project_id: str
+    source_text: str  # Source text for storyboard generation
+    part_index: int = 0  # Part index from story splitter
+    target_time: str = "03:00"  # Target duration (MM:SS format)
+    # Conditions
+    story_condition: str = ""
+    image_condition: str = ""
+    video_condition: str = ""
+    sound_condition: str = ""
+    # Guides
+    image_guide: str = ""
+    video_guide: str = ""
+    # Additional instructions
+    custom_instruction: str = ""
+    background_instruction: str = ""
+    negative_instruction: str = ""
+    video_instruction: str = ""
+    # API key
+    api_key: str | None = None
+
+
+class StoryboardClip(BaseModel):
+    """A single clip in a storyboard scene."""
+
+    story: str
+    imagePrompt: str
+    imagePromptEnd: str | None = None
+    videoPrompt: str
+    soraVideoPrompt: str
+    backgroundPrompt: str
+    backgroundId: str
+    dialogue: str
+    dialogueEn: str
+    narration: str = ""
+    narrationEn: str = ""
+    sfx: str
+    sfxEn: str
+    bgm: str
+    bgmEn: str
+    length: str
+    accumulatedTime: str
+
+
+class StoryboardScene(BaseModel):
+    """A single scene in the storyboard."""
+
+    sceneTitle: str
+    clips: list[StoryboardClip]
+
+
+class StoryboardVoicePrompt(BaseModel):
+    """Voice prompt for a character."""
+
+    promptKo: str
+    promptEn: str
+
+
+class StoryboardJobStatusResponse(BaseModel):
+    """Response model for storyboard job status queries."""
+
+    job_id: str
+    status: JobStatus
+    progress: float = 0.0
+    # Result
+    scenes: list[StoryboardScene] | None = None
+    voice_prompts: list[StoryboardVoicePrompt] | None = None
+    scene_count: int | None = None
+    clip_count: int | None = None
+    # Error handling
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None

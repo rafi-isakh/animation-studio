@@ -25,6 +25,7 @@ from app.models.job import (
     PanelJobSubmitRequest,
     PanelSplitterJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
+    StoryboardJobSubmitRequest,
     StorySplitterJobSubmitRequest,
 )
 
@@ -541,6 +542,61 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created panel splitter job {job_id} for page {request.page_id}")
+        return job
+
+    async def create_storyboard_job(
+        self,
+        request: StoryboardJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new storyboard generation job in the queue.
+
+        Args:
+            request: Storyboard job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.STORYBOARD,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for storyboard
+            clip_index=0,  # Not used for storyboard
+            provider_id="gemini",
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio="",  # Not used for storyboard
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Storyboard-specific fields
+            source_text=request.source_text,
+            part_index=request.part_index,
+            target_time=request.target_time,
+            story_condition=request.story_condition,
+            image_condition=request.image_condition,
+            video_condition=request.video_condition,
+            sound_condition=request.sound_condition,
+            image_guide=request.image_guide,
+            video_guide=request.video_guide,
+            custom_instruction=request.custom_instruction,
+            background_instruction=request.background_instruction,
+            negative_instruction=request.negative_instruction,
+            video_instruction=request.video_instruction,
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created storyboard job {job_id} for project {request.project_id}")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -1132,6 +1188,149 @@ class StorySplitsService:
         logger.debug(f"Deleted story splits for project {project_id}")
 
 
+class StoryboardService:
+    """Service for updating storyboard data in project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _storyboard_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for storyboard/data."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("data")
+        )
+
+    def _voice_prompts_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for storyboard/voicePrompts."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("voicePrompts")
+        )
+
+    def _scene_ref(self, project_id: str, scene_index: int) -> DocumentReference:
+        """Get document reference for a scene."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("data")
+            .collection("scenes")
+            .document(f"scene_{scene_index}")
+        )
+
+    def _clip_ref(self, project_id: str, scene_index: int, clip_index: int) -> DocumentReference:
+        """Get document reference for a clip within a scene."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("storyboard")
+            .document("data")
+            .collection("scenes")
+            .document(f"scene_{scene_index}")
+            .collection("clips")
+            .document(f"clip_{clip_index}")
+        )
+
+    async def save_storyboard(
+        self,
+        project_id: str,
+        scenes: list[dict],
+        voice_prompts: list[dict],
+        job_id: str | None = None,
+    ) -> None:
+        """
+        Save storyboard results to Firestore.
+
+        This saves:
+        - Storyboard metadata to storyboard/data
+        - Voice prompts to storyboard/voicePrompts
+        - Each scene to storyboard/data/scenes/scene_{index}
+        - Each clip to storyboard/data/scenes/scene_{index}/clips/clip_{index}
+
+        Args:
+            project_id: The project ID
+            scenes: List of scene objects with clips
+            voice_prompts: List of voice prompt objects
+            job_id: Optional job ID for tracking
+        """
+        from google.cloud.firestore_v1 import SERVER_TIMESTAMP
+
+        # Save storyboard metadata
+        storyboard_data: dict[str, Any] = {
+            "generatedAt": SERVER_TIMESTAMP,
+            "aspectRatio": "16:9",
+        }
+        if job_id:
+            storyboard_data["jobId"] = job_id
+
+        await self._storyboard_ref(project_id).set(storyboard_data, merge=True)
+        logger.debug(f"Saved storyboard metadata for project {project_id}")
+
+        # Save voice prompts
+        if voice_prompts:
+            await self._voice_prompts_ref(project_id).set({"prompts": voice_prompts})
+            logger.debug(f"Saved {len(voice_prompts)} voice prompts for project {project_id}")
+
+        # Save scenes and clips
+        for scene_index, scene in enumerate(scenes):
+            # Save scene
+            scene_data = {
+                "sceneIndex": scene_index,
+                "sceneTitle": scene.get("sceneTitle", ""),
+            }
+            await self._scene_ref(project_id, scene_index).set(scene_data)
+
+            # Save clips for this scene
+            clips = scene.get("clips", [])
+            for clip_index, clip in enumerate(clips):
+                clip_data = {
+                    "clipIndex": clip_index,
+                    "story": clip.get("story", ""),
+                    "imagePrompt": clip.get("imagePrompt", ""),
+                    "videoPrompt": clip.get("videoPrompt", ""),
+                    "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
+                    "backgroundPrompt": clip.get("backgroundPrompt", ""),
+                    "backgroundId": clip.get("backgroundId", ""),
+                    "dialogue": clip.get("dialogue", ""),
+                    "dialogueEn": clip.get("dialogueEn", ""),
+                    "narration": clip.get("narration", ""),
+                    "narrationEn": clip.get("narrationEn", ""),
+                    "sfx": clip.get("sfx", ""),
+                    "sfxEn": clip.get("sfxEn", ""),
+                    "bgm": clip.get("bgm", ""),
+                    "bgmEn": clip.get("bgmEn", ""),
+                    "length": clip.get("length", ""),
+                    "accumulatedTime": clip.get("accumulatedTime", ""),
+                    "imageRef": "",  # Empty until image is generated
+                    "selectedBgId": None,  # User selection
+                }
+                await self._clip_ref(project_id, scene_index, clip_index).set(clip_data)
+
+            logger.debug(f"Saved scene {scene_index} with {len(clips)} clips for project {project_id}")
+
+        logger.info(f"Saved complete storyboard for project {project_id}: {len(scenes)} scenes")
+
+    async def update_storyboard_job_id(
+        self,
+        project_id: str,
+        job_id: str | None,
+    ) -> None:
+        """
+        Update the job ID in the storyboard metadata.
+
+        Args:
+            project_id: The project ID
+            job_id: The job ID (or None to clear)
+        """
+        await self._storyboard_ref(project_id).set({"jobId": job_id}, merge=True)
+        logger.debug(f"Updated storyboard jobId for project {project_id}: {job_id}")
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
@@ -1140,6 +1339,7 @@ _bg_angle_service: BackgroundAngleService | None = None
 _prop_design_sheet_service: PropDesignSheetService | None = None
 _id_converter_service: IdConverterService | None = None
 _story_splits_service: StorySplitsService | None = None
+_storyboard_service: StoryboardService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -1196,6 +1396,14 @@ def get_story_splits_service() -> StorySplitsService:
     if _story_splits_service is None:
         _story_splits_service = StorySplitsService()
     return _story_splits_service
+
+
+def get_storyboard_service() -> StoryboardService:
+    """Get or create StoryboardService instance."""
+    global _storyboard_service
+    if _storyboard_service is None:
+        _storyboard_service = StoryboardService()
+    return _storyboard_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

@@ -283,6 +283,7 @@ export interface UpdatePropInput {
 export interface StoryboardDocument {
   generatedAt: Timestamp;
   aspectRatio?: string;
+  jobId?: string | null;
 }
 
 export interface VoicePromptDocument {

@@ -15,6 +15,10 @@ import {
   mapStorySplitterJobToUpdate,
   JobQueueDocument,
   StorySplitterJobUpdate,
+  // Storyboard orchestrator
+  subscribeToProjectStoryboardJobs,
+  mapStoryboardJobToUpdate,
+  StoryboardJobUpdate,
 } from "./services/firestore/jobQueue";
 
 // Firestore services
@@ -345,6 +349,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     scenes: [],
     voicePrompts: [],
   });
+  const [storyboardJobId, setStoryboardJobId] = useState<string | null>(null);
+  const storyboardJobIdRef = useRef<string | null>(null);
 
   // Original storyboard for reset functionality
   const [originalStoryboard, setOriginalStoryboard] = useState<{ scenes: Scene[]; voicePrompts: VoicePrompt[] } | null>(null);
@@ -561,60 +567,173 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       // Load storyboard data
+      console.log("[MithrilContext:loadFromFirestore] Loading storyboard data for project:", currentProjectId);
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
+      console.log("[MithrilContext:loadFromFirestore] Storyboard meta:", {
+        hasMeta: !!storyboardMeta,
+        jobId: storyboardMeta?.jobId,
+        generatedAt: storyboardMeta?.generatedAt,
+      });
+
       if (storyboardMeta) {
         const scenes = await getScenes(currentProjectId);
         const voicePrompts = await getVoicePrompts(currentProjectId);
+        console.log("[MithrilContext:loadFromFirestore] Loaded scenes and voicePrompts:", {
+          sceneCount: scenes.length,
+          voicePromptCount: voicePrompts.length,
+        });
 
-        // Load clips for each scene
-        const scenesWithClips: Scene[] = await Promise.all(
-          scenes.map(async (scene) => {
-            const clips = await getClips(currentProjectId, scene.sceneIndex);
-            return {
-              sceneTitle: scene.sceneTitle,
-              clips: clips.map(clip => ({
-                story: clip.story,
-                imagePrompt: clip.imagePrompt,
-                imagePromptEnd: clip.imagePromptEnd,
-                videoPrompt: clip.videoPrompt,
-                soraVideoPrompt: clip.soraVideoPrompt,
-                backgroundPrompt: clip.backgroundPrompt,
-                backgroundId: clip.backgroundId,
-                dialogue: clip.dialogue,
-                dialogueEn: clip.dialogueEn,
-                narration: clip.narration || "",
-                narrationEn: clip.narrationEn || "",
-                sfx: clip.sfx,
-                sfxEn: clip.sfxEn,
-                bgm: clip.bgm,
-                bgmEn: clip.bgmEn,
-                length: clip.length,
-                accumulatedTime: clip.accumulatedTime,
-                imageRef: clip.imageRef, // S3 URL for storyboard image
-              })),
-            };
-          })
-        );
+        // Check if there are existing results or an active job
+        if (scenes.length > 0) {
+          console.log("[MithrilContext:loadFromFirestore] Has existing scenes - loading clips...");
+          // Load clips for each scene
+          const scenesWithClips: Scene[] = await Promise.all(
+            scenes.map(async (scene) => {
+              const clips = await getClips(currentProjectId, scene.sceneIndex);
+              return {
+                sceneTitle: scene.sceneTitle,
+                clips: clips.map(clip => ({
+                  story: clip.story,
+                  imagePrompt: clip.imagePrompt,
+                  imagePromptEnd: clip.imagePromptEnd,
+                  videoPrompt: clip.videoPrompt,
+                  soraVideoPrompt: clip.soraVideoPrompt,
+                  backgroundPrompt: clip.backgroundPrompt,
+                  backgroundId: clip.backgroundId,
+                  dialogue: clip.dialogue,
+                  dialogueEn: clip.dialogueEn,
+                  narration: clip.narration || "",
+                  narrationEn: clip.narrationEn || "",
+                  sfx: clip.sfx,
+                  sfxEn: clip.sfxEn,
+                  bgm: clip.bgm,
+                  bgmEn: clip.bgmEn,
+                  length: clip.length,
+                  accumulatedTime: clip.accumulatedTime,
+                  imageRef: clip.imageRef, // S3 URL for storyboard image
+                })),
+              };
+            })
+          );
 
-        const storyboardData = {
-          scenes: scenesWithClips,
-          voicePrompts: voicePrompts.map(vp => ({
-            promptKo: vp.promptKo,
-            promptEn: vp.promptEn,
-          })),
-        };
+          const storyboardData = {
+            scenes: scenesWithClips,
+            voicePrompts: voicePrompts.map(vp => ({
+              promptKo: vp.promptKo,
+              promptEn: vp.promptEn,
+            })),
+          };
 
-        setStoryboardGenerator(prev => ({
-          ...prev,
-          scenes: scenesWithClips,
-          voicePrompts: storyboardData.voicePrompts,
-        }));
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            scenes: scenesWithClips,
+            voicePrompts: storyboardData.voicePrompts,
+          }));
 
-        // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
-        setStageResults(prev => ({ ...prev, 4: storyboardData }));
+          // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
+          setStageResults(prev => ({ ...prev, 4: storyboardData }));
 
-        // Store original for reset functionality
-        setOriginalStoryboard(storyboardData);
+          // Store original for reset functionality
+          setOriginalStoryboard(storyboardData);
+          console.log("[MithrilContext:loadFromFirestore] Scenes loaded successfully:", {
+            totalScenes: scenesWithClips.length,
+            totalClips: scenesWithClips.reduce((acc, s) => acc + s.clips.length, 0),
+          });
+        } else if (storyboardMeta.jobId) {
+          // No results yet but there's an active job - restore tracking state
+          console.log("[MithrilContext:loadFromFirestore] No scenes but has jobId - restoring job tracking:", storyboardMeta.jobId);
+          console.log("[MithrilContext:loadFromFirestore] Setting storyboardJobIdRef and state...");
+          storyboardJobIdRef.current = storyboardMeta.jobId;
+          setStoryboardJobId(storyboardMeta.jobId);
+          console.log("[MithrilContext:loadFromFirestore] storyboardJobIdRef.current is now:", storyboardJobIdRef.current);
+
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            isGenerating: true,
+            error: null,
+          }));
+
+          // Manually fetch job status to handle the race condition where
+          // the Firestore subscription fired before we restored the jobId
+          console.log("[MithrilContext:loadFromFirestore] Fetching job status from API...");
+          try {
+            const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${storyboardMeta.jobId}`);
+            const jobStatus = await response.json();
+            console.log("[MithrilContext:loadFromFirestore] API job status response:", {
+              status: jobStatus.status,
+              hasScenes: !!jobStatus.scenes,
+              sceneCount: jobStatus.scenes?.length,
+              error: jobStatus.error,
+            });
+
+            if (jobStatus.status === "completed" && jobStatus.scenes) {
+              console.log("[MithrilContext:loadFromFirestore] Job was completed - applying results");
+              // Job completed while we were away - update state with results
+              storyboardJobIdRef.current = null;
+              setStoryboardJobId(null);
+
+              // Normalize scenes to ensure optional fields have default values
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
+                sceneTitle: scene.sceneTitle,
+                clips: scene.clips.map(clip => ({
+                  story: clip.story,
+                  imagePrompt: clip.imagePrompt,
+                  imagePromptEnd: clip.imagePromptEnd,
+                  videoPrompt: clip.videoPrompt,
+                  soraVideoPrompt: clip.soraVideoPrompt,
+                  backgroundPrompt: clip.backgroundPrompt,
+                  backgroundId: clip.backgroundId,
+                  dialogue: clip.dialogue,
+                  dialogueEn: clip.dialogueEn,
+                  narration: clip.narration || "",
+                  narrationEn: clip.narrationEn || "",
+                  sfx: clip.sfx,
+                  sfxEn: clip.sfxEn,
+                  bgm: clip.bgm,
+                  bgmEn: clip.bgmEn,
+                  length: clip.length,
+                  accumulatedTime: clip.accumulatedTime,
+                })),
+              }));
+
+              const normalizedVoicePrompts: VoicePrompt[] = (jobStatus.voicePrompts || []).map((vp: { promptKo: string; promptEn: string }) => ({
+                promptKo: vp.promptKo,
+                promptEn: vp.promptEn,
+              }));
+
+              const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts };
+              setOriginalStoryboard(result);
+
+              setStoryboardGenerator({
+                isGenerating: false,
+                error: null,
+                scenes: normalizedScenes,
+                voicePrompts: normalizedVoicePrompts,
+              });
+              setStageResults(prev => ({ ...prev, 4: result }));
+            } else if (jobStatus.status === "failed") {
+              // Job failed while we were away
+              storyboardJobIdRef.current = null;
+              setStoryboardJobId(null);
+              setStoryboardGenerator(prev => ({
+                ...prev,
+                isGenerating: false,
+                error: jobStatus.error || "Storyboard generation failed",
+              }));
+            }
+            // If status is pending/generating, keep loading state - subscription will handle updates
+          } catch (statusErr) {
+            console.error("[MithrilContext] Error fetching storyboard job status:", statusErr);
+            // Job might not exist anymore - clear loading state
+            storyboardJobIdRef.current = null;
+            setStoryboardJobId(null);
+            setStoryboardGenerator(prev => ({
+              ...prev,
+              isGenerating: false,
+              error: null,
+            }));
+          }
+        }
       }
 
       // Load PropDesigner data (Stage 5)
@@ -831,6 +950,167 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => unsubscribe();
   }, [currentProjectId]);
 
+  // Storyboard job subscription
+  useEffect(() => {
+    if (!currentProjectId) return;
+
+    console.log("[MithrilContext:StoryboardSubscription] Setting up subscription for project:", currentProjectId);
+
+    const unsubscribe = subscribeToProjectStoryboardJobs(currentProjectId, (jobs: JobQueueDocument[]) => {
+      const currentJobId = storyboardJobIdRef.current;
+      console.log("[MithrilContext:StoryboardSubscription] Received jobs update:", {
+        jobCount: jobs.length,
+        jobIds: jobs.map(j => j.id),
+        currentTrackedJobId: currentJobId,
+        storyboardJobIdState: storyboardJobId,
+      });
+
+      jobs.forEach((job) => {
+        const update = mapStoryboardJobToUpdate(job);
+        console.log("[MithrilContext:StoryboardSubscription] Processing job:", {
+          jobId: update.jobId,
+          status: update.status,
+          hasScenes: !!update.scenes,
+          sceneCount: update.sceneCount,
+          clipCount: update.clipCount,
+          error: update.error,
+        });
+
+        // Only process updates for the current job
+        if (!currentJobId || update.jobId !== currentJobId) {
+          console.log("[MithrilContext:StoryboardSubscription] SKIPPING job - not current:", {
+            jobId: update.jobId,
+            currentJobId,
+            reason: !currentJobId ? "no tracked job" : "job id mismatch",
+          });
+          return;
+        }
+
+        console.log("[MithrilContext:StoryboardSubscription] Processing matched job update:", update);
+
+        if (update.status === "completed" && update.scenes) {
+          console.log("[MithrilContext:StoryboardSubscription] JOB COMPLETED - processing results:", {
+            sceneCount: update.scenes.length,
+            voicePromptCount: update.voicePrompts?.length || 0,
+            firstSceneTitle: update.scenes[0]?.sceneTitle,
+            firstSceneClipCount: update.scenes[0]?.clips?.length,
+          });
+
+          // Job completed - update state with results
+          storyboardJobIdRef.current = null;
+          setStoryboardJobId(null);
+
+          // Normalize scenes to ensure optional fields have default values
+          const normalizedScenes: Scene[] = update.scenes.map(scene => ({
+            sceneTitle: scene.sceneTitle,
+            clips: scene.clips.map(clip => ({
+              story: clip.story,
+              imagePrompt: clip.imagePrompt,
+              imagePromptEnd: clip.imagePromptEnd,
+              videoPrompt: clip.videoPrompt,
+              soraVideoPrompt: clip.soraVideoPrompt,
+              backgroundPrompt: clip.backgroundPrompt,
+              backgroundId: clip.backgroundId,
+              dialogue: clip.dialogue,
+              dialogueEn: clip.dialogueEn,
+              narration: clip.narration || "",
+              narrationEn: clip.narrationEn || "",
+              sfx: clip.sfx,
+              sfxEn: clip.sfxEn,
+              bgm: clip.bgm,
+              bgmEn: clip.bgmEn,
+              length: clip.length,
+              accumulatedTime: clip.accumulatedTime,
+            })),
+          }));
+
+          const normalizedVoicePrompts: VoicePrompt[] = (update.voicePrompts || []).map(vp => ({
+            promptKo: vp.promptKo,
+            promptEn: vp.promptEn,
+          }));
+
+          const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts };
+
+          // Store original for reset functionality
+          setOriginalStoryboard(result);
+
+          setStoryboardGenerator({
+            isGenerating: false,
+            error: null,
+            scenes: normalizedScenes,
+            voicePrompts: normalizedVoicePrompts,
+          });
+
+          // Save to Firestore
+          (async () => {
+            try {
+              // Save voice prompts
+              await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
+
+              // Save scenes and clips
+              for (let sceneIndex = 0; sceneIndex < update.scenes!.length; sceneIndex++) {
+                const scene = update.scenes![sceneIndex];
+                await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+
+                for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+                  const clip = scene.clips[clipIndex];
+                  await saveClip(currentProjectId, sceneIndex, clipIndex, {
+                    story: clip.story || "",
+                    imagePrompt: clip.imagePrompt || "",
+                    videoPrompt: clip.videoPrompt || "",
+                    soraVideoPrompt: clip.soraVideoPrompt || "",
+                    backgroundPrompt: clip.backgroundPrompt || "",
+                    backgroundId: clip.backgroundId || "",
+                    dialogue: clip.dialogue || "",
+                    dialogueEn: clip.dialogueEn || "",
+                    narration: clip.narration || "",
+                    narrationEn: clip.narrationEn || "",
+                    sfx: clip.sfx || "",
+                    sfxEn: clip.sfxEn || "",
+                    bgm: clip.bgm || "",
+                    bgmEn: clip.bgmEn || "",
+                    length: clip.length || "",
+                    accumulatedTime: clip.accumulatedTime || "",
+                  });
+                }
+              }
+              console.log("[MithrilContext] Storyboard saved to Firestore");
+            } catch (saveErr) {
+              console.error("[MithrilContext] Error saving storyboard to Firestore:", saveErr);
+            }
+          })();
+        } else if (update.status === "failed") {
+          console.log("[MithrilContext:StoryboardSubscription] JOB FAILED:", {
+            error: update.error,
+          });
+          // Job failed
+          storyboardJobIdRef.current = null;
+          setStoryboardJobId(null);
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            isGenerating: false,
+            error: update.error || "Storyboard generation failed",
+          }));
+        } else if (update.status === "generating") {
+          console.log("[MithrilContext:StoryboardSubscription] JOB GENERATING - updating state");
+          // Job is processing
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            isGenerating: true,
+            error: null,
+          }));
+        } else {
+          console.log("[MithrilContext:StoryboardSubscription] UNHANDLED STATUS:", update.status);
+        }
+      });
+    });
+
+    return () => {
+      console.log("[MithrilContext:StoryboardSubscription] Cleaning up subscription for project:", currentProjectId);
+      unsubscribe();
+    };
+  }, [currentProjectId]);
+
   // Story Splitter methods
   const startStorySplit = useCallback(async (text: string, guidelines: string, numParts: number) => {
     if (!text) {
@@ -923,7 +1203,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Storyboard Generator methods
   const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
+    console.log("[MithrilContext:startStoryboardGeneration] Starting with params:", {
+      sourceTextLength: params.sourceText?.length,
+      targetTime: params.targetTime,
+      hasCustomInstruction: !!params.customInstruction,
+      projectId: currentProjectId,
+    });
+
     if (!params.sourceText) {
+      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No source text");
       setStoryboardGenerator(prev => ({
         ...prev,
         error: "No source text provided. Please select a part from Stage 2.",
@@ -931,6 +1219,16 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
+    if (!currentProjectId) {
+      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No project ID");
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        error: "No project selected.",
+      }));
+      return;
+    }
+
+    console.log("[MithrilContext:startStoryboardGeneration] Setting initial generating state");
     setStoryboardGenerator({
       isGenerating: true,
       error: null,
@@ -939,72 +1237,74 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
-      const response = await fetch("/api/generate_storyboard", {
+      console.log("[MithrilContext:startStoryboardGeneration] Submitting job to orchestrator...");
+      // Submit job to orchestrator
+      const response = await fetch("/api/storyboard/orchestrator/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          sourceText: params.sourceText,
+          // Conditions
+          storyCondition: params.storyCondition,
+          imageCondition: params.imageCondition,
+          videoCondition: params.videoCondition,
+          soundCondition: params.soundCondition,
+          // Guides
+          imageGuide: params.imageGuide,
+          videoGuide: params.videoGuide,
+          // New configuration
+          targetTime: params.targetTime,
+          customInstruction: params.customInstruction,
+          backgroundInstruction: params.backgroundInstruction,
+          negativeInstruction: params.negativeInstruction,
+          videoInstruction: params.videoInstruction,
+          // API key
+          apiKey: customApiKey,
+        }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "API request failed");
+      console.log("[MithrilContext:startStoryboardGeneration] Orchestrator response:", {
+        ok: response.ok,
+        status: response.status,
+        jobId: data.jobId,
+        error: data.error,
+      });
 
-      const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
-
-      // Save to Firestore
-      if (currentProjectId) {
-        await saveStoryboardMeta(currentProjectId);
-
-        // Save voice prompts
-        await saveVoicePrompts(currentProjectId, data.voicePrompts);
-
-        // Save scenes and clips
-        for (let sceneIndex = 0; sceneIndex < data.scenes.length; sceneIndex++) {
-          const scene = data.scenes[sceneIndex];
-          await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
-
-          for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
-            const clip = scene.clips[clipIndex];
-            await saveClip(currentProjectId, sceneIndex, clipIndex, {
-              story: clip.story || "",
-              imagePrompt: clip.imagePrompt || "",
-              videoPrompt: clip.videoPrompt || "",
-              soraVideoPrompt: clip.soraVideoPrompt || "",
-              backgroundPrompt: clip.backgroundPrompt || "",
-              backgroundId: clip.backgroundId || "",
-              dialogue: clip.dialogue || "",
-              dialogueEn: clip.dialogueEn || "",
-              narration: clip.narration || "",
-              narrationEn: clip.narrationEn || "",
-              sfx: clip.sfx || "",
-              sfxEn: clip.sfxEn || "",
-              bgm: clip.bgm || "",
-              bgmEn: clip.bgmEn || "",
-              length: clip.length || "",
-              accumulatedTime: clip.accumulatedTime || "",
-            });
-          }
-        }
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit storyboard job");
       }
 
-      // Store original for reset functionality
-      setOriginalStoryboard(result);
-
-      setStoryboardGenerator({
-        isGenerating: false,
-        error: null,
-        scenes: data.scenes,
-        voicePrompts: data.voicePrompts,
+      // Store job ID for tracking (both ref and state)
+      console.log("[MithrilContext:startStoryboardGeneration] Setting job ID refs:", {
+        jobId: data.jobId,
+        previousRefValue: storyboardJobIdRef.current,
       });
+      storyboardJobIdRef.current = data.jobId || null;
+      setStoryboardJobId(data.jobId || null);
+      console.log("[MithrilContext:startStoryboardGeneration] Job ID set - ref now:", storyboardJobIdRef.current);
+
+      // Save jobId to Firestore so it persists across page navigations
+      if (data.jobId) {
+        console.log("[MithrilContext:startStoryboardGeneration] Saving jobId to Firestore meta...");
+        await saveStoryboardMeta(currentProjectId, data.jobId);
+        console.log("[MithrilContext:startStoryboardGeneration] Firestore meta saved");
+      }
+
+      // Job is now running in background - UI will update via Firestore subscription
+      console.log("[MithrilContext:startStoryboardGeneration] Job submitted successfully, waiting for subscription updates");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
+      console.log("[MithrilContext:startStoryboardGeneration] ERROR:", errorMessage);
       setStoryboardGenerator(prev => ({
         ...prev,
         isGenerating: false,
         error: errorMessage,
       }));
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, customApiKey]);
 
   // Split image prompts into Start/End frames for Vidu video AI
   const splitStartEndFrames = useCallback(async () => {
@@ -1132,6 +1432,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {
+    console.log("[MithrilContext:clearStoryboardGeneration] Clearing storyboard state:", {
+      previousJobIdRef: storyboardJobIdRef.current,
+      previousSceneCount: storyboardGenerator.scenes.length,
+    });
+
+    // Clear job tracking
+    storyboardJobIdRef.current = null;
+    setStoryboardJobId(null);
+
     setStoryboardGenerator({
       isGenerating: false,
       error: null,
@@ -1142,14 +1451,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (currentProjectId) {
       try {
+        console.log("[MithrilContext:clearStoryboardGeneration] Clearing Firestore storyboard...");
         await clearStoryboard(currentProjectId);
+        console.log("[MithrilContext:clearStoryboardGeneration] Firestore cleared");
       } catch (error) {
         console.error("Error clearing storyboard from Firestore:", error);
       }
     }
 
     clearStageResult(5);
-  }, [currentProjectId, clearStageResult]);
+    console.log("[MithrilContext:clearStoryboardGeneration] Clear complete");
+  }, [currentProjectId, clearStageResult, storyboardGenerator.scenes.length]);
 
   // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((

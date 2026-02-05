@@ -12,7 +12,7 @@ import { db } from '@/lib/firestore';
 /**
  * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard';
 
 /**
  * Job status from the orchestrator
@@ -91,6 +91,38 @@ export interface JobQueueDocument {
     label: string;
     imageUrl?: string;
   }>;
+  // Storyboard generation-specific fields
+  source_text?: string;
+  target_time?: string;
+  part_index?: number;
+  storyboard_result?: {
+    scenes: Array<{
+      sceneTitle: string;
+      clips: Array<{
+        story: string;
+        imagePrompt: string;
+        imagePromptEnd?: string;
+        videoPrompt: string;
+        soraVideoPrompt: string;
+        backgroundPrompt: string;
+        backgroundId: string;
+        dialogue: string;
+        dialogueEn: string;
+        narration?: string;
+        narrationEn?: string;
+        sfx: string;
+        sfxEn: string;
+        bgm: string;
+        bgmEn: string;
+        length: string;
+        accumulatedTime: string;
+      }>;
+    }>;
+    voicePrompts: Array<{
+      promptKo: string;
+      promptEn: string;
+    }>;
+  };
 }
 
 /**
@@ -1313,6 +1345,227 @@ function mapJobStatusToPanelSplitterStatus(
       return 'generating';
     case 'uploading':
       return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Storyboard Generation Job Functions
+// ============================================================================
+
+/**
+ * Storyboard generation job status
+ */
+export type StoryboardJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Scene in storyboard result
+ */
+export interface StoryboardScene {
+  sceneTitle: string;
+  clips: Array<{
+    story: string;
+    imagePrompt: string;
+    imagePromptEnd?: string;
+    videoPrompt: string;
+    soraVideoPrompt: string;
+    backgroundPrompt: string;
+    backgroundId: string;
+    dialogue: string;
+    dialogueEn: string;
+    narration?: string;
+    narrationEn?: string;
+    sfx: string;
+    sfxEn: string;
+    bgm: string;
+    bgmEn: string;
+    length: string;
+    accumulatedTime: string;
+  }>;
+}
+
+/**
+ * Voice prompt in storyboard result
+ */
+export interface StoryboardVoicePrompt {
+  promptKo: string;
+  promptEn: string;
+}
+
+/**
+ * Storyboard generation job update object
+ */
+export interface StoryboardJobUpdate {
+  jobId: string;
+  status: StoryboardJobStatus;
+  progress: number;
+  // Results
+  scenes?: StoryboardScene[];
+  voicePrompts?: StoryboardVoicePrompt[];
+  sceneCount?: number;
+  clipCount?: number;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for storyboard job updates
+ */
+export type StoryboardJobUpdateCallback = (update: StoryboardJobUpdate) => void;
+
+/**
+ * Subscribe to storyboard generation jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any storyboard job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStoryboardJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  console.log("[jobQueue:subscribeToProjectStoryboardJobs] Creating subscription for project:", projectId);
+
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    console.log("[jobQueue:subscribeToProjectStoryboardJobs] Snapshot received:", {
+      docCount: snapshot.docs.length,
+      fromCache: snapshot.metadata.fromCache,
+      hasPendingWrites: snapshot.metadata.hasPendingWrites,
+    });
+
+    const jobs = snapshot.docs.map((docSnapshot) => {
+      const data = docSnapshot.data();
+      console.log("[jobQueue:subscribeToProjectStoryboardJobs] Job doc:", {
+        id: docSnapshot.id,
+        status: data.status,
+        type: data.type,
+        hasStoryboardResult: !!data.storyboard_result,
+        sceneCount: data.storyboard_result?.scenes?.length,
+      });
+      return {
+        ...data,
+        id: docSnapshot.id,
+      } as JobQueueDocument;
+    });
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) storyboard jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active storyboard job documents
+ */
+export async function getActiveProjectStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Get all storyboard jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of all storyboard job documents
+ */
+export async function getAllProjectStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+
+  return snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardJobUpdate
+ */
+export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUpdate {
+  const result = job.storyboard_result;
+  const clipCount = result?.scenes?.reduce((acc, s) => acc + s.clips.length, 0) || 0;
+
+  const update = {
+    jobId: job.id,
+    status: mapJobStatusToStoryboardStatus(job.status, job.retry_count),
+    progress: job.progress,
+    scenes: result?.scenes,
+    voicePrompts: result?.voicePrompts,
+    sceneCount: result?.scenes?.length,
+    clipCount,
+    error: job.error_message,
+  };
+
+  console.log("[jobQueue:mapStoryboardJobToUpdate] Mapped job:", {
+    jobId: update.jobId,
+    rawStatus: job.status,
+    mappedStatus: update.status,
+    hasResult: !!result,
+    sceneCount: update.sceneCount,
+    clipCount: update.clipCount,
+    retryCount: job.retry_count,
+  });
+
+  return update;
+}
+
+/**
+ * Map job status to storyboard status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToStoryboardStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StoryboardJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'generating':
+      return 'generating';
     case 'completed':
       return 'completed';
     case 'failed':

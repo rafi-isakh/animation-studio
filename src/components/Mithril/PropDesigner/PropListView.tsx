@@ -261,6 +261,7 @@ export default function PropListView({
             genre,
             styleKeyword,
             referenceImages: prop.referenceImages,
+            aspectRatio: "16:9",
           });
 
           if (result.success && result.jobId) {
@@ -324,6 +325,7 @@ export default function PropListView({
         genre,
         styleKeyword,
         referenceImages: prop.referenceImages,
+        aspectRatio: "16:9" as const,
       }));
 
       const result = await orchestrator.submitBatch({ jobs });

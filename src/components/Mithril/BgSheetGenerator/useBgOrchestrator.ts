@@ -72,8 +72,24 @@ export function useBgOrchestrator({
 
     // Subscribe to project background jobs
     const unsubscribe = subscribeToProjectBgJobs(projectId, (jobs: JobQueueDocument[]) => {
-      // Notify callback for each job update
+      // Group jobs by bg_id+bg_angle and keep only the latest job for each angle
+      const latestJobsByAngle = new Map<string, JobQueueDocument>();
+      
       jobs.forEach((job) => {
+        const bgId = job.bg_id || '';
+        const angle = job.bg_angle || '';
+        if (!bgId || !angle) return;
+        
+        const angleKey = `${bgId}:${angle}`;
+        const existing = latestJobsByAngle.get(angleKey);
+        // Keep the job with the latest created_at timestamp
+        if (!existing || (job.created_at && (!existing.created_at || job.created_at > existing.created_at))) {
+          latestJobsByAngle.set(angleKey, job);
+        }
+      });
+      
+      // Notify callback only for the latest job of each angle
+      latestJobsByAngle.forEach((job) => {
         const update = mapBgJobToAngleUpdate(job);
         onAngleUpdateRef.current?.(update);
       });

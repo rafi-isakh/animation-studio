@@ -23,6 +23,7 @@ from app.models.job import (
     JobSubmitRequest,
     JobType,
     PanelJobSubmitRequest,
+    PanelSplitterJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
     StorySplitterJobSubmitRequest,
 )
@@ -489,6 +490,57 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created story splitter job {job_id} for project {request.project_id} with {request.num_parts} parts")
+        return job
+
+    async def create_panel_splitter_job(
+        self,
+        request: PanelSplitterJobSubmitRequest,
+        user_id: str,
+        batch_id: str | None = None,
+    ) -> JobDocument:
+        """
+        Create a new panel splitter job in the queue.
+
+        Args:
+            request: Panel splitter job submission request
+            user_id: ID of the user creating the job
+            batch_id: Optional batch ID for grouped jobs
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PANEL_SPLITTER,
+            project_id=request.project_id,
+            scene_index=0,  # Not used for panel splitter
+            clip_index=0,  # Not used for panel splitter
+            provider_id="gemini",
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio="",  # Not used for panel splitter
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            batch_id=batch_id,
+            # Panel splitter-specific fields
+            page_id=request.page_id,
+            page_index=request.page_index,
+            file_name=request.file_name,
+            reading_direction=request.reading_direction,
+            # NOTE: image_base64 is passed through task queue, not stored in Firestore
+            # to avoid 1MB document size limit
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created panel splitter job {job_id} for page {request.page_id}")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:

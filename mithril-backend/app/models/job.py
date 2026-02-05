@@ -18,6 +18,7 @@ class JobType(str, Enum):
     ID_CONVERTER_GLOSSARY = "id_converter_glossary"
     ID_CONVERTER_BATCH = "id_converter_batch"
     STORY_SPLITTER = "story_splitter"
+    PANEL_SPLITTER = "panel_splitter"
 
 
 class JobStatus(str, Enum):
@@ -147,6 +148,12 @@ class JobDocument(BaseModel):
     guidelines: str | None = None  # Genre-specific splitting guidelines
     num_parts: int | None = None  # Number of parts to split into
     split_result: list[dict] | None = None  # Array of {text, cliffhangers} parts
+
+    # Panel Splitter-specific fields (for type=PANEL_SPLITTER)
+    page_id: str | None = None  # Page ID from frontend
+    page_index: int | None = None  # Page index in sequence
+    reading_direction: str | None = None  # 'rtl' or 'ltr'
+    detected_panels: list[dict] | None = None  # Array of detected panels with box_2d
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -487,3 +494,76 @@ class StorySplitterJobStatusResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None = None
+
+
+# ============================================================================
+# Panel Splitter Job Models
+# ============================================================================
+
+
+class PanelSplitterJobSubmitRequest(BaseModel):
+    """Request model for submitting a panel splitter job."""
+
+    project_id: str
+    page_id: str  # Page ID for tracking
+    page_index: int  # Page index in sequence
+    file_name: str  # Original filename
+    image_base64: str  # Base64 encoded image
+    reading_direction: Literal["rtl", "ltr"] = "rtl"
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class DetectedPanel(BaseModel):
+    """A single detected panel."""
+
+    id: str
+    box_2d: list[int]  # [ymin, xmin, ymax, xmax] in 0-1000 scale
+    label: str = ""
+    imageUrl: str | None = None  # S3 URL of cropped panel
+
+
+class PanelSplitterJobStatusResponse(BaseModel):
+    """Response model for panel splitter job status queries."""
+
+    job_id: str
+    page_id: str
+    page_index: int
+    file_name: str
+    status: JobStatus
+    progress: float = 0.0
+    detected_panels: list[DetectedPanel] | None = None
+    panel_count: int | None = None
+    image_url: str | None = None  # S3 URL of source page
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+class PanelSplitterPageItem(BaseModel):
+    """A single page item in a batch panel splitter request."""
+
+    page_id: str
+    page_index: int
+    file_name: str
+    image_base64: str
+    reading_direction: Literal["rtl", "ltr"] | None = None  # Override batch-level
+    api_key: str | None = None  # Override batch-level
+
+
+class PanelSplitterBatchSubmitRequest(BaseModel):
+    """Request model for submitting multiple panel splitter jobs."""
+
+    project_id: str
+    pages: list[PanelSplitterPageItem]
+    reading_direction: Literal["rtl", "ltr"] = "rtl"
+    api_key: str | None = None  # Batch-level fallback
+
+
+class PanelSplitterBatchSubmitResponse(BaseModel):
+    """Response model for batch panel splitter job submission."""
+
+    batch_id: str
+    jobs: list[JobSubmitResponse]
+    total_count: int
+    status: str = "submitted"

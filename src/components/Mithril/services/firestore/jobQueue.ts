@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, background, prop_design_sheet, panel, id_converter, or story_splitter)
+ * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter';
 
 /**
  * Job status from the orchestrator
@@ -81,6 +81,16 @@ export interface JobQueueDocument {
   file_name?: string;
   target_aspect_ratio?: string;
   refinement_mode?: string;  // "default" | "zoom" | "expand"
+  // Panel splitter-specific fields (ImageSplitter / MangaSplitter)
+  page_id?: string;
+  page_index?: number;
+  reading_direction?: 'rtl' | 'ltr';
+  detected_panels?: Array<{
+    id: string;
+    box_2d: number[];
+    label: string;
+    imageUrl?: string;
+  }>;
 }
 
 /**
@@ -1123,6 +1133,186 @@ function mapJobStatusToStorySplitterStatus(
       return retryCount > 0 ? 'retrying' : 'pending';
     case 'generating':
       return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Panel Splitter Job Functions (ImageSplitter / MangaSplitter)
+// ============================================================================
+
+/**
+ * Panel splitter job status
+ */
+export type PanelSplitterJobStatus =
+  | 'pending'
+  | 'preparing'    // Compressing/optimizing image
+  | 'generating'   // Calling Gemini for panel detection
+  | 'cropping'     // Cropping panels from source image
+  | 'uploading'    // Uploading to S3
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Detected panel in a manga/comic page
+ */
+export interface DetectedPanel {
+  id: string;
+  box_2d: number[];  // [ymin, xmin, ymax, xmax] in 0-1000 scale
+  label: string;
+  imageUrl?: string;  // S3 URL after cropping
+}
+
+/**
+ * Panel splitter job update object
+ */
+export interface PanelSplitterJobUpdate {
+  jobId: string;
+  pageId: string;
+  pageIndex: number;
+  fileName: string;
+  status: PanelSplitterJobStatus;
+  progress: number;
+  // Results
+  panels?: DetectedPanel[];
+  panelCount?: number;
+  pageImageUrl?: string;  // S3 URL for uploaded page
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for panel splitter job updates
+ */
+export type PanelSplitterJobUpdateCallback = (update: PanelSplitterJobUpdate) => void;
+
+/**
+ * Callback for multiple panel splitter job updates
+ */
+export type PanelSplitterJobUpdatesCallback = (updates: PanelSplitterJobUpdate[]) => void;
+
+/**
+ * Subscribe to panel splitter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any panel splitter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectPanelSplitterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) panel splitter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active panel splitter job documents
+ */
+export async function getActiveProjectPanelSplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Get all panel splitter jobs for a project (including completed)
+ *
+ * @param projectId - The project ID
+ * @returns Array of all panel splitter job documents
+ */
+export async function getAllProjectPanelSplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+
+  return snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+}
+
+/**
+ * Map JobQueueDocument to PanelSplitterJobUpdate
+ */
+export function mapPanelSplitterJobToUpdate(job: JobQueueDocument): PanelSplitterJobUpdate {
+  return {
+    jobId: job.id,
+    pageId: job.page_id || '',
+    pageIndex: job.page_index || 0,
+    fileName: job.file_name || '',
+    status: mapJobStatusToPanelSplitterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    panels: job.detected_panels,
+    panelCount: job.detected_panels?.length,
+    pageImageUrl: job.image_url,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to panel splitter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToPanelSplitterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): PanelSplitterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
     case 'completed':
       return 'completed';
     case 'failed':

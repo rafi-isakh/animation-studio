@@ -16,6 +16,7 @@ export interface MangaPanel {
 export interface MangaPage {
   id: string;
   pageIndex?: number; // Original index from Firestore (used for deletion)
+  jobId?: string; // Active orchestrator job ID for tracking
   file?: File;
   previewUrl: string;
   fileName: string;

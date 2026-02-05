@@ -672,6 +672,7 @@ export interface MangaPageDocument {
   status: MangaPanelStatus;
   panelCount: number;
   createdAt: Timestamp;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
 }
 
 export interface ImageSplitterDocument {
@@ -686,6 +687,7 @@ export interface SaveMangaPageInput {
   imageRef: string;
   readingDirection: ReadingDirection;
   status?: MangaPanelStatus;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
 }
 
 export interface SaveMangaPanelInput {

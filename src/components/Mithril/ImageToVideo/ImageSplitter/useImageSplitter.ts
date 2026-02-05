@@ -1,29 +1,33 @@
 "use client";
 
-import { useReducer, useCallback, useEffect, useRef } from 'react';
+import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import { useMithril } from '../../MithrilContext';
 import { imageSplitterReducer, initialState } from './reducer';
-import type { ImageSplitterState, MangaPage, MangaPanel, ReadingDirection } from './types';
+import type { ImageSplitterState, MangaPage, MangaPanel, ReadingDirection, ProcessingStatus } from './types';
 import {
   getImageSplitterMeta,
   getMangaPages,
   getMangaPanels,
-  saveImageSplitterMeta,
-  saveMangaPage,
-  saveMangaPanel,
-  updateMangaPagePanelCount,
   clearImageSplitter,
   deleteMangaPage,
+  saveMangaPage,
+  saveMangaPanel,
+  saveImageSplitterMeta,
+  updateMangaPagePanelCount,
 } from '../../services/firestore';
 import {
-  uploadI2VPageImage,
-  uploadI2VPanelImage,
   deleteI2VPageImage,
   deleteI2VPanelImage,
   clearAllI2VImages,
 } from '../../services/s3/images';
-import { compressImage, compressBase64Image } from '../ImageToScriptWriter/utils/imageCompression';
+import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
+import { usePanelSplitterOrchestrator, PanelSplitterJobUpdate } from './usePanelSplitterOrchestrator';
+import {
+  PanelSplitterJobStatus,
+  getAllProjectPanelSplitterJobs,
+  mapPanelSplitterJobToUpdate,
+} from '../../services/firestore/jobQueue';
 
 // Image file extensions we support
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
@@ -55,84 +59,43 @@ function generateId(): string {
   return `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Helper: Process array with concurrency limit
-async function processWithConcurrency<T, R>(
-  items: T[],
-  fn: (item: T, index: number) => Promise<R>,
-  concurrency: number
-): Promise<R[]> {
-  const results: R[] = [];
-  let currentIndex = 0;
-
-  async function worker() {
-    while (currentIndex < items.length) {
-      const index = currentIndex++;
-      results[index] = await fn(items[index], index);
-    }
+// Helper: Map orchestrator status to local processing status
+function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus {
+  switch (status) {
+    case 'pending':
+    case 'preparing':
+    case 'retrying':
+      return 'pending';
+    case 'generating':
+    case 'cropping':
+    case 'uploading':
+      return 'processing';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+    case 'cancelled':
+      return 'error';
+    default:
+      return 'pending';
   }
-
-  const workers = Array(Math.min(concurrency, items.length))
-    .fill(null)
-    .map(() => worker());
-
-  await Promise.all(workers);
-  return results;
-}
-
-// Helper: Convert File to base64
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// Helper: Crop panel from image using canvas
-function cropPanel(imageUrl: string, box_2d: number[]): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const [ymin, xmin, ymax, xmax] = box_2d;
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
-
-      // Convert 0-1000 scale to actual pixel coordinates
-      const x = Math.floor((xmin / 1000) * imgWidth);
-      const y = Math.floor((ymin / 1000) * imgHeight);
-      const width = Math.floor(((xmax - xmin) / 1000) * imgWidth);
-      const height = Math.floor(((ymax - ymin) / 1000) * imgHeight);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Failed to get canvas context'));
-        return;
-      }
-
-      ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      const base64 = dataUrl.split(',')[1];
-      resolve(base64);
-    };
-    img.onerror = () => reject(new Error('Failed to load image for cropping'));
-    img.src = imageUrl;
-  });
 }
 
 export function useImageSplitter() {
-  const { setStageResult, currentProjectId } = useMithril();
+  const { setStageResult, currentProjectId, customApiKey } = useMithril();
   const [state, dispatch] = useReducer(imageSplitterReducer, initialState);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const isLoadingRef = useRef(false);
+  const processingStartTimeRef = useRef<number | null>(null);
+
+  // Track active jobs: pageId -> jobId
+  const [activeJobs, setActiveJobs] = useState<Record<string, string>>({});
+
+  // Control when Firestore subscription starts (prevents race condition with loadFromFirestore)
+  const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
+
+  // Reset subscription state when project changes (prevents race condition on project switch)
+  useEffect(() => {
+    setSubscriptionEnabled(false);
+  }, [currentProjectId]);
 
   // Keep a ref to current state for cleanup and async operations
   const stateRef = useRef<ImageSplitterState>(state);
@@ -140,9 +103,160 @@ export function useImageSplitter() {
     stateRef.current = state;
   }, [state]);
 
+
+  // Track active jobs ref for use in callback
+  const activeJobsRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    activeJobsRef.current = activeJobs;
+  }, [activeJobs]);
+
+  // Persist completed page results to Firestore
+  const persistPageResults = useCallback(async (
+    pageId: string,
+    pageIndex: number,
+    fileName: string,
+    pageImageUrl: string | undefined,
+    panels: Array<{ id: string; box_2d: number[]; label: string; imageUrl?: string }>,
+    readingDirection: ReadingDirection
+  ) => {
+    if (!currentProjectId) return;
+
+    try {
+      // Save the manga page (update existing or create new)
+      await saveMangaPage(currentProjectId, pageIndex, {
+        fileName,
+        imageRef: pageImageUrl || '',
+        readingDirection,
+        status: 'completed',
+        originalPageId: pageId, // Preserve original ID for matching with job queue
+      });
+
+      // Save each panel
+      for (let i = 0; i < panels.length; i++) {
+        const panel = panels[i];
+        await saveMangaPanel(currentProjectId, pageIndex, i, {
+          box_2d: panel.box_2d,
+          label: panel.label,
+          imageRef: panel.imageUrl || '',
+        });
+      }
+
+      // Update page panel count
+      await updateMangaPagePanelCount(currentProjectId, pageIndex, panels.length);
+
+      console.log(`[ImageSplitter] Persisted page ${pageIndex} with ${panels.length} panels`);
+    } catch (error) {
+      console.error(`[ImageSplitter] Failed to persist page ${pageIndex}:`, error);
+    }
+  }, [currentProjectId]);
+
+  // Handle page updates from orchestrator
+  const handlePageUpdate = useCallback((update: PanelSplitterJobUpdate) => {
+    const { pageId, pageIndex, fileName, status, panels, pageImageUrl } = update;
+
+    // Find page in state
+    const page = stateRef.current.pages.find((p) => p.id === pageId);
+    if (!page) return;
+
+    // Only process updates for pages that are still processing
+    if (page.status !== 'processing') return;
+
+    // Map orchestrator status to local status
+    const localStatus = mapOrchestratorStatus(status);
+
+    if (localStatus === 'completed' && panels) {
+      // Update page with detected panels from backend (already includes S3 URLs)
+      const mappedPanels = panels.map((p) => ({
+        id: p.id,
+        box_2d: p.box_2d,
+        label: p.label,
+        imageUrl: p.imageUrl, // S3 URL from backend
+      }));
+
+      dispatch({
+        type: 'SET_PAGE_PANELS',
+        id: pageId,
+        panels: mappedPanels,
+        previewUrl: pageImageUrl, // S3 URL for the source page
+      });
+
+      // Persist results to Firestore (async, fire-and-forget)
+      persistPageResults(pageId, pageIndex, fileName, pageImageUrl, mappedPanels, page.readingDirection);
+
+    } else if (localStatus === 'error') {
+      dispatch({ type: 'UPDATE_PAGE_STATUS', id: pageId, status: 'error' });
+    } else if (localStatus === 'processing' && page.status !== 'processing') {
+      dispatch({ type: 'UPDATE_PAGE_STATUS', id: pageId, status: 'processing' });
+    }
+  }, [persistPageResults]);
+
+  // Track the number of pages submitted for processing (for stats)
+  const submittedPageCountRef = useRef<number>(0);
+
+  // Check if all jobs are complete and finish processing
+  // Simplified: just check page statuses, ignore activeJobs for completion detection
+  useEffect(() => {
+    if (!state.isProcessing) return;
+
+    const processingPages = state.pages.filter((p) => p.status === 'processing');
+    const pendingPages = state.pages.filter((p) => p.status === 'pending');
+
+    // Finish when no pages are 'processing' or 'pending' and we have pages
+    if (processingPages.length === 0 && state.pages.length > 0 && pendingPages.length === 0) {
+      // All jobs completed
+      const endTime = Date.now();
+      const startTime = processingStartTimeRef.current || endTime;
+      const durationMinutes = ((endTime - startTime) / 60000).toFixed(2);
+
+      const completedPages = state.pages.filter((p) => p.status === 'completed');
+      const totalPanels = completedPages.reduce((acc, p) => acc + p.panels.length, 0);
+
+      // Save metadata to Firestore
+      if (currentProjectId && completedPages.length > 0) {
+        saveImageSplitterMeta(
+          currentProjectId,
+          state.readingDirection,
+          completedPages.length,
+          totalPanels
+        ).catch((error) => {
+          console.error('[ImageSplitter] Failed to save metadata:', error);
+        });
+      }
+
+      // Update stage result for downstream stages
+      setStageResult(1, { pages: completedPages });
+
+      dispatch({
+        type: 'FINISH_PROCESSING',
+        stats: {
+          duration: durationMinutes,
+          pageCount: submittedPageCountRef.current,
+          panelCount: totalPanels,
+        },
+      });
+
+      processingStartTimeRef.current = null;
+      submittedPageCountRef.current = 0;
+    }
+  }, [state.isProcessing, state.pages, state.readingDirection, currentProjectId, setStageResult]);
+
+  // Initialize orchestrator (subscription controlled by subscriptionEnabled to prevent race condition)
+  const { submitBatch, cancelAllJobs } = usePanelSplitterOrchestrator({
+    projectId: currentProjectId,
+    customApiKey,
+    onPageUpdate: handlePageUpdate,
+    enabled: subscriptionEnabled,
+  });
+
   // Load data from Firestore when project changes
   useEffect(() => {
     if (!currentProjectId || isLoadingRef.current) return;
+
+    // Don't reload if we're actively processing or already have pages
+    if (stateRef.current.isProcessing || stateRef.current.pages.length > 0) {
+      setSubscriptionEnabled(true);
+      return;
+    }
 
     const loadFromFirestore = async () => {
       isLoadingRef.current = true;
@@ -150,6 +264,8 @@ export function useImageSplitter() {
         const meta = await getImageSplitterMeta(currentProjectId);
         if (!meta) {
           isLoadingRef.current = false;
+          // Enable subscription even with no data (user might start new processing)
+          setSubscriptionEnabled(true);
           return;
         }
 
@@ -168,7 +284,8 @@ export function useImageSplitter() {
           }));
 
           loadedPages.push({
-            id: page.id,
+            // Use originalPageId if available (for matching with job queue), otherwise fall back to Firestore id
+            id: page.originalPageId || page.id,
             pageIndex: page.pageIndex, // Store original index for deletion
             previewUrl: page.imageRef, // S3 URL for preview
             fileName: page.fileName,
@@ -184,10 +301,88 @@ export function useImageSplitter() {
           // Also set stage result for downstream stages
           setStageResult(1, { pages: loadedPages.filter((p) => p.status === 'completed') });
         }
+
+        // Check for jobs and restore state
+        const allJobDocs = await getAllProjectPanelSplitterJobs(currentProjectId);
+
+        // Separate active and completed jobs
+        const terminalStatuses = ['completed', 'failed', 'cancelled'];
+        const activeJobDocs = allJobDocs.filter((job) => !terminalStatuses.includes(job.status));
+        const completedJobDocs = allJobDocs.filter((job) => job.status === 'completed');
+
+        // Find pages that are marked as processing but have completed jobs
+        const processingPageIds = loadedPages
+          .filter((p) => p.status === 'processing')
+          .map((p) => p.id);
+
+        const jobsCompletedWhileAway = completedJobDocs.filter(
+          (job) => job.page_id && processingPageIds.includes(job.page_id)
+        );
+
+        // Process completed jobs that weren't persisted (job completed while user was away)
+        for (const job of jobsCompletedWhileAway) {
+          if (!job.page_id) continue;
+          console.log(`[ImageSplitter] Found completed job for page ${job.page_id}, applying results`);
+          const update = mapPanelSplitterJobToUpdate(job);
+
+          if (update.panels && update.panels.length > 0) {
+            // Update local state with panels
+            dispatch({
+              type: 'SET_PAGE_PANELS',
+              id: job.page_id,
+              panels: update.panels.map((p) => ({
+                id: p.id,
+                box_2d: p.box_2d,
+                label: p.label,
+                imageUrl: p.imageUrl,
+              })),
+              previewUrl: update.pageImageUrl,
+            });
+
+            // Persist to Firestore
+            try {
+              await saveMangaPage(currentProjectId, update.pageIndex, {
+                fileName: update.fileName,
+                imageRef: update.pageImageUrl || '',
+                readingDirection: loadedPages.find((p) => p.id === job.page_id)?.readingDirection || 'rtl',
+                status: 'completed',
+                originalPageId: job.page_id,
+              });
+
+              for (let i = 0; i < update.panels.length; i++) {
+                const panel = update.panels[i];
+                await saveMangaPanel(currentProjectId, update.pageIndex, i, {
+                  box_2d: panel.box_2d,
+                  label: panel.label,
+                  imageRef: panel.imageUrl || '',
+                });
+              }
+
+              await updateMangaPagePanelCount(currentProjectId, update.pageIndex, update.panels.length);
+              console.log(`[ImageSplitter] Persisted completed job results for page ${job.page_id}`);
+            } catch (error) {
+              console.error(`[ImageSplitter] Failed to persist completed job for page ${job.page_id}:`, error);
+            }
+          }
+        }
+
+        // Simplified restoration: just check if any pages are still processing
+        const processingPages = loadedPages.filter((p) => p.status === 'processing');
+
+        if (processingPages.length > 0) {
+          // There are pages still processing - enter processing mode
+          console.log(`[ImageSplitter] Found ${processingPages.length} pages still processing, entering processing mode`);
+          dispatch({ type: 'START_PROCESSING', total: processingPages.length });
+          processingStartTimeRef.current = Date.now();
+          // The Firestore subscription will handle updates
+        }
       } catch (error) {
         console.error('Error loading ImageSplitter data from Firestore:', error);
       } finally {
         isLoadingRef.current = false;
+        // Enable subscription after loading completes (prevents race condition)
+        // This ensures activeJobsRef.current is set before any subscription events are processed
+        setSubscriptionEnabled(true);
       }
     };
 
@@ -288,208 +483,144 @@ export function useImageSplitter() {
     [state.readingDirection, extractImagesFromZip]
   );
 
-  // Process a single page
-  const processPage = useCallback(
-    async (page: MangaPage, signal: AbortSignal): Promise<MangaPanel[]> => {
-      if (!page.file) {
-        throw new Error('No file available for processing');
-      }
-
-      // Compress image for API call (1500px max width, 80% quality)
-      // to stay under Vercel's 4.5MB request body limit.
-      // Panel cropping still uses original resolution via page.previewUrl.
-      const base64Image = await compressImage(page.file, 1500, 0.8);
-
-      const response = await fetch('/api/manga/split-panels', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image: base64Image,
-          readingDirection: page.readingDirection,
-        }),
-        signal,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to detect panels');
-      }
-
-      const data = await response.json();
-      const detectedPanels: MangaPanel[] = data.panels || [];
-
-      // Crop each panel
-      const panelsWithImages = await Promise.all(
-        detectedPanels.map(async (panel) => {
-          try {
-            const croppedImage = await cropPanel(page.previewUrl, panel.box_2d);
-            return { ...panel, imageUrl: croppedImage };
-          } catch (cropError) {
-            console.warn(`Failed to crop panel ${panel.id}:`, cropError);
-            return panel;
-          }
-        })
-      );
-
-      return panelsWithImages;
-    },
-    []
-  );
-
-  // Start processing all pending pages
+  // Start processing all pending pages via orchestrator
   const process = useCallback(async () => {
     const pendingPages = stateRef.current.pages.filter((p) => p.status === 'pending');
     if (pendingPages.length === 0) return;
 
-    // Create abort controller for this processing session
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
     dispatch({ type: 'START_PROCESSING', total: pendingPages.length });
-    const startTime = Date.now();
+    processingStartTimeRef.current = Date.now();
+    submittedPageCountRef.current = 0; // Will be set after successful submission
 
-    // Track panel counts as we process
-    let totalPanelsProcessed = 0;
-    const processedPages: { page: MangaPage; pageIndex: number; panels: MangaPanel[] }[] = [];
+    // Prepare batch submission - compress images and build payload
+    const pagesToSubmit: Array<{
+      pageId: string;
+      pageIndex: number;
+      fileName: string;
+      imageBase64: string;
+      readingDirection: ReadingDirection;
+    }> = [];
 
     for (let i = 0; i < pendingPages.length; i++) {
       const page = pendingPages[i];
-      if (signal.aborted) break;
-
-      dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.id, status: 'processing' });
-
-      try {
-        const panels = await processPage(page, signal);
-        dispatch({ type: 'SET_PAGE_PANELS', id: page.id, panels });
-        totalPanelsProcessed += panels.length;
-
-        // Track for Firestore save
-        const pageIndex = stateRef.current.pages.findIndex((p) => p.id === page.id);
-        processedPages.push({ page, pageIndex, panels });
-      } catch (error) {
-        if (signal.aborted) break;
-        console.error('Error processing page:', error);
-        dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.id, status: 'error' });
+      if (!page.file) {
+        console.warn(`Page ${page.id} has no file, skipping`);
+        continue;
       }
 
-      dispatch({ type: 'INCREMENT_PROGRESS' });
+      try {
+        // Compress image for submission (1500px max, 80% quality)
+        const base64Image = await compressImage(page.file, 1500, 0.8);
+        const pageIndex = stateRef.current.pages.findIndex((p) => p.id === page.id);
+
+        pagesToSubmit.push({
+          pageId: page.id,
+          pageIndex,
+          fileName: page.fileName,
+          imageBase64: base64Image,
+          readingDirection: page.readingDirection,
+        });
+      } catch (error) {
+        console.error(`Failed to compress page ${page.id}:`, error);
+        dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.id, status: 'error' });
+      }
     }
 
-    // Calculate stats and finish processing immediately (UI becomes responsive)
-    const endTime = Date.now();
-    const durationMinutes = ((endTime - startTime) / 60000).toFixed(2);
+    if (pagesToSubmit.length === 0) {
+      dispatch({
+        type: 'FINISH_PROCESSING',
+        stats: { duration: '0', pageCount: 0, panelCount: 0 },
+      });
+      return;
+    }
+
+    // Submit batch to orchestrator
+    const result = await submitBatch({
+      pages: pagesToSubmit,
+      readingDirection: stateRef.current.readingDirection,
+    });
+
+    if (!result.success) {
+      console.error('Failed to submit batch:', result.error);
+      // Mark all pages as error
+      pagesToSubmit.forEach((page) => {
+        dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.pageId, status: 'error' });
+      });
+      dispatch({
+        type: 'FINISH_PROCESSING',
+        stats: { duration: '0', pageCount: 0, panelCount: 0 },
+      });
+      return;
+    }
+
+    // Track active jobs: pageId -> jobId
+    const jobMap: Record<string, string> = {};
+    result.jobs?.forEach((job, idx) => {
+      if (pagesToSubmit[idx]) {
+        jobMap[pagesToSubmit[idx].pageId] = job.jobId;
+      }
+    });
+    setActiveJobs(jobMap);
+    submittedPageCountRef.current = pagesToSubmit.length; // Track for completion stats
+
+    // Mark all submitted pages as processing
+    pagesToSubmit.forEach((page) => {
+      dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.pageId, status: 'processing' });
+    });
+
+    // Save pages to Firestore with status='processing' so they persist across navigation
+    if (currentProjectId) {
+      try {
+        // Save metadata first
+        await saveImageSplitterMeta(
+          currentProjectId,
+          stateRef.current.readingDirection,
+          pagesToSubmit.length,
+          0 // panels will be counted after completion
+        );
+
+        // Save each page with processing status (no imageRef yet - will be set on completion)
+        for (const page of pagesToSubmit) {
+          await saveMangaPage(currentProjectId, page.pageIndex, {
+            fileName: page.fileName,
+            imageRef: '', // Will be populated when job completes
+            readingDirection: page.readingDirection,
+            status: 'processing',
+            originalPageId: page.pageId, // Store original ID for matching with job queue
+          });
+          // Also store pageIndex in local state for later reference
+          dispatch({ type: 'SET_PAGE_INDEX', id: page.pageId, pageIndex: page.pageIndex });
+        }
+        console.log(`[ImageSplitter] Saved ${pagesToSubmit.length} pages to Firestore with status=processing`);
+      } catch (error) {
+        console.error('[ImageSplitter] Failed to save pages to Firestore:', error);
+      }
+    }
+
+    // Processing will complete via Firestore updates handled by handlePageUpdate
+  }, [submitBatch, currentProjectId]);
+
+  // Cancel ongoing processing via orchestrator
+  const cancelProcessing = useCallback(async () => {
+    const jobIds = Object.values(activeJobs);
+    if (jobIds.length > 0) {
+      await cancelAllJobs(jobIds);
+    }
+    setActiveJobs({});
+
+    // Reset processing pages to pending
+    stateRef.current.pages
+      .filter((p) => p.status === 'processing')
+      .forEach((page) => {
+        dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.id, status: 'pending' });
+      });
 
     dispatch({
       type: 'FINISH_PROCESSING',
-      stats: {
-        duration: durationMinutes,
-        pageCount: pendingPages.length,
-        panelCount: totalPanelsProcessed,
-      },
+      stats: null as unknown as { duration: string; pageCount: number; panelCount: number },
     });
-
-    // Save to Firestore and S3 in the background (non-blocking)
-    if (currentProjectId && processedPages.length > 0) {
-      (async () => {
-        try {
-          // Save metadata
-          const totalPages = stateRef.current.pages.length;
-          const totalPanels = stateRef.current.pages.reduce((acc, p) => acc + p.panels.length, 0);
-          await saveImageSplitterMeta(
-            currentProjectId,
-            stateRef.current.readingDirection,
-            totalPages,
-            totalPanels
-          );
-
-          // Save each processed page and its panels (parallelize panel uploads)
-          for (const { page, pageIndex, panels } of processedPages) {
-            let pageImageRef = '';
-
-            // Upload page image to S3 if we have file data
-            if (page.file) {
-              try {
-                // Compress page image for S3 upload (max 1500px, 80% quality)
-                // to stay under Vercel's 4.5MB request body limit
-                const pageBase64 = await compressImage(page.file, 1500, 0.8);
-                pageImageRef = await uploadI2VPageImage(
-                  currentProjectId,
-                  pageIndex,
-                  pageBase64,
-                  'image/jpeg'
-                );
-              } catch (uploadError) {
-                console.error(`Failed to upload page ${pageIndex} to S3:`, uploadError);
-              }
-            }
-
-            await saveMangaPage(currentProjectId, pageIndex, {
-              fileName: page.fileName,
-              imageRef: pageImageRef,
-              readingDirection: page.readingDirection,
-              status: 'completed',
-            });
-
-            // Store pageIndex in local state for proper deletion later
-            dispatch({ type: 'SET_PAGE_INDEX', id: page.id, pageIndex });
-
-            // Upload panels to S3 with concurrency limit (3 at a time)
-            await processWithConcurrency(
-              panels,
-              async (panel, panelIndex) => {
-                let panelImageRef = '';
-
-                if (panel.imageUrl) {
-                  try {
-                    let panelBase64 = panel.imageUrl.includes(',')
-                      ? panel.imageUrl.split(',')[1]
-                      : panel.imageUrl;
-
-                    // Compress if too large for Vercel's 4.5MB limit
-                    if (panelBase64.length > 3 * 1024 * 1024) {
-                      panelBase64 = await compressBase64Image(panelBase64, 1200, 0.75);
-                    }
-
-                    panelImageRef = await uploadI2VPanelImage(
-                      currentProjectId,
-                      pageIndex,
-                      panelIndex,
-                      panelBase64,
-                      'image/jpeg'
-                    );
-                  } catch (uploadError) {
-                    console.error(`Failed to upload panel ${pageIndex}-${panelIndex} to S3:`, uploadError);
-                  }
-                }
-
-                await saveMangaPanel(currentProjectId, pageIndex, panelIndex, {
-                  box_2d: panel.box_2d,
-                  label: panel.label || `Panel ${panelIndex + 1}`,
-                  imageRef: panelImageRef,
-                });
-              },
-              3 // Concurrency limit: 3 panels uploading at once
-            );
-
-            // Update panel count
-            await updateMangaPagePanelCount(currentProjectId, pageIndex, panels.length);
-          }
-        } catch (error) {
-          console.error('Error saving to Firestore/S3:', error);
-        }
-      })();
-    }
-
-    abortControllerRef.current = null;
-  }, [processPage, currentProjectId]);
-
-  // Cancel ongoing processing
-  const cancelProcessing = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-  }, []);
+    processingStartTimeRef.current = null;
+  }, [activeJobs, cancelAllJobs]);
 
   // Remove a page
   const remove = useCallback(async (id: string) => {

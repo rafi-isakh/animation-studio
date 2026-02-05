@@ -127,6 +127,8 @@ export async function saveMangaPage(
     status: input.status || 'pending',
     panelCount: 0,
     createdAt: Timestamp.now(),
+    // Store original page ID for matching with job queue
+    ...(input.originalPageId ? { originalPageId: input.originalPageId } : {}),
   });
 
   return pageId;

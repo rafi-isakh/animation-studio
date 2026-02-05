@@ -541,6 +541,76 @@ async def retry_failed_story_splitter_job(
 
 
 # ============================================================================
+# Panel Splitter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_panel_splitter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Panel splitter task.
+
+    Detects panels in manga/comic page and crops them.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to detect panels
+    2. GENERATING -> UPLOADING: Crop panels and upload to S3
+    3. UPLOADING -> COMPLETED: Update Firestore with panel URLs
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.panel_splitter_generation import process_panel_splitter
+
+    logger.info(f"[PANEL-SPLITTER-TASK] ========== Starting panel splitter job {job_id} ==========")
+    logger.info(f"[PANEL-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
+    logger.info(f"[PANEL-SPLITTER-TASK] Image base64 length: {len(image_base64) if image_base64 else 0}")
+
+    try:
+        result = await process_panel_splitter(job_id, image_base64, api_key)
+        logger.info(f"[PANEL-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[PANEL-SPLITTER-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_panel_splitter_job(
+    job_id: str,
+    image_base64: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed panel splitter job after a delay.
+
+    This task is scheduled when a transient error occurs and the job
+    should be retried after some backoff period.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying panel splitter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_panel_splitter_job(job_id, image_base64, api_key)
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

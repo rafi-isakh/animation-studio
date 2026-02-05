@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Upload, Scissors, Loader2, Check, AlertCircle, Download, FileJson, X, Trash2 } from "lucide-react";
+import { Upload, Scissors, Loader2, Check, AlertCircle, Download, FileJson, Trash2, X } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 
 // Re-export types for external consumers
@@ -25,7 +25,7 @@ export default function ImageSplitter() {
     saveToStageResult,
   } = useImageSplitter();
 
-  const { pages, isProcessing, progress, readingDirection, processingStats } = state;
+  const { pages, isProcessing, readingDirection, processingStats } = state;
 
   // Save results when processing completes
   useEffect(() => {
@@ -102,50 +102,35 @@ export default function ImageSplitter() {
         />
       </div>
 
-      {/* Progress Bar */}
-      {isProcessing && (
-        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-[#DB2777]">Processing...</span>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">{progress.current} / {progress.total}</span>
-              <button
-                onClick={cancelProcessing}
-                className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
-              >
-                <X className="w-3 h-3" />
-                Cancel
-              </button>
-            </div>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-            <div
-              className="bg-[#DB2777] h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(progress.current / progress.total) * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-3">
-        <button
-          onClick={process}
-          disabled={isProcessing || pendingCount === 0}
-          className="px-6 py-2.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {isProcessing ? (
-            <>
+        {isProcessing ? (
+          <>
+            <button
+              disabled
+              className="px-6 py-2.5 bg-[#DB2777] text-white font-medium rounded-lg opacity-80 flex items-center gap-2"
+            >
               <Loader2 className="w-4 h-4 animate-spin" />
               Processing...
-            </>
-          ) : (
-            <>
-              <Scissors className="w-4 h-4" />
-              Split Panels ({pendingCount} pending)
-            </>
-          )}
-        </button>
+            </button>
+            <button
+              onClick={cancelProcessing}
+              className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={process}
+            disabled={pendingCount === 0}
+            className="px-6 py-2.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Scissors className="w-4 h-4" />
+            Split Panels ({pendingCount} pending)
+          </button>
+        )}
 
         <button
           onClick={downloadZip}
@@ -184,7 +169,7 @@ export default function ImageSplitter() {
         <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center justify-center text-green-700 dark:text-green-400 text-sm">
           <Check className="w-4 h-4 mr-2" />
           <span>
-            Processed <strong>{processingStats.pageCount}</strong> pages ({processingStats.panelCount} panels) in <strong>{processingStats.duration}</strong> minutes.
+            Processed <strong>{pages.length}</strong> pages ({processingStats.panelCount} panels) in <strong>{processingStats.duration}</strong> minutes.
           </span>
         </div>
       )}

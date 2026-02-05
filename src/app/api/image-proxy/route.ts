@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate URL is from expected domains (S3 or allowed hosts)
+    // Validate URL is from expected domains (S3, CloudFront, or allowed hosts)
     const parsedUrl = new URL(url);
     const allowedHostPatterns = [
       "s3.amazonaws.com",
@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
       ".s3.ap-northeast-2.amazonaws.com",
       ".s3.ap-southeast-1.amazonaws.com",
       ".s3.amazonaws.com",
+      "cloudfront.net",
+      ".cloudfront.net",
     ];
 
     const isAllowed = allowedHostPatterns.some(

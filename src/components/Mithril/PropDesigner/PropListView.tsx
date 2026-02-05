@@ -224,9 +224,31 @@ export default function PropListView({
 
       const prompt = editablePrompts[propId] || prop.designSheetPrompt || "";
 
+      console.log('[PropListView] handleGenerate:', {
+        propId,
+        propName: prop.name,
+        hasReferenceImages: !!prop.referenceImages,
+        referenceImagesCount: prop.referenceImages?.length || 0,
+        referenceImages: prop.referenceImages,
+        existingJobId: jobIds[propId],
+        existingStatus: jobStatuses[propId],
+      });
+
       // Use async orchestrator if projectId is available
       if (projectId && orchestrator) {
         try {
+          // Clear old job status and ID to ensure clean state
+          setJobStatuses((prev) => {
+            const updated = { ...prev };
+            delete updated[propId];
+            return updated;
+          });
+          setJobIds((prev) => {
+            const updated = { ...prev };
+            delete updated[propId];
+            return updated;
+          });
+
           // Mark as generating
           onUpdateProp(propId, { isGenerating: true });
           setJobStatuses((prev) => ({ ...prev, [propId]: "pending" as PropJobStatus }));
@@ -239,6 +261,7 @@ export default function PropListView({
             genre,
             styleKeyword,
             referenceImages: prop.referenceImages,
+            aspectRatio: "16:9",
           });
 
           if (result.success && result.jobId) {
@@ -302,6 +325,7 @@ export default function PropListView({
         genre,
         styleKeyword,
         referenceImages: prop.referenceImages,
+        aspectRatio: "16:9" as const,
       }));
 
       const result = await orchestrator.submitBatch({ jobs });
@@ -367,19 +391,41 @@ export default function PropListView({
     [jobIds, orchestrator, onUpdateProp]
   );
 
-  // Download generated image (handles cross-origin S3 URLs)
+  // Download generated image (handles cross-origin S3 URLs via proxy)
   const downloadImage = useCallback(async (url: string, name: string) => {
     try {
-      // Fetch the image and convert to blob for cross-origin download
-      const response = await fetch(url);
-      const blob = await response.blob();
+      // Use image-proxy for cross-origin S3/CloudFront URLs to avoid CORS issues
+      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Proxy failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Convert base64 to blob
+      const base64Data = data.base64;
+      const contentType = data.contentType || 'image/png';
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: contentType });
+      
       const blobUrl = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = blobUrl;
       const safeName = name.replace(/[^a-zA-Z0-9\s_]/g, "").replace(/\s+/g, "_");
-      link.download = `${safeName}.png`;
+      // Use correct extension based on content type
+      const extension = contentType.includes('jpeg') ? 'jpg' : 'png';
+      link.download = `${safeName}.${extension}`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
       // Clean up blob URL
       URL.revokeObjectURL(blobUrl);

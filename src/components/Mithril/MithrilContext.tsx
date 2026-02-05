@@ -59,6 +59,10 @@ import {
   saveProp,
   saveDetectedIds,
   clearPropDesigner,
+  // Image-to-Video: Stage 1 - ImageSplitter
+  getImageSplitterMeta,
+  getMangaPages,
+  getMangaPanels,
 } from "./services/firestore";
 import type { UploadType } from "./services/firestore/types";
 
@@ -675,6 +679,40 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           createdAt: imageGenMeta?.generatedAt?.toMillis() || Date.now(),
         };
         setStageResults(prev => ({ ...prev, 7: imageGenData }));
+      }
+
+      // Load ImageSplitter data (Image-to-Video Stage 1)
+      // This is separate from the Text-to-Video pipeline stages
+      const imageSplitterMeta = await getImageSplitterMeta(currentProjectId);
+      if (imageSplitterMeta) {
+        const firestorePages = await getMangaPages(currentProjectId);
+        const loadedPages = [];
+
+        for (const page of firestorePages) {
+          const firestorePanels = await getMangaPanels(currentProjectId, page.pageIndex);
+          const panels = firestorePanels.map((p) => ({
+            id: p.id,
+            box_2d: p.box_2d,
+            label: p.label,
+            imageUrl: p.imageRef || '', // S3 URL
+          }));
+
+          loadedPages.push({
+            id: page.originalPageId || page.id,
+            pageIndex: page.pageIndex,
+            previewUrl: page.imageRef,
+            fileName: page.fileName,
+            panels,
+            status: page.status,
+            readingDirection: page.readingDirection,
+          });
+        }
+
+        if (loadedPages.length > 0) {
+          // Set stage result for completed pages (for ImageToScriptWriter to consume)
+          const completedPages = loadedPages.filter((p) => p.status === 'completed');
+          setStageResults(prev => ({ ...prev, 1: { pages: completedPages } }));
+        }
       }
     } catch (error) {
       console.error("Error loading data from Firestore:", error);

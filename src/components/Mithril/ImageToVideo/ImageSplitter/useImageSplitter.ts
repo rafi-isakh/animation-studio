@@ -704,21 +704,47 @@ export function useImageSplitter() {
     const zip = new JSZip();
     let hasContent = false;
 
-    completedPages.forEach((page) => {
-      page.panels.forEach((panel, idx) => {
-        if (panel.imageUrl) {
-          const base64Data = panel.imageUrl.includes(',')
-            ? panel.imageUrl.split(',')[1]
-            : panel.imageUrl;
+    // Helper to check if URL is an S3/CloudFront URL that needs proxying
+    const isS3Url = (url: string) =>
+      url.includes('s3.amazonaws.com') ||
+      url.includes('s3.ap-northeast-2.amazonaws.com') ||
+      url.includes('cloudfront.net');
 
+    for (const page of completedPages) {
+      for (let idx = 0; idx < page.panels.length; idx++) {
+        const panel = page.panels[idx];
+        if (panel.imageUrl) {
           const baseName = page.fileName.replace(/\.[^/.]+$/, '');
           const filename = `${baseName}_panel_${String(idx + 1).padStart(2, '0')}.jpg`;
 
-          zip.file(filename, base64Data, { base64: true });
-          hasContent = true;
+          try {
+            // Check if it's a URL (S3) or base64 data
+            if (panel.imageUrl.startsWith('http://') || panel.imageUrl.startsWith('https://')) {
+              // Use proxy for S3 URLs to avoid CORS issues
+              const fetchUrl = isS3Url(panel.imageUrl)
+                ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageUrl)}`
+                : panel.imageUrl;
+
+              const response = await fetch(fetchUrl);
+              if (response.ok) {
+                const blob = await response.blob();
+                zip.file(filename, blob);
+                hasContent = true;
+              }
+            } else {
+              // Handle base64 data
+              const base64Data = panel.imageUrl.includes(',')
+                ? panel.imageUrl.split(',')[1]
+                : panel.imageUrl;
+              zip.file(filename, base64Data, { base64: true });
+              hasContent = true;
+            }
+          } catch (error) {
+            console.error(`Failed to add panel ${idx} from ${page.fileName} to ZIP:`, error);
+          }
         }
-      });
-    });
+      }
+    }
 
     if (hasContent) {
       const blob = await zip.generateAsync({ type: 'blob' });

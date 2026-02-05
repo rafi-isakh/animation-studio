@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     "s3.ap-northeast-2.amazonaws.com",
     ".s3.amazonaws.com",
     ".s3.ap-northeast-2.amazonaws.com",
+    "cloudfront.net",
   ];
 
   try {

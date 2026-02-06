@@ -465,6 +465,25 @@ export function useScriptWriter() {
     dispatch({ type: 'START_GENERATING' });
 
     try {
+      // Adaptive compression: adjust quality/size based on panel count
+      // to stay under Vercel's 4.5MB request body limit
+      const IMAGE_BUDGET = 3.5 * 1024 * 1024; // 3.5MB for images, rest for text/prompt
+      const panelCount = allPanels.length;
+      const targetPerPanel = Math.floor(IMAGE_BUDGET / Math.max(panelCount, 1));
+
+      let maxWidth: number;
+      let quality: number;
+
+      if (targetPerPanel < 40000) {
+        maxWidth = 400; quality = 0.4;
+      } else if (targetPerPanel < 70000) {
+        maxWidth = 500; quality = 0.5;
+      } else if (targetPerPanel < 100000) {
+        maxWidth = 600; quality = 0.6;
+      } else {
+        maxWidth = 800; quality = 0.7;
+      }
+
       // Convert URLs to base64 and compress all panel images
       const compressedPanels = await Promise.all(
         allPanels.map(async (panel) => {
@@ -473,20 +492,39 @@ export function useScriptWriter() {
           // If it's a URL (S3), fetch and convert to base64
           if (isUrl(imageData)) {
             try {
-              imageData = await urlToBase64(imageData, 800, 0.7);
+              imageData = await urlToBase64(imageData, maxWidth, quality);
             } catch (err) {
               console.error(`Failed to fetch image from URL: ${imageData}`, err);
               throw new Error(`Failed to load panel image. Please try refreshing the page.`);
             }
           }
-          // Otherwise compress if too large
-          else if (imageData.length > 100000) {
-            imageData = await compressBase64Image(imageData, 800, 0.7);
+          // Otherwise compress
+          else if (imageData.length > targetPerPanel || imageData.length > 100000) {
+            imageData = await compressBase64Image(imageData, maxWidth, quality);
           }
 
           return { ...panel, imageBase64: imageData };
         })
       );
+
+      // Verify total payload size and re-compress if still too large
+      let totalSize = compressedPanels.reduce((sum, p) => sum + p.imageBase64.length, 0);
+      if (totalSize > IMAGE_BUDGET) {
+        const reductionRatio = IMAGE_BUDGET / totalSize;
+        const reducedWidth = Math.max(300, Math.floor(maxWidth * Math.sqrt(reductionRatio)));
+        const reducedQuality = Math.max(0.3, quality * reductionRatio);
+
+        for (let i = 0; i < compressedPanels.length; i++) {
+          compressedPanels[i] = {
+            ...compressedPanels[i],
+            imageBase64: await compressBase64Image(
+              compressedPanels[i].imageBase64,
+              reducedWidth,
+              reducedQuality
+            ),
+          };
+        }
+      }
 
       const response = await fetch('/api/manga/generate-storyboard', {
         method: 'POST',

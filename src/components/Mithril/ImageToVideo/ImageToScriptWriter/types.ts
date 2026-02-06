@@ -91,6 +91,14 @@ export interface PanelData {
   label: string;
 }
 
+// Panel payload sent to the API (URL or base64, not both)
+export interface PanelPayload {
+  id: string;
+  label: string;
+  imageBase64?: string;
+  imageUrl?: string;
+}
+
 // Complete state shape
 export interface ScriptWriterState {
   config: ScriptWriterConfig;

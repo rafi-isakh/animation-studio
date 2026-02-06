@@ -3,7 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 interface MangaPanel {
   id: string;
-  imageBase64: string; // Base64 encoded panel image
+  imageBase64?: string; // Base64 encoded panel image
+  imageUrl?: string; // URL to fetch image from (S3, etc.)
   label: string;
 }
 
@@ -77,6 +78,31 @@ async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Fetch an image from a URL and return its base64 data.
+ */
+async function fetchImageAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image from ${url}: ${response.status}`);
+  }
+  const buffer = await response.arrayBuffer();
+  return Buffer.from(buffer).toString("base64");
+}
+
+/**
+ * Resolve a panel's image data: use existing base64 or fetch from URL.
+ */
+async function resolvePanelImage(panel: MangaPanel): Promise<string> {
+  if (panel.imageBase64) {
+    return panel.imageBase64;
+  }
+  if (panel.imageUrl) {
+    return fetchImageAsBase64(panel.imageUrl);
+  }
+  throw new Error(`Panel ${panel.id} has no image data or URL`);
+}
+
 // Parse target duration string to seconds
 function parseDuration(duration: string): number {
   const parts = duration.split(':');
@@ -134,11 +160,16 @@ export async function POST(request: NextRequest) {
     // Build parts array with images and prompt
     const parts: Part[] = [];
 
+    // Resolve all panel images (fetch URLs server-side, use base64 as-is)
+    const resolvedImages = await Promise.all(
+      panels.map((panel) => resolvePanelImage(panel))
+    );
+
     // Add all panel images
-    for (let i = 0; i < panels.length; i++) {
+    for (let i = 0; i < resolvedImages.length; i++) {
       parts.push({
         inlineData: {
-          data: panels[i].imageBase64,
+          data: resolvedImages[i],
           mimeType: "image/jpeg",
         },
       });

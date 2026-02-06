@@ -70,34 +70,10 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Reading direction description
-    const directionDesc = readingDirection === 'rtl'
-      ? "RIGHT-TO-LEFT (Japanese manga style): Start from the top-right, read right-to-left for each row, then move down to the next row."
-      : "LEFT-TO-RIGHT (Western comic style): Start from the top-left, read left-to-right for each row, then move down to the next row.";
-
-    const prompt = `You are a manga/comic panel detection expert. Analyze the provided image and detect all individual panels.
-
-TASK:
-1. Identify each distinct panel (bordered frame) in the image
-2. Return bounding boxes in 0-1000 scale format: [ymin, xmin, ymax, xmax]
-3. Order panels according to the reading direction: ${directionDesc}
-
-RULES:
-- Detect ALL visible panels, including small ones
-- Panels are typically rectangular frames with clear borders
-- Ignore gutters (white/empty spaces between panels)
-- Ignore speech bubbles, sound effects text, or decorative elements that span panels
-- For complex layouts (overlapping or irregularly shaped panels), use your best judgment to define rectangular bounds
-- If panels overlap, still detect them individually
-- Coordinates must be in 0-1000 scale where (0,0) is top-left and (1000,1000) is bottom-right
-
-ORDERING:
-Reading direction is ${readingDirection.toUpperCase()}.
-${directionDesc}
-
-Label each panel sequentially: "Panel 1", "Panel 2", etc.
-
-Return the panels in proper reading order.`;
+    // Simple prompt matching the animation storyboard breakdown approach
+    const directionLabel = readingDirection === 'rtl' ? 'Manga (RTL)' : 'Comic (LTR)';
+    const prompt = `Analyze this page for animation storyboard breakdown. Direction: ${directionLabel}.
+Detect scenery, characters, and action as separate panels. Return [ymin, xmin, ymax, xmax] in 0-1000 scale.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",

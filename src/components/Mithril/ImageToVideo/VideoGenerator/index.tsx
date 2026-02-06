@@ -30,8 +30,7 @@ import {
   clearI2VVideo,
   mapJobToClipUpdate,
   getActiveProjectJobs,
-  getI2VScenes,
-  getI2VClips,
+  loadI2VStoryboardAll,
 } from "../../services/firestore";
 import { useVideoOrchestrator, type ClipUpdate } from "../../VideoGenerator/useVideoOrchestrator";
 
@@ -265,42 +264,40 @@ export default function I2VVideoGenerator() {
 
         let scenes = storyboardResult?.scenes || storyboardResult?.storyboardData || [];
 
-        // If context is empty, try to load from Firestore
+        // If context is empty, try to load from i2vStoryboard Firestore (StoryboardEditor)
         if (scenes.length === 0 && currentProjectId) {
           try {
-            const firestoreScenes = await getI2VScenes(currentProjectId);
-            if (firestoreScenes.length > 0) {
-              // Load clips for each scene
-              const loadedScenes: Scene[] = await Promise.all(
-                firestoreScenes.map(async (scene) => {
-                  const clips = await getI2VClips(currentProjectId, scene.sceneIndex);
-                  return {
-                    sceneTitle: scene.sceneTitle,
-                    clips: clips.map((clip) => ({
-                      story: clip.story || "",
-                      imagePrompt: clip.imagePrompt || "",
-                      imagePromptEnd: clip.imagePromptEnd,
-                      videoPrompt: clip.videoPrompt || "",
-                      soraVideoPrompt: clip.soraVideoPrompt || "",
-                      dialogue: clip.dialogue || "",
-                      dialogueEn: clip.dialogueEn || "",
-                      sfx: clip.sfx || "",
-                      sfxEn: clip.sfxEn || "",
-                      bgm: clip.bgm || "",
-                      bgmEn: clip.bgmEn || "",
-                      length: clip.length || "4초",
-                      accumulatedTime: clip.accumulatedTime || "",
-                      backgroundPrompt: clip.backgroundPrompt || "",
-                      backgroundId: clip.backgroundId || "",
-                      referenceImageIndex: clip.referenceImageIndex,
-                    })),
-                  };
-                })
-              );
+            const storyboardData = await loadI2VStoryboardAll(currentProjectId);
+            if (storyboardData && storyboardData.scenes.length > 0) {
+              const loadedScenes: Scene[] = storyboardData.scenes.map((scene) => ({
+                sceneTitle: scene.sceneTitle,
+                clips: scene.clips.map((clip) => ({
+                  story: clip.story || "",
+                  imagePrompt: clip.imagePrompt || "",
+                  imagePromptEnd: clip.imagePromptEnd,
+                  videoPrompt: clip.videoPrompt || "",
+                  soraVideoPrompt: clip.soraVideoPrompt || "",
+                  dialogue: clip.dialogue || "",
+                  dialogueEn: clip.dialogueEn || "",
+                  sfx: clip.sfx || "",
+                  sfxEn: clip.sfxEn || "",
+                  bgm: clip.bgm || "",
+                  bgmEn: clip.bgmEn || "",
+                  length: clip.length || "4초",
+                  accumulatedTime: clip.accumulatedTime || "",
+                  backgroundPrompt: clip.backgroundPrompt || "",
+                  backgroundId: clip.backgroundId || "",
+                  referenceImageIndex: clip.referenceImageIndex,
+                  // Load generated images from StoryboardEditor
+                  generatedImage: clip.generatedImageUrl || undefined,
+                  generatedImageEnd: clip.generatedImageEndUrl || undefined,
+                  referenceImage: clip.referenceImageUrl || undefined,
+                })),
+              }));
               scenes = loadedScenes;
             }
           } catch (err) {
-            console.error("Error loading scenes from Firestore:", err);
+            console.error("Error loading scenes from i2vStoryboard Firestore:", err);
           }
         }
 

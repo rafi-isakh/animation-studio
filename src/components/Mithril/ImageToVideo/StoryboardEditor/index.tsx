@@ -28,6 +28,7 @@ export default function StoryboardEditor() {
     hasEndPrompts,
     hasData,
     isLoadingData,
+    isSaving,
     setView,
     setAspectRatio,
     updateClip,
@@ -100,6 +101,12 @@ export default function StoryboardEditor() {
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Clips</p>
               <p className="text-2xl font-bold text-[#DB2777]">{totalClips}</p>
             </div>
+            {isSaving && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

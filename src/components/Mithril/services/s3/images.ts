@@ -1226,6 +1226,205 @@ export async function clearAllI2VImages(projectId: string): Promise<void> {
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================
 
+// ============================================================================
+// I2V Storyboard Images (Stage 4)
+// ============================================================================
+
+/**
+ * Upload an I2V storyboard frame image (start frame) to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VStoryboardFrameImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-frame',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V storyboard frame image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an I2V storyboard frame end image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VStoryboardFrameEndImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-frame-end',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V storyboard frame end image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an I2V storyboard asset image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VStoryboardAssetImage(
+  projectId: string,
+  assetId: string,
+  assetType: 'character' | 'background',
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-asset',
+    assetId,
+    assetType,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V storyboard asset image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete an I2V storyboard frame image from S3
+ */
+export async function deleteI2VStoryboardFrameImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-frame',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete I2V storyboard frame image');
+  }
+}
+
+/**
+ * Delete an I2V storyboard frame end image from S3
+ */
+export async function deleteI2VStoryboardFrameEndImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-frame-end',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete I2V storyboard frame end image');
+  }
+}
+
+/**
+ * Delete an I2V storyboard asset image from S3
+ */
+export async function deleteI2VStoryboardAssetImage(
+  projectId: string,
+  assetId: string,
+  assetType: 'character' | 'background'
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-asset',
+    assetId,
+    assetType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete I2V storyboard asset image');
+  }
+}
+
 export {
   getCharacterImageKey,
   getBackgroundImageKey,

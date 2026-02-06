@@ -106,8 +106,9 @@ export default function ClipCard({
 
     setIsDownloading(true);
     try {
-      // Fetch the video as a blob to handle CORS properly
-      const response = await fetch(videoUrl);
+      // Use proxy to avoid CORS issues with CloudFront/S3
+      const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(videoUrl)}`;
+      const response = await fetch(proxyUrl);
       if (!response.ok) {
         throw new Error('Failed to fetch video');
       }

@@ -49,3 +49,6 @@ export * from './imageSplitter';
 
 // Image-to-Video: Stage 2 - Script Writer
 export * from './imageToScript';
+
+// Image-to-Video: Stage 5 - Video Generator
+export * from './i2vVideo';

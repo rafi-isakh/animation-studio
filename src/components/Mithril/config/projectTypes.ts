@@ -43,7 +43,7 @@ const IMAGE_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 2, key: 'panel-editor', labelKey: 'mithril_i2v_stage2', component: 'PanelEditor' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3', component: 'ImageToScriptWriter' },
   { id: 4, key: 'storyboard-editor', labelKey: 'mithril_i2v_stage4', component: 'StoryboardEditor' },
-  // Future stages will be added here (e.g., character generation, video generation)
+  { id: 5, key: 'video-gen', labelKey: 'mithril_i2v_stage5', component: 'I2VVideoGenerator' },
 ];
 
 // Project type configurations

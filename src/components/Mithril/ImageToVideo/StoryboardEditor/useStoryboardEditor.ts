@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { useMithril } from '../../MithrilContext';
 import { storyboardEditorReducer, initialState } from './reducer';
 import type {
@@ -13,9 +13,14 @@ import type {
   ProjectData,
 } from './types';
 
+// Stage result key for StoryboardEditor (Stage 4 in I2V pipeline)
+const STORYBOARD_EDITOR_STAGE = 4;
+
 export function useStoryboardEditor() {
-  const { storyboardGenerator, getStageResult } = useMithril();
+  const { storyboardGenerator, getStageResult, setStageResult, isLoading: isContextLoading } = useMithril();
   const [state, dispatch] = useReducer(storyboardEditorReducer, initialState);
+  const hasInitializedRef = useRef(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Computed values
   const totalClips = useMemo(() => {
@@ -31,6 +36,68 @@ export function useStoryboardEditor() {
   const hasData = useMemo(() => {
     return state.storyboardData.length > 0;
   }, [state.storyboardData]);
+
+  // Load existing data from context on mount (for when navigating back to this stage)
+  useEffect(() => {
+    if (hasInitializedRef.current) return;
+
+    // Wait for MithrilContext to finish loading
+    if (isContextLoading) return;
+
+    const existingData = getStageResult(STORYBOARD_EDITOR_STAGE) as {
+      scenes?: Scene[];
+      storyboardData?: Scene[];
+      voicePrompts?: VoicePrompt[];
+      assets?: Asset[];
+      aspectRatio?: AspectRatio;
+      targetDuration?: string;
+    } | undefined;
+
+    const scenes = existingData?.scenes || existingData?.storyboardData;
+    if (scenes && scenes.length > 0) {
+      dispatch({ type: 'SET_STORYBOARD_DATA', payload: scenes });
+      if (existingData?.voicePrompts) {
+        dispatch({ type: 'SET_VOICE_PROMPTS', payload: existingData.voicePrompts });
+      }
+      if (existingData?.assets) {
+        dispatch({ type: 'SET_ASSETS', payload: existingData.assets });
+      }
+      if (existingData?.aspectRatio) {
+        dispatch({ type: 'SET_ASPECT_RATIO', payload: existingData.aspectRatio });
+      }
+      if (existingData?.targetDuration) {
+        dispatch({ type: 'SET_TARGET_DURATION', payload: existingData.targetDuration });
+      }
+      dispatch({ type: 'SET_VIEW', payload: 'generator' });
+    }
+
+    hasInitializedRef.current = true;
+    setIsLoadingData(false);
+  }, [getStageResult, isContextLoading]);
+
+  // Persist state to context whenever storyboard data changes
+  useEffect(() => {
+    // Only persist if we have data and have been initialized
+    if (!hasInitializedRef.current || state.storyboardData.length === 0) {
+      return;
+    }
+
+    setStageResult(STORYBOARD_EDITOR_STAGE, {
+      scenes: state.storyboardData,
+      storyboardData: state.storyboardData, // Alias for compatibility
+      voicePrompts: state.voicePrompts,
+      assets: state.assets,
+      aspectRatio: state.aspectRatio,
+      targetDuration: state.targetDuration,
+    });
+  }, [
+    state.storyboardData,
+    state.voicePrompts,
+    state.assets,
+    state.aspectRatio,
+    state.targetDuration,
+    setStageResult,
+  ]);
 
   // Actions
   const setView = useCallback((view: ViewMode) => {
@@ -329,15 +396,20 @@ export function useStoryboardEditor() {
     link.click();
   }, [state.storyboardData]);
 
-  // Load data from previous stage (ImageToScriptWriter - stage 3)
+  // Load data from previous stage (ImageToScriptWriter)
   const loadFromPreviousStage = useCallback(() => {
-    // Try to get data from stage 3 (ImageToScriptWriter)
-    const stage3Result = getStageResult(3) as { scenes?: Scene[]; voicePrompts?: VoicePrompt[] } | undefined;
+    // ImageToScriptWriter saves to stage result key 2 (legacy inconsistency)
+    // Try key 2 first, then key 3 for compatibility
+    let scriptResult = getStageResult(2) as { scenes?: Scene[]; voicePrompts?: VoicePrompt[] } | undefined;
 
-    if (stage3Result && stage3Result.scenes && stage3Result.scenes.length > 0) {
-      dispatch({ type: 'SET_STORYBOARD_DATA', payload: stage3Result.scenes });
-      if (stage3Result.voicePrompts) {
-        dispatch({ type: 'SET_VOICE_PROMPTS', payload: stage3Result.voicePrompts });
+    if (!scriptResult?.scenes || scriptResult.scenes.length === 0) {
+      scriptResult = getStageResult(3) as { scenes?: Scene[]; voicePrompts?: VoicePrompt[] } | undefined;
+    }
+
+    if (scriptResult && scriptResult.scenes && scriptResult.scenes.length > 0) {
+      dispatch({ type: 'SET_STORYBOARD_DATA', payload: scriptResult.scenes });
+      if (scriptResult.voicePrompts) {
+        dispatch({ type: 'SET_VOICE_PROMPTS', payload: scriptResult.voicePrompts });
       }
       dispatch({ type: 'SET_VIEW', payload: 'generator' });
       return;
@@ -358,6 +430,7 @@ export function useStoryboardEditor() {
     totalClips,
     hasEndPrompts,
     hasData,
+    isLoadingData,
     setView,
     setLoading,
     setAspectRatio,

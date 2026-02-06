@@ -27,6 +27,7 @@ export default function StoryboardEditor() {
     totalClips,
     hasEndPrompts,
     hasData,
+    isLoadingData,
     setView,
     setAspectRatio,
     updateClip,
@@ -67,6 +68,16 @@ export default function StoryboardEditor() {
     }
     if (e.target) e.target.value = '';
   };
+
+  // Show loading indicator while data is being loaded
+  if (isLoadingData) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-4 py-16">
+        <Loader2 className="w-12 h-12 text-[#DB2777] animate-spin" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading storyboard data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

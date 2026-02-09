@@ -62,7 +62,8 @@ export async function saveImageGenMeta(
     name: string;
     imageUrl: string;
     category: 'character' | 'background';
-  }>
+  }>,
+  frameSource?: 'storyboard' | 'csv'
 ): Promise<void> {
   const docRef = getImageGenRef(projectId);
 
@@ -75,6 +76,11 @@ export async function saveImageGenMeta(
   // Include localAssets if provided
   if (localAssets !== undefined) {
     data.localAssets = localAssets;
+  }
+
+  // Include frameSource if provided
+  if (frameSource !== undefined) {
+    data.frameSource = frameSource;
   }
 
   await setDoc(docRef, data, { merge: true });

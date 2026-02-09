@@ -122,11 +122,16 @@ export default function ImageGeneratorOrchestrator() {
   const activeJobsRef = useRef<Set<string>>(new Set());
   const frameToJobMap = useRef<Map<string, string>>(new Map()); // frameId -> jobId mapping
   const shouldStopRef = useRef(false);
+  const currentProjectIdRef = useRef(currentProjectId);
 
   // Keep refs in sync
   useEffect(() => {
     framesRef.current = frames;
   }, [frames]);
+
+  useEffect(() => {
+    currentProjectIdRef.current = currentProjectId;
+  }, [currentProjectId]);
 
   useEffect(() => {
     isBatchRunningRef.current = isBatchRunning;
@@ -145,51 +150,50 @@ export default function ImageGeneratorOrchestrator() {
     };
   }, []);
 
-  // Auto-save helper
-  const autoSave = useCallback(
-    async (updatedFrames: ImageGenFrame[]) => {
-      if (!currentProjectId) return;
+  // Save a single completed frame to Firestore (called from onFrameUpdate)
+  const saveCompletedFrame = useCallback(
+    async (frame: ImageGenFrame, imageUrl: string) => {
+      const projectId = currentProjectIdRef.current;
+      if (!projectId) return;
 
       try {
-        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, []);
+        await saveImageGenFrame(projectId, frame.id, {
+          sceneIndex: frame.sceneIndex,
+          clipIndex: frame.clipIndex,
+          frameLabel: frame.frameLabel,
+          frameNumber: frame.frameNumber,
+          shotGroup: frame.shotGroup,
+          prompt: frame.prompt,
+          backgroundId: frame.backgroundId,
+          refFrame: frame.refFrame,
+          imageRef: imageUrl,
+          imageUpdatedAt: Date.now(),
+          status: "completed",
+          remixPrompt: frame.remixPrompt || "",
+          remixImageRef: frame.remixImageUrl || null,
+          editedImageRef: frame.editedImageUrl || null,
+        });
+        console.log(`[ImageGenOrchestrator] Saved frame ${frame.frameLabel} to Firestore (imageRef: ${imageUrl.substring(0, 60)}...)`);
 
-        for (const frame of updatedFrames) {
-          if (frame.status === "completed" && frame.imageUrl) {
-            await saveImageGenFrame(currentProjectId, frame.id, {
-              sceneIndex: frame.sceneIndex,
-              clipIndex: frame.clipIndex,
-              frameLabel: frame.frameLabel,
-              frameNumber: frame.frameNumber,
-              shotGroup: frame.shotGroup,
-              prompt: frame.prompt,
-              backgroundId: frame.backgroundId,
-              refFrame: frame.refFrame,
-              imageRef: frame.imageUrl,
-              status: frame.status,
-              remixPrompt: frame.remixPrompt || "",
-              remixImageRef: frame.remixImageUrl || null,
-              editedImageRef: frame.editedImageUrl || null,
-            });
-          }
-        }
-
+        // Update stage result with latest frames
+        const latestFrames = framesRef.current;
         setStageResult(7, {
           settings,
-          frames: updatedFrames.map((f) => ({
+          frames: latestFrames.map((f) => ({
             id: f.id,
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
             frameLabel: f.frameLabel,
-            imageRef: f.imageUrl,
-            status: f.status,
+            imageRef: f.id === frame.id ? imageUrl : f.imageUrl,
+            status: f.id === frame.id ? "completed" : f.status,
           })),
           createdAt: Date.now(),
         });
       } catch (err) {
-        console.error("Error auto-saving image frame:", err);
+        console.error(`[ImageGenOrchestrator] Error saving frame ${frame.frameLabel}:`, err);
       }
     },
-    [currentProjectId, settings, setStageResult]
+    [settings, setStageResult]
   );
 
   // Orchestrator hook with real-time Firestore updates
@@ -208,20 +212,18 @@ export default function ImageGeneratorOrchestrator() {
         // Check if job was in tracking BEFORE we modify it (for toast logic)
         const wasTracked = activeJobsRef.current.has(update.jobId);
 
+        // Look up the frame from ref BEFORE setFrames (avoids React 18 batching issue)
+        const currentFrames = framesRef.current;
+        const frameForSave =
+          currentFrames.find((f) => f.id === update.frameId) ||
+          currentFrames.find((f) => f.sceneIndex === update.sceneIndex && f.clipIndex === update.clipIndex) ||
+          null;
+
         setFrames((prev) => {
-          const frameIndex = prev.findIndex((f) => f.id === update.frameId);
-
-          if (frameIndex === -1) {
-            // Try matching by sceneIndex/clipIndex
-            const altIdx = prev.findIndex(
-              (f) => f.sceneIndex === update.sceneIndex && f.clipIndex === update.clipIndex
-            );
-            if (altIdx === -1) return prev;
-          }
-
-          const targetIndex = frameIndex !== -1 ? frameIndex : prev.findIndex(
-            (f) => f.sceneIndex === update.sceneIndex && f.clipIndex === update.clipIndex
-          );
+          const targetIndex =
+            prev.findIndex((f) => f.id === update.frameId) !== -1
+              ? prev.findIndex((f) => f.id === update.frameId)
+              : prev.findIndex((f) => f.sceneIndex === update.sceneIndex && f.clipIndex === update.clipIndex);
 
           if (targetIndex === -1) return prev;
 
@@ -232,11 +234,6 @@ export default function ImageGeneratorOrchestrator() {
           const newImageUrl = update.imageUrl && update.imageUrl.trim() !== ""
             ? update.imageUrl
             : frame.imageUrl;
-
-          // Debug log if imageUrl is being preserved (not updated)
-          if (frame.imageUrl && !update.imageUrl && update.status !== "pending") {
-            console.log(`[ImageGenOrchestrator] Preserving old imageUrl for frame ${update.frameId} (status: ${update.status}, had: ${!!frame.imageUrl}, new: ${!!update.imageUrl})`);
-          }
 
           updatedFrames[targetIndex] = {
             ...frame,
@@ -251,26 +248,22 @@ export default function ImageGeneratorOrchestrator() {
             error: update.error,
           };
 
-          // Auto-save on completion
-          if (update.status === "completed" && update.imageUrl) {
-            trackImageGeneration(1);
-            setTimeout(() => {
-              if (isMountedRef.current) {
-                autoSave(updatedFrames);
-              }
-            }, 100);
-          }
-
           return updatedFrames;
         });
 
-        // Show toast for completion/failure (check BEFORE cleanup)
-        if (update.status === "completed" && wasTracked) {
+        // Persist completed frame to Firestore OUTSIDE the updater
+        if (update.status === "completed" && update.imageUrl && frameForSave) {
+          trackImageGeneration(1);
+          saveCompletedFrame(frameForSave, update.imageUrl);
+        }
+
+        // Show toast and clean up tracking for terminal states
+        // For completed: only clean up if imageUrl is set (backend may write status before image_url)
+        if (update.status === "completed" && update.imageUrl && wasTracked) {
           toast({
             title: "Image Generated",
             description: `Frame ${update.frameLabel} completed successfully`,
           });
-          // Clean up tracking
           activeJobsRef.current.delete(update.jobId);
           frameToJobMap.current.delete(update.frameId);
         } else if (update.status === "failed" && wasTracked && !shouldStopRef.current) {
@@ -279,12 +272,11 @@ export default function ImageGeneratorOrchestrator() {
             description: update.error || "Image generation failed",
             variant: "destructive",
           });
-          // Clean up tracking
           activeJobsRef.current.delete(update.jobId);
           frameToJobMap.current.delete(update.frameId);
         }
       },
-      [toast, trackImageGeneration, autoSave]
+      [toast, trackImageGeneration, saveCompletedFrame]
     ),
   });
 
@@ -450,32 +442,62 @@ export default function ImageGeneratorOrchestrator() {
         }
 
         if (savedFrames.length > 0) {
-          const storyboardFrames = loadFramesFromStoryboard();
-          const savedFrameMap = new Map<string, typeof savedFrames[0]>();
-          savedFrames.forEach((f) => {
-            savedFrameMap.set(f.frameLabel, f);
-          });
+          const frameSource = savedMeta?.frameSource;
 
-          const mergedFrames = storyboardFrames.map((sbFrame) => {
-            const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
-            if (savedFrame) {
-              return {
-                ...sbFrame,
-                id: savedFrame.id || sbFrame.id,
-                prompt: savedFrame.prompt || sbFrame.prompt,
-                backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
-                refFrame: savedFrame.refFrame || sbFrame.refFrame,
-                imageUrl: savedFrame.imageRef || null,
-                imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
-                status: savedFrame.status ?? sbFrame.status,
-                remixPrompt: savedFrame.remixPrompt || "",
-                remixImageUrl: savedFrame.remixImageRef || null,
-                hasDrawingEdits: !!savedFrame.editedImageRef,
-                editedImageUrl: savedFrame.editedImageRef || null,
-              };
-            }
-            return sbFrame;
-          });
+          // For CSV imports: reconstruct directly from Firestore (no storyboard merge)
+          // For storyboard: merge saved data with storyboard frames
+          let mergedFrames: ImageGenFrame[];
+
+          if (frameSource === 'csv') {
+            mergedFrames = savedFrames.map((sf) => ({
+              id: sf.id,
+              sceneIndex: sf.sceneIndex,
+              clipIndex: sf.clipIndex,
+              frameLabel: sf.frameLabel,
+              frameNumber: sf.frameNumber,
+              shotGroup: sf.shotGroup,
+              prompt: sf.prompt,
+              backgroundId: sf.backgroundId,
+              refFrame: sf.refFrame,
+              imageUrl: sf.imageRef || null,
+              imageBase64: null,
+              imageUpdatedAt: sf.imageUpdatedAt || undefined,
+              status: sf.status || ("pending" as const),
+              isLoading: false,
+              remixPrompt: sf.remixPrompt || "",
+              remixImageUrl: sf.remixImageRef || null,
+              remixImageBase64: null,
+              hasDrawingEdits: !!sf.editedImageRef,
+              editedImageUrl: sf.editedImageRef || null,
+            }));
+          } else {
+            const storyboardFrames = loadFramesFromStoryboard();
+            const savedFrameMap = new Map<string, typeof savedFrames[0]>();
+            savedFrames.forEach((f) => {
+              savedFrameMap.set(f.frameLabel, f);
+            });
+
+            mergedFrames = storyboardFrames.map((sbFrame) => {
+              const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
+              if (savedFrame) {
+                return {
+                  ...sbFrame,
+                  id: savedFrame.id || sbFrame.id,
+                  prompt: savedFrame.prompt || sbFrame.prompt,
+                  backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
+                  refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                  imageUrl: savedFrame.imageRef || null,
+                  imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
+                  status: savedFrame.status ?? sbFrame.status,
+                  remixPrompt: savedFrame.remixPrompt || "",
+                  remixImageUrl: savedFrame.remixImageRef || null,
+                  hasDrawingEdits: !!savedFrame.editedImageRef,
+                  editedImageUrl: savedFrame.editedImageRef || null,
+                };
+              }
+              return sbFrame;
+            });
+          }
 
           // Fetch active jobs from job_queue
           try {
@@ -842,6 +864,14 @@ export default function ImageGeneratorOrchestrator() {
         category: 'character' | 'background';
       }>;
 
+      // Update local state with S3 URLs so collectReferenceUrls can find them
+      if (successfulAssets.length > 0) {
+        const urlMap = new Map(successfulAssets.map((a) => [a.id, a.imageUrl]));
+        setLocalAssets((prev) =>
+          prev.map((a) => urlMap.has(a.id) ? { ...a, imageUrl: urlMap.get(a.id) } : a)
+        );
+      }
+
       await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, successfulAssets);
 
       const frameInputs = frames.map((f) => ({
@@ -959,6 +989,7 @@ export default function ImageGeneratorOrchestrator() {
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
+        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, undefined, 'storyboard');
 
         setStageResult(7, {
           settings,
@@ -1058,7 +1089,7 @@ export default function ImageGeneratorOrchestrator() {
   }, [toast]);
 
   // Load storyboard frames from CSV (same as original)
-  const handleLoadCsvStoryboard = useCallback(() => {
+  const handleLoadCsvStoryboard = useCallback(async () => {
     if (!parsedCsvData || !csvPromptStart.trim()) {
       toast({
         title: "Missing Data",
@@ -1171,14 +1202,62 @@ export default function ImageGeneratorOrchestrator() {
     setIsCsvPanelOpen(false);
     setError(null);
 
+    // Persist CSV-imported frames to Firestore so they survive refresh
+    if (currentProjectId) {
+      try {
+        // Clear existing frames first (CSV replaces everything)
+        await clearImageGen(currentProjectId);
+
+        const frameInputs = newFrames.map((f) => ({
+          id: f.id,
+          input: {
+            sceneIndex: f.sceneIndex,
+            clipIndex: f.clipIndex,
+            frameLabel: f.frameLabel,
+            frameNumber: f.frameNumber,
+            shotGroup: f.shotGroup,
+            prompt: f.prompt,
+            backgroundId: f.backgroundId,
+            refFrame: f.refFrame,
+            imageRef: "",
+            status: f.status,
+            remixPrompt: "",
+            remixImageRef: null,
+            editedImageRef: null,
+          },
+        }));
+        await saveImageGenFrames(currentProjectId, frameInputs);
+
+        // Also save settings with csv flag so the meta document exists
+        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, undefined, 'csv');
+
+        setStageResult(7, {
+          settings,
+          frames: newFrames.map((f) => ({
+            id: f.id,
+            sceneIndex: f.sceneIndex,
+            clipIndex: f.clipIndex,
+            frameLabel: f.frameLabel,
+            imageRef: null,
+            status: f.status,
+          })),
+          createdAt: Date.now(),
+        });
+
+        console.log(`[ImageGen] Persisted ${newFrames.length} CSV-imported frames to Firestore`);
+      } catch (err) {
+        console.error("[ImageGen] Failed to persist CSV frames to Firestore:", err);
+      }
+    }
+
     toast({
       title: "Storyboard Loaded",
       description: `Created ${newFrames.length} frames from CSV.`,
       variant: "default",
     });
-  }, [parsedCsvData, csvHeaders, csvPromptStart, csvPromptEnd, csvEndFrameCol, csvBgIdCol, toast]);
+  }, [parsedCsvData, csvHeaders, csvPromptStart, csvPromptEnd, csvEndFrameCol, csvBgIdCol, toast, currentProjectId, settings, setStageResult]);
 
-  // Handle asset file upload
+  // Handle asset file upload - immediately upload to S3 so URLs are available for orchestrator
   const handleAssetUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>, category: "character" | "background") => {
       const files = e.target.files;
@@ -1191,13 +1270,28 @@ export default function ImageGeneratorOrchestrator() {
         try {
           const base64 = await fileToBase64(file);
           const id = sanitizeFilename(file.name.split(".")[0]);
-          newAssets.push({
+          const asset: LocalAssetRef = {
             id,
             name: file.name.split(".")[0],
             base64,
             mimeType: file.type || "image/png",
             category,
-          });
+          };
+
+          // Upload to S3 immediately if project exists (orchestrator needs URLs)
+          if (currentProjectId) {
+            try {
+              const imageUrl = await uploadImageGenReplacementAsset(
+                currentProjectId, id, category, base64, file.type || "image/png"
+              );
+              asset.imageUrl = imageUrl;
+              console.log(`[ImageGen] Uploaded asset ${id} to S3: ${imageUrl.substring(0, 60)}...`);
+            } catch (uploadErr) {
+              console.warn(`[ImageGen] Failed to upload asset ${id} to S3, keeping base64 only:`, uploadErr);
+            }
+          }
+
+          newAssets.push(asset);
         } catch (err) {
           console.error(`Error processing file ${file.name}:`, err);
         }
@@ -1205,6 +1299,20 @@ export default function ImageGeneratorOrchestrator() {
 
       if (newAssets.length > 0) {
         setLocalAssets((prev) => [...prev, ...newAssets]);
+
+        // Persist asset metadata to Firestore so they survive refresh
+        if (currentProjectId) {
+          try {
+            const allAssets = [...localAssets, ...newAssets];
+            const assetsForFirestore = allAssets
+              .filter((a) => a.imageUrl)
+              .map((a) => ({ id: a.id, name: a.name, imageUrl: a.imageUrl!, category: a.category }));
+            await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore);
+          } catch (err) {
+            console.warn("[ImageGen] Failed to persist asset metadata:", err);
+          }
+        }
+
         toast({
           title: "Assets Uploaded",
           description: `Added ${newAssets.length} ${category} asset(s).`,
@@ -1214,7 +1322,7 @@ export default function ImageGeneratorOrchestrator() {
 
       if (e.target) e.target.value = "";
     },
-    [toast]
+    [toast, currentProjectId, localAssets, settings.stylePrompt, settings.aspectRatio]
   );
 
   // Remove a local asset
@@ -1257,17 +1365,43 @@ export default function ImageGeneratorOrchestrator() {
 
       try {
         const base64 = await fileToBase64(file);
-        setLocalAssets((prev) => prev.filter((a) => a.id !== assetId));
-        setLocalAssets((prev) => [
-          ...prev,
-          {
-            id: assetId,
-            name: assetName,
-            base64,
-            mimeType: file.type || "image/png",
-            category,
-          },
-        ]);
+        const asset: LocalAssetRef = {
+          id: assetId,
+          name: assetName,
+          base64,
+          mimeType: file.type || "image/png",
+          category,
+        };
+
+        // Upload to S3 immediately if project exists (orchestrator needs URLs)
+        if (currentProjectId) {
+          try {
+            const imageUrl = await uploadImageGenReplacementAsset(
+              currentProjectId, assetId, category, base64, file.type || "image/png"
+            );
+            asset.imageUrl = imageUrl;
+            console.log(`[ImageGen] Uploaded replacement ${assetId} to S3: ${imageUrl.substring(0, 60)}...`);
+          } catch (uploadErr) {
+            console.warn(`[ImageGen] Failed to upload replacement ${assetId} to S3:`, uploadErr);
+          }
+        }
+
+        setLocalAssets((prev) => {
+          const updated = prev.filter((a) => a.id !== assetId);
+          updated.push(asset);
+
+          // Persist to Firestore
+          if (currentProjectId) {
+            const assetsForFirestore = updated
+              .filter((a) => a.imageUrl)
+              .map((a) => ({ id: a.id, name: a.name, imageUrl: a.imageUrl!, category: a.category }));
+            saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore)
+              .catch((err) => console.warn("[ImageGen] Failed to persist asset metadata:", err));
+          }
+
+          return updated;
+        });
+
         toast({
           title: "Asset Replaced",
           description: `"${assetName}" has been replaced with your uploaded image.`,
@@ -1284,7 +1418,7 @@ export default function ImageGeneratorOrchestrator() {
 
       if (e.target) e.target.value = "";
     },
-    [toast]
+    [toast, currentProjectId, settings.stylePrompt, settings.aspectRatio]
   );
 
   // Check if an asset has been replaced

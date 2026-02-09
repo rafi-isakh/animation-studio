@@ -280,15 +280,18 @@ export default function ImageGenerator() {
           // Load local assets metadata (lazy loading - base64 loaded on-demand during generation)
           if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
             console.log(`[ImageGen] Found ${savedMeta.localAssets.length} replacement assets (lazy loading enabled)`);
-            // Store only metadata - base64 will be loaded on-demand when needed
-            const assetMetadata: LocalAssetRef[] = savedMeta.localAssets.map((asset) => ({
-              id: asset.id,
-              name: asset.name,
-              mimeType: 'image/webp',
-              category: asset.category,
-              imageUrl: asset.imageUrl, // Store URL for lazy loading
-            }));
-            setLocalAssets(assetMetadata);
+            // Deduplicate by id (keep last entry) to prevent stale duplicates
+            const seen = new Map<string, LocalAssetRef>();
+            savedMeta.localAssets.forEach((asset) => {
+              seen.set(asset.id, {
+                id: asset.id,
+                name: asset.name,
+                mimeType: 'image/webp',
+                category: asset.category,
+                imageUrl: asset.imageUrl,
+              });
+            });
+            setLocalAssets(Array.from(seen.values()));
           }
         }
 
@@ -1259,7 +1262,9 @@ export default function ImageGenerator() {
       }
 
       if (newAssets.length > 0) {
-        setLocalAssets((prev) => [...prev, ...newAssets]);
+        // Deduplicate: remove existing assets with same IDs, latest upload wins
+        const newIds = new Set(newAssets.map((a) => a.id));
+        setLocalAssets((prev) => [...prev.filter((a) => !newIds.has(a.id)), ...newAssets]);
         toast({
           title: "Assets Uploaded",
           description: `Added ${newAssets.length} ${category} asset(s).`,

@@ -99,14 +99,37 @@ export default function ClipCard({
   // Use custom prompt if set, otherwise fall back to soraVideoPrompt or videoPrompt
   const currentPrompt = customPrompt || soraVideoPrompt || videoPrompt || "";
 
-  const handleDownload = () => {
-    if (videoUrl) {
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!videoUrl || isDownloading) return;
+
+    setIsDownloading(true);
+    try {
+      // Use proxy to avoid CORS issues with CloudFront/S3
+      const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(videoUrl)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch video');
+      }
+      const blob = await response.blob();
+
+      // Create an Object URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+
       const link = document.createElement("a");
-      link.href = videoUrl;
+      link.href = blobUrl;
       link.download = `clip_${sceneIndex + 1}_${clipIndex + 1}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Clean up the Object URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -273,9 +296,14 @@ export default function ClipCard({
               <>
                 <button
                   onClick={handleDownload}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors"
+                  disabled={isDownloading}
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
-                  <Download size={14} />
+                  {isDownloading ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Download size={14} />
+                  )}
                   <span>{phrase(dictionary, "sora_clip_download", language)}</span>
                 </button>
                 <button

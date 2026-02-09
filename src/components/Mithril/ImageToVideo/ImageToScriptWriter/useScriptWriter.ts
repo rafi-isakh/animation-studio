@@ -4,7 +4,7 @@ import { useReducer, useCallback, useEffect, useRef, useMemo, useState } from 'r
 import JSZip from 'jszip';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
-import { blobToBase64, compressBase64Image, urlToBase64, isUrl } from './utils/imageCompression';
+import { blobToBase64, compressBase64Image, isUrl } from './utils/imageCompression';
 import type {
   ScriptWriterState,
   Scene,
@@ -465,26 +465,30 @@ export function useScriptWriter() {
     dispatch({ type: 'START_GENERATING' });
 
     try {
-      // Convert URLs to base64 and compress all panel images
-      const compressedPanels = await Promise.all(
+      // Build panel payloads: send URLs directly (server fetches them)
+      // to avoid Vercel's 4.5MB request body limit.
+      // Only send base64 for imported panels that have no URL.
+      const panelPayloads = await Promise.all(
         allPanels.map(async (panel) => {
-          let imageData = panel.imageBase64;
-
-          // If it's a URL (S3), fetch and convert to base64
-          if (isUrl(imageData)) {
-            try {
-              imageData = await urlToBase64(imageData, 800, 0.7);
-            } catch (err) {
-              console.error(`Failed to fetch image from URL: ${imageData}`, err);
-              throw new Error(`Failed to load panel image. Please try refreshing the page.`);
-            }
+          // If it's a URL (S3), send the URL — server will fetch it
+          if (isUrl(panel.imageBase64)) {
+            return {
+              id: panel.id,
+              label: panel.label,
+              imageUrl: panel.imageBase64,
+            };
           }
-          // Otherwise compress if too large
-          else if (imageData.length > 100000) {
+
+          // For base64 panels (imported), compress before sending
+          let imageData = panel.imageBase64;
+          if (imageData.length > 100000) {
             imageData = await compressBase64Image(imageData, 800, 0.7);
           }
-
-          return { ...panel, imageBase64: imageData };
+          return {
+            id: panel.id,
+            label: panel.label,
+            imageBase64: imageData,
+          };
         })
       );
 
@@ -492,7 +496,7 @@ export function useScriptWriter() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          panels: compressedPanels,
+          panels: panelPayloads,
           sourceText: currentState.config.sourceText || undefined,
           targetDuration: currentState.config.targetDuration,
           storyCondition: currentState.config.conditions.story,
@@ -531,7 +535,7 @@ export function useScriptWriter() {
       const generatedScenes: Scene[] = data.scenes || [];
       const generatedVoicePrompts: VoicePrompt[] = data.voicePrompts || [];
 
-      // Map referenceImageIndex to actual panel images (use compressedPanels which has base64)
+      // Map referenceImageIndex to actual panel images (use allPanels which has URLs or base64)
       const updatedScenes: Scene[] = generatedScenes.map((scene) => ({
         ...scene,
         clips: scene.clips.map((clip) => {
@@ -539,9 +543,9 @@ export function useScriptWriter() {
           if (
             clip.referenceImageIndex !== undefined &&
             clip.referenceImageIndex >= 0 &&
-            clip.referenceImageIndex < compressedPanels.length
+            clip.referenceImageIndex < allPanels.length
           ) {
-            refImage = compressedPanels[clip.referenceImageIndex].imageBase64;
+            refImage = allPanels[clip.referenceImageIndex].imageBase64;
           }
           return { ...clip, referenceImage: refImage };
         }),

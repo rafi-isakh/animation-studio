@@ -40,26 +40,27 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
   };
 
   return (
-    <div className="w-72 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden shrink-0">
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-sm font-black text-gray-300 uppercase tracking-widest">
+    <div className="w-full space-y-4">
+      {/* Asset Manager Header */}
+      <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+        <h2 className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-1">
           Asset Manager
         </h2>
-        <p className="text-[10px] text-gray-600 mt-1">
+        <p className="text-[10px] text-gray-500">
           {assets.length} assets loaded
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="space-y-4">
         {/* Characters Section */}
-        <div className="space-y-3">
+        <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
           <button
             onClick={() => setShowCharacters(!showCharacters)}
-            className="w-full flex items-center justify-between text-left"
+            className="w-full flex items-center justify-between text-left mb-3"
           >
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-bold text-gray-400 uppercase">
+              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
                 Characters ({characters.length})
               </span>
             </div>
@@ -74,7 +75,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
             <div className="space-y-2">
               <button
                 onClick={() => charInputRef.current?.click()}
-                className="w-full p-3 border-2 border-dashed border-gray-700 rounded-xl hover:border-indigo-500 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-indigo-400"
+                className="w-full p-3 border-2 border-dashed border-slate-600 rounded-xl hover:border-indigo-500 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-indigo-400"
               >
                 <Upload className="w-4 h-4" />
                 <span className="text-xs font-bold">Add Characters</span>
@@ -88,27 +89,29 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                 className="hidden"
               />
 
-              {characters.map((asset) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  onUpdateTags={onUpdateAssetTags}
-                  onDelete={onDeleteAsset}
-                />
-              ))}
+              <div className="grid grid-cols-2 gap-2">
+                {characters.map((asset) => (
+                  <AssetCard
+                    key={asset.id}
+                    asset={asset}
+                    onUpdateTags={onUpdateAssetTags}
+                    onDelete={onDeleteAsset}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
 
         {/* Backgrounds Section */}
-        <div className="space-y-3">
+        <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
           <button
             onClick={() => setShowBackgrounds(!showBackgrounds)}
-            className="w-full flex items-center justify-between text-left"
+            className="w-full flex items-center justify-between text-left mb-3"
           >
             <div className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold text-gray-400 uppercase">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
                 Backgrounds ({backgrounds.length})
               </span>
             </div>
@@ -123,7 +126,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
             <div className="space-y-2">
               <button
                 onClick={() => bgInputRef.current?.click()}
-                className="w-full p-3 border-2 border-dashed border-gray-700 rounded-xl hover:border-emerald-500 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-emerald-400"
+                className="w-full p-3 border-2 border-dashed border-slate-600 rounded-xl hover:border-emerald-500 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-emerald-400"
               >
                 <Upload className="w-4 h-4" />
                 <span className="text-xs font-bold">Add Backgrounds</span>
@@ -137,14 +140,16 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                 className="hidden"
               />
 
-              {backgrounds.map((asset) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  onUpdateTags={onUpdateAssetTags}
-                  onDelete={onDeleteAsset}
-                />
-              ))}
+              <div className="grid grid-cols-2 gap-2">
+                {backgrounds.map((asset) => (
+                  <AssetCard
+                    key={asset.id}
+                    asset={asset}
+                    onUpdateTags={onUpdateAssetTags}
+                    onDelete={onDeleteAsset}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -153,7 +158,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
   );
 };
 
-// Asset card sub-component
+// Asset card sub-component (compact for 2-column grid)
 const AssetCard: React.FC<{
   asset: Asset;
   onUpdateTags: (id: string, tags: string) => void;
@@ -168,18 +173,18 @@ const AssetCard: React.FC<{
   };
 
   return (
-    <div className="bg-gray-800/50 rounded-xl p-2 border border-gray-700/50 group">
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-2">
+    <div className="bg-slate-900/50 rounded-lg p-1.5 border border-slate-700/50 group">
+      <div className="relative aspect-square rounded overflow-hidden bg-black mb-1">
         <img
-          src={`data:image/jpeg;base64,${asset.image}`}
+          src={asset.image.startsWith('data:') || asset.image.startsWith('http') ? asset.image : `data:image/jpeg;base64,${asset.image}`}
           alt={asset.tags}
           className="w-full h-full object-cover"
         />
         <button
           onClick={() => onDelete(asset.id)}
-          className="absolute top-1 right-1 p-1 bg-red-600/80 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-0.5 right-0.5 p-0.5 bg-red-600/80 rounded opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <Trash2 className="w-3 h-3 text-white" />
+          <Trash2 className="w-2.5 h-2.5 text-white" />
         </button>
       </div>
 
@@ -189,19 +194,19 @@ const AssetCard: React.FC<{
             type="text"
             value={editTags}
             onChange={(e) => setEditTags(e.target.value)}
-            className="w-full px-2 py-1 text-[10px] bg-gray-900 border border-gray-600 rounded text-gray-200 outline-none focus:border-cyan-500"
-            placeholder="Tags (comma separated)"
+            className="w-full px-1.5 py-0.5 text-[9px] bg-slate-900 border border-slate-600 rounded text-gray-200 outline-none focus:border-cyan-500"
+            placeholder="Tags"
           />
           <div className="flex gap-1">
             <button
               onClick={handleSave}
-              className="flex-1 px-2 py-1 text-[9px] bg-cyan-600 hover:bg-cyan-500 rounded font-bold"
+              className="flex-1 px-1 py-0.5 text-[8px] bg-cyan-600 hover:bg-cyan-500 rounded font-bold"
             >
               Save
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className="flex-1 px-2 py-1 text-[9px] bg-gray-700 hover:bg-gray-600 rounded font-bold"
+              className="flex-1 px-1 py-0.5 text-[8px] bg-slate-700 hover:bg-slate-600 rounded font-bold"
             >
               Cancel
             </button>
@@ -212,8 +217,8 @@ const AssetCard: React.FC<{
           onClick={() => setIsEditing(true)}
           className="w-full text-left"
         >
-          <p className="text-[10px] text-gray-400 font-mono truncate hover:text-cyan-400 transition-colors">
-            {asset.tags}
+          <p className="text-[8px] text-gray-400 font-mono truncate hover:text-cyan-400 transition-colors">
+            {asset.tags || 'No tags'}
           </p>
         </button>
       )}

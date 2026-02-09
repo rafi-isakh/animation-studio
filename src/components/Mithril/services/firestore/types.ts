@@ -839,3 +839,95 @@ export interface UpdateIdConverterInput {
   glossaryJobId?: string;
   batchJobId?: string;
 }
+
+// ============================================
+// I2V Storyboard Editor (Stage 4)
+// ============================================
+
+export type I2VStoryboardAspectRatio = '16:9' | '9:16' | '1:1';
+
+export interface I2VStoryboardDocument {
+  targetDuration: string;
+  aspectRatio: I2VStoryboardAspectRatio;
+  generatedAt: Timestamp;
+}
+
+export interface I2VStoryboardSceneDocument {
+  sceneIndex: number;
+  sceneTitle: string;
+}
+
+export interface I2VStoryboardClipDocument {
+  clipIndex: number;
+  // Story content
+  story: string;
+  // Prompts
+  imagePrompt: string;
+  imagePromptEnd?: string;
+  videoPrompt: string;
+  soraVideoPrompt: string;
+  backgroundPrompt: string;
+  backgroundId: string;
+  // Dialogue
+  dialogue: string;
+  dialogueEn: string;
+  // Sound
+  sfx: string;
+  sfxEn: string;
+  bgm: string;
+  bgmEn: string;
+  // Timing
+  length: string;
+  accumulatedTime: string;
+  // Reference
+  referenceImageIndex?: number;
+  referenceImageUrl?: string; // S3 URL for reference image
+  // Generated images (S3 URLs)
+  generatedImageUrl?: string;
+  generatedImageEndUrl?: string;
+}
+
+export interface I2VStoryboardAssetDocument {
+  id: string;
+  tags: string;
+  imageUrl: string; // S3 URL
+  type: 'character' | 'background';
+}
+
+export interface SaveI2VStoryboardInput {
+  targetDuration: string;
+  aspectRatio: I2VStoryboardAspectRatio;
+}
+
+export interface SaveI2VStoryboardSceneInput {
+  sceneTitle: string;
+}
+
+export interface SaveI2VStoryboardClipInput {
+  story: string;
+  imagePrompt: string;
+  imagePromptEnd?: string;
+  videoPrompt: string;
+  soraVideoPrompt: string;
+  backgroundPrompt: string;
+  backgroundId: string;
+  dialogue: string;
+  dialogueEn: string;
+  sfx: string;
+  sfxEn: string;
+  bgm: string;
+  bgmEn: string;
+  length: string;
+  accumulatedTime: string;
+  referenceImageIndex?: number;
+  referenceImageUrl?: string; // S3 URL
+  generatedImageUrl?: string; // S3 URL
+  generatedImageEndUrl?: string; // S3 URL
+}
+
+export interface SaveI2VStoryboardAssetInput {
+  id: string;
+  tags: string;
+  imageUrl: string; // S3 URL
+  type: 'character' | 'background';
+}

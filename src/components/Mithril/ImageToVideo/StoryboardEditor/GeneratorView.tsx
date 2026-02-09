@@ -7,6 +7,19 @@ import { generateImage, remixImage } from './services';
 import { useMithril } from '../../MithrilContext';
 import type { Scene, Continuity, Asset, AspectRatio } from './types';
 
+// Shot group color utility for alternating group colors (matching ImageGenerator)
+const getSequenceColor = (index: number) => {
+  const colors = [
+    "border-l-cyan-500/50 bg-cyan-500/5",
+    "border-l-purple-500/50 bg-purple-500/5",
+    "border-l-amber-500/50 bg-amber-500/5",
+    "border-l-emerald-500/50 bg-emerald-500/5",
+    "border-l-rose-500/50 bg-rose-500/5",
+    "border-l-blue-500/50 bg-blue-500/5",
+  ];
+  return colors[index % colors.length];
+};
+
 interface GeneratorViewProps {
   scenes: Scene[];
   assets: Asset[];
@@ -29,17 +42,19 @@ export const GeneratorView: React.FC<GeneratorViewProps> = ({
   const { customApiKey } = useMithril();
 
   return (
-    <div className="flex h-full overflow-hidden bg-gray-950">
+    <div className="flex flex-col lg:flex-row gap-6 w-full bg-gray-950 min-h-[600px]">
       {/* Left Sidebar: Asset Manager */}
-      <AssetManager
-        assets={assets}
-        onAddAssets={onAddAssets}
-        onUpdateAssetTags={onUpdateAssetTags}
-        onDeleteAsset={onDeleteAsset}
-      />
+      <div className="w-full lg:w-80 flex-shrink-0 h-auto lg:h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar">
+        <AssetManager
+          assets={assets}
+          onAddAssets={onAddAssets}
+          onUpdateAssetTags={onUpdateAssetTags}
+          onDeleteAsset={onDeleteAsset}
+        />
+      </div>
 
       {/* Right Content: Frame List */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-12">
+      <div className="flex-1 overflow-y-auto lg:h-[calc(100vh-12rem)] p-4 lg:p-6">
         {scenes.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[400px]">
             <div className="text-center text-gray-500">
@@ -51,24 +66,26 @@ export const GeneratorView: React.FC<GeneratorViewProps> = ({
             </div>
           </div>
         ) : (
-          scenes.map((scene, sIdx) => (
-            <SequenceGroup
-              key={sIdx}
-              sIdx={sIdx}
-              scene={scene}
-              assets={assets}
-              aspectRatio={aspectRatio}
-              onUpdateClip={onUpdateClip}
-              customApiKey={customApiKey}
-            />
-          ))
+          <div className="space-y-10 pt-4">
+            {scenes.map((scene, sIdx) => (
+              <SequenceGroup
+                key={sIdx}
+                sIdx={sIdx}
+                scene={scene}
+                assets={assets}
+                aspectRatio={aspectRatio}
+                onUpdateClip={onUpdateClip}
+                customApiKey={customApiKey}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-// Sequence group component
+// Sequence group component (following ImageGenerator layout pattern)
 const SequenceGroup: React.FC<{
   sIdx: number;
   scene: Scene;
@@ -78,17 +95,25 @@ const SequenceGroup: React.FC<{
   customApiKey: string;
 }> = ({ sIdx, scene, assets, aspectRatio, onUpdateClip, customApiKey }) => {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3">
-        <span className="bg-gray-800 text-gray-400 text-[10px] font-black px-3 py-1 rounded-full border border-gray-700 uppercase tracking-widest">
-          SEQUENCE {sIdx + 1}
-        </span>
-        <h2 className="text-xl font-black text-gray-200 tracking-tight">
-          {scene.sceneTitle}
-        </h2>
+    <div
+      className={`p-5 rounded-2xl border-l-4 ${getSequenceColor(sIdx)} shadow-xl relative`}
+    >
+      {/* Sequence Badge */}
+      <div className="absolute -top-3 left-6 px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-black rounded-full border border-slate-700 shadow-xl tracking-widest uppercase">
+        Sequence {sIdx + 1}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {/* Scene Title */}
+      {scene.sceneTitle && (
+        <div className="mt-2 mb-4">
+          <h2 className="text-lg font-bold text-gray-200 tracking-tight">
+            {scene.sceneTitle}
+          </h2>
+        </div>
+      )}
+
+      {/* Frames List */}
+      <div className="flex flex-col gap-6 mt-4">
         {scene.clips.map((clip, cIdx) => (
           <FrameCard
             key={cIdx}
@@ -202,8 +227,10 @@ const FrameCard: React.FC<{
     }
   };
 
-  const frameLabelA = clip.imagePromptEnd ? `${sIdx + 1}A` : `${sIdx + 1}`;
-  const frameLabelB = clip.imagePromptEnd ? `${sIdx + 1}B` : null;
+  // Frame label format: Scene-Clip (e.g., "1-1A", "1-2B", "2-1")
+  const clipLabel = `${sIdx + 1}-${cIdx + 1}`;
+  const frameLabelA = clip.imagePromptEnd ? `${clipLabel}A` : clipLabel;
+  const frameLabelB = clip.imagePromptEnd ? `${clipLabel}B` : null;
 
   const handlePromptChange = (val: string, isEnd: boolean) => {
     const updated = { ...clip };
@@ -229,7 +256,7 @@ const FrameCard: React.FC<{
     const remixPrompt = isEnd ? remixPromptB : remixPromptA;
     const setRemixPrompt = isEnd ? setRemixPromptB : setRemixPromptA;
     const label = isEnd ? frameLabelB : frameLabelA;
-    const subLabel = `#${String(cIdx + 1).padStart(3, '0')}${isEnd ? 'B' : frameLabelB ? 'A' : ''}`;
+    const subLabel = `#${sIdx + 1}-${String(cIdx + 1).padStart(2, '0')}${isEnd ? 'B' : frameLabelB ? 'A' : ''}`;
 
     const refAssets = findReferenceAssets(prompt || '');
     const colorRef = refAssets[0]?.image;
@@ -239,9 +266,8 @@ const FrameCard: React.FC<{
     const referenceToShow = mangaRefToShow || colorRef;
 
     return (
-      <div
-        className={`space-y-4 flex flex-col ${isEnd ? 'border-l border-gray-800/50 pl-6' : ''}`}
-      >
+      <div className="space-y-4 flex flex-col">
+
         {/* Image preview area */}
         <div
           style={getContainerAspectStyle()}
@@ -255,7 +281,7 @@ const FrameCard: React.FC<{
           {generated ? (
             <img
               src={
-                generated.startsWith('data:')
+                generated.startsWith('data:') || generated.startsWith('http')
                   ? generated
                   : `data:image/jpeg;base64,${generated}`
               }
@@ -265,7 +291,7 @@ const FrameCard: React.FC<{
           ) : referenceToShow ? (
             <img
               src={
-                referenceToShow.startsWith('data:')
+                referenceToShow.startsWith('data:') || referenceToShow.startsWith('http')
                   ? referenceToShow
                   : `data:image/jpeg;base64,${referenceToShow}`
               }
@@ -382,11 +408,23 @@ const FrameCard: React.FC<{
   };
 
   return (
-    <div className="bg-gray-900/40 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col p-6 space-y-6 backdrop-blur-sm">
-      <div className={`grid gap-6 ${frameLabelB ? 'grid-cols-2' : 'grid-cols-1'}`}>
-        {renderFrameSection(false)}
-        {frameLabelB && renderFrameSection(true)}
-      </div>
+    <div className="bg-gray-900/40 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col p-6 backdrop-blur-sm">
+      {frameLabelB ? (
+        // Dual frame layout (Start A + End B)
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 min-w-0">
+            {renderFrameSection(false)}
+          </div>
+          <div className="flex-1 min-w-0 lg:border-l lg:border-gray-800/50 lg:pl-6">
+            {renderFrameSection(true)}
+          </div>
+        </div>
+      ) : (
+        // Single frame layout
+        <div className="max-w-2xl">
+          {renderFrameSection(false)}
+        </div>
+      )}
     </div>
   );
 };

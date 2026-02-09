@@ -12,7 +12,7 @@ import { db } from '@/lib/firestore';
 /**
  * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor';
 
 /**
  * Job status from the orchestrator
@@ -128,6 +128,13 @@ export interface JobQueueDocument {
   panel_urls?: string[];
   panel_labels?: string[];
   target_duration?: string;
+  // Storyboard Editor-specific fields
+  frame_type?: 'start' | 'end';
+  operation?: 'generate' | 'remix';
+  original_image_url?: string;
+  original_context?: string;
+  remix_prompt?: string;
+  asset_image_urls?: string[];
 }
 
 /**
@@ -1646,4 +1653,138 @@ export async function getActiveProjectI2VStoryboardJobs(
  */
 export function mapI2VStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUpdate {
   return mapStoryboardJobToUpdate(job);
+}
+
+
+// ============================================================================
+// Storyboard Editor Job Functions
+// ============================================================================
+
+/**
+ * Storyboard editor job status
+ */
+export type StoryboardEditorJobStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Storyboard editor job update object
+ */
+export interface StoryboardEditorJobUpdate {
+  jobId: string;
+  sceneIndex: number;
+  clipIndex: number;
+  frameType: 'start' | 'end';
+  operation: 'generate' | 'remix';
+  status: StoryboardEditorJobStatus;
+  progress: number;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+}
+
+/**
+ * Callback for storyboard editor job updates
+ */
+export type StoryboardEditorJobUpdateCallback = (update: StoryboardEditorJobUpdate) => void;
+
+/**
+ * Subscribe to storyboard editor jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any storyboard editor job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStoryboardEditorJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard_editor')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) storyboard editor jobs for a project (one-time fetch)
+ */
+export async function getActiveProjectStoryboardEditorJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard_editor')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => activeStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardEditorJobUpdate
+ */
+export function mapStoryboardEditorJobToUpdate(job: JobQueueDocument): StoryboardEditorJobUpdate {
+  return {
+    jobId: job.id,
+    sceneIndex: job.scene_index,
+    clipIndex: job.clip_index,
+    frameType: job.frame_type || 'start',
+    operation: job.operation || 'generate',
+    status: mapJobStatusToStoryboardEditorStatus(job.status, job.retry_count),
+    progress: job.progress,
+    imageUrl: job.image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to storyboard editor status
+ */
+function mapJobStatusToStoryboardEditorStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StoryboardEditorJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
 }

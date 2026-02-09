@@ -21,6 +21,7 @@ class JobType(str, Enum):
     PANEL_SPLITTER = "panel_splitter"
     STORYBOARD = "storyboard"
     I2V_STORYBOARD = "i2v_storyboard"
+    STORYBOARD_EDITOR = "storyboard_editor"
 
 
 class JobStatus(str, Enum):
@@ -161,6 +162,14 @@ class JobDocument(BaseModel):
     panel_urls: list[str] = []  # S3 URLs of panel images
     panel_labels: list[str] = []  # Labels for each panel
     target_duration: str | None = None  # Target duration (MM:SS format)
+
+    # Storyboard Editor-specific fields (for type=STORYBOARD_EDITOR)
+    frame_type: str | None = None  # "start" or "end"
+    operation: str | None = None  # "generate" or "remix"
+    original_image_url: str | None = None  # For remix: S3 URL of source image
+    original_context: str | None = None  # For remix: original prompt context
+    remix_prompt: str | None = None  # For remix: modification instructions
+    asset_image_urls: list[str] = []  # S3 URLs for color reference assets
 
     # Storyboard-specific fields (for type=STORYBOARD)
     source_text: str | None = None  # Source text for storyboard generation
@@ -699,3 +708,45 @@ class I2VStoryboardJobSubmitRequest(BaseModel):
     video_guide: str = ""
     # API key
     api_key: str | None = None
+
+
+# ============================================================================
+# Storyboard Editor Job Models
+# ============================================================================
+
+
+class StoryboardEditorJobSubmitRequest(BaseModel):
+    """Request model for submitting a storyboard editor job (generate or remix)."""
+
+    project_id: str
+    scene_index: int
+    clip_index: int
+    frame_type: Literal["start", "end"]  # A or B frame
+    operation: Literal["generate", "remix"]
+    prompt: str  # Image prompt (for generate) or unused (for remix)
+    reference_image_url: str | None = None  # S3 URL of manga panel reference
+    asset_image_urls: list[str] = []  # S3 URLs of asset reference images
+    # Remix-specific fields
+    original_image_url: str | None = None  # S3 URL of image to remix
+    original_context: str = ""  # Original image prompt for context
+    remix_prompt: str = ""  # Modification instructions
+    aspect_ratio: Literal["1:1", "16:9", "9:16"] = "16:9"
+    api_key: str | None = None
+
+
+class StoryboardEditorJobStatusResponse(BaseModel):
+    """Response model for storyboard editor job status queries."""
+
+    job_id: str
+    scene_index: int
+    clip_index: int
+    frame_type: str
+    operation: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None

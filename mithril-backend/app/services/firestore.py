@@ -28,6 +28,7 @@ from app.models.job import (
     StoryboardJobSubmitRequest,
     StorySplitterJobSubmitRequest,
     I2VStoryboardJobSubmitRequest,
+    StoryboardEditorJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -650,6 +651,59 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created I2V storyboard job {job_id} for project {request.project_id}")
+        return job
+
+    async def create_storyboard_editor_job(
+        self,
+        request: StoryboardEditorJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new storyboard editor job (generate or remix) in the queue.
+
+        Args:
+            request: Storyboard editor job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.STORYBOARD_EDITOR,
+            project_id=request.project_id,
+            scene_index=request.scene_index,
+            clip_index=request.clip_index,
+            provider_id="gemini",
+            prompt=request.prompt,
+            aspect_ratio=request.aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Storyboard Editor-specific fields
+            frame_type=request.frame_type,
+            operation=request.operation,
+            reference_urls=[request.reference_image_url] if request.reference_image_url else [],
+            asset_image_urls=request.asset_image_urls,
+            original_image_url=request.original_image_url,
+            original_context=request.original_context,
+            remix_prompt=request.remix_prompt,
+            max_retries=2,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(
+            f"Created storyboard editor job {job_id} for project {request.project_id} "
+            f"(scene={request.scene_index}, clip={request.clip_index}, "
+            f"frame={request.frame_type}, op={request.operation})"
+        )
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import {
   ArrowLeft,
   Upload,
@@ -14,6 +14,8 @@ import {
   Database,
 } from 'lucide-react';
 import { useStoryboardEditor } from './useStoryboardEditor';
+import { useStoryboardEditorOrchestrator, StoryboardEditorJobUpdate } from './useStoryboardEditorOrchestrator';
+import { useMithril } from '../../MithrilContext';
 import { StoryboardTable } from './StoryboardTable';
 import { GeneratorView } from './GeneratorView';
 import type { AspectRatio } from './types';
@@ -21,6 +23,8 @@ import type { AspectRatio } from './types';
 export default function StoryboardEditor() {
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
+
+  const { customApiKey, currentProjectId: projectId } = useMithril();
 
   const {
     state,
@@ -41,6 +45,50 @@ export default function StoryboardEditor() {
     downloadCSV,
     loadFromPreviousStage,
   } = useStoryboardEditor();
+
+  // Track which frames have active background jobs (frameKey -> status)
+  const [generatingFrames, setGeneratingFrames] = useState<Record<string, string>>({});
+
+  // Handle job updates from the background worker via Firestore subscription
+  const handleFrameUpdate = useCallback((update: StoryboardEditorJobUpdate) => {
+    const frameKey = `${update.sceneIndex}-${update.clipIndex}-${update.frameType}`;
+    const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+
+    if (isTerminal) {
+      // Remove from generating frames
+      setGeneratingFrames(prev => {
+        const next = { ...prev };
+        delete next[frameKey];
+        return next;
+      });
+
+      // On completion, update the clip with the generated image
+      if (update.status === 'completed' && update.imageUrl) {
+        const scene = state.storyboardData[update.sceneIndex];
+        if (!scene) return;
+        const clip = scene.clips[update.clipIndex];
+        if (!clip) return;
+
+        const updatedClip = { ...clip };
+        if (update.frameType === 'end') {
+          updatedClip.generatedImageEnd = update.imageUrl;
+        } else {
+          updatedClip.generatedImage = update.imageUrl;
+        }
+        updateClip(update.sceneIndex, update.clipIndex, updatedClip);
+      }
+    } else {
+      // Non-terminal: track as actively generating
+      setGeneratingFrames(prev => ({ ...prev, [frameKey]: update.status }));
+    }
+  }, [state.storyboardData, updateClip]);
+
+  const { submitGenerateJob, submitRemixJob, cancelJob } = useStoryboardEditorOrchestrator({
+    projectId: projectId || null,
+    customApiKey,
+    onFrameUpdate: handleFrameUpdate,
+    enabled: !!projectId,
+  });
 
   const { storyboardData, voicePrompts, assets, aspectRatio, ui } = state;
 
@@ -211,10 +259,14 @@ export default function StoryboardEditor() {
             scenes={storyboardData}
             assets={assets}
             aspectRatio={aspectRatio}
+            projectId={projectId || ''}
+            generatingFrames={generatingFrames}
             onUpdateClip={updateClip}
             onAddAssets={addAssets}
             onUpdateAssetTags={updateAssetTags}
             onDeleteAsset={deleteAsset}
+            onSubmitGenerate={submitGenerateJob}
+            onSubmitRemix={submitRemixJob}
           />
         </div>
       )}

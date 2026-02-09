@@ -734,6 +734,66 @@ async def retry_failed_panel_splitter_job(
 
 
 # ============================================================================
+# Storyboard Editor Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_storyboard_editor_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Storyboard editor generation/remix task.
+
+    Generates or remixes anime frames from manga panels using Gemini.
+
+    Pipeline:
+    1. PENDING -> PREPARING: Fetch reference/asset images from S3
+    2. PREPARING -> GENERATING: Call Gemini API (generate or remix)
+    3. GENERATING -> UPLOADING: Upload result to S3
+    4. UPLOADING -> COMPLETED: Update Firestore with image URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.storyboard_editor_generation import process_storyboard_editor_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[STORYBOARD-EDITOR-TASK] ========== Starting job {job_id} ==========")
+    logger.info(f"[STORYBOARD-EDITOR-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_storyboard_editor_generation(job_id, worker_id, api_key)
+        logger.info(f"[STORYBOARD-EDITOR-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORYBOARD-EDITOR-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_storyboard_editor_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
+    """Retry a failed storyboard editor job after a delay."""
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying storyboard editor job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_storyboard_editor_job(job_id, api_key)
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

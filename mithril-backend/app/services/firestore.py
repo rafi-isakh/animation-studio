@@ -27,6 +27,7 @@ from app.models.job import (
     PropDesignSheetJobSubmitRequest,
     StoryboardJobSubmitRequest,
     StorySplitterJobSubmitRequest,
+    I2VStoryboardJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -597,6 +598,58 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created storyboard job {job_id} for project {request.project_id}")
+        return job
+
+    async def create_i2v_storyboard_job(
+        self,
+        request: I2VStoryboardJobSubmitRequest,
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new I2V storyboard generation job in the queue.
+
+        Args:
+            request: I2V storyboard job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.I2V_STORYBOARD,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="gemini",
+            prompt="",
+            aspect_ratio="",
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # I2V Storyboard-specific fields
+            panel_urls=request.panel_urls,
+            panel_labels=request.panel_labels,
+            target_duration=request.target_duration,
+            source_text=request.source_text,
+            story_condition=request.story_condition,
+            image_condition=request.image_condition,
+            video_condition=request.video_condition,
+            sound_condition=request.sound_condition,
+            image_guide=request.image_guide,
+            video_guide=request.video_guide,
+            max_retries=3,
+        )
+
+        # Store in Firestore
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created I2V storyboard job {job_id} for project {request.project_id}")
         return job
 
     async def get_job(self, job_id: str) -> JobDocument | None:
@@ -1331,6 +1384,127 @@ class StoryboardService:
         logger.debug(f"Updated storyboard jobId for project {project_id}: {job_id}")
 
 
+class I2VScriptService:
+    """Service for saving I2V storyboard results to project Firestore."""
+
+    def __init__(self) -> None:
+        self.db = get_db()
+
+    def _data_ref(self, project_id: str) -> DocumentReference:
+        """Get document reference for i2vScript/data."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("i2vScript")
+            .document("data")
+        )
+
+    def _scene_ref(self, project_id: str, scene_index: int) -> DocumentReference:
+        """Get document reference for a scene."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("i2vScript")
+            .document("data")
+            .collection("scenes")
+            .document(f"scene_{scene_index}")
+        )
+
+    def _clip_ref(self, project_id: str, scene_index: int, clip_index: int) -> DocumentReference:
+        """Get document reference for a clip within a scene."""
+        return (
+            self.db.collection("projects")
+            .document(project_id)
+            .collection("i2vScript")
+            .document("data")
+            .collection("scenes")
+            .document(f"scene_{scene_index}")
+            .collection("clips")
+            .document(f"clip_{clip_index}")
+        )
+
+    async def save_i2v_storyboard(
+        self,
+        project_id: str,
+        scenes: list[dict],
+        voice_prompts: list[dict],
+        metadata: dict | None = None,
+        job_id: str | None = None,
+    ) -> None:
+        """
+        Save I2V storyboard results to Firestore.
+
+        Writes to projects/{projectId}/i2vScript/ subcollection,
+        matching the frontend's expected structure.
+
+        Args:
+            project_id: The project ID
+            scenes: List of scene objects with clips
+            voice_prompts: List of voice prompt objects
+            metadata: Optional metadata (targetDuration, conditions, etc.)
+            job_id: Optional job ID for tracking
+        """
+        from google.cloud.firestore_v1 import SERVER_TIMESTAMP
+
+        # Save metadata
+        meta_data: dict[str, Any] = {
+            "updatedAt": SERVER_TIMESTAMP,
+        }
+        if metadata:
+            meta_data.update(metadata)
+        if job_id:
+            meta_data["jobId"] = job_id
+
+        await self._data_ref(project_id).set(meta_data, merge=True)
+        logger.debug(f"Saved I2V script metadata for project {project_id}")
+
+        # Save voice prompts
+        if voice_prompts:
+            voice_ref = (
+                self.db.collection("projects")
+                .document(project_id)
+                .collection("i2vScript")
+                .document("voicePrompts")
+            )
+            await voice_ref.set({"prompts": voice_prompts})
+            logger.debug(f"Saved {len(voice_prompts)} I2V voice prompts for project {project_id}")
+
+        # Save scenes and clips
+        for scene_index, scene in enumerate(scenes):
+            scene_data = {
+                "sceneIndex": scene_index,
+                "sceneTitle": scene.get("sceneTitle", ""),
+            }
+            await self._scene_ref(project_id, scene_index).set(scene_data)
+
+            clips = scene.get("clips", [])
+            for clip_index, clip in enumerate(clips):
+                clip_data = {
+                    "clipIndex": clip_index,
+                    "referenceImageIndex": clip.get("referenceImageIndex", 0),
+                    "story": clip.get("story", ""),
+                    "imagePrompt": clip.get("imagePrompt", ""),
+                    "imagePromptEnd": clip.get("imagePromptEnd", ""),
+                    "videoPrompt": clip.get("videoPrompt", ""),
+                    "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
+                    "backgroundPrompt": clip.get("backgroundPrompt", ""),
+                    "backgroundId": clip.get("backgroundId", ""),
+                    "dialogue": clip.get("dialogue", ""),
+                    "dialogueEn": clip.get("dialogueEn", ""),
+                    "sfx": clip.get("sfx", ""),
+                    "sfxEn": clip.get("sfxEn", ""),
+                    "bgm": clip.get("bgm", ""),
+                    "bgmEn": clip.get("bgmEn", ""),
+                    "length": clip.get("length", ""),
+                    "accumulatedTime": clip.get("accumulatedTime", ""),
+                }
+                await self._clip_ref(project_id, scene_index, clip_index).set(clip_data)
+
+            logger.debug(f"Saved I2V scene {scene_index} with {len(clips)} clips for project {project_id}")
+
+        logger.info(f"Saved complete I2V storyboard for project {project_id}: {len(scenes)} scenes")
+
+
 # Lazy service instances
 _job_queue_service: JobQueueService | None = None
 _video_clip_service: VideoClipService | None = None
@@ -1340,6 +1514,7 @@ _prop_design_sheet_service: PropDesignSheetService | None = None
 _id_converter_service: IdConverterService | None = None
 _story_splits_service: StorySplitsService | None = None
 _storyboard_service: StoryboardService | None = None
+_i2v_script_service: I2VScriptService | None = None
 
 
 def get_job_queue_service() -> JobQueueService:
@@ -1404,6 +1579,14 @@ def get_storyboard_service() -> StoryboardService:
     if _storyboard_service is None:
         _storyboard_service = StoryboardService()
     return _storyboard_service
+
+
+def get_i2v_script_service() -> I2VScriptService:
+    """Get or create I2VScriptService instance."""
+    global _i2v_script_service
+    if _i2v_script_service is None:
+        _i2v_script_service = I2VScriptService()
+    return _i2v_script_service
 
 
 # Backwards compatible aliases (use getter functions for lazy init)

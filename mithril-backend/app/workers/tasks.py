@@ -603,6 +603,67 @@ async def retry_failed_storyboard_job(
 
 
 # ============================================================================
+# I2V Storyboard Generation Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_i2v_storyboard_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    I2V storyboard generation task.
+
+    Generates scenes, clips, and voice prompts from manga panel images.
+
+    Pipeline:
+    1. PENDING -> PREPARING: Download panel images from S3
+    2. PREPARING -> GENERATING: Call Gemini with images + prompt
+    3. GENERATING -> COMPLETED: Update Firestore with scenes and clips
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.i2v_storyboard_generation import process_i2v_storyboard
+
+    worker_id = get_worker_id()
+    logger.info(f"[I2V-STORYBOARD-TASK] ========== Starting I2V storyboard job {job_id} ==========")
+    logger.info(f"[I2V-STORYBOARD-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_i2v_storyboard(job_id, api_key, worker_id)
+        logger.info(f"[I2V-STORYBOARD-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[I2V-STORYBOARD-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_i2v_storyboard_job(
+    job_id: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed I2V storyboard job after a delay.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying I2V storyboard job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_i2v_storyboard_job(job_id, api_key)
+
+
+# ============================================================================
 # Panel Splitter Tasks
 # ============================================================================
 

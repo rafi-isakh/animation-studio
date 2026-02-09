@@ -20,6 +20,7 @@ class JobType(str, Enum):
     STORY_SPLITTER = "story_splitter"
     PANEL_SPLITTER = "panel_splitter"
     STORYBOARD = "storyboard"
+    I2V_STORYBOARD = "i2v_storyboard"
 
 
 class JobStatus(str, Enum):
@@ -155,6 +156,11 @@ class JobDocument(BaseModel):
     page_index: int | None = None  # Page index in sequence
     reading_direction: str | None = None  # 'rtl' or 'ltr'
     detected_panels: list[dict] | None = None  # Array of detected panels with box_2d
+
+    # I2V Storyboard-specific fields (for type=I2V_STORYBOARD)
+    panel_urls: list[str] = []  # S3 URLs of panel images
+    panel_labels: list[str] = []  # Labels for each panel
+    target_duration: str | None = None  # Target duration (MM:SS format)
 
     # Storyboard-specific fields (for type=STORYBOARD)
     source_text: str | None = None  # Source text for storyboard generation
@@ -635,6 +641,7 @@ class StoryboardClip(BaseModel):
     bgmEn: str
     length: str
     accumulatedTime: str
+    referenceImageIndex: int = 0
 
 
 class StoryboardScene(BaseModel):
@@ -667,3 +674,28 @@ class StoryboardJobStatusResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None = None
+
+
+# ============================================================================
+# I2V Storyboard Generation Job Models
+# ============================================================================
+
+
+class I2VStoryboardJobSubmitRequest(BaseModel):
+    """Request model for submitting an I2V storyboard generation job."""
+
+    project_id: str
+    panel_urls: list[str]  # S3 URLs of panel images
+    panel_labels: list[str]  # Labels for each panel
+    source_text: str = ""  # Optional context text
+    target_duration: str = "03:00"  # Target duration (MM:SS format)
+    # Conditions
+    story_condition: str = ""
+    image_condition: str = ""
+    video_condition: str = ""
+    sound_condition: str = ""
+    # Guides
+    image_guide: str = ""
+    video_guide: str = ""
+    # API key
+    api_key: str | None = None

@@ -5,6 +5,8 @@ import JSZip from 'jszip';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
 import { blobToBase64, compressBase64Image, isUrl } from './utils/imageCompression';
+import { useI2VStoryboardOrchestrator, type StoryboardJobUpdate } from './useI2VStoryboardOrchestrator';
+import { getActiveProjectI2VStoryboardJobs } from '../../services/firestore/jobQueue';
 import type {
   ScriptWriterState,
   Scene,
@@ -44,6 +46,58 @@ export function useScriptWriter() {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  // Ref to allPanels for use in handleJobUpdate callback
+  const allPanelsRef = useRef<PanelData[]>([]);
+
+  // Handle real-time job updates from Firestore subscription
+  const handleJobUpdate = useCallback((update: StoryboardJobUpdate) => {
+    if (update.status === 'completed' && update.scenes) {
+      // Map referenceImageIndex to actual panel images
+      const currentPanels = allPanelsRef.current;
+      const updatedScenes: Scene[] = update.scenes.map((scene) => ({
+        ...scene,
+        clips: scene.clips.map((clip) => {
+          let refImage: string | undefined;
+          if (
+            clip.referenceImageIndex !== undefined &&
+            clip.referenceImageIndex >= 0 &&
+            clip.referenceImageIndex < currentPanels.length
+          ) {
+            refImage = currentPanels[clip.referenceImageIndex].imageBase64;
+          }
+          return { ...clip, referenceImage: refImage };
+        }),
+      }));
+
+      const voicePrompts: VoicePrompt[] = update.voicePrompts || [];
+
+      dispatch({
+        type: 'FINISH_GENERATING',
+        result: { scenes: updatedScenes, voicePrompts },
+      });
+      setStageResult(2, { scenes: updatedScenes, voicePrompts });
+      // No need to save to Firestore - backend already saved to i2vScript subcollection
+    } else if (update.status === 'failed') {
+      dispatch({ type: 'GENERATION_ERROR' });
+    } else if (update.status === 'cancelled') {
+      dispatch({ type: 'GENERATION_ERROR' });
+    }
+  }, [setStageResult]);
+
+  // Initialize I2V storyboard orchestrator
+  const orchestrator = useI2VStoryboardOrchestrator({
+    projectId: currentProjectId,
+    customApiKey,
+    onJobUpdate: handleJobUpdate,
+    enabled: true,
+  });
+
+  // Ref to orchestrator to avoid re-triggering effects when the object reference changes
+  const orchestratorRef = useRef(orchestrator);
+  useEffect(() => {
+    orchestratorRef.current = orchestrator;
+  }, [orchestrator]);
 
   // Load data from Firestore when project changes
   useEffect(() => {
@@ -124,6 +178,18 @@ export function useScriptWriter() {
           // Also set stage result for downstream stages
           setStageResult(2, { scenes: loadedScenes, voicePrompts });
         }
+
+        // Check for any active I2V storyboard jobs (restore generating state)
+        const activeJobs = await getActiveProjectI2VStoryboardJobs(currentProjectId);
+        if (activeJobs.length > 0) {
+          // Sort by created_at descending and take the most recent
+          const sortedJobs = activeJobs.sort((a, b) =>
+            (b.created_at || '').localeCompare(a.created_at || '')
+          );
+          const latestJob = sortedJobs[0];
+          orchestratorRef.current.setActiveJobId(latestJob.id);
+          dispatch({ type: 'START_GENERATING' });
+        }
       } catch (error) {
         console.error('Error loading ScriptWriter data from Firestore:', error);
       } finally {
@@ -132,6 +198,7 @@ export function useScriptWriter() {
     };
 
     loadFromFirestore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProjectId, setStageResult]);
 
   // Get panels from Stage 1 (context or loaded from Firestore)
@@ -254,17 +321,23 @@ export function useScriptWriter() {
 
   const totalPanels = allPanels.length || totalPanelsFromStage1;
 
+  // Keep allPanelsRef in sync for the handleJobUpdate callback
+  useEffect(() => {
+    allPanelsRef.current = allPanels;
+  }, [allPanels]);
+
   // Update reference images when allPanels becomes available
   // (handles case where script is loaded from Firestore before panels are loaded)
   useEffect(() => {
     if (!state.result?.scenes.length || allPanels.length === 0) return;
 
-    // Check if any clips need reference images populated
+    // Check if any clips can actually be updated (conditions must match exactly)
     const needsUpdate = state.result.scenes.some((scene) =>
       scene.clips.some(
         (clip) =>
           clip.referenceImageIndex !== undefined &&
           clip.referenceImageIndex >= 0 &&
+          clip.referenceImageIndex < allPanels.length &&
           !clip.referenceImage
       )
     );
@@ -272,6 +345,7 @@ export function useScriptWriter() {
     if (!needsUpdate) return;
 
     // Update scenes with reference images from allPanels
+    let changed = false;
     const updatedScenes = state.result.scenes.map((scene) => ({
       ...scene,
       clips: scene.clips.map((clip) => {
@@ -281,6 +355,7 @@ export function useScriptWriter() {
           clip.referenceImageIndex < allPanels.length &&
           !clip.referenceImage
         ) {
+          changed = true;
           return {
             ...clip,
             referenceImage: allPanels[clip.referenceImageIndex].imageBase64,
@@ -290,7 +365,9 @@ export function useScriptWriter() {
       }),
     }));
 
-    dispatch({ type: 'UPDATE_SCENES', scenes: updatedScenes });
+    if (changed) {
+      dispatch({ type: 'UPDATE_SCENES', scenes: updatedScenes });
+    }
   }, [allPanels, state.result?.scenes]);
 
   // Handle manga panel upload (images, ZIP, JSON)
@@ -451,7 +528,7 @@ export function useScriptWriter() {
     }
   };
 
-  // Generate storyboard
+  // Generate storyboard via background job worker
   const generate = useCallback(async () => {
     const currentState = stateRef.current;
 
@@ -459,128 +536,71 @@ export function useScriptWriter() {
       throw new Error('No panel images available. Please upload panels or complete Stage 1.');
     }
 
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
     dispatch({ type: 'START_GENERATING' });
 
     try {
-      // Build panel payloads: send URLs directly (server fetches them)
-      // to avoid Vercel's 4.5MB request body limit.
-      // Only send base64 for imported panels that have no URL.
-      const panelPayloads = await Promise.all(
-        allPanels.map(async (panel) => {
-          // If it's a URL (S3), send the URL — server will fetch it
-          if (isUrl(panel.imageBase64)) {
-            return {
-              id: panel.id,
-              label: panel.label,
-              imageUrl: panel.imageBase64,
-            };
-          }
+      // Collect panel URLs for the backend worker.
+      // Panels from Stage 1 have S3 URLs. Imported base64 panels need to be
+      // uploaded to S3 first.
+      const panelUrls: string[] = [];
+      const panelLabels: string[] = [];
 
-          // For base64 panels (imported), compress before sending
+      for (const panel of allPanels) {
+        if (isUrl(panel.imageBase64)) {
+          // S3 URL - use directly
+          panelUrls.push(panel.imageBase64);
+        } else {
+          // Base64 panel (imported) - upload to S3 first
           let imageData = panel.imageBase64;
           if (imageData.length > 100000) {
             imageData = await compressBase64Image(imageData, 800, 0.7);
           }
-          return {
-            id: panel.id,
-            label: panel.label,
-            imageBase64: imageData,
-          };
-        })
-      );
 
-      const response = await fetch('/api/manga/generate-storyboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          panels: panelPayloads,
-          sourceText: currentState.config.sourceText || undefined,
-          targetDuration: currentState.config.targetDuration,
-          storyCondition: currentState.config.conditions.story,
-          imageCondition: currentState.config.conditions.image,
-          videoCondition: currentState.config.conditions.video,
-          soundCondition: currentState.config.conditions.sound,
-          imageGuide: currentState.config.guides.image || undefined,
-          videoGuide: currentState.config.guides.video || undefined,
-          apiKey: customApiKey || undefined,
-        }),
-        signal,
-      });
+          const uploadResponse = await fetch('/api/mithril/s3/image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              projectId: currentProjectId,
+              imageBase64: imageData,
+              folder: 'i2v/imported-panels',
+            }),
+          });
 
-      if (!response.ok) {
-        if (response.status === 413) {
-          throw new Error('Request too large. Try reducing the number of panels or image quality.');
-        }
-        let errorMessage = 'Failed to generate storyboard';
-        const responseText = await response.text();
-        try {
-          const errorData = JSON.parse(responseText);
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          if (
-            responseText.toLowerCase().includes('request') ||
-            responseText.toLowerCase().includes('large') ||
-            responseText.toLowerCase().includes('entity')
-          ) {
-            errorMessage = 'Request too large. Try reducing the number of panels or use smaller images.';
+          if (!uploadResponse.ok) {
+            throw new Error(`Failed to upload panel ${panel.id} to S3`);
           }
+
+          const uploadData = await uploadResponse.json();
+          panelUrls.push(uploadData.url);
         }
-        throw new Error(errorMessage);
+        panelLabels.push(panel.label);
       }
 
-      const data = await response.json();
-      const generatedScenes: Scene[] = data.scenes || [];
-      const generatedVoicePrompts: VoicePrompt[] = data.voicePrompts || [];
-
-      // Map referenceImageIndex to actual panel images (use allPanels which has URLs or base64)
-      const updatedScenes: Scene[] = generatedScenes.map((scene) => ({
-        ...scene,
-        clips: scene.clips.map((clip) => {
-          let refImage: string | undefined;
-          if (
-            clip.referenceImageIndex !== undefined &&
-            clip.referenceImageIndex >= 0 &&
-            clip.referenceImageIndex < allPanels.length
-          ) {
-            refImage = allPanels[clip.referenceImageIndex].imageBase64;
-          }
-          return { ...clip, referenceImage: refImage };
-        }),
-      }));
-
-      dispatch({
-        type: 'FINISH_GENERATING',
-        result: { scenes: updatedScenes, voicePrompts: generatedVoicePrompts },
+      // Submit job to orchestrator
+      const result = await orchestratorRef.current.submitJob({
+        panelUrls,
+        panelLabels,
+        sourceText: currentState.config.sourceText || undefined,
+        targetDuration: currentState.config.targetDuration,
+        storyCondition: currentState.config.conditions.story,
+        imageCondition: currentState.config.conditions.image,
+        videoCondition: currentState.config.conditions.video,
+        soundCondition: currentState.config.conditions.sound,
+        imageGuide: currentState.config.guides.image || undefined,
+        videoGuide: currentState.config.guides.video || undefined,
       });
 
-      // Save to stage results
-      setStageResult(2, { scenes: updatedScenes, voicePrompts: generatedVoicePrompts });
-
-      // Save to Firestore
-      if (currentProjectId) {
-        try {
-          await saveToFirestore(
-            currentProjectId,
-            currentState.config,
-            updatedScenes,
-            generatedVoicePrompts
-          );
-        } catch (error) {
-          console.error('Error saving to Firestore:', error);
-        }
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit storyboard job');
       }
 
-      abortControllerRef.current = null;
+      // Job submitted successfully - updates will come via Firestore subscription
+      // (handleJobUpdate callback handles FINISH_GENERATING and GENERATION_ERROR)
     } catch (error) {
-      if (signal.aborted) return;
       dispatch({ type: 'GENERATION_ERROR' });
-      abortControllerRef.current = null;
       throw error;
     }
-  }, [allPanels, setStageResult, currentProjectId]);
+  }, [allPanels, currentProjectId]);
 
   // Split Start/End frames
   const splitStartEnd = useCallback(async () => {
@@ -673,6 +693,9 @@ export function useScriptWriter() {
 
   // Cancel ongoing operations
   const cancel = useCallback(() => {
+    // Cancel background job via orchestrator
+    orchestratorRef.current.cancelJob();
+    // Also abort any direct API calls (e.g., splitStartEnd)
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;

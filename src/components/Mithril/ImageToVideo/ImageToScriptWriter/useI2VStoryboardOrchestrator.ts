@@ -2,18 +2,19 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import {
-  subscribeToProjectStoryboardJobs,
-  mapStoryboardJobToUpdate,
+  subscribeToProjectI2VStoryboardJobs,
+  mapI2VStoryboardJobToUpdate,
   JobQueueDocument,
   StoryboardJobUpdate,
 } from '../../services/firestore/jobQueue';
 
-// Re-export types for external consumers
 export type { StoryboardJobUpdate };
 
-interface SubmitStoryboardParams {
-  sourceText: string;
-  partIndex?: number;
+interface SubmitI2VStoryboardParams {
+  panelUrls: string[];
+  panelLabels: string[];
+  sourceText?: string;
+  targetDuration?: string;
   // Conditions
   storyCondition?: string;
   imageCondition?: string;
@@ -22,12 +23,6 @@ interface SubmitStoryboardParams {
   // Guides
   imageGuide?: string;
   videoGuide?: string;
-  // New configuration
-  targetTime?: string;
-  customInstruction?: string;
-  backgroundInstruction?: string;
-  negativeInstruction?: string;
-  videoInstruction?: string;
 }
 
 interface SubmitJobResponse {
@@ -38,7 +33,7 @@ interface SubmitJobResponse {
   error?: string;
 }
 
-interface UseStoryboardOrchestratorOptions {
+interface UseI2VStoryboardOrchestratorOptions {
   projectId: string | null;
   customApiKey?: string;
   onJobUpdate?: (update: StoryboardJobUpdate) => void;
@@ -46,15 +41,15 @@ interface UseStoryboardOrchestratorOptions {
 }
 
 /**
- * Hook for integrating with the storyboard generation orchestrator backend.
- * Provides methods to submit storyboard jobs and subscribes to real-time status updates.
+ * Hook for integrating with the I2V storyboard generation orchestrator backend.
+ * Provides methods to submit I2V storyboard jobs and subscribes to real-time status updates.
  */
-export function useStoryboardOrchestrator({
+export function useI2VStoryboardOrchestrator({
   projectId,
   customApiKey,
   onJobUpdate,
   enabled = true,
-}: UseStoryboardOrchestratorOptions) {
+}: UseI2VStoryboardOrchestratorOptions) {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onJobUpdateRef = useRef(onJobUpdate);
   const activeJobIdRef = useRef<string | null>(null);
@@ -66,65 +61,31 @@ export function useStoryboardOrchestrator({
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
-    console.log("[useStoryboardOrchestrator] useEffect triggered:", {
-      enabled,
-      projectId,
-      activeJobId: activeJobIdRef.current,
-    });
-
     if (!enabled || !projectId) {
-      console.log("[useStoryboardOrchestrator] Skipping subscription - not enabled or no projectId");
       return;
     }
 
-    console.log("[useStoryboardOrchestrator] Setting up Firestore subscription for project:", projectId);
-
-    // Subscribe to project storyboard jobs
-    const unsubscribe = subscribeToProjectStoryboardJobs(projectId, (jobs: JobQueueDocument[]) => {
-      console.log("[useStoryboardOrchestrator] Subscription callback fired:", {
-        jobCount: jobs.length,
-        activeJobId: activeJobIdRef.current,
-        jobIds: jobs.map(j => j.id),
-      });
-
+    const unsubscribe = subscribeToProjectI2VStoryboardJobs(projectId, (jobs: JobQueueDocument[]) => {
       // Find the most recent job (or the active one)
       let latestJob: JobQueueDocument | null = null;
 
       jobs.forEach((job) => {
-        // If we have an active job ID, prioritize that job
         if (activeJobIdRef.current && job.id === activeJobIdRef.current) {
-          console.log("[useStoryboardOrchestrator] Found active job:", job.id);
           latestJob = job;
           return;
         }
 
-        // Otherwise, find the most recent job
         if (!latestJob || (job.created_at && (!latestJob.created_at || job.created_at > latestJob.created_at))) {
           latestJob = job;
         }
       });
 
-      const selectedJob = latestJob as JobQueueDocument | null;
-
-      console.log("[useStoryboardOrchestrator] Selected latest job:", {
-        jobId: selectedJob?.id,
-        status: selectedJob?.status,
-      });
-
-      // Notify callback for the latest job
-      if (selectedJob) {
-        const update = mapStoryboardJobToUpdate(selectedJob);
-        console.log("[useStoryboardOrchestrator] Calling onJobUpdate callback with:", {
-          jobId: update.jobId,
-          status: update.status,
-          hasScenes: !!update.scenes,
-          sceneCount: update.sceneCount,
-        });
+      if (latestJob) {
+        const update = mapI2VStoryboardJobToUpdate(latestJob);
         onJobUpdateRef.current?.(update);
 
-        // Clear active job ID if job is completed or failed
+        // Clear active job ID if job is in terminal state
         if (update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled') {
-          console.log("[useStoryboardOrchestrator] Clearing activeJobIdRef (terminal status)");
           activeJobIdRef.current = null;
         }
       }
@@ -133,36 +94,29 @@ export function useStoryboardOrchestrator({
     unsubscribeRef.current = unsubscribe;
 
     return () => {
-      console.log("[useStoryboardOrchestrator] Cleaning up subscription for project:", projectId);
       unsubscribe();
       unsubscribeRef.current = null;
     };
   }, [projectId, enabled]);
 
   /**
-   * Submit a storyboard generation job
+   * Submit an I2V storyboard generation job
    */
-  const submitJob = useCallback(async (params: SubmitStoryboardParams): Promise<SubmitJobResponse> => {
-    console.log("[useStoryboardOrchestrator:submitJob] Called with:", {
-      projectId,
-      sourceTextLength: params.sourceText?.length,
-      targetTime: params.targetTime,
-    });
-
+  const submitJob = useCallback(async (params: SubmitI2VStoryboardParams): Promise<SubmitJobResponse> => {
     if (!projectId) {
-      console.log("[useStoryboardOrchestrator:submitJob] No project ID - returning error");
       return { success: false, error: 'No project ID' };
     }
 
     try {
-      console.log("[useStoryboardOrchestrator:submitJob] Making API request...");
-      const response = await fetch('/api/storyboard/orchestrator/submit', {
+      const response = await fetch('/api/i2v-storyboard/orchestrator/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
+          panelUrls: params.panelUrls,
+          panelLabels: params.panelLabels,
           sourceText: params.sourceText,
-          partIndex: params.partIndex,
+          targetDuration: params.targetDuration,
           // Conditions
           storyCondition: params.storyCondition,
           imageCondition: params.imageCondition,
@@ -171,31 +125,18 @@ export function useStoryboardOrchestrator({
           // Guides
           imageGuide: params.imageGuide,
           videoGuide: params.videoGuide,
-          // New configuration
-          targetTime: params.targetTime,
-          customInstruction: params.customInstruction,
-          backgroundInstruction: params.backgroundInstruction,
-          negativeInstruction: params.negativeInstruction,
-          videoInstruction: params.videoInstruction,
           // API key
           apiKey: customApiKey,
         }),
       });
 
       const data = await response.json();
-      console.log("[useStoryboardOrchestrator:submitJob] Response:", {
-        ok: response.ok,
-        status: response.status,
-        jobId: data.jobId,
-        error: data.error,
-      });
 
       if (!response.ok) {
-        return { success: false, error: data.error || 'Failed to submit storyboard job' };
+        return { success: false, error: data.error || 'Failed to submit I2V storyboard job' };
       }
 
       // Track the active job ID
-      console.log("[useStoryboardOrchestrator:submitJob] Setting activeJobIdRef:", data.jobId);
       activeJobIdRef.current = data.jobId;
 
       return {
@@ -205,7 +146,6 @@ export function useStoryboardOrchestrator({
         createdAt: data.createdAt,
       };
     } catch (error) {
-      console.log("[useStoryboardOrchestrator:submitJob] Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -223,7 +163,7 @@ export function useStoryboardOrchestrator({
     }
 
     try {
-      const response = await fetch('/api/storyboard/orchestrator/cancel', {
+      const response = await fetch('/api/i2v-storyboard/orchestrator/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: targetJobId }),
@@ -246,10 +186,10 @@ export function useStoryboardOrchestrator({
   }, []);
 
   /**
-   * Get current job status (one-time fetch, prefer Firestore subscription for real-time)
+   * Get current job status (one-time fetch)
    */
   const getJobStatus = useCallback(async (jobId: string) => {
-    const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${jobId}`);
+    const response = await fetch(`/api/i2v-storyboard/orchestrator/status?jobId=${jobId}`);
     const data = await response.json();
 
     if (!response.ok) {

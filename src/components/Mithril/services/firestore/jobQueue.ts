@@ -12,7 +12,7 @@ import { db } from '@/lib/firestore';
 /**
  * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard';
 
 /**
  * Job status from the orchestrator
@@ -116,6 +116,7 @@ export interface JobQueueDocument {
         bgmEn: string;
         length: string;
         accumulatedTime: string;
+        referenceImageIndex?: number;
       }>;
     }>;
     voicePrompts: Array<{
@@ -123,6 +124,10 @@ export interface JobQueueDocument {
       promptEn: string;
     }>;
   };
+  // I2V Storyboard-specific fields
+  panel_urls?: string[];
+  panel_labels?: string[];
+  target_duration?: string;
 }
 
 /**
@@ -1395,6 +1400,7 @@ export interface StoryboardScene {
     bgmEn: string;
     length: string;
     accumulatedTime: string;
+    referenceImageIndex?: number;
   }>;
 }
 
@@ -1564,6 +1570,8 @@ function mapJobStatusToStoryboardStatus(
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'generating';
     case 'generating':
       return 'generating';
     case 'completed':
@@ -1575,4 +1583,67 @@ function mapJobStatusToStoryboardStatus(
     default:
       return 'pending';
   }
+}
+
+
+// ============================================================================
+// I2V Storyboard Job Functions
+// ============================================================================
+
+/**
+ * Subscribe to I2V storyboard generation jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any I2V storyboard job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectI2VStoryboardJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'i2v_storyboard')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) I2V storyboard jobs for a project (one-time fetch)
+ */
+export async function getActiveProjectI2VStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'i2v_storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const jobs = snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+
+  // Filter to active (non-terminal) jobs
+  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+  return jobs.filter((job) => activeStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardJobUpdate for I2V storyboard jobs.
+ * Reuses the same StoryboardJobUpdate type since the output shape is identical.
+ */
+export function mapI2VStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUpdate {
+  return mapStoryboardJobToUpdate(job);
 }

@@ -692,9 +692,16 @@ export function useScriptWriter() {
   );
 
   // Cancel ongoing operations
-  const cancel = useCallback(() => {
+  const cancel = useCallback(async () => {
+    // Immediately stop the generating UI
+    dispatch({ type: 'GENERATION_ERROR' });
+
     // Cancel background job via orchestrator
-    orchestratorRef.current.cancelJob();
+    const result = await orchestratorRef.current.cancelJob();
+    if (!result.success) {
+      console.warn('Failed to cancel job:', result.error);
+    }
+
     // Also abort any direct API calls (e.g., splitStartEnd)
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();

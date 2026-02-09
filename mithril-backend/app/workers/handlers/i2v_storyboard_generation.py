@@ -278,6 +278,11 @@ async def _generate_i2v_storyboard_with_gemini(
         content_parts.append(types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"))
 
     # Build the Korean prompt (ported from route.ts)
+    source_text_section = (
+        f"원본 텍스트:\n---\n{source_text}\n---"
+        if source_text
+        else "망가 패널 이미지를 기반으로 스토리를 구성하세요."
+    )
     prompt = f"""
 다음 원본 텍스트와 제공된 망가 패널 이미지들을 기반으로 총 5개의 '씬'으로 구성된, **정확히 {_format_time(total_seconds)} ({total_seconds}초)** 분량의 애니메이션 콘티를 제작해 주세요.
 전체 누적 시간이 반드시 {_format_time(total_seconds)}이 되도록 설계해야 합니다.
@@ -320,7 +325,7 @@ async def _generate_i2v_storyboard_with_gemini(
 - **videoPrompt**: 규칙: {video_condition}. 가이드: {video_guide}.
 - **dialogue/sfx/bgm**: 규칙: {sound_condition}.
 
-{f'원본 텍스트:\\n---\\n{source_text}\\n---' if source_text else '망가 패널 이미지를 기반으로 스토리를 구성하세요.'}
+{source_text_section}
 """
 
     content_parts.append(types.Part.from_text(text=prompt))

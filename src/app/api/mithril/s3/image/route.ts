@@ -25,6 +25,10 @@ import {
   getI2VPageKey,
   getI2VPanelKey,
   getI2VFolderPrefix,
+  getI2VStoryboardFrameKey,
+  getI2VStoryboardFrameEndKey,
+  getI2VStoryboardAssetKey,
+  getI2VStoryboardFolderPrefix,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -166,27 +170,58 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex } = body;
-        if (pageIndex === undefined) {
-          return NextResponse.json(
-            { success: false, s3Key: "", url: "", error: "pageIndex is required for i2v images" },
-            { status: 400 }
-          );
-        }
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
         switch (i2vSubtype) {
           case "panel":
-            if (panelIndex === undefined) {
+            if (pageIndex === undefined || panelIndex === undefined) {
               return NextResponse.json(
-                { success: false, s3Key: "", url: "", error: "panelIndex is required for i2v panel images" },
+                { success: false, s3Key: "", url: "", error: "pageIndex and panelIndex are required for i2v panel images" },
                 { status: 400 }
               );
             }
             s3Key = getI2VPanelKey(projectId, pageIndex, panelIndex);
             break;
           case "page":
-          default:
+            if (pageIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "pageIndex is required for i2v page images" },
+                { status: 400 }
+              );
+            }
             s3Key = getI2VPageKey(projectId, pageIndex);
             break;
+          case "storyboard-frame":
+            if (i2vSceneIndex === undefined || i2vClipIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "i2vSceneIndex and i2vClipIndex are required for i2v storyboard frame images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VStoryboardFrameKey(projectId, i2vSceneIndex, i2vClipIndex);
+            break;
+          case "storyboard-frame-end":
+            if (i2vSceneIndex === undefined || i2vClipIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "i2vSceneIndex and i2vClipIndex are required for i2v storyboard frame end images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VStoryboardFrameEndKey(projectId, i2vSceneIndex, i2vClipIndex);
+            break;
+          case "storyboard-asset":
+            if (!assetId || !assetType) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "assetId and assetType are required for i2v storyboard asset images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VStoryboardAssetKey(projectId, assetId, assetType);
+            break;
+          default:
+            return NextResponse.json(
+              { success: false, s3Key: "", url: "", error: "i2vSubtype is required for i2v images" },
+              { status: 400 }
+            );
         }
         break;
       }
@@ -410,31 +445,46 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex } = body;
-        // If no specific index provided, delete all i2v content
-        if (pageIndex === undefined) {
-          const prefix = getI2VFolderPrefix(projectId);
-          const listResponse = await s3Client.send(
-            new ListObjectsV2Command({
-              Bucket: BUCKET_NAME,
-              Prefix: prefix,
-            })
-          );
-          if (listResponse.Contents) {
-            keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
-          }
-        } else {
-          switch (i2vSubtype) {
-            case "panel":
-              if (panelIndex !== undefined) {
-                keysToDelete = [getI2VPanelKey(projectId, pageIndex, panelIndex)];
-              }
-              break;
-            case "page":
-            default:
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
+        switch (i2vSubtype) {
+          case "panel":
+            if (pageIndex !== undefined && panelIndex !== undefined) {
+              keysToDelete = [getI2VPanelKey(projectId, pageIndex, panelIndex)];
+            }
+            break;
+          case "page":
+            if (pageIndex !== undefined) {
               keysToDelete = [getI2VPageKey(projectId, pageIndex)];
-              break;
-          }
+            }
+            break;
+          case "storyboard-frame":
+            if (i2vSceneIndex !== undefined && i2vClipIndex !== undefined) {
+              keysToDelete = [getI2VStoryboardFrameKey(projectId, i2vSceneIndex, i2vClipIndex)];
+            }
+            break;
+          case "storyboard-frame-end":
+            if (i2vSceneIndex !== undefined && i2vClipIndex !== undefined) {
+              keysToDelete = [getI2VStoryboardFrameEndKey(projectId, i2vSceneIndex, i2vClipIndex)];
+            }
+            break;
+          case "storyboard-asset":
+            if (assetId && assetType) {
+              keysToDelete = [getI2VStoryboardAssetKey(projectId, assetId, assetType)];
+            }
+            break;
+          default:
+            // Delete all i2v content if no subtype specified
+            const prefix = getI2VFolderPrefix(projectId);
+            const listResponse = await s3Client.send(
+              new ListObjectsV2Command({
+                Bucket: BUCKET_NAME,
+                Prefix: prefix,
+              })
+            );
+            if (listResponse.Contents) {
+              keysToDelete = listResponse.Contents.map(obj => obj.Key!).filter(Boolean);
+            }
+            break;
         }
         break;
       }

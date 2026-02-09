@@ -15,6 +15,7 @@ import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
 import PanelEditor from "./ImageToVideo/PanelEditor";
 import StoryboardEditor from "./ImageToVideo/StoryboardEditor";
+import I2VVideoGenerator from "./ImageToVideo/VideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,6 +37,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'ImageToScriptWriter': ImageToScriptWriter,
   'PanelEditor': PanelEditor,
   'StoryboardEditor': StoryboardEditor,
+  'I2VVideoGenerator': I2VVideoGenerator,
 };
 
 // Cost Tracker Dashboard Component

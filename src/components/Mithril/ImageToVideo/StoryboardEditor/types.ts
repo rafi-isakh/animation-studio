@@ -15,10 +15,10 @@ export interface Continuity {
   accumulatedTime: string;
   backgroundPrompt: string;
   backgroundId: string;
-  referenceImage?: string;
+  referenceImage?: string; // base64 or URL
   referenceImageIndex?: number;
-  generatedImage?: string;
-  generatedImageEnd?: string;
+  generatedImage?: string; // base64 (local) or URL (from S3)
+  generatedImageEnd?: string; // base64 (local) or URL (from S3)
 }
 
 // Voice prompt for character voice guide

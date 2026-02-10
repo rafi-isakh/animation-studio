@@ -337,6 +337,7 @@ export interface ImageGenDocument {
   stylePrompt: string;
   aspectRatio: ImageGenAspectRatio;
   generatedAt: Timestamp;
+  frameSource?: 'storyboard' | 'csv'; // Where frames originated from
   localAssets?: Array<{
     id: string;
     name: string;

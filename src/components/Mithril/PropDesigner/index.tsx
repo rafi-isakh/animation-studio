@@ -563,6 +563,9 @@ export default function PropDesigner() {
         // Easy Mode metadata
         age?: string;
         gender?: string;
+        hairColor?: string;
+        hairStyle?: string;
+        eyeColor?: string;
         personality?: string;
         role?: string;
         // Variant detection

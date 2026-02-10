@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMithril } from "./MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Dictionary, Language } from "@/components/Types";
 import { useProject } from "@/contexts/ProjectContext";
-import { getChapter } from "./services/firestore";
+import { getChapter, getIdConverter } from "./services/firestore";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Upload, FileText } from "lucide-react";
 
 const GENRE_PRESETS: Record<string, string> = {
   fantasy: `[Core Principles]
@@ -128,11 +128,13 @@ export default function StorySplitter() {
   const [numParts, setNumParts] = useState<number>(8);
   const [selectedGenre, setSelectedGenre] = useState<string>("fantasy");
   const [guidelines, setGuidelines] = useState<string>(GENRE_PRESETS.fantasy);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use state from context
   const { isLoading, error, result: splitResult } = storySplitter;
 
-  // Load chapter from Firestore
+  // Load chapter from Firestore (prioritize ID Converter output over raw chapter)
   useEffect(() => {
     const loadChapter = async () => {
       if (!currentProjectId) {
@@ -141,6 +143,24 @@ export default function StorySplitter() {
       }
 
       try {
+        // First, try to load converted text from ID Converter
+        const idConverterData = await getIdConverter(currentProjectId);
+        if (idConverterData && idConverterData.currentStep === 'completed' && idConverterData.chunks) {
+          // Join all converted chunks
+          const convertedText = idConverterData.chunks
+            .filter(chunk => chunk.status === 'completed')
+            .map(chunk => chunk.translatedText)
+            .join('\n\n');
+          
+          if (convertedText) {
+            setOriginalText(convertedText);
+            setFileName(idConverterData.fileName.replace('.txt', '_converted.txt'));
+            setIsInitialLoading(false);
+            return;
+          }
+        }
+
+        // Fallback to raw chapter if no converted text
         const chapter = await getChapter(currentProjectId);
         if (chapter) {
           setOriginalText(chapter.content);
@@ -190,6 +210,53 @@ export default function StorySplitter() {
     }
   }, []);
 
+  // Handle file upload
+  const handleFileUpload = useCallback(async (file: File) => {
+    if (!file.name.endsWith('.txt') && file.type !== 'text/plain') {
+      alert('텍스트 파일(.txt)만 업로드할 수 있습니다.');
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      alert('파일이 너무 큽니다 (최대 10MB)');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const text = await file.text();
+      setOriginalText(text);
+      setFileName(file.name);
+    } catch (err) {
+      console.error('Error reading file:', err);
+      alert('파일을 읽는 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+    // Reset input so the same file can be selected again
+    e.target.value = '';
+  }, [handleFileUpload]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  }, [handleFileUpload]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
   // Show loading state while fetching initial data
   if (isInitialLoading) {
     return (
@@ -234,11 +301,12 @@ export default function StorySplitter() {
         </p>
       </div>
 
-      {/* Text Preview from Stage 1 */}
+      {/* Text Preview from Stage 1 or Uploaded File */}
       {originalText ? (
         <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <FileText className="w-4 h-4 inline mr-1" />
               {fileName}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -259,6 +327,47 @@ export default function StorySplitter() {
           </p>
         </div>
       )}
+
+      {/* Direct TXT Upload Section */}
+      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+        <div className="text-center">
+          <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {phrase(dictionary, "storysplitter_upload_txt", language) || "또는 여기에 TXT 파일을 직접 업로드하세요"}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {phrase(dictionary, "storysplitter_upload_txt_desc", language) || "이전 단계와 무관하게 새 파일을 업로드하여 대체할 수 있습니다"}
+          </p>
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 hover:border-[#DB2777] transition-colors cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {isUploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-[#DB2777]"></div>
+                  {phrase(dictionary, "upload_loading", language) || "파일 불러오는 중..."}
+                </span>
+              ) : (
+                <>
+                  <span className="font-medium">{phrase(dictionary, "upload_dropzone_title", language) || "파일을 여기에 끌어다 놓으세요"}</span>
+                  <br />
+                  <span className="text-xs">{phrase(dictionary, "upload_dropzone_subtitle", language) || "또는 클릭하여 파일 선택"}</span>
+                </>
+              )}
+            </p>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".txt,text/plain"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+        </div>
+      </div>
 
       {/* Configuration Section */}
       <div className="space-y-4">

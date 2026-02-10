@@ -3,6 +3,18 @@
 // Types
 export * from './types';
 
+// Mithril User Management
+export {
+  getUserByEmail,
+  getUserById,
+  createUser,
+  listUsers,
+  updateUser as updateMithrilUser,
+  deleteUser as deleteMithrilUser,
+  toPublicUser,
+  toAdminUser,
+} from './mithrilUsers';
+
 // Project CRUD
 export * from './projects';
 

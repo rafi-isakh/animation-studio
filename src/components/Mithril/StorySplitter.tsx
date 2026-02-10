@@ -183,7 +183,12 @@ export default function StorySplitter() {
   }, [splitResult, setStageResult]);
 
   const handleGenerate = useCallback(async () => {
-    await startStorySplit(originalText, guidelines, numParts);
+    // Special case: if numParts is 1, don't split - just create a single part
+    if (numParts === 1) {
+      await startStorySplit(originalText, guidelines, 1);
+    } else {
+      await startStorySplit(originalText, guidelines, numParts);
+    }
   }, [originalText, guidelines, numParts, startStorySplit]);
 
   const handleDownload = useCallback(async () => {
@@ -381,10 +386,10 @@ export default function StorySplitter() {
           <input
             type="number"
             id="numParts"
-            min={2}
+            min={1}
             max={50}
             value={numParts}
-            onChange={(e) => setNumParts(Math.max(2, Math.min(50, parseInt(e.target.value) || 2)))}
+            onChange={(e) => setNumParts(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
             className="w-24 p-2.5 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
           />
         </div>

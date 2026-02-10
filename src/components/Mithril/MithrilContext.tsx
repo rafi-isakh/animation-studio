@@ -701,6 +701,31 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
+      // Special case: if numParts is 1, don't call API - just create a single part
+      if (numParts === 1) {
+        const singlePart = {
+          text,
+          cliffhangers: [], // No cliffhangers for single part
+        };
+
+        const result = { parts: [singlePart] };
+
+        // Save to Firestore
+        if (currentProjectId) {
+          await saveStorySplits(currentProjectId, {
+            guidelines,
+            parts: [singlePart],
+          });
+        }
+
+        setStorySplitter({
+          isLoading: false,
+          error: null,
+          result,
+        });
+        return;
+      }
+
       const response = await fetch("/api/split_story", {
         method: "POST",
         headers: {

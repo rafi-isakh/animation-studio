@@ -99,6 +99,14 @@ export function useScriptWriter() {
     orchestratorRef.current = orchestrator;
   }, [orchestrator]);
 
+  // Apply pending completed update once panel data is loaded
+  useEffect(() => {
+    if (!orchestrator.pendingUpdate || allPanelsRef.current.length === 0) return;
+
+    handleJobUpdate(orchestrator.pendingUpdate);
+    orchestrator.clearPendingUpdate();
+  }, [orchestrator.pendingUpdate, handleJobUpdate, orchestrator.clearPendingUpdate]);
+
   // Load data from Firestore when project changes
   useEffect(() => {
     if (!currentProjectId || isLoadingRef.current) return;

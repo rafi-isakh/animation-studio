@@ -503,13 +503,29 @@ export default function BgSheetGenerator() {
   }, [toast, setBgSheetResult, setStageResult]);
 
   // Initialize orchestrator hook
-  const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob } = useBgOrchestrator({
+  const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob, pendingUpdates: bgPendingUpdates, clearPendingUpdates: clearBgPendingUpdates } = useBgOrchestrator({
     projectId: currentProjectId,
     onAngleUpdate: handleAngleUpdate,
     enabled: useOrchestrator,
   });
 
-  // Load active jobs on mount
+  // Apply pending updates from initial Firestore snapshot once backgrounds are loaded
+  useEffect(() => {
+    if (bgPendingUpdates.length === 0 || backgrounds.length === 0) return;
+
+    bgPendingUpdates.forEach((update) => {
+      const angleKey = `${update.bgId}-${update.angle}`;
+      const isTerminal = update.status === 'completed' || update.status === 'failed';
+      if (!isTerminal) {
+        // Re-track in-flight jobs so subsequent snapshots pick them up
+        activeJobsRef.current.set(angleKey, update.jobId);
+      }
+      handleAngleUpdate(update);
+    });
+    clearBgPendingUpdates();
+  }, [bgPendingUpdates, backgrounds.length, handleAngleUpdate, clearBgPendingUpdates]);
+
+  // Load active jobs on mount (restores in-flight jobs not captured by initial snapshot)
   useEffect(() => {
     if (!useOrchestrator || !currentProjectId) return;
 

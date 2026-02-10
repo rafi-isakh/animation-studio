@@ -99,11 +99,26 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   }, []);
 
   // Use the panel orchestrator hook
-  const { submitJob, cancelJob } = usePanelOrchestrator({
+  const { submitJob, cancelJob, pendingUpdates, clearPendingUpdates } = usePanelOrchestrator({
     sessionId,
     onPanelUpdate: handlePanelUpdate,
     enabled: true,
   });
+
+  // Apply pending updates from initial Firestore snapshot
+  useEffect(() => {
+    if (pendingUpdates.length === 0) return;
+
+    pendingUpdates.forEach((update) => {
+      // Re-track in-flight jobs so subsequent snapshots pick them up
+      const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+      if (!isTerminal) {
+        activeJobsRef.current.set(update.panelId, update.jobId);
+      }
+      handlePanelUpdate(update);
+    });
+    clearPendingUpdates();
+  }, [pendingUpdates, handlePanelUpdate, clearPendingUpdates]);
 
   // Add files to library
   const addFilesToLibrary = useCallback((files: File[]) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToProjectI2VStoryboardJobs,
   mapI2VStoryboardJobToUpdate,
@@ -53,11 +53,28 @@ export function useI2VStoryboardOrchestrator({
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onJobUpdateRef = useRef(onJobUpdate);
   const activeJobIdRef = useRef<string | null>(null);
+  // Track whether the initial Firestore snapshot has been processed
+  const initialSnapshotRef = useRef(true);
+  // Track job IDs already processed to avoid duplicates
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+  // Queue completed update from initial snapshot for deferred application
+  const [pendingUpdate, setPendingUpdate] = useState<StoryboardJobUpdate | null>(null);
+
+  const clearPendingUpdate = useCallback(() => {
+    setPendingUpdate(null);
+  }, []);
 
   // Keep callback ref updated
   useEffect(() => {
     onJobUpdateRef.current = onJobUpdate;
   }, [onJobUpdate]);
+
+  // Reset state when projectId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    setPendingUpdate(null);
+  }, [projectId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -80,14 +97,39 @@ export function useI2VStoryboardOrchestrator({
         }
       });
 
-      if (latestJob) {
-        const update = mapI2VStoryboardJobToUpdate(latestJob);
-        onJobUpdateRef.current?.(update);
+      if (!latestJob) return;
 
-        // Clear active job ID if job is in terminal state
-        if (update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled') {
-          activeJobIdRef.current = null;
+      // Re-assign to const for TypeScript narrowing (latestJob was mutated in forEach closure)
+      const job = latestJob as JobQueueDocument;
+      const update = mapI2VStoryboardJobToUpdate(job);
+      const isInitial = initialSnapshotRef.current;
+
+      if (isInitial) {
+        initialSnapshotRef.current = false;
+
+        const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+
+        if (!isTerminal) {
+          // Re-track in-flight job so subsequent snapshots pick it up
+          activeJobIdRef.current = job.id;
+          onJobUpdateRef.current?.(update);
+        } else if (update.status === 'completed') {
+          // Queue completed job — panel data may not be loaded yet
+          processedJobIdsRef.current.add(job.id);
+          setPendingUpdate(update);
         }
+        return;
+      }
+
+      // Subsequent snapshots
+      if (processedJobIdsRef.current.has(job.id)) return;
+
+      onJobUpdateRef.current?.(update);
+
+      // Clear active job ID if job is in terminal state
+      if (update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled') {
+        activeJobIdRef.current = null;
+        processedJobIdsRef.current.add(job.id);
       }
     });
 
@@ -219,5 +261,7 @@ export function useI2VStoryboardOrchestrator({
     getJobStatus,
     getActiveJobId,
     setActiveJobId,
+    pendingUpdate,
+    clearPendingUpdate,
   };
 }

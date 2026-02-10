@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToProjectBgJobs,
   mapBgJobToAngleUpdate,
@@ -58,11 +58,28 @@ export function useBgOrchestrator({
 }: UseBgOrchestratorOptions) {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onAngleUpdateRef = useRef(onAngleUpdate);
+  // Track whether the initial Firestore snapshot has been processed
+  const initialSnapshotRef = useRef(true);
+  // Track job IDs already processed to avoid duplicates
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+  // Queue updates from initial snapshot for deferred application
+  const [pendingUpdates, setPendingUpdates] = useState<AngleUpdate[]>([]);
+
+  const clearPendingUpdates = useCallback(() => {
+    setPendingUpdates([]);
+  }, []);
 
   // Keep callback ref updated
   useEffect(() => {
     onAngleUpdateRef.current = onAngleUpdate;
   }, [onAngleUpdate]);
+
+  // Reset state when projectId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    setPendingUpdates([]);
+  }, [projectId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -74,12 +91,12 @@ export function useBgOrchestrator({
     const unsubscribe = subscribeToProjectBgJobs(projectId, (jobs: JobQueueDocument[]) => {
       // Group jobs by bg_id+bg_angle and keep only the latest job for each angle
       const latestJobsByAngle = new Map<string, JobQueueDocument>();
-      
+
       jobs.forEach((job) => {
         const bgId = job.bg_id || '';
         const angle = job.bg_angle || '';
         if (!bgId || !angle) return;
-        
+
         const angleKey = `${bgId}:${angle}`;
         const existing = latestJobsByAngle.get(angleKey);
         // Keep the job with the latest created_at timestamp
@@ -87,11 +104,39 @@ export function useBgOrchestrator({
           latestJobsByAngle.set(angleKey, job);
         }
       });
-      
-      // Notify callback only for the latest job of each angle
+
+      const isInitial = initialSnapshotRef.current;
+
+      if (isInitial) {
+        initialSnapshotRef.current = false;
+
+        // On initial snapshot, queue all updates for deferred processing
+        const updates: AngleUpdate[] = [];
+        latestJobsByAngle.forEach((job) => {
+          if (!job.id) return;
+          const update = mapBgJobToAngleUpdate(job);
+          processedJobIdsRef.current.add(job.id);
+          updates.push(update);
+        });
+
+        if (updates.length > 0) {
+          setPendingUpdates(updates);
+        }
+        return;
+      }
+
+      // Subsequent snapshots: forward directly to callback, skipping processed jobs
       latestJobsByAngle.forEach((job) => {
+        if (!job.id) return;
+        if (processedJobIdsRef.current.has(job.id)) return;
+
         const update = mapBgJobToAngleUpdate(job);
         onAngleUpdateRef.current?.(update);
+
+        const isTerminal = update.status === 'completed' || update.status === 'failed';
+        if (isTerminal) {
+          processedJobIdsRef.current.add(job.id);
+        }
       });
     });
 
@@ -166,5 +211,7 @@ export function useBgOrchestrator({
     submitJob,
     submitBatch,
     cancelJob,
+    pendingUpdates,
+    clearPendingUpdates,
   };
 }

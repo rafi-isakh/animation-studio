@@ -192,6 +192,18 @@ export default function StoryboardEditor() {
               </select>
             </div>
 
+            <button
+              onClick={() => {
+                if (window.confirm("This will overwrite your current storyboard with the latest script data. All generated visuals will be lost. Continue?")) {
+                  loadFromPreviousStage();
+                }
+              }}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg flex items-center gap-2"
+            >
+              <Database className="w-4 h-4" />
+              Reload Script
+            </button>
+
             {/* Import/Export */}
             <button
               onClick={() => jsonFileInputRef.current?.click()}

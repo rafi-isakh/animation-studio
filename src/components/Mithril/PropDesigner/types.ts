@@ -51,6 +51,9 @@ export interface Prop {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string; // e.g., 'Silver', 'Dark brown'
+  hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
+  eyeColor?: string; // e.g., 'Golden', 'Blue'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -76,6 +79,9 @@ export interface PropMetadata {
   // Character metadata
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -173,15 +179,64 @@ export function getEasyModeCharacterPrompt(
     description: string;
     age?: string;
     gender?: string;
+    hairColor?: string;
+    hairStyle?: string;
+    eyeColor?: string;
     personality?: string;
     role?: string;
   }
 ): string {
   const age = prop.age || "20";
   const gender = prop.gender || "Female";
+  const hairColor = prop.hairColor || "black";
+  const hairStyle = prop.hairStyle || "medium length";
+  const eyeColor = prop.eyeColor || "brown";
   const personality = prop.personality || "Smart and calm";
-  const relationship = prop.role || "Companion";
+  const role = prop.role || "Companion";
   const description = prop.description || "";
 
-  return `make 2d anime white background character sheet of who would be ${relationship} of this character, ${age}-year old ${gender}. ${personality}. ${description} Maintain 1 full body front view, 1 face close up front view, 1 hands close up template. No vfx or visual effects, no dust particles`;
+  // Build relationship phrase correctly based on the role
+  // The role field indicates this character's relationship TO the protagonist
+  let relationshipPhrase = "";
+  
+  // Handle special cases where the role needs proper context
+  const lowerRole = role.toLowerCase();
+  
+  if (lowerRole === "protagonist" || lowerRole === "main character") {
+    relationshipPhrase = "the protagonist";
+  } else if (lowerRole.includes("son") || lowerRole.includes("daughter") || 
+             lowerRole.includes("child") || lowerRole.includes("offspring")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("father") || lowerRole.includes("mother") || 
+             lowerRole.includes("parent") || lowerRole.includes("dad") || lowerRole.includes("mom")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("brother") || lowerRole.includes("sister") || lowerRole.includes("sibling")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("wife") || lowerRole.includes("husband") || 
+             lowerRole.includes("spouse") || lowerRole.includes("partner")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("friend") || lowerRole.includes("ally") || 
+             lowerRole.includes("companion") || lowerRole.includes("comrade")) {
+    relationshipPhrase = `a ${role.toLowerCase()} of the protagonist`;
+  } else if (lowerRole.includes("mentor") || lowerRole.includes("teacher") || 
+             lowerRole.includes("master") || lowerRole.includes("guide")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("student") || lowerRole.includes("disciple") || 
+             lowerRole.includes("apprentice") || lowerRole.includes("pupil")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("rival") || lowerRole.includes("enemy") || 
+             lowerRole.includes("antagonist") || lowerRole.includes("opponent")) {
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  } else if (lowerRole.includes("younger") || lowerRole.includes("past") || 
+             lowerRole.includes("childhood") || lowerRole.includes("young")) {
+    relationshipPhrase = `the protagonist (${role.toLowerCase()})`;
+  } else {
+    // Default: assume it's a relationship TO the protagonist
+    relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
+  }
+
+  // Build visual features string
+  const visualFeatures = `${hairColor} ${hairStyle} hair, ${eyeColor} eyes`;
+  
+  return `make 2d anime white background character sheet of ${relationshipPhrase}, ${age}-year old ${gender}. ${visualFeatures}. ${personality}. ${description} Maintain 1 full body front view, 1 face close up front view, 1 hands close up template. No vfx or visual effects, no dust particles`;
 }

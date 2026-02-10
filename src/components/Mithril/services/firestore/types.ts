@@ -203,6 +203,9 @@ export interface PropDocument {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string; // e.g., 'Silver', 'Dark brown'
+  hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
+  eyeColor?: string; // e.g., 'Golden', 'Blue'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -242,6 +245,9 @@ export interface SavePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -266,6 +272,9 @@ export interface UpdatePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 

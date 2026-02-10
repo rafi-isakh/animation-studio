@@ -95,7 +95,7 @@ const characterDetectionSchema = {
       description: {
         type: Type.STRING,
         description:
-          "English visual description of the character's appearance: face, hair, body type, distinguishing features. Use keywords and short phrases.",
+          "English visual description focusing on KEY visual features only: hair color, hair style, eye color. Use concise keywords and short phrases (e.g., 'Silver long hair, golden eyes'). Exclude clothing and personality.",
       },
       descriptionKo: {
         type: Type.STRING,
@@ -137,6 +137,18 @@ const characterDetectionSchema = {
         type: Type.STRING,
         description: "Gender of the character: 'Male' or 'Female'",
       },
+      hairColor: {
+        type: Type.STRING,
+        description: "Hair color in 1-2 English words (e.g., 'Silver', 'Dark brown', 'Golden blonde', 'Black')",
+      },
+      hairStyle: {
+        type: Type.STRING,
+        description: "Hair style in 1-3 English words (e.g., 'Long straight', 'Short spiky', 'Wavy shoulder-length', 'Bob cut')",
+      },
+      eyeColor: {
+        type: Type.STRING,
+        description: "Eye color in 1-2 English words (e.g., 'Golden', 'Blue', 'Dark brown', 'Crimson red')",
+      },
       personality: {
         type: Type.STRING,
         description: "Character personality in max 4 English words (e.g., 'Smart and calm', 'Brave and loyal')",
@@ -170,6 +182,9 @@ const characterDetectionSchema = {
       "characterSheetPrompt",
       "age",
       "gender",
+      "hairColor",
+      "hairStyle",
+      "eyeColor",
       "personality",
       "role",
       "isVariant",

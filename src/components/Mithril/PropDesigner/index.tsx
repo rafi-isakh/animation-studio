@@ -298,6 +298,9 @@ export default function PropDesigner() {
         // Character metadata (Easy Mode)
         age: p.age,
         gender: p.gender,
+        hairColor: p.hairColor,
+        hairStyle: p.hairStyle,
+        eyeColor: p.eyeColor,
         personality: p.personality,
         role: p.role,
         // Variant detection
@@ -466,6 +469,9 @@ export default function PropDesigner() {
             // Character metadata (Easy Mode)
             age: prop.age,
             gender: prop.gender,
+            hairColor: prop.hairColor,
+            hairStyle: prop.hairStyle,
+            eyeColor: prop.eyeColor,
             personality: prop.personality,
             role: prop.role,
             // Variant detection
@@ -494,6 +500,9 @@ export default function PropDesigner() {
           // Character metadata (Easy Mode)
           age: p.age,
           gender: p.gender,
+          hairColor: p.hairColor,
+          hairStyle: p.hairStyle,
+          eyeColor: p.eyeColor,
           personality: p.personality,
           role: p.role,
           // Variant detection
@@ -590,6 +599,9 @@ export default function PropDesigner() {
           // Easy Mode metadata (preserve existing if available)
           age: existing?.age || char.age,
           gender: existing?.gender || char.gender,
+          hairColor: existing?.hairColor || char.hairColor,
+          hairStyle: existing?.hairStyle || char.hairStyle,
+          eyeColor: existing?.eyeColor || char.eyeColor,
           personality: existing?.personality || char.personality,
           role: existing?.role || char.role,
           // Variant detection
@@ -805,6 +817,9 @@ export default function PropDesigner() {
                   // Character metadata (Easy Mode)
                   age: p.age,
                   gender: p.gender,
+                  hairColor: p.hairColor,
+                  hairStyle: p.hairStyle,
+                  eyeColor: p.eyeColor,
                   personality: p.personality,
                   role: p.role,
                   // Variant detection
@@ -869,6 +884,9 @@ export default function PropDesigner() {
             referenceImageRefs: p.referenceImages,
             age: p.age,
             gender: p.gender,
+            hairColor: p.hairColor,
+            hairStyle: p.hairStyle,
+            eyeColor: p.eyeColor,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -909,6 +927,9 @@ export default function PropDesigner() {
             referenceImageRefs: p.referenceImages,
             age: p.age,
             gender: p.gender,
+            hairColor: p.hairColor,
+            hairStyle: p.hairStyle,
+            eyeColor: p.eyeColor,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -970,6 +991,9 @@ export default function PropDesigner() {
         referenceImages: p.referenceImages,
         age: p.age,
         gender: p.gender,
+        hairColor: p.hairColor,
+        hairStyle: p.hairStyle,
+        eyeColor: p.eyeColor,
         personality: p.personality,
         role: p.role,
         isVariant: p.isVariant,
@@ -1029,6 +1053,9 @@ export default function PropDesigner() {
           referenceImages: p.referenceImages as string[] | undefined,
           age: p.age as string | undefined,
           gender: p.gender as string | undefined,
+          hairColor: p.hairColor as string | undefined,
+          hairStyle: p.hairStyle as string | undefined,
+          eyeColor: p.eyeColor as string | undefined,
           personality: p.personality as string | undefined,
           role: p.role as string | undefined,
           isVariant: p.isVariant as boolean | undefined,

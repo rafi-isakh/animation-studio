@@ -639,6 +639,12 @@ export interface MithrilUserPublic {
   displayName: string;
 }
 
+export interface MithrilUserAdmin extends MithrilUserPublic {
+  isActive: boolean;
+  createdAt: string | null;
+  lastLoginAt: string | null;
+}
+
 export interface CreateMithrilUserInput {
   email: string;
   password: string;

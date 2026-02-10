@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, Download, ImageIcon, Sparkles } from 'lucide-react';
 import { AssetManager } from './AssetManager';
 import { uploadI2VStoryboardFrameImage, uploadI2VStoryboardAssetImage } from '../../services/s3/images';
@@ -205,6 +205,23 @@ const FrameCard: React.FC<{
   const [imgErrorA, setImgErrorA] = useState(false);
   const [imgErrorB, setImgErrorB] = useState(false);
 
+  // Clear local loading states when Firestore job status updates or completes
+  useEffect(() => {
+    const frameKeyA = `${sIdx}-${cIdx}-start`;
+    const frameKeyB = `${sIdx}-${cIdx}-end`;
+    const jobStatusA = generatingFrames[frameKeyA];
+    const jobStatusB = generatingFrames[frameKeyB];
+
+    // If frame A has a job status, ensure local loading is cleared (job is tracked by Firestore)
+    if (jobStatusA && loadingA) {
+      setLoadingA(false);
+    }
+    // If frame B has a job status, ensure local loading is cleared
+    if (jobStatusB && loadingB) {
+      setLoadingB(false);
+    }
+  }, [generatingFrames, sIdx, cIdx, loadingA, loadingB]);
+
   // Find all relevant assets by tags matching prompt content
   const findReferenceAssets = (prompt: string) => {
     if (!prompt) return [];
@@ -267,10 +284,12 @@ const FrameCard: React.FC<{
 
       if (!result.success) {
         alert('Generation failed: ' + (result.error || 'Unknown error'));
+        // Only reset loading on failure; on success, let Firestore subscription handle it
+        isEnd ? setLoadingB(false) : setLoadingA(false);
       }
+      // Note: On success, loading state will be controlled by generatingFrames (Firestore subscription)
     } catch (err) {
       alert('Generation failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
       isEnd ? setLoadingB(false) : setLoadingA(false);
     }
   };
@@ -324,11 +343,12 @@ const FrameCard: React.FC<{
 
       if (!result.success) {
         alert('Remix failed: ' + (result.error || 'Unknown error'));
+        // Only reset loading on failure; on success, let Firestore subscription handle it
+        isEnd ? setRemixLoadingB(false) : setRemixLoadingA(false);
       }
-      // Note: loading state and remix panel close will be handled by Firestore subscription
+      // Note: On success, loading state will be controlled by generatingFrames (Firestore subscription)
     } catch (err) {
       alert('Remix failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
       isEnd ? setRemixLoadingB(false) : setRemixLoadingA(false);
     }
   };

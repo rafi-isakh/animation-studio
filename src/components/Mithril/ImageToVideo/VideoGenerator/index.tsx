@@ -237,7 +237,9 @@ export default function I2VVideoGenerator() {
     }
 
     if (isContextLoading) return;
-    if (hasLoaded) return;
+    
+    // Always reload data when entering the stage to pick up changes from StoryboardEditor
+    // Note: We removed the hasLoaded check to ensure fresh data on each stage entry
 
     const loadData = async () => {
       setIsLoadingData(true);
@@ -411,7 +413,6 @@ export default function I2VVideoGenerator() {
         if (savedVideoClips.length > 0) {
           setIsSaved(true);
         }
-        setHasLoaded(true);
       } catch (err) {
         console.error("Error loading I2V video data:", err);
         toast({
@@ -421,13 +422,13 @@ export default function I2VVideoGenerator() {
         });
       } finally {
         setIsLoadingData(false);
+        setHasLoaded(true);
       }
     };
 
     loadData();
   }, [
     currentStage,
-    hasLoaded,
     currentProjectId,
     getStageResult,
     isContextLoading,

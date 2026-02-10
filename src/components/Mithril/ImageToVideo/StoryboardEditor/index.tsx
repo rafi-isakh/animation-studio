@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Upload,
@@ -83,12 +83,22 @@ export default function StoryboardEditor() {
     }
   }, [state.storyboardData, updateClip]);
 
-  const { submitGenerateJob, submitRemixJob, cancelJob } = useStoryboardEditorOrchestrator({
+  const { submitGenerateJob, submitRemixJob, cancelJob, pendingCompletedUpdates, clearPendingUpdates } = useStoryboardEditorOrchestrator({
     projectId: projectId || null,
     customApiKey,
     onFrameUpdate: handleFrameUpdate,
     enabled: !!projectId,
   });
+
+  // Apply pending completed updates once storyboard data is loaded
+  useEffect(() => {
+    if (isLoadingData || pendingCompletedUpdates.length === 0 || !hasData) return;
+
+    pendingCompletedUpdates.forEach((update) => {
+      handleFrameUpdate(update);
+    });
+    clearPendingUpdates();
+  }, [isLoadingData, hasData, pendingCompletedUpdates, handleFrameUpdate, clearPendingUpdates]);
 
   const { storyboardData, voicePrompts, assets, aspectRatio, ui } = state;
 

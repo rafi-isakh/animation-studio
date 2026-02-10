@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToProjectStoryboardEditorJobs,
   mapStoryboardEditorJobToUpdate,
@@ -51,6 +51,10 @@ interface UseStoryboardEditorOrchestratorOptions {
 /**
  * Hook for integrating with the storyboard editor orchestrator backend.
  * Provides methods to submit generate/remix jobs and subscribes to real-time status updates.
+ *
+ * Returns `pendingCompletedUpdates` — completed job updates from the initial Firestore
+ * snapshot that arrived before storyboard data was loaded. The consumer should apply
+ * these once data is ready, then call `clearPendingUpdates()`.
  */
 export function useStoryboardEditorOrchestrator({
   projectId,
@@ -61,13 +65,30 @@ export function useStoryboardEditorOrchestrator({
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onFrameUpdateRef = useRef(onFrameUpdate);
   // Track active job IDs per frame key (sceneIndex-clipIndex-frameType -> jobId)
-  // This prevents old completed jobs from Firestore initial snapshot from being processed
   const activeJobIdsRef = useRef<Map<string, string>>(new Map());
+  // Track whether the initial Firestore snapshot has been processed
+  const initialSnapshotRef = useRef(true);
+  // Track job IDs that have already been forwarded as completed to avoid duplicates
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+  // Queue completed updates from initial snapshot for deferred application
+  const [pendingCompletedUpdates, setPendingCompletedUpdates] = useState<StoryboardEditorJobUpdate[]>([]);
+
+  const clearPendingUpdates = useCallback(() => {
+    setPendingCompletedUpdates([]);
+  }, []);
 
   // Keep callback ref updated
   useEffect(() => {
     onFrameUpdateRef.current = onFrameUpdate;
   }, [onFrameUpdate]);
+
+  // Reset state when projectId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    activeJobIdsRef.current = new Map();
+    setPendingCompletedUpdates([]);
+  }, [projectId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -77,21 +98,65 @@ export function useStoryboardEditorOrchestrator({
 
     const unsubscribe = subscribeToProjectStoryboardEditorJobs(projectId, (jobs: JobQueueDocument[]) => {
       const activeJobs = activeJobIdsRef.current;
+      const isInitial = initialSnapshotRef.current;
+
+      if (isInitial) {
+        initialSnapshotRef.current = false;
+
+        // On initial snapshot, recover in-flight jobs and queue completed jobs
+        // For each frame, find the most recent job (highest created_at)
+        const latestByFrame = new Map<string, JobQueueDocument>();
+        jobs.forEach((job) => {
+          if (!job.id) return;
+          const frameKey = `${job.scene_index}-${job.clip_index}-${job.frame_type || 'start'}`;
+          const existing = latestByFrame.get(frameKey);
+          if (!existing || (job.created_at && existing.created_at && job.created_at > existing.created_at)) {
+            latestByFrame.set(frameKey, job);
+          }
+        });
+
+        const completedUpdates: StoryboardEditorJobUpdate[] = [];
+
+        latestByFrame.forEach((job, frameKey) => {
+          const update = mapStoryboardEditorJobToUpdate(job);
+          const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+
+          if (!isTerminal) {
+            // Re-track in-flight jobs so subsequent snapshots pick them up
+            activeJobs.set(frameKey, job.id);
+            onFrameUpdateRef.current?.(update);
+          } else if (update.status === 'completed' && update.imageUrl) {
+            // Queue completed jobs — storyboard data may not be loaded yet
+            processedJobIdsRef.current.add(job.id);
+            completedUpdates.push(update);
+          }
+        });
+
+        if (completedUpdates.length > 0) {
+          setPendingCompletedUpdates(completedUpdates);
+        }
+        return;
+      }
+
+      // Subsequent snapshots: only process actively tracked jobs
       if (activeJobs.size === 0) return;
 
-      // Only process jobs that we actively submitted
       jobs.forEach((job) => {
         if (!job.id) return;
         const frameKey = `${job.scene_index}-${job.clip_index}-${job.frame_type || 'start'}`;
         const activeJobId = activeJobs.get(frameKey);
 
         if (activeJobId && job.id === activeJobId) {
+          // Skip if already processed
+          if (processedJobIdsRef.current.has(job.id)) return;
+
           const update = mapStoryboardEditorJobToUpdate(job);
           onFrameUpdateRef.current?.(update);
 
           // Clear active tracking on terminal states
           if (update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled') {
             activeJobs.delete(frameKey);
+            processedJobIdsRef.current.add(job.id);
           }
         }
       });
@@ -237,5 +302,7 @@ export function useStoryboardEditorOrchestrator({
     submitGenerateJob,
     submitRemixJob,
     cancelJob,
+    pendingCompletedUpdates,
+    clearPendingUpdates,
   };
 }

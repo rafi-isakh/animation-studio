@@ -60,15 +60,15 @@ const createStateHash = (
     assetCount: assets.length,
     aspectRatio,
     targetDuration,
-    // Track which clips have generated images (use substring to detect changes without storing full base64)
+    // Track which clips have generated images (use last 60 chars to capture unique job ID in S3 URLs)
     generatedImages: storyboardData.flatMap((s, sIdx) =>
       s.clips.map((c, cIdx) =>
-        c.generatedImage ? `${sIdx}-${cIdx}:${c.generatedImage.substring(0, 20)}` : null
+        c.generatedImage ? `${sIdx}-${cIdx}:${c.generatedImage.slice(-60)}` : null
       ).filter(Boolean)
     ),
     generatedImagesEnd: storyboardData.flatMap((s, sIdx) =>
       s.clips.map((c, cIdx) =>
-        c.generatedImageEnd ? `${sIdx}-${cIdx}:${c.generatedImageEnd.substring(0, 20)}` : null
+        c.generatedImageEnd ? `${sIdx}-${cIdx}:${c.generatedImageEnd.slice(-60)}` : null
       ).filter(Boolean)
     ),
   });
@@ -78,6 +78,7 @@ export function useStoryboardEditor() {
   const { storyboardGenerator, getStageResult, setStageResult, isLoading: isContextLoading, currentProjectId: projectId } = useMithril();
   const [state, dispatch] = useReducer(storyboardEditorReducer, initialState);
   const hasInitializedRef = useRef(false);
+  const lastProjectIdRef = useRef<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,6 +98,15 @@ export function useStoryboardEditor() {
   const hasData = useMemo(() => {
     return state.storyboardData.length > 0;
   }, [state.storyboardData]);
+
+  // Reset initialization flag when projectId changes
+  useEffect(() => {
+    if (lastProjectIdRef.current !== projectId) {
+      hasInitializedRef.current = false;
+      lastProjectIdRef.current = projectId;
+      setIsLoadingData(true);
+    }
+  }, [projectId]);
 
   // Load existing data from Firestore or context on mount
   useEffect(() => {

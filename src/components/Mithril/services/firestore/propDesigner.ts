@@ -144,6 +144,7 @@ export async function saveProp(
     category: input.category,
     description: input.description,
     descriptionKo: input.descriptionKo,
+    csvDescription: input.csvDescription,
     appearingClips: input.appearingClips,
     contextPrompts: input.contextPrompts || [],
     designSheetPrompt: input.designSheetPrompt || '',

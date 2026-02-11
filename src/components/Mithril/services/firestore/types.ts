@@ -193,6 +193,7 @@ export interface PropDocument {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts: PropContextDocument[];
   designSheetPrompt: string;
@@ -235,6 +236,7 @@ export interface SavePropInput {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
@@ -262,6 +264,7 @@ export interface UpdatePropInput {
   category?: 'character' | 'object';
   description?: string;
   descriptionKo?: string;
+  csvDescription?: string;
   appearingClips?: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;

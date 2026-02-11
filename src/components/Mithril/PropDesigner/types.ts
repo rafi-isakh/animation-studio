@@ -32,6 +32,7 @@ export interface Prop {
   // Descriptions
   description: string; // English visual description
   descriptionKo: string; // Korean purpose/context description
+  csvDescription?: string; // Description from CSV Character ID List
 
   // Appearance tracking
   appearingClips: string[]; // Clip IDs where prop appears
@@ -70,6 +71,7 @@ export interface PropMetadata {
   category: PropCategory;
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   designSheetPrompt: string;
   designSheetImageRef: string; // S3 URL
@@ -165,11 +167,26 @@ export function getObjectDesignSheetPrompt(
 }
 
 export function getCharacterDesignSheetPrompt(
-  prop: { name: string; description: string },
+  prop: { name: string; description: string; csvDescription?: string },
   genre: string,
   styleKeyword: string
 ): string {
-  return `2d anime white background character sheet, ${prop.description} of ${prop.name} in ${genre} setting, 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text. Style: ${styleKeyword}. No vfx or visual effects, no dust particles`;
+  // Helper to ensure text ends with period
+  const ensurePeriod = (text: string): string => {
+    const trimmed = text.trim();
+    return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+  };
+
+  // If we have CSV description, use it with visual description
+  if (prop.csvDescription && prop.csvDescription.trim()) {
+    const csvDesc = ensurePeriod(prop.csvDescription);
+    const visualDesc = prop.description ? ensurePeriod(prop.description) : '';
+    return `Make 2d anime white background character sheet of who would be ${csvDesc} ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+  }
+
+  // Otherwise use just the visual description
+  const visualDesc = ensurePeriod(prop.description);
+  return `Make 2d anime white background character sheet of who would be ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
 }
 
 // Easy Mode template for character design sheet
@@ -177,6 +194,7 @@ export function getEasyModeCharacterPrompt(
   prop: {
     name: string;
     description: string;
+    csvDescription?: string;
     age?: string;
     gender?: string;
     hairColor?: string;
@@ -184,8 +202,27 @@ export function getEasyModeCharacterPrompt(
     eyeColor?: string;
     personality?: string;
     role?: string;
-  }
+  },
+  genre?: string
 ): string {
+  const genreText = genre || "Modern";
+
+  // Helper to ensure text ends with period
+  const ensurePeriod = (text: string): string => {
+    const trimmed = text.trim();
+    return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+  };
+
+  // If we have CSV description, use it with visual description
+  if (prop.csvDescription && prop.csvDescription.trim()) {
+    const csvDesc = ensurePeriod(prop.csvDescription);
+    const visualDesc = prop.description ? ensurePeriod(prop.description) : '';
+    
+    // Format: CSV description + Visual description + Template + Genre
+    return `Make 2d anime white background character sheet of who would be ${csvDesc} ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genreText}.`;
+  }
+
+  // Otherwise build from Easy Mode metadata
   const age = prop.age || "20";
   const gender = prop.gender || "Female";
   const hairColor = prop.hairColor || "black";
@@ -196,10 +233,7 @@ export function getEasyModeCharacterPrompt(
   const description = prop.description || "";
 
   // Build relationship phrase correctly based on the role
-  // The role field indicates this character's relationship TO the protagonist
   let relationshipPhrase = "";
-  
-  // Handle special cases where the role needs proper context
   const lowerRole = role.toLowerCase();
   
   if (lowerRole === "protagonist" || lowerRole === "main character") {
@@ -231,12 +265,11 @@ export function getEasyModeCharacterPrompt(
              lowerRole.includes("childhood") || lowerRole.includes("young")) {
     relationshipPhrase = `the protagonist (${role.toLowerCase()})`;
   } else {
-    // Default: assume it's a relationship TO the protagonist
     relationshipPhrase = `the protagonist's ${role.toLowerCase()}`;
   }
 
   // Build visual features string
   const visualFeatures = `${hairColor} ${hairStyle} hair, ${eyeColor} eyes`;
   
-  return `make 2d anime white background character sheet of ${relationshipPhrase}, ${age}-year old ${gender}. ${visualFeatures}. ${personality}. ${description} Maintain 1 full body front view, 1 face close up front view, 1 hands close up template. No vfx or visual effects, no dust particles`;
+  return `Make 2d anime white background character sheet of who would be ${relationshipPhrase}, ${age}-year old ${gender}. ${visualFeatures}. ${personality}. ${description} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genreText}.`;
 }

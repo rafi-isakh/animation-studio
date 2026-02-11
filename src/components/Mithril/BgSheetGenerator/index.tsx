@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds } from "../services/firestore";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet } from "../services/firestore";
 import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
@@ -705,7 +705,7 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
       try {
         const chapter = await getChapter(currentProjectId);
-        if (chapter) {
+        if (chapter?.content) {
           setOriginalText(chapter.content);
           setFileName(chapter.filename);
         }
@@ -2400,11 +2400,14 @@ Image Cost: $${currentImageCost.toFixed(4)}
           bgData.description = bgPrompt;
         }
 
-        // Add view for this clip
-        bgData.views.push({
-          angle: bgIdRaw,
-          csvContext: imagePrompt,
-        });
+        // Add view for this angle only if not already present (multiple clips can share the same backgroundId)
+        const existingView = bgData.views.find(v => v.angle === bgIdRaw);
+        if (!existingView) {
+          bgData.views.push({
+            angle: bgIdRaw,
+            csvContext: imagePrompt,
+          });
+        }
       }
     }
 
@@ -2443,6 +2446,9 @@ Image Cost: $${currentImageCost.toFixed(4)}
     // Persist to Firestore immediately so backgrounds survive refresh
     if (currentProjectId) {
       try {
+        // Clear old backgrounds first to avoid duplicates on refresh
+        await clearBgSheet(currentProjectId);
+
         // Save each background to Firestore
         for (const bg of newBackgrounds) {
           await saveBackgroundWithId(currentProjectId, bg.id, {

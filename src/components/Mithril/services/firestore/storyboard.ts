@@ -145,7 +145,7 @@ export async function saveVoicePrompts(
   prompts: VoicePromptDocument[]
 ): Promise<void> {
   const docRef = getVoicePromptsRef(projectId);
-  await setDoc(docRef, { prompts });
+  await setDoc(docRef, { prompts: prompts || [] });
 }
 
 /**

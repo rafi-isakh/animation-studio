@@ -13,6 +13,8 @@ import {
   saveDetectedIds,
   updatePropDesignSheetImage,
   updatePropReferenceImage,
+  getProps,
+  deleteProp,
 } from "../services/firestore";
 import { deletePropDesignSheetImage } from "../services/s3";
 
@@ -511,6 +513,20 @@ export default function PropDesigner() {
             occurrences: d.occurrences,
           }))
         );
+
+        // Delete old props of the same category to avoid stale data on refresh
+        try {
+          const existingProps = await getProps(currentProjectId);
+          const oldSameCategoryProps = existingProps.filter(p => p.category === category);
+          const newPropIds = new Set(newProps.map(p => p.id));
+          for (const oldProp of oldSameCategoryProps) {
+            if (!newPropIds.has(oldProp.id)) {
+              await deleteProp(currentProjectId, oldProp.id);
+            }
+          }
+        } catch (err) {
+          console.error("[PropDesigner] Error cleaning old props:", err);
+        }
 
         for (const prop of newProps) {
           await saveProp(currentProjectId, {

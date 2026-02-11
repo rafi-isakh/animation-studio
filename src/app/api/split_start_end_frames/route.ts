@@ -4,9 +4,11 @@ import type { Scene } from "@/components/Mithril/StoryboardGenerator/types";
 
 interface SplitRequest {
   scenes: Scene[];
+  apiKey?: string;
 }
 
 interface SplitFrameResult {
+  index: number;
   originalPrompt: string;
   startPrompt: string;
   endPrompt: string | null;
@@ -24,11 +26,12 @@ async function sleep(ms: number) {
  * This is optimized for Vidu video AI which uses start/end frames for video generation.
  */
 async function splitStartEndFramesWithRetry(
-  scenes: Scene[]
+  scenes: Scene[],
+  clientApiKey?: string
 ): Promise<Scene[]> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = clientApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured");
+    throw new Error("GEMINI_API_KEY is not configured. Please provide an API key.");
   }
 
   const masterPrompt = `
@@ -63,18 +66,26 @@ async function splitStartEndFramesWithRetry(
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Flatten all clips' image prompts
-  const allClips = scenes.flatMap((s) => s.clips);
-  const promptList = allClips.map((c) => c.imagePrompt);
+  // Flatten all clips' image prompts with indices for reliable matching
+  const indexedPrompts: { index: number; prompt: string }[] = [];
+  scenes.forEach((scene) => {
+    scene.clips.forEach((clip) => {
+      indexedPrompts.push({ index: indexedPrompts.length, prompt: clip.imagePrompt });
+    });
+  });
 
   const responseSchema = {
     type: Type.ARRAY,
     items: {
       type: Type.OBJECT,
       properties: {
+        index: {
+          type: Type.INTEGER,
+          description: "The index of the prompt from the input array (0-based).",
+        },
         originalPrompt: {
           type: Type.STRING,
-          description: "The original image prompt (for matching).",
+          description: "The original image prompt (for verification).",
         },
         startPrompt: {
           type: Type.STRING,
@@ -88,7 +99,7 @@ async function splitStartEndFramesWithRetry(
             "The end frame prompt. Null for static shots that don't need splitting.",
         },
       },
-      required: ["originalPrompt", "startPrompt", "endPrompt"],
+      required: ["index", "originalPrompt", "startPrompt", "endPrompt"],
     },
   };
 
@@ -96,9 +107,10 @@ async function splitStartEndFramesWithRetry(
   while (attempt < MAX_RETRIES) {
     attempt++;
     try {
+      const promptData = indexedPrompts.map((p) => ({ index: p.index, prompt: p.prompt }));
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `${masterPrompt}\n\n**콘티 데이터:**\n${JSON.stringify(promptList)}`,
+        contents: `${masterPrompt}\n\n**콘티 데이터 (index와 prompt 쌍):**\n${JSON.stringify(promptData)}\n\n각 항목의 index를 결과에 그대로 포함시켜 주세요.`,
         config: {
           responseMimeType: "application/json",
           responseSchema: responseSchema,
@@ -112,17 +124,19 @@ async function splitStartEndFramesWithRetry(
 
       const splitResults: SplitFrameResult[] = JSON.parse(jsonText);
 
-      // Create a map from original prompt to split results
-      const promptMap = new Map<string, SplitFrameResult>();
+      // Create a map from index to split results
+      const indexMap = new Map<number, SplitFrameResult>();
       splitResults.forEach((result) => {
-        promptMap.set(result.originalPrompt, result);
+        indexMap.set(result.index, result);
       });
 
-      // Apply split results back to scenes
+      // Apply split results back to scenes using flat index
+      let flatIndex = 0;
       const updatedScenes = scenes.map((scene) => ({
         ...scene,
         clips: scene.clips.map((clip) => {
-          const splitResult = promptMap.get(clip.imagePrompt);
+          const currentIndex = flatIndex++;
+          const splitResult = indexMap.get(currentIndex);
           if (splitResult) {
             return {
               ...clip,
@@ -166,7 +180,7 @@ async function splitStartEndFramesWithRetry(
 export async function POST(request: NextRequest) {
   try {
     const body: SplitRequest = await request.json();
-    const { scenes } = body;
+    const { scenes, apiKey } = body;
 
     // Validation
     if (!scenes || !Array.isArray(scenes) || scenes.length === 0) {
@@ -176,7 +190,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await splitStartEndFramesWithRetry(scenes);
+    const result = await splitStartEndFramesWithRetry(scenes, apiKey);
 
     return NextResponse.json({ scenes: result });
   } catch (error: unknown) {

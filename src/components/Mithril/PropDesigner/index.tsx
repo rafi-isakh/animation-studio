@@ -926,87 +926,109 @@ export default function PropDesigner() {
                 return p;
               });
 
-              // Save auto-linked variants to Firestore
-              if (currentProjectId && isDefaultCharacter && generatedProp) {
-                const variantsToUpdate = newProps.filter((p) => {
-                  if (!p.isVariant || p.category !== "character") return false;
-                  const variantDetails = p.variantDetails?.toLowerCase() || "";
-                  const characterName = generatedProp.name.toLowerCase();
-                  const characterId = generatedProp.name.toUpperCase();
-                  return (
-                    (variantDetails.includes(characterName) || 
-                     variantDetails.includes(characterId) ||
-                     p.name.includes(characterId.split("_")[0])) &&
-                    (p.referenceImages?.includes(uploadData.url) || false)
-                  );
-                });
-
-                // Save updated variants to Firestore
-                for (const variant of variantsToUpdate) {
-                  try {
-                    await saveProp(currentProjectId, {
-                      id: variant.id,
-                      name: variant.name,
-                      category: variant.category,
-                      description: variant.description,
-                      descriptionKo: variant.descriptionKo,
-                      csvDescription: variant.csvDescription,
-                      appearingClips: variant.appearingClips,
-                      designSheetPrompt: variant.designSheetPrompt,
-                      designSheetImageRef: variant.designSheetImageUrl,
-                      referenceImageRef: variant.referenceImageUrl,
-                      referenceImageRefs: variant.referenceImages,
-                      age: variant.age,
-                      gender: variant.gender,
-                      hairColor: variant.hairColor,
-                      hairStyle: variant.hairStyle,
-                      eyeColor: variant.eyeColor,
-                      personality: variant.personality,
-                      role: variant.role,
-                      isVariant: variant.isVariant,
-                      variantDetails: variant.variantDetails,
-                      variantVisuals: variant.variantVisuals,
-                    });
-                    console.log(`[Auto-link] Saved ${variant.name} to Firestore with auto-linked reference`);
-                  } catch (error) {
-                    console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
-                  }
-                }
-              }
-
               // Also update context so it persists across re-renders
-              setPropDesignerResult({
-                settings: { styleKeyword, propBasePrompt: "", genre },
-                props: newProps.map((p) => ({
-                  id: p.id,
-                  name: p.name,
-                  category: p.category,
-                  description: p.description,
-                  descriptionKo: p.descriptionKo,
-                  csvDescription: p.csvDescription,
-                  appearingClips: p.appearingClips,
-                  designSheetPrompt: p.designSheetPrompt,
-                  designSheetImageRef: p.designSheetImageUrl || "",
-                  referenceImageRef: p.referenceImageUrl,
-                  referenceImageRefs: p.referenceImages,
-                  age: p.age,
-                  gender: p.gender,
-                  hairColor: p.hairColor,
-                  hairStyle: p.hairStyle,
-                  eyeColor: p.eyeColor,
-                  personality: p.personality,
-                  role: p.role,
-                  // Variant detection
-                  isVariant: p.isVariant,
-                  variantDetails: p.variantDetails,
-                  variantVisuals: p.variantVisuals,
-                })),
-                detectedIds,
-              });
+              // Note: We do this inside setProps to ensure we have the calculated newProps
+              // But we should wrap it in a setTimeout or useEffect ideally. 
+              // unique hack: call the context setter asynchronously to avoid bad set state patterns if strictly checked
+              setTimeout(() => {
+                setPropDesignerResult({
+                  settings: { styleKeyword, propBasePrompt: "", genre },
+                  props: newProps.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    category: p.category,
+                    description: p.description,
+                    descriptionKo: p.descriptionKo,
+                    csvDescription: p.csvDescription,
+                    appearingClips: p.appearingClips,
+                    designSheetPrompt: p.designSheetPrompt,
+                    designSheetImageRef: p.designSheetImageUrl || "",
+                    referenceImageRef: p.referenceImageUrl,
+                    referenceImageRefs: p.referenceImages,
+                    age: p.age,
+                    gender: p.gender,
+                    hairColor: p.hairColor,
+                    hairStyle: p.hairStyle,
+                    eyeColor: p.eyeColor,
+                    personality: p.personality,
+                    role: p.role,
+                    // Variant detection
+                    isVariant: p.isVariant,
+                    variantDetails: p.variantDetails,
+                    variantVisuals: p.variantVisuals,
+                  })),
+                  detectedIds,
+                });
+              }, 0);
 
               return newProps;
             });
-            return;
+
+            // Perform async Firestore operations OUTSIDE of setProps
+            // We need to re-derive which variants to update based on the current props
+            // This is safe because we just used these props to generate the image
+            const targetProp = props.find(p => p.id === propId);
+            const isDefaultChar = targetProp && targetProp.category === "character" && !targetProp.isVariant;
+
+            if (currentProjectId && isDefaultChar && targetProp) {
+                // Find variants that need updating
+                const variantsToUpdate = props.filter((p) => {
+                  if (!p.isVariant || p.category !== "character") return false;
+                  
+                  const variantDetails = p.variantDetails?.toLowerCase() || "";
+                  const characterName = targetProp.name.toLowerCase();
+                  const characterId = targetProp.name.toUpperCase();
+                  
+                  // Same matching logic
+                  return (
+                    variantDetails.includes(characterName) || 
+                    variantDetails.includes(characterId) ||
+                    p.name.includes(characterId.split("_")[0])
+                  );
+                });
+
+                // Iterate and save
+                for (const variant of variantsToUpdate) {
+                   // Calculate the new reference images list
+                   const currentRefs = variant.referenceImages || [];
+                   
+                   // Only save if it doesn't already have it
+                   if (!currentRefs.includes(uploadData.url)) {
+                       const newRefs = [uploadData.url, ...currentRefs];
+                       
+                       try {
+                        await saveProp(currentProjectId, {
+                          id: variant.id,
+                          name: variant.name,
+                          category: variant.category,
+                          description: variant.description,
+                          descriptionKo: variant.descriptionKo,
+                          csvDescription: variant.csvDescription,
+                          appearingClips: variant.appearingClips,
+                          designSheetPrompt: variant.designSheetPrompt,
+                          designSheetImageRef: variant.designSheetImageUrl,
+                          referenceImageRef: variant.referenceImageUrl,
+                          referenceImageRefs: newRefs, // The important update
+                          age: variant.age,
+                          gender: variant.gender,
+                          hairColor: variant.hairColor,
+                          hairStyle: variant.hairStyle,
+                          eyeColor: variant.eyeColor,
+                          personality: variant.personality,
+                          role: variant.role,
+                          isVariant: variant.isVariant,
+                          variantDetails: variant.variantDetails,
+                          variantVisuals: variant.variantVisuals,
+                        });
+                        console.log(`[Auto-link] Saved ${variant.name} to Firestore with auto-linked reference`);
+                      } catch (error) {
+                        console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
+                      }
+                   }
+                }
+            }
+            
+            return; // End of success block
           }
         }
 

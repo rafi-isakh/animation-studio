@@ -115,6 +115,10 @@ export default function PropDesigner() {
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
   // Version counter to force re-computation when CSV is imported
   const [importVersion, setImportVersion] = useState(0);
+  // CSV Character ID descriptions (CHARACTER_ID -> description from CSV)
+  const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
+  // CSV Genre
+  const [csvGenre, setCsvGenre] = useState<string | null>(null);
 
   // CSV Import handler
   const handleCSVImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,6 +217,54 @@ export default function PropDesigner() {
 
       console.log("[CSV Import] Setting importedScenes with", clips.length, "clips");
 
+      // Parse Character ID Summary and Genre from remaining rows
+      const characterDescMap = new Map<string, string>();
+      let parsedGenre: string | null = null;
+      let inCharacterSection = false;
+      
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0) continue;
+        
+        // Detect Character ID Summary section
+        const firstCol = row[0]?.trim() || "";
+        if (firstCol.toLowerCase().includes("character id") || 
+            firstCol.toLowerCase().includes("캐릭터 id")) {
+          // Check if this is a section header (not a data row)
+          // Skip if second column is "Description" or empty (header row)
+          if (row.length < 2 || !row[1]?.trim() || 
+              row[1].toLowerCase().includes("description") || 
+              row[1].toLowerCase().includes("설명")) {
+            inCharacterSection = true;
+            console.log("[CSV Import] Found Character ID section at row", i);
+            continue;
+          }
+        }
+        
+        // Detect Genre section
+        if (firstCol.toLowerCase().includes("genre") || firstCol.toLowerCase().includes("장르")) {
+          inCharacterSection = false;
+          // Genre value might be in same row or next column
+          if (row.length > 1 && row[1]?.trim()) {
+            parsedGenre = row[1].trim();
+            console.log("[CSV Import] Found Genre:", parsedGenre);
+          }
+          continue;
+        }
+        
+        // Parse character ID entries (format: CHARACTER_ID, description)
+        if (inCharacterSection && row.length >= 2) {
+          const characterId = row[0]?.trim();
+          const description = row[1]?.trim();
+          if (characterId && description && characterId.match(/^[A-Z][A-Z0-9_]+$/)) {
+            characterDescMap.set(characterId, description);
+            console.log("[CSV Import] Character:", characterId, "=", description.substring(0, 50));
+          }
+        }
+      }
+
+      console.log("[CSV Import] Parsed", characterDescMap.size, "character descriptions");
+      
       // Clear existing props and detected IDs to start fresh with imported data
       setProps([]);
       setDetectedIds([]);
@@ -221,21 +273,28 @@ export default function PropDesigner() {
       const newScenes: CsvScene[] = [{ clips }];
       setImportedScenes(newScenes);
       setImportVersion(prev => prev + 1);
-
-      console.log("[CSV Import] State updates dispatched - props and detectedIds cleared");
-
-      // Auto-detect genre from content
-      const sampleText = clips.slice(0, 10).map((c) => `${c.story} ${c.imagePrompt}`).join(" ");
-      if (sampleText.match(/sword|magic|castle|knight|dragon|kingdom/i)) {
-        setGenre("High Fantasy");
-      } else if (sampleText.match(/spaceship|laser|robot|cyberpunk|future|neon/i)) {
-        setGenre("Sci-Fi / Cyberpunk");
-      } else if (sampleText.match(/historical|joseon|dynasty|samurai|ancient/i)) {
-        setGenre("Historical Period");
-      } else if (sampleText.match(/school|student|classroom|romance/i)) {
-        setGenre("School Life / Slice of Life");
+      
+      // Store character descriptions and genre
+      setCsvCharacterDescriptions(characterDescMap);
+      if (parsedGenre) {
+        setCsvGenre(parsedGenre);
+        setGenre(parsedGenre);
+        console.log("[CSV Import] Set genre from CSV:", parsedGenre);
+      } else {
+        // Auto-detect genre from content if not found in CSV
+        const sampleText = clips.slice(0, 10).map((c) => `${c.story} ${c.imagePrompt}`).join(" ");
+        if (sampleText.match(/sword|magic|castle|knight|dragon|kingdom/i)) {
+          setGenre("High Fantasy");
+        } else if (sampleText.match(/spaceship|laser|robot|cyberpunk|future|neon/i)) {
+          setGenre("Sci-Fi / Cyberpunk");
+        } else if (sampleText.match(/historical|joseon|dynasty|samurai|ancient/i)) {
+          setGenre("Historical Period");
+        } else if (sampleText.match(/school|student|classroom|romance/i)) {
+          setGenre("School Life / Slice of Life");
+        }
       }
 
+      console.log("[CSV Import] State updates dispatched - props and detectedIds cleared");
       setError(null);
     };
 
@@ -288,6 +347,7 @@ export default function PropDesigner() {
         category: p.category,
         description: p.description,
         descriptionKo: p.descriptionKo,
+        csvDescription: p.csvDescription,
         appearingClips: p.appearingClips || [],
         contextPrompts: [],
         designSheetPrompt: p.designSheetPrompt || "",
@@ -298,6 +358,9 @@ export default function PropDesigner() {
         // Character metadata (Easy Mode)
         age: p.age,
         gender: p.gender,
+        hairColor: p.hairColor,
+        hairStyle: p.hairStyle,
+        eyeColor: p.eyeColor,
         personality: p.personality,
         role: p.role,
         // Variant detection
@@ -456,6 +519,7 @@ export default function PropDesigner() {
             category: prop.category,
             description: prop.description,
             descriptionKo: prop.descriptionKo,
+            csvDescription: prop.csvDescription,
             appearingClips: prop.appearingClips,
             contextPrompts: prop.contextPrompts,
             designSheetPrompt: prop.designSheetPrompt,
@@ -466,6 +530,9 @@ export default function PropDesigner() {
             // Character metadata (Easy Mode)
             age: prop.age,
             gender: prop.gender,
+            hairColor: prop.hairColor,
+            hairStyle: prop.hairStyle,
+            eyeColor: prop.eyeColor,
             personality: prop.personality,
             role: prop.role,
             // Variant detection
@@ -485,6 +552,7 @@ export default function PropDesigner() {
           category: p.category,
           description: p.description,
           descriptionKo: p.descriptionKo,
+          csvDescription: p.csvDescription,
           appearingClips: p.appearingClips,
           designSheetPrompt: p.designSheetPrompt,
           designSheetImageRef: p.designSheetImageUrl || "",
@@ -494,6 +562,9 @@ export default function PropDesigner() {
           // Character metadata (Easy Mode)
           age: p.age,
           gender: p.gender,
+          hairColor: p.hairColor,
+          hairStyle: p.hairStyle,
+          eyeColor: p.eyeColor,
           personality: p.personality,
           role: p.role,
           // Variant detection
@@ -554,6 +625,9 @@ export default function PropDesigner() {
         // Easy Mode metadata
         age?: string;
         gender?: string;
+        hairColor?: string;
+        hairStyle?: string;
+        eyeColor?: string;
         personality?: string;
         role?: string;
         // Variant detection
@@ -563,22 +637,45 @@ export default function PropDesigner() {
       }) => {
         const existing = existingPropsByName.get(char.name.toLowerCase());
         
-        // Fallback: If AI returns empty prompt, generate one using template
+        // Check if we have CSV description for this character ID
+        // Try to find matching CHARACTER_ID from the name (usually the ID is embedded)
+        let csvDescription: string | null = null;
+        for (const [characterId, desc] of csvCharacterDescriptions.entries()) {
+          if (char.name.includes(characterId) || char.name.toUpperCase().includes(characterId)) {
+            csvDescription = desc;
+            console.log(`[CSV Match] Found CSV description for ${char.name} (${characterId}): ${desc.substring(0, 50)}...`);
+            break;
+          }
+        }
+        
+        // Build design sheet prompt using CSV description if available
         let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
         if (!designPrompt || designPrompt.trim() === "") {
-          designPrompt = getCharacterDesignSheetPrompt(
-            { name: char.name, description: char.description },
-            genre,
-            styleKeyword
-          );
+          // Helper to ensure text ends with period
+          const ensurePeriod = (text: string): string => {
+            const trimmed = text.trim();
+            return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+          };
+          
+          if (csvDescription) {
+            // Use CSV description + visual description with new template format
+            const csvDesc = ensurePeriod(csvDescription);
+            const visualDesc = char.description ? ensurePeriod(char.description) : '';
+            designPrompt = `Make 2d anime white background character sheet of who would be ${csvDesc} ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+          } else {
+            // Fallback to AI-generated description only
+            const visualDesc = ensurePeriod(char.description);
+            designPrompt = `Make 2d anime white background character sheet of who would be ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+          }
         }
         
         return {
           id: existing?.id || crypto.randomUUID(),
           name: char.name,
           category: "character" as const,
-          description: char.description,
+          description: char.description, // Keep AI visual description
           descriptionKo: char.descriptionKo,
+          csvDescription: csvDescription || existing?.csvDescription, // Store CSV description separately
           appearingClips: char.appearingClips,
           contextPrompts: char.contextPrompts,
           designSheetPrompt: designPrompt,
@@ -590,6 +687,9 @@ export default function PropDesigner() {
           // Easy Mode metadata (preserve existing if available)
           age: existing?.age || char.age,
           gender: existing?.gender || char.gender,
+          hairColor: existing?.hairColor || char.hairColor,
+          hairStyle: existing?.hairStyle || char.hairStyle,
+          eyeColor: existing?.eyeColor || char.eyeColor,
           personality: existing?.personality || char.personality,
           role: existing?.role || char.role,
           // Variant detection
@@ -616,6 +716,7 @@ export default function PropDesigner() {
     customApiKey,
     props,
     saveAndUpdateProps,
+    csvCharacterDescriptions,
   ]);
 
   // Detect objects using AI
@@ -776,48 +877,158 @@ export default function PropDesigner() {
 
             // Update local state with S3 URL
             setProps((prev) => {
-              const newProps = prev.map((p) =>
-                p.id === propId
-                  ? {
-                      ...p,
-                      designSheetImageUrl: uploadData.url,
-                      designSheetPrompt: prompt,
-                      isGenerating: false,
+              const generatedProp = prev.find((p) => p.id === propId);
+              
+              // Check if this is a Default character - if so, auto-link to variants
+              const isDefaultCharacter = generatedProp && 
+                                        generatedProp.category === "character" && 
+                                        !generatedProp.isVariant;
+              
+              const newProps = prev.map((p) => {
+                if (p.id === propId) {
+                  // Update the generated prop with the design sheet
+                  return {
+                    ...p,
+                    designSheetImageUrl: uploadData.url,
+                    designSheetPrompt: prompt,
+                    isGenerating: false,
+                  };
+                }
+                
+                // If this was a Default character, add its design sheet as reference to related Variants
+                if (isDefaultCharacter && 
+                    p.isVariant && 
+                    p.category === "character" && 
+                    generatedProp) {
+                  // Check if this variant references the generated default character
+                  // Look for the character name or ID in variantDetails
+                  const variantDetails = p.variantDetails?.toLowerCase() || "";
+                  const characterName = generatedProp.name.toLowerCase();
+                  const characterId = generatedProp.name.toUpperCase();
+                  
+                  // Check if variant details mention this character
+                  if (variantDetails.includes(characterName) || 
+                      variantDetails.includes(characterId) ||
+                      p.name.includes(characterId.split("_")[0])) {
+                    // Add design sheet URL to this variant's reference images
+                    const currentRefs = p.referenceImages || [];
+                    // Don't add duplicate if already exists
+                    if (!currentRefs.includes(uploadData.url)) {
+                      console.log(`[Auto-link] Adding ${generatedProp.name} design sheet to variant ${p.name}`);
+                      return {
+                        ...p,
+                        referenceImages: [uploadData.url, ...currentRefs],
+                      };
                     }
-                  : p
-              );
+                  }
+                }
+                
+                return p;
+              });
 
               // Also update context so it persists across re-renders
-              setPropDesignerResult({
-                settings: { styleKeyword, propBasePrompt: "", genre },
-                props: newProps.map((p) => ({
-                  id: p.id,
-                  name: p.name,
-                  category: p.category,
-                  description: p.description,
-                  descriptionKo: p.descriptionKo,
-                  appearingClips: p.appearingClips,
-                  designSheetPrompt: p.designSheetPrompt,
-                  designSheetImageRef: p.designSheetImageUrl || "",
-                  referenceImageRef: p.referenceImageUrl,
-                  // Multiple reference images
-                  referenceImageRefs: p.referenceImages,
-                  // Character metadata (Easy Mode)
-                  age: p.age,
-                  gender: p.gender,
-                  personality: p.personality,
-                  role: p.role,
-                  // Variant detection
-                  isVariant: p.isVariant,
-                  variantDetails: p.variantDetails,
-                  variantVisuals: p.variantVisuals,
-                })),
-                detectedIds,
-              });
+              // Note: We do this inside setProps to ensure we have the calculated newProps
+              // But we should wrap it in a setTimeout or useEffect ideally. 
+              // unique hack: call the context setter asynchronously to avoid bad set state patterns if strictly checked
+              setTimeout(() => {
+                setPropDesignerResult({
+                  settings: { styleKeyword, propBasePrompt: "", genre },
+                  props: newProps.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    category: p.category,
+                    description: p.description,
+                    descriptionKo: p.descriptionKo,
+                    csvDescription: p.csvDescription,
+                    appearingClips: p.appearingClips,
+                    designSheetPrompt: p.designSheetPrompt,
+                    designSheetImageRef: p.designSheetImageUrl || "",
+                    referenceImageRef: p.referenceImageUrl,
+                    referenceImageRefs: p.referenceImages,
+                    age: p.age,
+                    gender: p.gender,
+                    hairColor: p.hairColor,
+                    hairStyle: p.hairStyle,
+                    eyeColor: p.eyeColor,
+                    personality: p.personality,
+                    role: p.role,
+                    // Variant detection
+                    isVariant: p.isVariant,
+                    variantDetails: p.variantDetails,
+                    variantVisuals: p.variantVisuals,
+                  })),
+                  detectedIds,
+                });
+              }, 0);
 
               return newProps;
             });
-            return;
+
+            // Perform async Firestore operations OUTSIDE of setProps
+            // We need to re-derive which variants to update based on the current props
+            // This is safe because we just used these props to generate the image
+            const targetProp = props.find(p => p.id === propId);
+            const isDefaultChar = targetProp && targetProp.category === "character" && !targetProp.isVariant;
+
+            if (currentProjectId && isDefaultChar && targetProp) {
+                // Find variants that need updating
+                const variantsToUpdate = props.filter((p) => {
+                  if (!p.isVariant || p.category !== "character") return false;
+                  
+                  const variantDetails = p.variantDetails?.toLowerCase() || "";
+                  const characterName = targetProp.name.toLowerCase();
+                  const characterId = targetProp.name.toUpperCase();
+                  
+                  // Same matching logic
+                  return (
+                    variantDetails.includes(characterName) || 
+                    variantDetails.includes(characterId) ||
+                    p.name.includes(characterId.split("_")[0])
+                  );
+                });
+
+                // Iterate and save
+                for (const variant of variantsToUpdate) {
+                   // Calculate the new reference images list
+                   const currentRefs = variant.referenceImages || [];
+                   
+                   // Only save if it doesn't already have it
+                   if (!currentRefs.includes(uploadData.url)) {
+                       const newRefs = [uploadData.url, ...currentRefs];
+                       
+                       try {
+                        await saveProp(currentProjectId, {
+                          id: variant.id,
+                          name: variant.name,
+                          category: variant.category,
+                          description: variant.description,
+                          descriptionKo: variant.descriptionKo,
+                          csvDescription: variant.csvDescription,
+                          appearingClips: variant.appearingClips,
+                          designSheetPrompt: variant.designSheetPrompt,
+                          designSheetImageRef: variant.designSheetImageUrl,
+                          referenceImageRef: variant.referenceImageUrl,
+                          referenceImageRefs: newRefs, // The important update
+                          age: variant.age,
+                          gender: variant.gender,
+                          hairColor: variant.hairColor,
+                          hairStyle: variant.hairStyle,
+                          eyeColor: variant.eyeColor,
+                          personality: variant.personality,
+                          role: variant.role,
+                          isVariant: variant.isVariant,
+                          variantDetails: variant.variantDetails,
+                          variantVisuals: variant.variantVisuals,
+                        });
+                        console.log(`[Auto-link] Saved ${variant.name} to Firestore with auto-linked reference`);
+                      } catch (error) {
+                        console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
+                      }
+                   }
+                }
+            }
+            
+            return; // End of success block
           }
         }
 
@@ -862,6 +1073,7 @@ export default function PropDesigner() {
             category: p.category,
             description: p.description,
             descriptionKo: p.descriptionKo,
+            csvDescription: p.csvDescription,
             appearingClips: p.appearingClips,
             designSheetPrompt: p.designSheetPrompt,
             designSheetImageRef: p.designSheetImageUrl || "",
@@ -869,6 +1081,9 @@ export default function PropDesigner() {
             referenceImageRefs: p.referenceImages,
             age: p.age,
             gender: p.gender,
+            hairColor: p.hairColor,
+            hairStyle: p.hairStyle,
+            eyeColor: p.eyeColor,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -902,6 +1117,7 @@ export default function PropDesigner() {
             category: p.category,
             description: p.description,
             descriptionKo: p.descriptionKo,
+            csvDescription: p.csvDescription,
             appearingClips: p.appearingClips,
             designSheetPrompt: p.designSheetPrompt,
             designSheetImageRef: p.designSheetImageUrl || "",
@@ -909,6 +1125,9 @@ export default function PropDesigner() {
             referenceImageRefs: p.referenceImages,
             age: p.age,
             gender: p.gender,
+            hairColor: p.hairColor,
+            hairStyle: p.hairStyle,
+            eyeColor: p.eyeColor,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -963,6 +1182,7 @@ export default function PropDesigner() {
         category: p.category,
         description: p.description,
         descriptionKo: p.descriptionKo,
+        csvDescription: p.csvDescription,
         appearingClips: p.appearingClips,
         contextPrompts: p.contextPrompts,
         designSheetPrompt: p.designSheetPrompt,
@@ -970,6 +1190,9 @@ export default function PropDesigner() {
         referenceImages: p.referenceImages,
         age: p.age,
         gender: p.gender,
+        hairColor: p.hairColor,
+        hairStyle: p.hairStyle,
+        eyeColor: p.eyeColor,
         personality: p.personality,
         role: p.role,
         isVariant: p.isVariant,
@@ -1022,6 +1245,7 @@ export default function PropDesigner() {
           category: (p.category as "character" | "object") || "object",
           description: (p.description as string) || "",
           descriptionKo: (p.descriptionKo as string) || "",
+          csvDescription: p.csvDescription as string | undefined,
           appearingClips: (p.appearingClips as string[]) || [],
           contextPrompts: (p.contextPrompts as { clipId: string; text: string }[]) || [],
           designSheetPrompt: (p.designSheetPrompt as string) || "",
@@ -1029,6 +1253,9 @@ export default function PropDesigner() {
           referenceImages: p.referenceImages as string[] | undefined,
           age: p.age as string | undefined,
           gender: p.gender as string | undefined,
+          hairColor: p.hairColor as string | undefined,
+          hairStyle: p.hairStyle as string | undefined,
+          eyeColor: p.eyeColor as string | undefined,
           personality: p.personality as string | undefined,
           role: p.role as string | undefined,
           isVariant: p.isVariant as boolean | undefined,
@@ -1244,11 +1471,27 @@ export default function PropDesigner() {
       {/* Data source indicator - show when using imported CSV */}
       {hasImportedScenes && (
         <div className="bg-teal-900/30 border border-teal-700 rounded-lg px-4 py-2 text-teal-300 text-sm flex items-center justify-between">
-          <span>
-            Using imported CSV data ({totalClips} clips)
-          </span>
+          <div className="flex items-center gap-4">
+            <span>
+              Using imported CSV data ({totalClips} clips)
+            </span>
+            {csvCharacterDescriptions.size > 0 && (
+              <span className="text-xs text-teal-400">
+                • {csvCharacterDescriptions.size} character{csvCharacterDescriptions.size !== 1 ? 's' : ''} with descriptions
+              </span>
+            )}
+            {csvGenre && (
+              <span className="text-xs text-teal-400">
+                • Genre: {csvGenre}
+              </span>
+            )}
+          </div>
           <button
-            onClick={() => setImportedScenes([])}
+            onClick={() => {
+              setImportedScenes([]);
+              setCsvCharacterDescriptions(new Map());
+              setCsvGenre(null);
+            }}
             className="text-teal-400 hover:text-teal-300 text-xs font-bold"
           >
             Clear Import

@@ -16,6 +16,7 @@ export interface Continuity {
   accumulatedTime: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string; // Brief character relationships (e.g., "AREL=Protagonist's son, 19-year-old")
   imageRef?: string; // S3 URL for generated storyboard image
 }
 
@@ -33,6 +34,11 @@ export interface VoicePrompt {
   promptEn: string;
 }
 
+export interface CharacterIdSummary {
+  characterId: string;
+  description: string; // e.g., "Protagonist. Default" or "19 year old version of ELISA_PRESENT"
+}
+
 export interface Scene {
   sceneTitle: string;
   clips: Continuity[];
@@ -41,6 +47,8 @@ export interface Scene {
 export interface GenerationResult {
   scenes: Scene[];
   voicePrompts: VoicePrompt[];
+  characterIdSummary?: CharacterIdSummary[]; // Summary of all character IDs with relationships
+  genre?: string; // Story genre (e.g., "Western Fantasy", "Wuxia", "Modern Romance")
 }
 
 export interface SplitResult {

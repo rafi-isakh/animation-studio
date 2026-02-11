@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -15,7 +16,12 @@ import {
   MithrilUser,
   MithrilSession,
   MithrilUserPublic,
+  MithrilUserAdmin,
+  CreateMithrilUserInput,
 } from './types';
+import bcrypt from 'bcryptjs';
+
+const BCRYPT_ROUNDS = 12;
 
 const USERS_COLLECTION = 'mithrilUsers';
 const SESSIONS_COLLECTION = 'mithrilSessions';
@@ -89,6 +95,110 @@ export function toPublicUser(user: MithrilUser): MithrilUserPublic {
     role: user.role,
     displayName: user.displayName,
   };
+}
+
+/**
+ * Convert MithrilUser to admin version (includes isActive, timestamps)
+ */
+export function toAdminUser(user: MithrilUser): MithrilUserAdmin {
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    displayName: user.displayName,
+    isActive: user.isActive,
+    createdAt: user.createdAt ? user.createdAt.toDate().toISOString() : null,
+    lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toDate().toISOString() : null,
+  };
+}
+
+/**
+ * Create a new Mithril user (admin only)
+ */
+export async function createUser(input: CreateMithrilUserInput): Promise<string> {
+  const normalizedEmail = input.email.toLowerCase().trim();
+
+  const existing = await getUserByEmail(normalizedEmail);
+  if (existing) {
+    throw new Error('Email already exists');
+  }
+
+  const now = Timestamp.now();
+  const passwordHash = bcrypt.hashSync(input.password, BCRYPT_ROUNDS);
+
+  const userData = {
+    email: normalizedEmail,
+    passwordHash,
+    role: input.role,
+    displayName: input.displayName,
+    createdAt: now,
+    createdBy: input.createdBy,
+    lastLoginAt: null,
+    isActive: true,
+  };
+
+  const docRef = await addDoc(collection(db, USERS_COLLECTION), userData);
+  return docRef.id;
+}
+
+/**
+ * List all users (admin only)
+ */
+export async function listUsers(): Promise<MithrilUserAdmin[]> {
+  const snapshot = await getDocs(collection(db, USERS_COLLECTION));
+
+  return snapshot.docs.map((docSnap) => {
+    const user = {
+      id: docSnap.id,
+      ...docSnap.data(),
+    } as MithrilUser;
+    return toAdminUser(user);
+  });
+}
+
+/**
+ * Update user details (admin only)
+ */
+export async function updateUser(
+  userId: string,
+  updates: {
+    displayName?: string;
+    role?: string;
+    isActive?: boolean;
+    password?: string;
+  }
+): Promise<void> {
+  const docRef = doc(db, USERS_COLLECTION, userId);
+
+  const updateData: { [key: string]: string | boolean } = {};
+
+  if (updates.displayName !== undefined) {
+    updateData.displayName = updates.displayName;
+  }
+
+  if (updates.role !== undefined) {
+    updateData.role = updates.role;
+  }
+
+  if (updates.isActive !== undefined) {
+    updateData.isActive = updates.isActive;
+  }
+
+  if (updates.password) {
+    updateData.passwordHash = bcrypt.hashSync(updates.password, BCRYPT_ROUNDS);
+  }
+
+  await updateDoc(docRef, updateData);
+}
+
+/**
+ * Delete a user and all their sessions (admin only)
+ */
+export async function deleteUser(userId: string): Promise<void> {
+  await deleteUserSessions(userId);
+
+  const docRef = doc(db, USERS_COLLECTION, userId);
+  await deleteDoc(docRef);
 }
 
 // ============================================

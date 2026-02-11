@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Prop, getEasyModeCharacterPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
 
@@ -69,6 +69,19 @@ export default function PropListView({
   accentColor = "cyan",
   initialMinimized = false,
 }: PropListViewProps) {
+  // Sort props: Default characters first, then Variants
+  const sortedProps = useMemo(() => {
+    return [...props].sort((a, b) => {
+      // Default characters (isVariant === false or undefined) come first
+      const aIsDefault = !a.isVariant;
+      const bIsDefault = !b.isVariant;
+      
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+      return 0; // Maintain original order within same category
+    });
+  }, [props]);
+
   // Minimized state - use initialMinimized prop
   const [isMinimized, setIsMinimized] = useState(initialMinimized);
   // Easy Mode state
@@ -122,7 +135,7 @@ export default function PropListView({
   // Editable prompts per prop (keyed by prop id)
   const [editablePrompts, setEditablePrompts] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
-    props.forEach((prop) => {
+    sortedProps.forEach((prop) => {
       // Append description if not already in prompt
       const desc = prop.description ? ` ${prop.description}` : "";
       if (prop.designSheetPrompt.includes(prop.description)) {
@@ -147,9 +160,9 @@ export default function PropListView({
       if (enabled) {
         // Apply Easy Mode Template
         const newPrompts: Record<string, string> = {};
-        props.forEach((prop) => {
+        sortedProps.forEach((prop) => {
           if (prop.category === "character") {
-            newPrompts[prop.id] = getEasyModeCharacterPrompt(prop);
+            newPrompts[prop.id] = getEasyModeCharacterPrompt(prop, genre);
           } else {
             // For objects, keep the original prompt
             const desc = prop.description ? ` ${prop.description}` : "";
@@ -162,7 +175,7 @@ export default function PropListView({
       } else {
         // Revert to default prompts
         const defaultPrompts: Record<string, string> = {};
-        props.forEach((prop) => {
+        sortedProps.forEach((prop) => {
           const desc = prop.description ? ` ${prop.description}` : "";
           defaultPrompts[prop.id] = prop.designSheetPrompt.includes(prop.description)
             ? prop.designSheetPrompt
@@ -171,7 +184,7 @@ export default function PropListView({
         setEditablePrompts(defaultPrompts);
       }
     },
-    [props]
+    [sortedProps, genre]
   );
 
   // Handle prompt change
@@ -638,7 +651,7 @@ export default function PropListView({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/20">
-        {props.map((prop) => {
+        {sortedProps.map((prop) => {
           const isItemLoading = activeLoadingId === prop.id;
           const imageUrl = getImageUrl(prop);
           const isCharacter = prop.category === "character";

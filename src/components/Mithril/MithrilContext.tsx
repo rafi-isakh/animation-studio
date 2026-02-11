@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
+import type { Scene, VoicePrompt, CharacterIdSummary } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
@@ -102,6 +102,8 @@ interface StoryboardGeneratorState {
   error: string | null;
   scenes: Scene[];
   voicePrompts: VoicePrompt[];
+  characterIdSummary?: CharacterIdSummary[];
+  genre?: string;
 }
 
 // Types for BgSheet Generator
@@ -348,6 +350,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     scenes: [],
     voicePrompts: [],
+    characterIdSummary: [],
+    genre: undefined,
   });
   const [storyboardJobId, setStoryboardJobId] = useState<string | null>(null);
   const storyboardJobIdRef = useRef<string | null>(null);
@@ -600,7 +604,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   soraVideoPrompt: clip.soraVideoPrompt,
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
-                  dialogue: clip.dialogue,
+                  characterInfo: clip.characterInfo,
+                dialogue: clip.dialogue,
                   dialogueEn: clip.dialogueEn,
                   narration: clip.narration || "",
                   narrationEn: clip.narrationEn || "",
@@ -1137,6 +1142,31 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     try {
       // Submit job to orchestrator
+      // Special case: if numParts is 1, don't call API - just create a single part
+      if (numParts === 1) {
+        const singlePart = {
+          text,
+          cliffhangers: [], // No cliffhangers for single part
+        };
+
+        const result = { parts: [singlePart] };
+
+        // Save to Firestore
+        if (currentProjectId) {
+          await saveStorySplits(currentProjectId, {
+            guidelines,
+            parts: [singlePart],
+          });
+        }
+
+        setStorySplitter({
+          isLoading: false,
+          error: null,
+          result,
+        });
+        return;
+      }
+
       const response = await fetch("/api/story-splitter/orchestrator/submit", {
         method: "POST",
         headers: {
@@ -1234,6 +1264,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       scenes: [],
       voicePrompts: [],
+      characterIdSummary: [],
+      genre: undefined,
     });
 
     try {
@@ -1265,6 +1297,63 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "API request failed");
+
+      const result = { 
+        scenes: data.scenes, 
+        voicePrompts: data.voicePrompts,
+        characterIdSummary: data.characterIdSummary || [],
+        genre: data.genre
+      };
+
+      // Save to Firestore
+      if (currentProjectId) {
+        await saveStoryboardMeta(currentProjectId);
+
+        // Save voice prompts
+        await saveVoicePrompts(currentProjectId, data.voicePrompts);
+
+        // Save scenes and clips
+        for (let sceneIndex = 0; sceneIndex < data.scenes.length; sceneIndex++) {
+          const scene = data.scenes[sceneIndex];
+          await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+
+          for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+            const clip = scene.clips[clipIndex];
+            await saveClip(currentProjectId, sceneIndex, clipIndex, {
+              story: clip.story || "",
+              imagePrompt: clip.imagePrompt || "",
+              videoPrompt: clip.videoPrompt || "",
+              soraVideoPrompt: clip.soraVideoPrompt || "",
+              backgroundPrompt: clip.backgroundPrompt || "",
+              backgroundId: clip.backgroundId || "",
+              characterInfo: clip.characterInfo || "",
+              dialogue: clip.dialogue || "",
+              dialogueEn: clip.dialogueEn || "",
+              narration: clip.narration || "",
+              narrationEn: clip.narrationEn || "",
+              sfx: clip.sfx || "",
+              sfxEn: clip.sfxEn || "",
+              bgm: clip.bgm || "",
+              bgmEn: clip.bgmEn || "",
+              length: clip.length || "",
+              accumulatedTime: clip.accumulatedTime || "",
+            });
+          }
+        }
+      }
+
+      // Store original for reset functionality
+      setOriginalStoryboard(result);
+
+      setStoryboardGenerator({
+        isGenerating: false,
+        error: null,
+        scenes: data.scenes,
+        voicePrompts: data.voicePrompts,
+        characterIdSummary: data.characterIdSummary || [],
+        genre: data.genre,
+      });
       console.log("[MithrilContext:startStoryboardGeneration] Orchestrator response:", {
         ok: response.ok,
         status: response.status,
@@ -1401,6 +1490,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               soraVideoPrompt: clip.soraVideoPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
+              characterInfo: clip.characterInfo || "",
               dialogue: clip.dialogue || "",
               dialogueEn: clip.dialogueEn || "",
               narration: clip.narration || "",
@@ -1446,6 +1536,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       scenes: [],
       voicePrompts: [],
+      characterIdSummary: [],
+      genre: undefined,
     });
     setOriginalStoryboard(null);
 

@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   Globe,
+  Shield,
 } from "lucide-react"
 import Image from "next/image"
 import { useMithrilAuth } from '@/components/Mithril/auth';
@@ -36,9 +37,18 @@ const SidebarContext = createContext<SidebarContextType>({
 export function MithrilSidebar() {
   const pathname = usePathname();
   const { dictionary, language } = useLanguage();
+  const { isAdmin } = useMithrilAuth();
 
   return (
     <Sidebar>
+      {isAdmin && (
+        <SidebarItem
+          icon={<Shield size={20} />}
+          text={phrase(dictionary, "sidebar_admin", language) || "Admin"}
+          active={pathname.startsWith('/mithril/admin')}
+          href="/mithril/admin"
+        />
+      )}
       <SidebarItem
         icon={<FolderOpen size={20} />}
         text={phrase(dictionary, "sidebar_projects", language) || "Projects"}
@@ -48,7 +58,7 @@ export function MithrilSidebar() {
       <SidebarItem
         icon={<Wand2 size={20} />}
         text={phrase(dictionary, "sidebar_mithril", language) || "Mithril"}
-        active={pathname.startsWith('/mithril')}
+        active={pathname.startsWith('/mithril') && !pathname.startsWith('/mithril/admin')}
         href="/mithril"
       />
     </Sidebar>

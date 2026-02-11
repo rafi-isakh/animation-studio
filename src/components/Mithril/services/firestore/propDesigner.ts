@@ -144,6 +144,7 @@ export async function saveProp(
     category: input.category,
     description: input.description,
     descriptionKo: input.descriptionKo,
+    csvDescription: input.csvDescription,
     appearingClips: input.appearingClips,
     contextPrompts: input.contextPrompts || [],
     designSheetPrompt: input.designSheetPrompt || '',
@@ -159,6 +160,9 @@ export async function saveProp(
   // Add character metadata (Easy Mode fields)
   if (input.age !== undefined) data.age = input.age;
   if (input.gender !== undefined) data.gender = input.gender;
+  if (input.hairColor !== undefined) data.hairColor = input.hairColor;
+  if (input.hairStyle !== undefined) data.hairStyle = input.hairStyle;
+  if (input.eyeColor !== undefined) data.eyeColor = input.eyeColor;
   if (input.personality !== undefined) data.personality = input.personality;
   if (input.role !== undefined) data.role = input.role;
 

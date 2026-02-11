@@ -30,15 +30,32 @@ export async function saveStorySplits(
 ): Promise<void> {
   const docRef = getStorySplitsRef(projectId);
 
-  await setDoc(docRef, {
+  const data: Record<string, unknown> = {
     guidelines: input.guidelines,
     parts: input.parts,
     generatedAt: Timestamp.now(),
-  });
+  };
+
+  if (input.jobId !== undefined) {
+    data.jobId = input.jobId;
+  }
+
+  await setDoc(docRef, data, { merge: true });
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);
   await setDoc(projectRef, { updatedAt: Timestamp.now() }, { merge: true });
+}
+
+/**
+ * Update just the jobId in story splits document
+ */
+export async function updateStorySplitsJobId(
+  projectId: string,
+  jobId: string | null
+): Promise<void> {
+  const docRef = getStorySplitsRef(projectId);
+  await setDoc(docRef, { jobId }, { merge: true });
 }
 
 /**

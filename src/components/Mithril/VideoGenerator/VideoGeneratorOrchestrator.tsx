@@ -86,85 +86,88 @@ export default function VideoGeneratorOrchestrator() {
   // Get provider constraints
   const providerConstraints = getProviderConstraints(selectedProvider);
 
+  // Handle clip update from orchestrator (real-time Firestore updates)
+  const handleClipUpdate = useCallback(
+    (update: ClipUpdate) => {
+      if (!isMountedRef.current) return;
+
+      // Only process updates for jobs we're actively tracking
+      if (!update.jobId || !activeJobsRef.current.has(update.jobId)) {
+        return;
+      }
+
+      setClips((prev) => {
+        const clipArrayIndex = prev.findIndex(
+          (c) =>
+            c.sceneIndex === update.sceneIndex &&
+            c.clipIndex === update.clipIndex
+        );
+
+        if (clipArrayIndex === -1) {
+          return prev;
+        }
+
+        const updatedClips = [...prev];
+        const clip = updatedClips[clipArrayIndex];
+
+        // Double-check: only update if this clip's jobId matches or clip has no jobId yet
+        if (clip.jobId && clip.jobId !== update.jobId) {
+          return prev;
+        }
+
+        updatedClips[clipArrayIndex] = {
+          ...clip,
+          status: update.status,
+          videoUrl: update.videoUrl,
+          s3FileName: update.s3FileName,
+          error: update.error,
+          providerId: update.providerId,
+          jobId: update.jobId,
+        };
+
+        // Auto-save on completion
+        if (update.status === "completed" && update.videoUrl) {
+          activeJobsRef.current.delete(update.jobId);
+          // Trigger auto-save (will be batched)
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              autoSave(updatedClips);
+            }
+          }, 100);
+        }
+
+        // Remove from tracking on final failure (not retrying)
+        if (update.status === "failed") {
+          activeJobsRef.current.delete(update.jobId);
+        }
+
+        // Retrying jobs stay in tracking for continued updates
+
+        return updatedClips;
+      });
+
+      // Show toast for completion/failure (only for tracked jobs)
+      if (update.status === "completed" && activeJobsRef.current.has(update.jobId)) {
+        toast({
+          title: phrase(dictionary, "sora_toast_success", language),
+          description: `${phrase(dictionary, "sora_toast_clip_generated", language)} ${update.sceneIndex + 1}-${update.clipIndex + 1}`,
+        });
+      } else if (update.status === "failed" && !shouldStopRef.current && activeJobsRef.current.has(update.jobId)) {
+        toast({
+          title: phrase(dictionary, "sora_toast_error", language),
+          description: update.error || "Video generation failed",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, dictionary, language]
+  );
+
   // Orchestrator hook
-  const { submitJob, cancelJob } = useVideoOrchestrator({
+  const { submitJob, cancelJob, pendingUpdates, clearPendingUpdates } = useVideoOrchestrator({
     projectId: currentProjectId,
     enabled: currentStage === 8,
-    onClipUpdate: useCallback(
-      (update: ClipUpdate) => {
-        if (!isMountedRef.current) return;
-
-        // Only process updates for jobs we're actively tracking
-        if (!update.jobId || !activeJobsRef.current.has(update.jobId)) {
-          return;
-        }
-
-        setClips((prev) => {
-          const clipArrayIndex = prev.findIndex(
-            (c) =>
-              c.sceneIndex === update.sceneIndex &&
-              c.clipIndex === update.clipIndex
-          );
-
-          if (clipArrayIndex === -1) {
-            return prev;
-          }
-
-          const updatedClips = [...prev];
-          const clip = updatedClips[clipArrayIndex];
-
-          // Double-check: only update if this clip's jobId matches or clip has no jobId yet
-          if (clip.jobId && clip.jobId !== update.jobId) {
-            return prev;
-          }
-
-          updatedClips[clipArrayIndex] = {
-            ...clip,
-            status: update.status,
-            videoUrl: update.videoUrl,
-            s3FileName: update.s3FileName,
-            error: update.error,
-            providerId: update.providerId,
-            jobId: update.jobId,
-          };
-
-          // Auto-save on completion
-          if (update.status === "completed" && update.videoUrl) {
-            activeJobsRef.current.delete(update.jobId);
-            // Trigger auto-save (will be batched)
-            setTimeout(() => {
-              if (isMountedRef.current) {
-                autoSave(updatedClips);
-              }
-            }, 100);
-          }
-
-          // Remove from tracking on final failure (not retrying)
-          if (update.status === "failed") {
-            activeJobsRef.current.delete(update.jobId);
-          }
-
-          // Retrying jobs stay in tracking for continued updates
-
-          return updatedClips;
-        });
-
-        // Show toast for completion/failure (only for tracked jobs)
-        if (update.status === "completed" && activeJobsRef.current.has(update.jobId)) {
-          toast({
-            title: phrase(dictionary, "sora_toast_success", language),
-            description: `${phrase(dictionary, "sora_toast_clip_generated", language)} ${update.sceneIndex + 1}-${update.clipIndex + 1}`,
-          });
-        } else if (update.status === "failed" && !shouldStopRef.current && activeJobsRef.current.has(update.jobId)) {
-          toast({
-            title: phrase(dictionary, "sora_toast_error", language),
-            description: update.error || "Video generation failed",
-            variant: "destructive",
-          });
-        }
-      },
-      [toast, dictionary, language]
-    ),
+    onClipUpdate: handleClipUpdate,
   });
 
   // Reset mounted ref on mount, cleanup on unmount
@@ -394,6 +397,22 @@ export default function VideoGeneratorOrchestrator() {
     dictionary,
     language,
   ]);
+
+  // Apply pending updates from initial Firestore snapshot once data is loaded
+  useEffect(() => {
+    if (isLoadingData || !hasLoaded || pendingUpdates.length === 0) return;
+
+    pendingUpdates.forEach((update) => {
+      const isTerminal = update.status === 'completed' || update.status === 'failed';
+      if (!isTerminal) {
+        // Re-track in-flight jobs for real-time updates
+        activeJobsRef.current.add(update.jobId);
+      }
+      // Forward all updates to the clip update handler
+      handleClipUpdate(update);
+    });
+    clearPendingUpdates();
+  }, [isLoadingData, hasLoaded, pendingUpdates, handleClipUpdate, clearPendingUpdates]);
 
   // Update custom prompt for a clip
   const updateClipPrompt = useCallback(

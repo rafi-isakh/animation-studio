@@ -142,10 +142,10 @@ export async function saveProp(
   const data: Record<string, unknown> = {
     name: input.name,
     category: input.category,
-    description: input.description,
-    descriptionKo: input.descriptionKo,
-    csvDescription: input.csvDescription,
-    appearingClips: input.appearingClips,
+    description: input.description || '',
+    descriptionKo: input.descriptionKo || '',
+    csvDescription: input.csvDescription || null,
+    appearingClips: input.appearingClips || [],
     contextPrompts: input.contextPrompts || [],
     designSheetPrompt: input.designSheetPrompt || '',
     designSheetImageRef: input.designSheetImageRef || '',
@@ -186,7 +186,14 @@ export async function updateProp(
   updates: UpdatePropInput
 ): Promise<void> {
   const docRef = getPropRef(projectId, propId);
-  await setDoc(docRef, updates, { merge: true });
+  // Strip undefined values — Firestore rejects them
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined) {
+      sanitized[key] = value;
+    }
+  }
+  await setDoc(docRef, sanitized, { merge: true });
 }
 
 /**

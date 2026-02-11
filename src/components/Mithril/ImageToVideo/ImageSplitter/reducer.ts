@@ -12,7 +12,7 @@ export type ImageSplitterAction =
   | { type: 'ADD_PAGES'; pages: MangaPage[] }
   | { type: 'REMOVE_PAGE'; id: string }
   | { type: 'UPDATE_PAGE_STATUS'; id: string; status: ProcessingStatus }
-  | { type: 'SET_PAGE_PANELS'; id: string; panels: MangaPanel[] }
+  | { type: 'SET_PAGE_PANELS'; id: string; panels: MangaPanel[]; previewUrl?: string }
   | { type: 'SET_PAGE_INDEX'; id: string; pageIndex: number }
   | { type: 'SET_READING_DIRECTION'; direction: ReadingDirection }
   | { type: 'START_PROCESSING'; total: number }
@@ -62,7 +62,13 @@ export function imageSplitterReducer(
         ...state,
         pages: state.pages.map((p) =>
           p.id === action.id
-            ? { ...p, panels: action.panels, status: 'completed' as ProcessingStatus }
+            ? {
+                ...p,
+                panels: action.panels,
+                status: 'completed' as ProcessingStatus,
+                // Update previewUrl with S3 URL if provided (preserves blob URL if not)
+                ...(action.previewUrl ? { previewUrl: action.previewUrl } : {}),
+              }
             : p
         ),
       };

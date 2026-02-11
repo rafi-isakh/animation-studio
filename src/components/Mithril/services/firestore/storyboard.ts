@@ -82,18 +82,43 @@ export async function getStoryboardMeta(
  */
 export async function saveStoryboardMeta(
   projectId: string,
+  jobIdOrAspectRatio?: string,
   aspectRatio?: string
 ): Promise<void> {
   const docRef = getStoryboardRef(projectId);
 
+  // Determine if the second parameter is a jobId or aspectRatio
+  // jobIds are typically UUIDs or Firestore IDs, aspectRatios are like "16:9"
+  const isJobId = jobIdOrAspectRatio && !jobIdOrAspectRatio.includes(':');
+  const actualJobId = isJobId ? jobIdOrAspectRatio : undefined;
+  const actualAspectRatio = isJobId ? aspectRatio : jobIdOrAspectRatio;
+
   await setDoc(docRef, {
     generatedAt: Timestamp.now(),
-    aspectRatio: aspectRatio || '16:9',
-  });
+    aspectRatio: actualAspectRatio || '16:9',
+    ...(actualJobId ? { jobId: actualJobId } : {}),
+  }, { merge: true });
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);
   await setDoc(projectRef, { updatedAt: Timestamp.now() }, { merge: true });
+}
+
+/**
+ * Update storyboard job ID
+ */
+export async function updateStoryboardJobId(
+  projectId: string,
+  jobId: string | null
+): Promise<void> {
+  const docRef = getStoryboardRef(projectId);
+
+  if (jobId) {
+    await setDoc(docRef, { jobId }, { merge: true });
+  } else {
+    // Clear the jobId by setting to null
+    await setDoc(docRef, { jobId: null }, { merge: true });
+  }
 }
 
 /**
@@ -120,7 +145,7 @@ export async function saveVoicePrompts(
   prompts: VoicePromptDocument[]
 ): Promise<void> {
   const docRef = getVoicePromptsRef(projectId);
-  await setDoc(docRef, { prompts });
+  await setDoc(docRef, { prompts: prompts || [] });
 }
 
 /**

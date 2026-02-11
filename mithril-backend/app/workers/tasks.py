@@ -351,6 +351,449 @@ async def retry_failed_panel_job(
 
 
 # ============================================================================
+# ID Converter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_id_converter_glossary_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    ID Converter glossary analysis task.
+
+    Extracts entities (characters, items, locations) from webnovel text.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to analyze text
+    2. GENERATING -> COMPLETED: Update Firestore with entities
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.id_converter_generation import process_glossary_analysis
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing ID converter glossary job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_glossary_analysis(job_id, worker_id, api_key)
+        logger.info(f"[{worker_id}] ID converter glossary job {job_id} finished with status: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in ID converter glossary job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def process_id_converter_batch_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    ID Converter batch chunk conversion task.
+
+    Converts all text chunks sequentially using the glossary.
+    Each chunk is processed with context from the previous chunk.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Process chunks one by one
+    2. For each chunk: Update progress in Firestore
+    3. GENERATING -> COMPLETED: All chunks done
+
+    The worker maintains state in Firestore so it can resume after restart.
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.id_converter_generation import process_batch_conversion
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing ID converter batch job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_batch_conversion(job_id, worker_id, api_key)
+        logger.info(f"[{worker_id}] ID converter batch job {job_id} finished with status: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in ID converter batch job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_id_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed ID converter job after a delay.
+
+    Automatically determines job type (glossary or batch) and routes
+    to the appropriate handler.
+
+    Args:
+        job_id: The job ID to retry
+        delay_seconds: Delay before processing
+        api_key: Optional API key (if not provided, uses settings fallback)
+
+    Returns:
+        dict with status and result information
+    """
+    import asyncio
+    from app.models.job import JobType
+    from app.services.firestore import get_job_queue_service
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying ID converter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    # Determine job type and route to correct handler
+    job_queue_service = get_job_queue_service()
+    job = await job_queue_service.get_job(job_id)
+
+    if not job:
+        logger.error(f"Cannot retry ID converter job {job_id}: job not found")
+        return {"job_id": job_id, "status": "error", "error": "Job not found"}
+
+    if job.type == JobType.ID_CONVERTER_GLOSSARY:
+        return await process_id_converter_glossary_job(job_id, api_key)
+    elif job.type == JobType.ID_CONVERTER_BATCH:
+        return await process_id_converter_batch_job(job_id, api_key)
+    else:
+        logger.error(f"Cannot retry job {job_id}: unexpected type {job.type}")
+        return {"job_id": job_id, "status": "error", "error": f"Unexpected job type: {job.type}"}
+
+
+# ============================================================================
+# Story Splitter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_story_splitter_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Story splitter task.
+
+    Splits a story into multiple parts with cliffhanger analysis.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to analyze and split text
+    2. GENERATING -> COMPLETED: Update Firestore with split parts
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.story_splitter_generation import process_story_splitter
+
+    logger.info(f"[STORY-SPLITTER-TASK] ========== Starting story splitter job {job_id} ==========")
+    logger.info(f"[STORY-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_story_splitter(job_id, api_key)
+        logger.info(f"[STORY-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORY-SPLITTER-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_story_splitter_job(
+    job_id: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed story splitter job after a delay.
+
+    This task is scheduled when a transient error occurs and the job
+    should be retried after some backoff period.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying story splitter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_story_splitter_job(job_id, api_key)
+
+
+# ============================================================================
+# Storyboard Generation Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_storyboard_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Storyboard generation task.
+
+    Generates scenes, clips, and voice prompts from source text.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to generate storyboard
+    2. GENERATING -> COMPLETED: Update Firestore with scenes and clips
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.storyboard_generation import process_storyboard
+
+    logger.info(f"[STORYBOARD-TASK] ========== Starting storyboard job {job_id} ==========")
+    logger.info(f"[STORYBOARD-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_storyboard(job_id, api_key)
+        logger.info(f"[STORYBOARD-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORYBOARD-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_storyboard_job(
+    job_id: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed storyboard job after a delay.
+
+    This task is scheduled when a transient error occurs and the job
+    should be retried after some backoff period.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying storyboard job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_storyboard_job(job_id, api_key)
+
+
+# ============================================================================
+# I2V Storyboard Generation Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_i2v_storyboard_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    I2V storyboard generation task.
+
+    Generates scenes, clips, and voice prompts from manga panel images.
+
+    Pipeline:
+    1. PENDING -> PREPARING: Download panel images from S3
+    2. PREPARING -> GENERATING: Call Gemini with images + prompt
+    3. GENERATING -> COMPLETED: Update Firestore with scenes and clips
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.i2v_storyboard_generation import process_i2v_storyboard
+
+    worker_id = get_worker_id()
+    logger.info(f"[I2V-STORYBOARD-TASK] ========== Starting I2V storyboard job {job_id} ==========")
+    logger.info(f"[I2V-STORYBOARD-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_i2v_storyboard(job_id, api_key, worker_id)
+        logger.info(f"[I2V-STORYBOARD-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[I2V-STORYBOARD-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_i2v_storyboard_job(
+    job_id: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed I2V storyboard job after a delay.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying I2V storyboard job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_i2v_storyboard_job(job_id, api_key)
+
+
+# ============================================================================
+# Panel Splitter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_panel_splitter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Panel splitter task.
+
+    Detects panels in manga/comic page and crops them.
+
+    Pipeline:
+    1. PENDING -> GENERATING: Call Gemini to detect panels
+    2. GENERATING -> UPLOADING: Crop panels and upload to S3
+    3. UPLOADING -> COMPLETED: Update Firestore with panel URLs
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.panel_splitter_generation import process_panel_splitter
+
+    logger.info(f"[PANEL-SPLITTER-TASK] ========== Starting panel splitter job {job_id} ==========")
+    logger.info(f"[PANEL-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
+    logger.info(f"[PANEL-SPLITTER-TASK] Image base64 length: {len(image_base64) if image_base64 else 0}")
+
+    try:
+        result = await process_panel_splitter(job_id, image_base64, api_key)
+        logger.info(f"[PANEL-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[PANEL-SPLITTER-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_panel_splitter_job(
+    job_id: str,
+    image_base64: str,
+    delay_seconds: int = 0,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Retry a failed panel splitter job after a delay.
+
+    This task is scheduled when a transient error occurs and the job
+    should be retried after some backoff period.
+    """
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying panel splitter job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_panel_splitter_job(job_id, image_base64, api_key)
+
+
+# ============================================================================
+# Storyboard Editor Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_storyboard_editor_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Storyboard editor generation/remix task.
+
+    Generates or remixes anime frames from manga panels using Gemini.
+
+    Pipeline:
+    1. PENDING -> PREPARING: Fetch reference/asset images from S3
+    2. PREPARING -> GENERATING: Call Gemini API (generate or remix)
+    3. GENERATING -> UPLOADING: Upload result to S3
+    4. UPLOADING -> COMPLETED: Update Firestore with image URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        api_key: Optional custom API key (passed through task queue, not stored)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.storyboard_editor_generation import process_storyboard_editor_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[STORYBOARD-EDITOR-TASK] ========== Starting job {job_id} ==========")
+    logger.info(f"[STORYBOARD-EDITOR-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_storyboard_editor_generation(job_id, worker_id, api_key)
+        logger.info(f"[STORYBOARD-EDITOR-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORYBOARD-EDITOR-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_storyboard_editor_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    api_key: str | None = None,
+) -> dict:
+    """Retry a failed storyboard editor job after a delay."""
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying storyboard editor job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_storyboard_editor_job(job_id, api_key)
+
+
+# ============================================================================
 # Maintenance Tasks
 # ============================================================================
 

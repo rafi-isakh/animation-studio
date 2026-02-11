@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToProjectJobs,
   mapJobToClipUpdate,
@@ -60,6 +60,10 @@ interface UseVideoOrchestratorOptions {
 /**
  * Hook for integrating with the video orchestrator backend.
  * Provides methods to submit jobs and subscribes to real-time status updates.
+ *
+ * Returns `pendingUpdates` — job updates from the initial Firestore snapshot that
+ * arrived before clip data was loaded. The consumer should apply these once data
+ * is ready, then call `clearPendingUpdates()`.
  */
 export function useVideoOrchestrator({
   projectId,
@@ -68,11 +72,28 @@ export function useVideoOrchestrator({
 }: UseVideoOrchestratorOptions) {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onClipUpdateRef = useRef(onClipUpdate);
+  // Track whether the initial Firestore snapshot has been processed
+  const initialSnapshotRef = useRef(true);
+  // Track job IDs already processed to avoid duplicates
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+  // Queue updates from initial snapshot for deferred application
+  const [pendingUpdates, setPendingUpdates] = useState<ClipUpdate[]>([]);
+
+  const clearPendingUpdates = useCallback(() => {
+    setPendingUpdates([]);
+  }, []);
 
   // Keep callback ref updated
   useEffect(() => {
     onClipUpdateRef.current = onClipUpdate;
   }, [onClipUpdate]);
+
+  // Reset state when projectId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    setPendingUpdates([]);
+  }, [projectId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -80,12 +101,51 @@ export function useVideoOrchestrator({
       return;
     }
 
-    // Subscribe to project jobs
     const unsubscribe = subscribeToProjectJobs(projectId, (jobs: JobQueueDocument[]) => {
-      // Notify callback for each job update
+      const isInitial = initialSnapshotRef.current;
+
+      if (isInitial) {
+        initialSnapshotRef.current = false;
+
+        // On initial snapshot, queue all updates for deferred processing
+        // The consumer's loadData hasn't finished yet, so clips array is empty
+        const updates: ClipUpdate[] = [];
+
+        // For each clip position, find the most recent job
+        const latestByClip = new Map<string, JobQueueDocument>();
+        jobs.forEach((job) => {
+          if (!job.id) return;
+          const clipKey = `${job.scene_index}-${job.clip_index}`;
+          const existing = latestByClip.get(clipKey);
+          if (!existing || (job.created_at && existing.created_at && job.created_at > existing.created_at)) {
+            latestByClip.set(clipKey, job);
+          }
+        });
+
+        latestByClip.forEach((job) => {
+          const update = mapJobToClipUpdate(job);
+          processedJobIdsRef.current.add(job.id);
+          updates.push(update);
+        });
+
+        if (updates.length > 0) {
+          setPendingUpdates(updates);
+        }
+        return;
+      }
+
+      // Subsequent snapshots: forward directly to callback
       jobs.forEach((job) => {
+        if (!job.id) return;
+        if (processedJobIdsRef.current.has(job.id)) return;
+
         const update = mapJobToClipUpdate(job);
         onClipUpdateRef.current?.(update);
+
+        const isTerminal = update.status === 'completed' || update.status === 'failed';
+        if (isTerminal) {
+          processedJobIdsRef.current.add(job.id);
+        }
       });
     });
 
@@ -171,5 +231,7 @@ export function useVideoOrchestrator({
     submitBatch,
     cancelJob,
     getJobStatus,
+    pendingUpdates,
+    clearPendingUpdates,
   };
 }

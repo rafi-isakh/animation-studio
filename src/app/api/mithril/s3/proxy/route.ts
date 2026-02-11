@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 const VIDEOS_CLOUDFRONT = process.env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT;
 
+// OPTIONS - Handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
+
 // GET - Proxy fetch for S3/CloudFront resources to avoid CORS issues
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
@@ -16,6 +29,7 @@ export async function GET(request: NextRequest) {
     "s3.ap-northeast-2.amazonaws.com",
     ".s3.amazonaws.com",
     ".s3.ap-northeast-2.amazonaws.com",
+    "cloudfront.net",
     // Allow CloudFront domain for video downloads
     ...(VIDEOS_CLOUDFRONT ? [VIDEOS_CLOUDFRONT] : []),
   ];
@@ -49,7 +63,14 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": contentType,
         "Content-Length": buffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=31536000, immutable",
+        // Use shorter cache for text files, longer for media
+        "Cache-Control": contentType.startsWith("text/")
+          ? "public, max-age=3600"
+          : "public, max-age=31536000, immutable",
+        // Ensure CORS headers are set
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
       },
     });
   } catch (error) {

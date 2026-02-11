@@ -10,9 +10,9 @@ import {
 import { db } from '@/lib/firestore';
 
 /**
- * Job type (video, image, background, prop_design_sheet, or panel)
+ * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor';
 
 /**
  * Job status from the orchestrator
@@ -81,6 +81,60 @@ export interface JobQueueDocument {
   file_name?: string;
   target_aspect_ratio?: string;
   refinement_mode?: string;  // "default" | "zoom" | "expand"
+  // Panel splitter-specific fields (ImageSplitter / MangaSplitter)
+  page_id?: string;
+  page_index?: number;
+  reading_direction?: 'rtl' | 'ltr';
+  detected_panels?: Array<{
+    id: string;
+    box_2d: number[];
+    label: string;
+    imageUrl?: string;
+  }>;
+  // Storyboard generation-specific fields
+  source_text?: string;
+  target_time?: string;
+  part_index?: number;
+  storyboard_result?: {
+    scenes: Array<{
+      sceneTitle: string;
+      clips: Array<{
+        story: string;
+        imagePrompt: string;
+        imagePromptEnd?: string;
+        videoPrompt: string;
+        soraVideoPrompt: string;
+        backgroundPrompt: string;
+        backgroundId: string;
+        dialogue: string;
+        dialogueEn: string;
+        narration?: string;
+        narrationEn?: string;
+        sfx: string;
+        sfxEn: string;
+        bgm: string;
+        bgmEn: string;
+        length: string;
+        accumulatedTime: string;
+        referenceImageIndex?: number;
+      }>;
+    }>;
+    voicePrompts: Array<{
+      promptKo: string;
+      promptEn: string;
+    }>;
+  };
+  // I2V Storyboard-specific fields
+  panel_urls?: string[];
+  panel_labels?: string[];
+  target_duration?: string;
+  // Storyboard Editor-specific fields
+  frame_type?: 'start' | 'end';
+  operation?: 'generate' | 'remix';
+  original_image_url?: string;
+  original_context?: string;
+  remix_prompt?: string;
+  asset_image_urls?: string[];
 }
 
 /**
@@ -811,6 +865,910 @@ function mapJobStatusToPanelStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): PanelJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// ID Converter Job Functions
+// ============================================================================
+
+/**
+ * ID Converter job type
+ */
+export type IdConverterJobType = 'id_converter_glossary' | 'id_converter_batch';
+
+/**
+ * ID Converter job status
+ */
+export type IdConverterJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * ID Converter job update object
+ */
+export interface IdConverterJobUpdate {
+  jobId: string;
+  jobType: IdConverterJobType;
+  status: IdConverterJobStatus;
+  progress: number;
+  // Glossary results
+  entitiesCount?: number;
+  // Batch results
+  totalChunks?: number;
+  completedChunks?: number;
+  currentChunkIndex?: number;
+  chunksData?: Array<{ originalIndex: number; originalText: string; translatedText?: string }>;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for ID converter job updates
+ */
+export type IdConverterJobUpdateCallback = (update: IdConverterJobUpdate) => void;
+
+/**
+ * Callback for multiple ID converter job updates
+ */
+export type IdConverterJobUpdatesCallback = (updates: IdConverterJobUpdate[]) => void;
+
+/**
+ * Subscribe to ID converter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any ID converter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectIdConverterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', 'in', ['id_converter_glossary', 'id_converter_batch'])
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) ID converter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active ID converter job documents
+ */
+export async function getActiveProjectIdConverterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', 'in', ['id_converter_glossary', 'id_converter_batch'])
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to IdConverterJobUpdate
+ */
+export function mapIdConverterJobToUpdate(job: JobQueueDocument): IdConverterJobUpdate {
+  const jobType = job.type as IdConverterJobType;
+
+  // Extract chunks_data from job document (backend uses camelCase)
+  const chunksData = (job as unknown as { chunks_data?: Array<{ originalIndex: number; originalText: string; translatedText?: string }> }).chunks_data;
+
+  return {
+    jobId: job.id,
+    jobType,
+    status: mapJobStatusToIdConverterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    // Glossary results (from glossary_result field)
+    entitiesCount: (job as unknown as { glossary_result?: unknown[] }).glossary_result?.length,
+    // Batch results
+    totalChunks: (job as unknown as { total_chunks?: number }).total_chunks,
+    completedChunks: (job as unknown as { completed_chunks?: number }).completed_chunks,
+    currentChunkIndex: (job as unknown as { current_chunk_index?: number }).current_chunk_index,
+    chunksData: chunksData?.map(chunk => ({
+      originalIndex: chunk.originalIndex,
+      originalText: chunk.originalText,
+      translatedText: chunk.translatedText,
+    })),
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to ID converter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToIdConverterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): IdConverterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'generating':
+      return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Story Splitter Job Functions
+// ============================================================================
+
+/**
+ * Story splitter job status
+ */
+export type StorySplitterJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Cliffhanger in a story part
+ */
+export interface StorySplitterCliffhanger {
+  sentence: string;
+  reason: string;
+}
+
+/**
+ * Story part with cliffhangers
+ */
+export interface StorySplitterPart {
+  text: string;
+  cliffhangers: StorySplitterCliffhanger[];
+}
+
+/**
+ * Story splitter job update object
+ */
+export interface StorySplitterJobUpdate {
+  jobId: string;
+  status: StorySplitterJobStatus;
+  progress: number;
+  // Results
+  parts?: StorySplitterPart[];
+  partsCount?: number;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for story splitter job updates
+ */
+export type StorySplitterJobUpdateCallback = (update: StorySplitterJobUpdate) => void;
+
+/**
+ * Subscribe to story splitter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any story splitter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStorySplitterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'story_splitter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) story splitter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active story splitter job documents
+ */
+export async function getActiveProjectStorySplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'story_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StorySplitterJobUpdate
+ */
+export function mapStorySplitterJobToUpdate(job: JobQueueDocument): StorySplitterJobUpdate {
+  // Extract split_result from job document
+  const splitResult = (job as unknown as { split_result?: StorySplitterPart[] }).split_result;
+
+  return {
+    jobId: job.id,
+    status: mapJobStatusToStorySplitterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    parts: splitResult,
+    partsCount: splitResult?.length,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to story splitter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToStorySplitterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StorySplitterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'generating':
+      return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Panel Splitter Job Functions (ImageSplitter / MangaSplitter)
+// ============================================================================
+
+/**
+ * Panel splitter job status
+ */
+export type PanelSplitterJobStatus =
+  | 'pending'
+  | 'preparing'    // Compressing/optimizing image
+  | 'generating'   // Calling Gemini for panel detection
+  | 'cropping'     // Cropping panels from source image
+  | 'uploading'    // Uploading to S3
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Detected panel in a manga/comic page
+ */
+export interface DetectedPanel {
+  id: string;
+  box_2d: number[];  // [ymin, xmin, ymax, xmax] in 0-1000 scale
+  label: string;
+  imageUrl?: string;  // S3 URL after cropping
+}
+
+/**
+ * Panel splitter job update object
+ */
+export interface PanelSplitterJobUpdate {
+  jobId: string;
+  pageId: string;
+  pageIndex: number;
+  fileName: string;
+  status: PanelSplitterJobStatus;
+  progress: number;
+  // Results
+  panels?: DetectedPanel[];
+  panelCount?: number;
+  pageImageUrl?: string;  // S3 URL for uploaded page
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for panel splitter job updates
+ */
+export type PanelSplitterJobUpdateCallback = (update: PanelSplitterJobUpdate) => void;
+
+/**
+ * Callback for multiple panel splitter job updates
+ */
+export type PanelSplitterJobUpdatesCallback = (updates: PanelSplitterJobUpdate[]) => void;
+
+/**
+ * Subscribe to panel splitter jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any panel splitter job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectPanelSplitterJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) panel splitter jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active panel splitter job documents
+ */
+export async function getActiveProjectPanelSplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Get all panel splitter jobs for a project (including completed)
+ *
+ * @param projectId - The project ID
+ * @returns Array of all panel splitter job documents
+ */
+export async function getAllProjectPanelSplitterJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'panel_splitter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+
+  return snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+}
+
+/**
+ * Map JobQueueDocument to PanelSplitterJobUpdate
+ */
+export function mapPanelSplitterJobToUpdate(job: JobQueueDocument): PanelSplitterJobUpdate {
+  return {
+    jobId: job.id,
+    pageId: job.page_id || '',
+    pageIndex: job.page_index || 0,
+    fileName: job.file_name || '',
+    status: mapJobStatusToPanelSplitterStatus(job.status, job.retry_count),
+    progress: job.progress,
+    panels: job.detected_panels,
+    panelCount: job.detected_panels?.length,
+    pageImageUrl: job.image_url,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to panel splitter status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToPanelSplitterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): PanelSplitterJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Storyboard Generation Job Functions
+// ============================================================================
+
+/**
+ * Storyboard generation job status
+ */
+export type StoryboardJobStatus =
+  | 'pending'
+  | 'generating'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Scene in storyboard result
+ */
+export interface StoryboardScene {
+  sceneTitle: string;
+  clips: Array<{
+    story: string;
+    imagePrompt: string;
+    imagePromptEnd?: string;
+    videoPrompt: string;
+    soraVideoPrompt: string;
+    backgroundPrompt: string;
+    backgroundId: string;
+    dialogue: string;
+    dialogueEn: string;
+    narration?: string;
+    narrationEn?: string;
+    sfx: string;
+    sfxEn: string;
+    bgm: string;
+    bgmEn: string;
+    length: string;
+    accumulatedTime: string;
+    referenceImageIndex?: number;
+  }>;
+}
+
+/**
+ * Voice prompt in storyboard result
+ */
+export interface StoryboardVoicePrompt {
+  promptKo: string;
+  promptEn: string;
+}
+
+/**
+ * Storyboard generation job update object
+ */
+export interface StoryboardJobUpdate {
+  jobId: string;
+  status: StoryboardJobStatus;
+  progress: number;
+  // Results
+  scenes?: StoryboardScene[];
+  voicePrompts?: StoryboardVoicePrompt[];
+  sceneCount?: number;
+  clipCount?: number;
+  // Error info
+  error?: string;
+}
+
+/**
+ * Callback for storyboard job updates
+ */
+export type StoryboardJobUpdateCallback = (update: StoryboardJobUpdate) => void;
+
+/**
+ * Subscribe to storyboard generation jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any storyboard job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStoryboardJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  console.log("[jobQueue:subscribeToProjectStoryboardJobs] Creating subscription for project:", projectId);
+
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    console.log("[jobQueue:subscribeToProjectStoryboardJobs] Snapshot received:", {
+      docCount: snapshot.docs.length,
+      fromCache: snapshot.metadata.fromCache,
+      hasPendingWrites: snapshot.metadata.hasPendingWrites,
+    });
+
+    const jobs = snapshot.docs.map((docSnapshot) => {
+      const data = docSnapshot.data();
+      console.log("[jobQueue:subscribeToProjectStoryboardJobs] Job doc:", {
+        id: docSnapshot.id,
+        status: data.status,
+        type: data.type,
+        hasStoryboardResult: !!data.storyboard_result,
+        sceneCount: data.storyboard_result?.scenes?.length,
+      });
+      return {
+        ...data,
+        id: docSnapshot.id,
+      } as JobQueueDocument;
+    });
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) storyboard jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of active storyboard job documents
+ */
+export async function getActiveProjectStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Get all storyboard jobs for a project (one-time fetch)
+ *
+ * @param projectId - The project ID
+ * @returns Array of all storyboard job documents
+ */
+export async function getAllProjectStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+
+  return snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardJobUpdate
+ */
+export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUpdate {
+  const result = job.storyboard_result;
+  const clipCount = result?.scenes?.reduce((acc, s) => acc + s.clips.length, 0) || 0;
+
+  const update = {
+    jobId: job.id,
+    status: mapJobStatusToStoryboardStatus(job.status, job.retry_count),
+    progress: job.progress,
+    scenes: result?.scenes,
+    voicePrompts: result?.voicePrompts,
+    sceneCount: result?.scenes?.length,
+    clipCount,
+    error: job.error_message,
+  };
+
+  console.log("[jobQueue:mapStoryboardJobToUpdate] Mapped job:", {
+    jobId: update.jobId,
+    rawStatus: job.status,
+    mappedStatus: update.status,
+    hasResult: !!result,
+    sceneCount: update.sceneCount,
+    clipCount: update.clipCount,
+    retryCount: job.retry_count,
+  });
+
+  return update;
+}
+
+/**
+ * Map job status to storyboard status
+ * - "pending" with retry_count > 0 means it's retrying after a failure
+ * - "pending" with retry_count = 0 means it's a new unstarted job
+ */
+function mapJobStatusToStoryboardStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StoryboardJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'generating';
+    case 'generating':
+      return 'generating';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// I2V Storyboard Job Functions
+// ============================================================================
+
+/**
+ * Subscribe to I2V storyboard generation jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any I2V storyboard job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectI2VStoryboardJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'i2v_storyboard')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) I2V storyboard jobs for a project (one-time fetch)
+ */
+export async function getActiveProjectI2VStoryboardJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'i2v_storyboard')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const jobs = snapshot.docs.map((docSnapshot) => ({
+    ...docSnapshot.data(),
+    id: docSnapshot.id,
+  } as JobQueueDocument));
+
+  // Filter to active (non-terminal) jobs
+  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+  return jobs.filter((job) => activeStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardJobUpdate for I2V storyboard jobs.
+ * Reuses the same StoryboardJobUpdate type since the output shape is identical.
+ */
+export function mapI2VStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUpdate {
+  return mapStoryboardJobToUpdate(job);
+}
+
+
+// ============================================================================
+// Storyboard Editor Job Functions
+// ============================================================================
+
+/**
+ * Storyboard editor job status
+ */
+export type StoryboardEditorJobStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Storyboard editor job update object
+ */
+export interface StoryboardEditorJobUpdate {
+  jobId: string;
+  sceneIndex: number;
+  clipIndex: number;
+  frameType: 'start' | 'end';
+  operation: 'generate' | 'remix';
+  status: StoryboardEditorJobStatus;
+  progress: number;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+}
+
+/**
+ * Callback for storyboard editor job updates
+ */
+export type StoryboardEditorJobUpdateCallback = (update: StoryboardEditorJobUpdate) => void;
+
+/**
+ * Subscribe to storyboard editor jobs for a project
+ *
+ * @param projectId - The project ID
+ * @param callback - Called whenever any storyboard editor job in the project changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToProjectStoryboardEditorJobs(
+  projectId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard_editor')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) storyboard editor jobs for a project (one-time fetch)
+ */
+export async function getActiveProjectStoryboardEditorJobs(
+  projectId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('project_id', '==', projectId),
+    where('type', '==', 'storyboard_editor')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => activeStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StoryboardEditorJobUpdate
+ */
+export function mapStoryboardEditorJobToUpdate(job: JobQueueDocument): StoryboardEditorJobUpdate {
+  return {
+    jobId: job.id,
+    sceneIndex: job.scene_index,
+    clipIndex: job.clip_index,
+    frameType: job.frame_type || 'start',
+    operation: job.operation || 'generate',
+    status: mapJobStatusToStoryboardEditorStatus(job.status, job.retry_count),
+    progress: job.progress,
+    imageUrl: job.image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+  };
+}
+
+/**
+ * Map job status to storyboard editor status
+ */
+function mapJobStatusToStoryboardEditorStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StoryboardEditorJobStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

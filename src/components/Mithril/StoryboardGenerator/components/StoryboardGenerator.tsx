@@ -146,7 +146,14 @@ export default function StoryboardGenerator() {
 24. 시각적 인물 수 제한 (Visual Constraint): 등장인물의 수는 화면 구성의 명확성을 위해 반드시 최대 5명 이하로 제한한다.
 -변환 규칙: 원문에 다수(예: 20명, 군중, 학자들 전체)가 등장하더라도, 이미지 프롬프트 작성 시에는 가장 가까이 있는 3~5명의 인물로 축소하여 묘사한다.
 -금지 사항: 'All 20 scholars', 'The crowd'와 같이 전체를 지칭하는 표현을 금지하고, '3 scholars', '5 people'과 같이 구체적인 숫자를 명시한다.
--예외: 대규모 전투씬(Battle scenes)은 이 규칙에서 제외한다.`,
+-예외: 대규모 전투씬(Battle scenes)은 이 규칙에서 제외한다.
+25. **[대문자 ID 표기 (UPPERCASE ID Convention)]**: imagePrompt에 등장하는 주요 캐릭터명과 고유 아이템/소품은 반드시 대문자(UPPERCASE)로 표기하십시오. 소유격('s)은 금지하고, 언더바(_)로 연결합니다.
+- 예시: 'Princess Kania holds her sword' (X) → 'KANIA holds KANIA_SWORD' (O)
+- 예시: 'Arel rides his horse' (X) → 'AREL rides AREL_HORSE' (O)
+- 재질이나 속성은 ID에 통합: 'glass bottle' (X) → 'GLASS_BOTTLE' (O)
+- 셀 수 없는 명사(juice, blood, fire)는 대문자 금지. 셀 수 있는 사물만 대문자 ID 적용.
+- 일반 군중(crowd, people)은 대문자 금지.
+- 직함이나 외형 묘사를 이름에 붙이지 마십시오: 'Princess KANIA' (X) → 'KANIA' (O)`,
       video: `1. 카메라 앵글과 동작 위주로 간결하게 구성한다.
 2. 음향 중 캐릭터가 대사를 말하는 장면인 경우, 비디오 프롬프트에 애니메이션에서 말하는것처럼 말하는 묘사가 반드시 비디오 프롬프트에 포함되어야 한다 (i.e. character speaks, character talks, etc)
 3. Don't use figurative words like 'delivers a warning', 'shoots an expression' , 'promises', 'expresses', etc. 대사가 있는 장면의 경우, figurative 하거나 동작이 애매한 프롬프트를 아예 제외하고, 확실히 말을 한다, 확실히 소리친다, 어떠한 톤으로 어떻게 말한다 이렇게 작관적으로만 표기해줘.

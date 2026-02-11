@@ -61,6 +61,7 @@ export interface StorySplitsDocument {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
   generatedAt: Timestamp;
+  jobId?: string;  // Active/last story splitter job ID
 }
 
 // ============================================
@@ -294,6 +295,7 @@ export interface UpdatePropInput {
 export interface StoryboardDocument {
   generatedAt: Timestamp;
   aspectRatio?: string;
+  jobId?: string | null;
 }
 
 export interface VoicePromptDocument {
@@ -444,6 +446,7 @@ export interface SaveChapterInput {
 export interface SaveStorySplitsInput {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
+  jobId?: string;
 }
 
 export interface SaveCharacterSheetSettingsInput {
@@ -692,6 +695,7 @@ export interface MangaPageDocument {
   status: MangaPanelStatus;
   panelCount: number;
   createdAt: Timestamp;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
 }
 
 export interface ImageSplitterDocument {
@@ -706,6 +710,7 @@ export interface SaveMangaPageInput {
   imageRef: string;
   readingDirection: ReadingDirection;
   status?: MangaPanelStatus;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
 }
 
 export interface SaveMangaPanelInput {
@@ -824,30 +829,40 @@ export interface IdConverterChunk {
 
 export interface IdConverterDocument {
   fileName: string;
-  originalFullText: string;
-  fileUri?: string;          // Gemini File API URI
+  originalFullText?: string;  // Deprecated: now stored in S3 (for backward compat)
+  textFileUrl?: string;       // S3 URL for source text
+  fileUri?: string;           // Gemini File API URI
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  uploadType?: UploadType;    // Upload type (novel or chapter) - optional for backward compat
   generatedAt: Timestamp;
+  glossaryJobId?: string;     // Active/last glossary job ID
+  batchJobId?: string;        // Active/last batch job ID
 }
 
 export interface SaveIdConverterInput {
   fileName: string;
-  originalFullText: string;
+  textFileUrl?: string;        // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;     // Upload type (novel or chapter)
+  glossaryJobId?: string;
+  batchJobId?: string;
 }
 
 export interface UpdateIdConverterInput {
   fileName?: string;
-  originalFullText?: string;
+  textFileUrl?: string;         // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;      // Upload type (novel or chapter)
+  glossaryJobId?: string;
+  batchJobId?: string;
 }
 
 // ============================================

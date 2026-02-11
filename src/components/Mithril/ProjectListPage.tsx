@@ -138,6 +138,7 @@ export default function ProjectListPage() {
     // Simple label mapping (could use i18n later)
     const labelMap: Record<string, string> = {
       'mithril_stage1': 'Upload',
+      'mithril_stage_id_converter': 'ID Converter',
       'mithril_stage2': 'Story Split',
       'mithril_stage3': 'Characters',
       'mithril_stage4': 'Storyboard',
@@ -149,6 +150,7 @@ export default function ProjectListPage() {
       'mithril_i2v_stage2': 'Panel Editor',
       'mithril_i2v_stage3': 'Script Writer',
       'mithril_i2v_stage4': 'Storyboard Editor',
+      'mithril_i2v_stage5': 'Video Generation',
     };
 
     return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;

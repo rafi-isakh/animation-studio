@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToSessionPanelJobs,
   mapPanelJobToPanelUpdate,
@@ -48,11 +48,28 @@ export function usePanelOrchestrator({
 }: UsePanelOrchestratorOptions) {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onPanelUpdateRef = useRef(onPanelUpdate);
+  // Track whether the initial Firestore snapshot has been processed
+  const initialSnapshotRef = useRef(true);
+  // Track job IDs already processed to avoid duplicates
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+  // Queue updates from initial snapshot for deferred application
+  const [pendingUpdates, setPendingUpdates] = useState<PanelUpdate[]>([]);
+
+  const clearPendingUpdates = useCallback(() => {
+    setPendingUpdates([]);
+  }, []);
 
   // Keep callback ref updated
   useEffect(() => {
     onPanelUpdateRef.current = onPanelUpdate;
   }, [onPanelUpdate]);
+
+  // Reset state when sessionId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    setPendingUpdates([]);
+  }, [sessionId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -62,10 +79,46 @@ export function usePanelOrchestrator({
 
     // Subscribe to session panel jobs
     const unsubscribe = subscribeToSessionPanelJobs(sessionId, (jobs: JobQueueDocument[]) => {
-      // Notify callback for each job update
+      const isInitial = initialSnapshotRef.current;
+
+      if (isInitial) {
+        initialSnapshotRef.current = false;
+
+        // On initial snapshot, group by panelId and keep only the latest job per panel
+        const latestByPanel = new Map<string, JobQueueDocument>();
+        jobs.forEach((job) => {
+          if (!job.id || !job.panel_id) return;
+          const existing = latestByPanel.get(job.panel_id);
+          if (!existing || (job.created_at && existing.created_at && job.created_at > existing.created_at)) {
+            latestByPanel.set(job.panel_id, job);
+          }
+        });
+
+        const updates: PanelUpdate[] = [];
+        latestByPanel.forEach((job) => {
+          const update = mapPanelJobToPanelUpdate(job);
+          processedJobIdsRef.current.add(job.id);
+          updates.push(update);
+        });
+
+        if (updates.length > 0) {
+          setPendingUpdates(updates);
+        }
+        return;
+      }
+
+      // Subsequent snapshots: forward directly to callback, skipping processed jobs
       jobs.forEach((job) => {
+        if (!job.id) return;
+        if (processedJobIdsRef.current.has(job.id)) return;
+
         const update = mapPanelJobToPanelUpdate(job);
         onPanelUpdateRef.current?.(update);
+
+        const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+        if (isTerminal) {
+          processedJobIdsRef.current.add(job.id);
+        }
       });
     });
 
@@ -131,5 +184,7 @@ export function usePanelOrchestrator({
     submitJob,
     cancelJob,
     getJobStatus,
+    pendingUpdates,
+    clearPendingUpdates,
   };
 }

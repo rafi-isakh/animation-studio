@@ -100,7 +100,7 @@ export default function StoryboardGenerator() {
     clearStoryboardGeneration,
     isStageSkipped,
   } = useMithril();
-  const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
+  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -1164,7 +1164,12 @@ export default function StoryboardGenerator() {
             </div>
           </div>
 
-          <StoryboardTable data={scenes} voicePrompts={voicePrompts} />
+          <StoryboardTable 
+            data={scenes} 
+            voicePrompts={voicePrompts} 
+            characterIdSummary={characterIdSummary}
+            genre={genre}
+          />
         </div>
       )}
     </div>

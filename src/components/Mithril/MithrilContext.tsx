@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Scene, VoicePrompt } from "./StoryboardGenerator/types";
+import type { Scene, VoicePrompt, CharacterIdSummary } from "./StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "./BgSheetGenerator/types";
 import type { CharacterSheetResultMetadata, Character } from "./CharacterSheetGenerator/types";
 import type { PropDesignerResultMetadata, Prop, DetectedId, PropDesignerSettings } from "./PropDesigner/types";
@@ -85,6 +85,8 @@ interface StoryboardGeneratorState {
   error: string | null;
   scenes: Scene[];
   voicePrompts: VoicePrompt[];
+  characterIdSummary?: CharacterIdSummary[];
+  genre?: string;
 }
 
 // Types for BgSheet Generator
@@ -329,6 +331,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     scenes: [],
     voicePrompts: [],
+    characterIdSummary: [],
+    genre: undefined,
   });
 
   // Original storyboard for reset functionality
@@ -515,6 +519,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 soraVideoPrompt: clip.soraVideoPrompt,
                 backgroundPrompt: clip.backgroundPrompt,
                 backgroundId: clip.backgroundId,
+                characterInfo: clip.characterInfo,
                 dialogue: clip.dialogue,
                 dialogueEn: clip.dialogueEn,
                 narration: clip.narration || "",
@@ -701,6 +706,31 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
+      // Special case: if numParts is 1, don't call API - just create a single part
+      if (numParts === 1) {
+        const singlePart = {
+          text,
+          cliffhangers: [], // No cliffhangers for single part
+        };
+
+        const result = { parts: [singlePart] };
+
+        // Save to Firestore
+        if (currentProjectId) {
+          await saveStorySplits(currentProjectId, {
+            guidelines,
+            parts: [singlePart],
+          });
+        }
+
+        setStorySplitter({
+          isLoading: false,
+          error: null,
+          result,
+        });
+        return;
+      }
+
       const response = await fetch("/api/split_story", {
         method: "POST",
         headers: {
@@ -778,6 +808,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       scenes: [],
       voicePrompts: [],
+      characterIdSummary: [],
+      genre: undefined,
     });
 
     try {
@@ -790,7 +822,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "API request failed");
 
-      const result = { scenes: data.scenes, voicePrompts: data.voicePrompts };
+      const result = { 
+        scenes: data.scenes, 
+        voicePrompts: data.voicePrompts,
+        characterIdSummary: data.characterIdSummary || [],
+        genre: data.genre
+      };
 
       // Save to Firestore
       if (currentProjectId) {
@@ -813,6 +850,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               soraVideoPrompt: clip.soraVideoPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
+              characterInfo: clip.characterInfo || "",
               dialogue: clip.dialogue || "",
               dialogueEn: clip.dialogueEn || "",
               narration: clip.narration || "",
@@ -836,6 +874,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: null,
         scenes: data.scenes,
         voicePrompts: data.voicePrompts,
+        characterIdSummary: data.characterIdSummary || [],
+        genre: data.genre,
       });
     } catch (err: unknown) {
       const errorMessage =
@@ -943,6 +983,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               soraVideoPrompt: clip.soraVideoPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
+              characterInfo: clip.characterInfo || "",
               dialogue: clip.dialogue || "",
               dialogueEn: clip.dialogueEn || "",
               narration: clip.narration || "",
@@ -979,6 +1020,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       scenes: [],
       voicePrompts: [],
+      characterIdSummary: [],
+      genre: undefined,
     });
     setOriginalStoryboard(null);
 

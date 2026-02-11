@@ -193,6 +193,7 @@ export interface PropDocument {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts: PropContextDocument[];
   designSheetPrompt: string;
@@ -203,6 +204,9 @@ export interface PropDocument {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string; // e.g., 'Silver', 'Dark brown'
+  hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
+  eyeColor?: string; // e.g., 'Golden', 'Blue'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -232,6 +236,7 @@ export interface SavePropInput {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
@@ -242,6 +247,9 @@ export interface SavePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -256,6 +264,7 @@ export interface UpdatePropInput {
   category?: 'character' | 'object';
   description?: string;
   descriptionKo?: string;
+  csvDescription?: string;
   appearingClips?: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
@@ -266,6 +275,9 @@ export interface UpdatePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -305,6 +317,7 @@ export interface ClipDocument {
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   // Dialogue
   dialogue: string;
   dialogueEn: string;
@@ -549,6 +562,7 @@ export interface SaveClipInput {
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   dialogue: string;
   dialogueEn: string;
   narration?: string;
@@ -571,6 +585,7 @@ export interface UpdateClipInput {
   soraVideoPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
+  characterInfo?: string;
   dialogue?: string;
   dialogueEn?: string;
   narration?: string;

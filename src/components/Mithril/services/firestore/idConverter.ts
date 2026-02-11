@@ -46,6 +46,7 @@ export async function saveIdConverter(
     glossary: input.glossary || [],
     chunks: input.chunks || [],
     currentStep: input.currentStep || 'upload',
+    uploadType: input.uploadType || null,
     generatedAt: Timestamp.now(),
   };
   if (input.glossaryJobId !== undefined) data.glossaryJobId = input.glossaryJobId;
@@ -77,6 +78,7 @@ export async function updateIdConverter(
   if (input.glossary !== undefined) updateData.glossary = input.glossary;
   if (input.chunks !== undefined) updateData.chunks = input.chunks;
   if (input.currentStep !== undefined) updateData.currentStep = input.currentStep;
+  if (input.uploadType !== undefined) updateData.uploadType = input.uploadType;
   if (input.glossaryJobId !== undefined) updateData.glossaryJobId = input.glossaryJobId;
   if (input.batchJobId !== undefined) updateData.batchJobId = input.batchJobId;
   updateData.generatedAt = Timestamp.now();

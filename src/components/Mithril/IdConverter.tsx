@@ -113,7 +113,7 @@ export default function IdConverter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reload data from Firestore with retry for eventual consistency
-  const reloadData = useCallback(async (retryCount = 0, clearLoadingOnComplete = false) => {
+  const reloadData = useCallback(async (retryCount = 0, clearLoadingOnComplete = false, expectGlossary = false) => {
     if (!currentProjectId) return;
 
     try {
@@ -125,6 +125,15 @@ export default function IdConverter() {
           chunksCount: doc.chunks?.length,
           hasTextFileUrl: !!doc.textFileUrl,
         });
+
+        // If we expect glossary data but it's not there yet, retry
+        if (expectGlossary && retryCount < 5 && (!doc.glossary || doc.glossary.length === 0 || doc.currentStep !== "analysis")) {
+          const delay = Math.min(500 * Math.pow(2, retryCount), 3000);
+          console.log(`[IdConverter] Glossary not ready (attempt ${retryCount + 1}/5), retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
+          return;
+        }
 
         // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
         let originalFullText = doc.originalFullText || "";
@@ -159,7 +168,7 @@ export default function IdConverter() {
         // Document not found, retry after a short delay
         console.log("[IdConverter] Document not found, retrying...");
         await new Promise(resolve => setTimeout(resolve, 1000));
-        await reloadData(retryCount + 1, clearLoadingOnComplete);
+        await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
       } else if (clearLoadingOnComplete) {
         // Max retries reached, still clear loading
         setIsLoading(false);
@@ -195,10 +204,10 @@ export default function IdConverter() {
         glossaryJobIdRef.current = null;
         setGlossaryJobId(null);
         setError(null); // Clear any previous errors
+        setLoadingStatus("Loading results...");
 
-        // Small delay to ensure Firestore has propagated the update
-        // Pass true to clear loading state after data is loaded
-        setTimeout(() => reloadData(0, true), 500);
+        // Reload with expectGlossary=true to retry until data is ready
+        reloadData(0, true, true);
       } else if (update.status === "failed") {
         setError(update.error || "Glossary analysis failed");
         setIsLoading(false);
@@ -211,7 +220,7 @@ export default function IdConverter() {
       }
     }
     // Batch job updates are handled by ProcessingView
-  }, [reloadData]);
+  }, [reloadData, currentProjectId]);
 
   // Initialize orchestrator hook
   const { submitGlossaryJob, getJobStatus } = useIdConverterOrchestrator({
@@ -300,7 +309,7 @@ export default function IdConverter() {
                 glossaryJobIdRef.current = null;
                 setGlossaryJobId(null);
                 setError(null);
-                setTimeout(() => reloadData(0, true), 500);
+                reloadData(0, true, true);
               } else if (jobStatus.status === "failed") {
                 // Job failed while we were away
                 setError(jobStatus.error || "Glossary analysis failed");
@@ -687,7 +696,10 @@ export default function IdConverter() {
   }
 
   // Check if we have content loaded
-  const hasContent = state.currentStep !== "upload" && state.originalFullText;
+  // Content is considered loaded if:
+  // 1. We're past the upload step AND have text in memory, OR
+  // 2. We're past the upload step AND have a text file URL (text may still be loading from S3)
+  const hasContent = state.currentStep !== "upload" && (state.originalFullText || state.fileUri);
 
   return (
     <div className="space-y-8">

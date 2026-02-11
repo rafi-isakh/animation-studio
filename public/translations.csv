@@ -638,6 +638,7 @@ table_clip,클립,,Clip
 table_length,길이,,Length
 table_accumulated_time,누적 시간,,Accumulated Time
 table_background_id,배경 ID,,Background ID
+table_character_info,캐릭터 정보,,Character Info
 table_story,스토리,,Story
 table_image_prompt,이미지 프롬프트,,Image Prompt
 table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
@@ -654,6 +655,8 @@ table_bgm_en,BGM (En),,BGM (En)
 table_empty_title,이곳에 콘티가 표시됩니다,,Storyboard will be displayed here
 table_empty_desc,파트를 선택하고 조건을 설정하여 생성하세요.,,Select a part and set conditions to generate.
 table_voice_prompts,캐릭터 보이스 프롬프트,,Character Voice Prompts
+table_character_id_summary,캐릭터 ID 요약,,Character ID Summary
+table_genre,장르,,Genre
 table_prompt,프롬프트,,Prompt
 table_korean,[한글]:,,[Korean]:
 table_scene,씬,,Scene

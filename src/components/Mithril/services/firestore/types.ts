@@ -314,6 +314,7 @@ export interface ClipDocument {
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   // Dialogue
   dialogue: string;
   dialogueEn: string;
@@ -558,6 +559,7 @@ export interface SaveClipInput {
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   dialogue: string;
   dialogueEn: string;
   narration?: string;
@@ -580,6 +582,7 @@ export interface UpdateClipInput {
   soraVideoPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
+  characterInfo?: string;
   dialogue?: string;
   dialogueEn?: string;
   narration?: string;

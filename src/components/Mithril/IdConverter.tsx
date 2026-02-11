@@ -140,7 +140,9 @@ export default function IdConverter() {
         if (doc.textFileUrl) {
           try {
             console.log("[IdConverter] reloadData - Fetching text from S3:", doc.textFileUrl);
-            const textResponse = await fetch(doc.textFileUrl);
+            // Use proxy to avoid CORS issues on Vercel deployment
+            const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
+            const textResponse = await fetch(proxyUrl);
             if (textResponse.ok) {
               originalFullText = await textResponse.text();
             }
@@ -256,7 +258,9 @@ export default function IdConverter() {
           if (doc.textFileUrl) {
             try {
               console.log("[IdConverter] Fetching text from S3:", doc.textFileUrl);
-              const textResponse = await fetch(doc.textFileUrl);
+              // Use proxy to avoid CORS issues on Vercel deployment
+              const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
+              const textResponse = await fetch(proxyUrl);
               if (textResponse.ok) {
                 originalFullText = await textResponse.text();
                 console.log("[IdConverter] Text fetched from S3, length:", originalFullText.length);

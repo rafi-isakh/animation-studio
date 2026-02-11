@@ -664,7 +664,45 @@ export default function IdConverter() {
 
     setState((prev) => ({ ...prev, currentStep: "completed" }));
     await updateIdConverter(currentProjectId, { currentStep: "completed" });
-  }, [currentProjectId]);
+
+    // Auto-create chapter document for StoryboardGenerator stage
+    // This is needed because IdConverter is now Stage 1, replacing UploadManager
+    try {
+      const { saveChapter } = await import("./services/firestore/chapter");
+
+      // Combine all converted chunks into a single text
+      const convertedText = state.chunks
+        .filter(chunk => chunk.status === "completed" && chunk.translatedText)
+        .map(chunk => chunk.translatedText)
+        .join("\n\n");
+
+      if (convertedText) {
+        await saveChapter(currentProjectId, {
+          content: convertedText,
+          filename: state.fileName,
+          uploadType: uploadType || 'novel',
+        });
+        console.log("[IdConverter] Chapter document created for downstream stages");
+
+        // If chapter type, auto-create single-part storySplits to skip Stage 2
+        if (uploadType === 'chapter') {
+          const { saveStorySplits } = await import("./services/firestore/storySplitter");
+          await saveStorySplits(currentProjectId, {
+            guidelines: '',
+            parts: [{ text: convertedText, cliffhangers: [] }],
+          });
+          console.log("[IdConverter] Single-part storySplits created (chapter mode)");
+        } else {
+          // Clear any existing story splits if novel type
+          const { deleteStorySplits } = await import("./services/firestore/storySplitter");
+          await deleteStorySplits(currentProjectId);
+        }
+      }
+    } catch (err) {
+      console.error("[IdConverter] Failed to create chapter document:", err);
+      // Non-fatal error - continue anyway
+    }
+  }, [currentProjectId, state.chunks, state.fileName, uploadType]);
 
   // Save batch job ID to Firestore for resume after page refresh
   const handleBatchJobStarted = useCallback(

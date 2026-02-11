@@ -835,6 +835,7 @@ export interface IdConverterDocument {
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  uploadType?: UploadType;    // Upload type (novel or chapter) - optional for backward compat
   generatedAt: Timestamp;
   glossaryJobId?: string;     // Active/last glossary job ID
   batchJobId?: string;        // Active/last batch job ID
@@ -847,6 +848,7 @@ export interface SaveIdConverterInput {
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;     // Upload type (novel or chapter)
   glossaryJobId?: string;
   batchJobId?: string;
 }
@@ -858,6 +860,7 @@ export interface UpdateIdConverterInput {
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;      // Upload type (novel or chapter)
   glossaryJobId?: string;
   batchJobId?: string;
 }

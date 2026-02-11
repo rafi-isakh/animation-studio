@@ -85,6 +85,7 @@ interface ProjectState {
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  uploadType?: 'novel' | 'chapter';
   batchJobId?: string;
 }
 
@@ -94,6 +95,7 @@ const INITIAL_STATE: ProjectState = {
   glossary: [],
   chunks: [],
   currentStep: "upload",
+  uploadType: undefined,
   batchJobId: undefined,
 };
 
@@ -158,8 +160,14 @@ export default function IdConverter() {
           glossary: doc.glossary || [],
           chunks: doc.chunks || [],
           currentStep: doc.currentStep || "upload",
+          uploadType: doc.uploadType,
           batchJobId: doc.batchJobId,
         });
+
+        // Sync uploadType with MithrilContext if it exists in the document
+        if (doc.uploadType) {
+          setUploadType(doc.uploadType);
+        }
 
         // Clear loading state after data is loaded
         if (clearLoadingOnComplete) {
@@ -279,8 +287,14 @@ export default function IdConverter() {
             glossary: doc.glossary || [],
             chunks: doc.chunks || [],
             currentStep: doc.currentStep || "upload",
+            uploadType: doc.uploadType,
             batchJobId: doc.batchJobId,
           });
+
+          // Sync uploadType with MithrilContext if it exists in the document
+          if (doc.uploadType) {
+            setUploadType(doc.uploadType);
+          }
 
           // Check if there's an active glossary job
           const hasText = !!originalFullText || !!doc.textFileUrl;
@@ -403,6 +417,7 @@ export default function IdConverter() {
               glossary: loadedState.glossary,
               chunks: loadedState.chunks,
               currentStep: loadedState.currentStep,
+              uploadType: loadedState.uploadType,
             });
 
             setIsLoading(false);
@@ -425,6 +440,7 @@ export default function IdConverter() {
           glossary: [],
           chunks: [],
           currentStep: "upload",
+          uploadType,
         });
 
         // Upload text to S3 first (to avoid Firestore 1MB limit)
@@ -448,6 +464,7 @@ export default function IdConverter() {
           glossary: [],
           chunks: [],
           currentStep: "upload", // Will be updated to "analysis" when job completes
+          uploadType,
         });
 
         // Submit glossary analysis job via orchestrator
@@ -515,6 +532,7 @@ export default function IdConverter() {
           glossary: [],
           chunks: [],
           currentStep: "upload",
+          uploadType: 'novel', // Sample files are always novels
         });
 
         // Upload text to S3 first (to avoid Firestore 1MB limit)
@@ -539,6 +557,7 @@ export default function IdConverter() {
           glossary: [],
           chunks: [],
           currentStep: "upload",
+          uploadType: 'novel', // Sample files are always novels
         });
 
         // Submit glossary analysis job via orchestrator
@@ -672,6 +691,21 @@ export default function IdConverter() {
     document.body.removeChild(element);
   }, [state]);
 
+  // Upload type change handler - save to Firestore
+  const handleUploadTypeChange = useCallback(async (type: 'novel' | 'chapter') => {
+    setUploadType(type);
+
+    // Save to Firestore if we have a file loaded
+    if (currentProjectId && state.fileName) {
+      try {
+        await updateIdConverter(currentProjectId, { uploadType: type });
+        setState(prev => ({ ...prev, uploadType: type }));
+      } catch (err) {
+        console.error("Error saving uploadType to Firestore:", err);
+      }
+    }
+  }, [currentProjectId, state.fileName, setUploadType]);
+
   // Reset handler
   const handleReset = useCallback(async () => {
     if (!confirm("Are you sure? Unsaved progress will be lost.")) return;
@@ -725,7 +759,7 @@ export default function IdConverter() {
             </label>
             <div className="flex gap-2">
               <button
-                onClick={() => setUploadType('novel')}
+                onClick={() => handleUploadTypeChange('novel')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
                   uploadType === 'novel'
                     ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
@@ -739,7 +773,7 @@ export default function IdConverter() {
                 </div>
               </button>
               <button
-                onClick={() => setUploadType('chapter')}
+                onClick={() => handleUploadTypeChange('chapter')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
                   uploadType === 'chapter'
                     ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'

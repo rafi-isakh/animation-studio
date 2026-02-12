@@ -178,10 +178,6 @@ export default function ClipTableRow({
           {row.backgroundId}
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-purple-600 dark:text-purple-400 min-w-[180px] font-medium">
-          {row.characterInfo || ""}
-        </td>
-
         <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           {row.story}
         </td>

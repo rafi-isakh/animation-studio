@@ -314,6 +314,8 @@ export default function PropDesigner() {
 
   // Determine active scenes (context or imported)
   const contextScenes = storyboardGenerator.scenes;
+  const contextCharacterIdSummary = storyboardGenerator.characterIdSummary;
+  const contextGenre = storyboardGenerator.genre;
   const hasContextScenes = contextScenes && contextScenes.length > 0;
   const hasImportedScenes = importedScenes.length > 0;
 
@@ -387,6 +389,23 @@ export default function PropDesigner() {
       }
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
+
+  // Load characterIdSummary and genre from storyboard context (when not using CSV import)
+  useEffect(() => {
+    if (hasImportedScenes) return;
+    if (propDesignerGenerator.result) return; // Already loaded from saved state
+
+    if (contextGenre) {
+      setGenre(contextGenre);
+    }
+    if (contextCharacterIdSummary && contextCharacterIdSummary.length > 0) {
+      const descMap = new Map<string, string>();
+      for (const char of contextCharacterIdSummary) {
+        descMap.set(char.characterId, char.description);
+      }
+      setCsvCharacterDescriptions(descMap);
+    }
+  }, [contextCharacterIdSummary, contextGenre, hasImportedScenes, propDesignerGenerator.result]);
 
   // Extract IDs from storyboard clips (context or imported)
   // Use useEffect for the side effect (setDetectedIds) instead of useMemo

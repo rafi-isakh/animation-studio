@@ -626,6 +626,12 @@ export default function PropDesigner() {
     setError(null);
 
     try {
+      // Convert csvCharacterDescriptions Map to a plain object for the API
+      const charDescObj: Record<string, string> = {};
+      for (const [id, desc] of csvCharacterDescriptions.entries()) {
+        charDescObj[id] = desc;
+      }
+
       const response = await fetch("/api/generate_prop_sheet/detect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -633,6 +639,7 @@ export default function PropDesigner() {
           scenes: activeScenes,
           objectIds: [],
           characterIds,
+          characterDescriptions: Object.keys(charDescObj).length > 0 ? charDescObj : undefined,
           genre,
           customApiKey: customApiKey || undefined,
         }),
@@ -673,13 +680,40 @@ export default function PropDesigner() {
         const existing = existingPropsByName.get(char.name.toLowerCase());
         
         // Check if we have CSV description for this character ID
-        // Try to find matching CHARACTER_ID from the name (usually the ID is embedded)
+        // Match by exact name or by characterId contained in the name
         let csvDescription: string | null = null;
-        for (const [characterId, desc] of csvCharacterDescriptions.entries()) {
-          if (char.name.includes(characterId) || char.name.toUpperCase().includes(characterId)) {
-            csvDescription = desc;
-            console.log(`[CSV Match] Found CSV description for ${char.name} (${characterId}): ${desc.substring(0, 50)}...`);
-            break;
+        // Try exact match first, then partial match
+        if (csvCharacterDescriptions.has(char.name)) {
+          csvDescription = csvCharacterDescriptions.get(char.name)!;
+        } else if (csvCharacterDescriptions.has(char.name.toUpperCase())) {
+          csvDescription = csvCharacterDescriptions.get(char.name.toUpperCase())!;
+        } else {
+          for (const [characterId, desc] of csvCharacterDescriptions.entries()) {
+            if (char.name.includes(characterId) || char.name.toUpperCase().includes(characterId)) {
+              csvDescription = desc;
+              break;
+            }
+          }
+        }
+        if (csvDescription) {
+          console.log(`[CSV Match] Found CSV description for ${char.name}: ${csvDescription.substring(0, 80)}...`);
+        }
+
+        // Extract accurate role from CSV description if available
+        let resolvedRole = char.role;
+        if (csvDescription) {
+          const desc = csvDescription.toLowerCase();
+          // Check for "Protagonist" first
+          if (desc.match(/^protagonist[\.\s,]/i) || desc === "protagonist") {
+            resolvedRole = "Protagonist";
+          } else {
+            // Extract relationship from patterns like "Protagonist's son", "주인공의 아들"
+            const relMatch = csvDescription.match(/protagonist'?s?\s+(\w+)/i);
+            if (relMatch) {
+              // Capitalize the first letter of the extracted role
+              resolvedRole = relMatch[1].charAt(0).toUpperCase() + relMatch[1].slice(1).toLowerCase();
+              console.log(`[Role Override] ${char.name}: AI role="${char.role}" → CSV role="${resolvedRole}"`);
+            }
           }
         }
         
@@ -726,7 +760,7 @@ export default function PropDesigner() {
           hairStyle: existing?.hairStyle || char.hairStyle,
           eyeColor: existing?.eyeColor || char.eyeColor,
           personality: existing?.personality || char.personality,
-          role: existing?.role || char.role,
+          role: existing?.role || resolvedRole,
           // Variant detection
           isVariant: char.isVariant || false,
           variantDetails: char.variantDetails || undefined,

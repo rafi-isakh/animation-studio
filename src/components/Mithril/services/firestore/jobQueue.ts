@@ -104,6 +104,7 @@ export interface JobQueueDocument {
         imagePromptEnd?: string;
         videoPrompt: string;
         soraVideoPrompt: string;
+        veoVideoPrompt?: string;
         backgroundPrompt: string;
         backgroundId: string;
         dialogue: string;
@@ -1400,6 +1401,7 @@ export interface StoryboardScene {
     imagePromptEnd?: string;
     videoPrompt: string;
     soraVideoPrompt: string;
+    veoVideoPrompt?: string;
     backgroundPrompt: string;
     backgroundId: string;
     dialogue: string;

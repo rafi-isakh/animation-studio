@@ -28,6 +28,7 @@ import {
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import GenrePresets, { type GenrePreset } from "./GenrePresets";
+import { useGenrePresets } from "../hooks/useGenrePresets";
 import { uploadFileToDrive } from "../services";
 import { getChapter } from "../../services/firestore";
 import { useProject } from "@/contexts/ProjectContext";
@@ -174,6 +175,15 @@ export default function StoryboardGenerator() {
   const [splitParts, setSplitParts] = useState<string[]>([]);
   const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
 
+  // Genre presets hook
+  const {
+    presets: genrePresets,
+    addPreset: addGenrePreset,
+    updatePreset: updateGenrePreset,
+    renamePreset: renameGenrePreset,
+    deletePreset: deleteGenrePreset,
+  } = useGenrePresets();
+
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
   const [imageCondition, setImageCondition] = useState(defaultConditions.image);
@@ -312,6 +322,7 @@ export default function StoryboardGenerator() {
       "Image Prompt (End)",
       "Video Prompt",
       "Sora Video Prompt",
+      "Veo Video Prompt",
       "Dialogue (Ko)",
       "Dialogue (En)",
       "Narration (Ko)",
@@ -336,6 +347,7 @@ export default function StoryboardGenerator() {
           `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
           `"${clip.videoPrompt.replace(/"/g, '""')}"`,
           `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.veoVideoPrompt.replace(/"/g, '""')}"`,
           `"${clip.dialogue.replace(/"/g, '""')}"`,
           `"${clip.dialogueEn.replace(/"/g, '""')}"`,
           `"${(clip.narration || "").replace(/"/g, '""')}"`,
@@ -379,12 +391,35 @@ export default function StoryboardGenerator() {
     setImageCondition(preset.image);
     setVideoCondition(preset.video);
     setSoundCondition(preset.sound);
+    const presetName = preset.isSystem && preset.nameKey
+      ? phrase(dictionary, preset.nameKey, language)
+      : preset.name || preset.id;
     toast({
       variant: "success",
       title: phrase(dictionary, "storyboard_preset_applied", language),
-      description: phrase(dictionary, preset.nameKey, language),
+      description: presetName,
     });
   }, [toast, dictionary, language]);
+
+  const handleSaveCurrentToPreset = useCallback((id: string) => {
+    updateGenrePreset(id, {
+      story: storyCondition,
+      image: imageCondition,
+      video: videoCondition,
+      sound: soundCondition,
+    });
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "preset_saved", language),
+    });
+  }, [updateGenrePreset, storyCondition, imageCondition, videoCondition, soundCondition, toast, dictionary, language]);
+
+  const currentConditions = useMemo(() => ({
+    story: storyCondition,
+    image: imageCondition,
+    video: videoCondition,
+    sound: soundCondition,
+  }), [storyCondition, imageCondition, videoCondition, soundCondition]);
 
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
@@ -454,6 +489,7 @@ export default function StoryboardGenerator() {
         "Image Prompt (End)",
         "Video Prompt",
         "Sora Video Prompt",
+        "Veo Video Prompt",
         "Dialogue (Ko)",
         "Dialogue (En)",
         "Narration (Ko)",
@@ -478,6 +514,7 @@ export default function StoryboardGenerator() {
             `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
             `"${clip.videoPrompt.replace(/"/g, '""')}"`,
             `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.veoVideoPrompt.replace(/"/g, '""')}"`,
             `"${clip.dialogue.replace(/"/g, '""')}"`,
             `"${clip.dialogueEn.replace(/"/g, '""')}"`,
             `"${(clip.narration || "").replace(/"/g, '""')}"`,
@@ -629,6 +666,7 @@ export default function StoryboardGenerator() {
           imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
           video: findIdx(["Video Prompt", "비디오 프롬프트"]),
           sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
+          veo: findIdx(["Veo", "Veo Video Prompt"]),
           dialogue: findIdx(["Dialogue (Ko)", "대사 (Ko)", "대사"]),
           dialogueEn: findIdx(["Dialogue (En)", "대사 (En)"]),
           narration: findIdx(["Narration (Ko)", "나레이션 (Ko)", "나레이션"]),
@@ -664,6 +702,7 @@ export default function StoryboardGenerator() {
             imagePromptEnd: getVal(idx.imgEnd) || undefined,
             videoPrompt: getVal(idx.video),
             soraVideoPrompt: getVal(idx.sora),
+            veoVideoPrompt: getVal(idx.veo),
             dialogue: getVal(idx.dialogue),
             dialogueEn: getVal(idx.dialogueEn),
             narration: getVal(idx.narration),
@@ -989,7 +1028,16 @@ export default function StoryboardGenerator() {
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
             {/* Genre Presets */}
             <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <GenrePresets onApply={handleApplyPreset} />
+              <GenrePresets
+                presets={genrePresets}
+                onApply={handleApplyPreset}
+                onSaveCurrent={handleSaveCurrentToPreset}
+                onAddPreset={addGenrePreset}
+                onUpdatePreset={updateGenrePreset}
+                onRenamePreset={renameGenrePreset}
+                onDeletePreset={deleteGenrePreset}
+                currentConditions={currentConditions}
+              />
             </div>
 
             <div>

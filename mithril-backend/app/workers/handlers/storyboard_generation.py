@@ -288,6 +288,11 @@ async def _generate_storyboard_with_gemini(
 
     12. **soraVideoPrompt**: Sora 비디오 AI용 영어 프롬프트
 
+    19. **veoVideoPrompt**: Google Veo 비디오 AI용 영어 프롬프트. 다음 3가지 템플릿 중 하나를 선택하여 생성합니다:
+      - **캐릭터 + 대사가 있는 클립**: `Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"`
+      - **배경만 있는 클립 (캐릭터 없음)**: `Fixed lo-fi static background wallpaper, slow dolly-in`
+      - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: `Static storybook lofi wallpaper, narration says "[narrationEn 내용]"`
+
     13. **length**: "1초", "2초", "4초" 형식
 
     14. **accumulatedTime**: "MM:SS" 형식 누적 시간
@@ -354,6 +359,7 @@ async def _generate_storyboard_with_gemini(
                                     "imagePrompt": {"type": "STRING"},
                                     "videoPrompt": {"type": "STRING"},
                                     "soraVideoPrompt": {"type": "STRING"},
+                                    "veoVideoPrompt": {"type": "STRING"},
                                     "dialogue": {"type": "STRING"},
                                     "dialogueEn": {"type": "STRING"},
                                     "narration": {"type": "STRING"},
@@ -368,7 +374,7 @@ async def _generate_storyboard_with_gemini(
                                     "backgroundId": {"type": "STRING"},
                                 },
                                 "required": [
-                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt",
+                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",

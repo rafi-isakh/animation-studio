@@ -644,6 +644,7 @@ table_image_prompt,이미지 프롬프트,,Image Prompt
 table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
 table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
+table_veo_video_prompt,Veo 비디오 프롬프트,,Veo Video Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
 table_dialogue_en,대사 (En),,Dialogue (En)
 table_narration_ko,나레이션 (Ko),,Narration (Ko)
@@ -988,6 +989,24 @@ genre_modern_romance,현대 로맨스,,Modern Romance
 genre_medieval_action_fantasy,중세 액션 판타지,,Medieval Action Fantasy
 genre_modern_action_fantasy,현대 액션 판타지,,Modern Action Fantasy
 genre_select_preset,프리셋 선택,,Select Preset
+preset_apply,적용,,Apply
+preset_save_current,현재 조건 저장,,Save Current
+preset_new_from_current,새 프리셋으로 저장,,New Preset
+preset_manage,프리셋 관리,,Manage Presets
+preset_system,시스템,,System
+preset_custom,커스텀 프리셋,,Custom Preset
+preset_saved,프리셋이 저장되었습니다,,Preset Saved
+preset_manager_title,프리셋 관리,,Preset Manager
+preset_manager_desc,장르 프리셋을 관리하고 편집합니다,,Manage and edit genre presets
+preset_field_story,스토리 조건,,Story Conditions
+preset_field_image,이미지 조건,,Image Conditions
+preset_field_video,비디오 조건,,Video Conditions
+preset_field_sound,사운드 조건,,Sound Conditions
+preset_rename,이름 변경,,Rename
+preset_delete,삭제,,Delete
+preset_add_new,새 프리셋 추가,,Add New Preset
+preset_save,저장,,Save
+preset_select_to_edit,편집할 프리셋을 선택하세요,,Select a preset to edit
 storyboard_split_frames,Start/End 프레임 분리,,Split Start/End Frames
 storyboard_split_complete,프레임 분리 완료,,Frame Split Complete
 storyboard_split_description,이미지 프롬프트가 Start/End 프레임으로 분리되었습니다,,Image prompts have been split into Start/End frames

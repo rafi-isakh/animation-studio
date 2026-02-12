@@ -319,6 +319,7 @@ export interface ClipDocument {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -565,6 +566,7 @@ export interface SaveClipInput {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -588,6 +590,7 @@ export interface UpdateClipInput {
   imagePromptEnd?: string;
   videoPrompt?: string;
   soraVideoPrompt?: string;
+  veoVideoPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
   characterInfo?: string;

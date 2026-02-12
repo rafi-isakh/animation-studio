@@ -216,6 +216,10 @@ export default function ClipTableRow({
           {row.soraVideoPrompt}
         </td>
 
+        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-purple-600 dark:text-purple-300 font-mono min-w-[200px]">
+          {row.veoVideoPrompt}
+        </td>
+
         {/* Editable Dialogue (Ko) */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell

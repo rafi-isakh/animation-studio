@@ -1409,6 +1409,7 @@ class StoryboardService:
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
+                    "veoVideoPrompt": clip.get("veoVideoPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),
                     "dialogue": clip.get("dialogue", ""),

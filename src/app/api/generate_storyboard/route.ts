@@ -242,6 +242,13 @@ async function generateStoryboardWithRetry(
     11. **bgmEn**:
         - 'bgm' 필드의 영어 번역본입니다. 없으면 빈 문자열 ""로 둡니다.
 
+    17. **veoVideoPrompt**:
+        - 반드시 영어로 작성해야 합니다.
+        - **지침**: Google Veo 비디오 AI용 프롬프트입니다. 다음 3가지 템플릿 중 하나를 선택하여 생성합니다:
+          - **캐릭터 + 대사가 있는 클립**: \`Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"\`
+          - **배경만 있는 클립 (캐릭터 없음)**: \`Fixed lo-fi static background wallpaper, slow dolly-in\`
+          - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: \`Static storybook lofi wallpaper, narration says "[narrationEn 내용]"\`
+
     12. **soraVideoPrompt**:
         - 반드시 영어로 작성해야 합니다.
         - **지침**: 이 필드는 Sora 비디오 생성 AI에 바로 입력될 프롬프트입니다.
@@ -341,6 +348,11 @@ async function generateStoryboardWithRetry(
                     description:
                       "Visual description (no names) + camera moves + dialogue/sfx/bgm info appended at the end.",
                   },
+                  veoVideoPrompt: {
+                    type: Type.STRING,
+                    description:
+                      "Google Veo video prompt using 3-template system: character+dialogue, background-only, or character+narration.",
+                  },
                   dialogue: {
                     type: Type.STRING,
                     description:
@@ -404,6 +416,7 @@ async function generateStoryboardWithRetry(
                   "imagePrompt",
                   "videoPrompt",
                   "soraVideoPrompt",
+                  "veoVideoPrompt",
                   "dialogue",
                   "dialogueEn",
                   "narration",
@@ -436,6 +449,7 @@ async function generateStoryboardWithRetry(
                   "imagePrompt",
                   "videoPrompt",
                   "soraVideoPrompt",
+                  "veoVideoPrompt",
                 ],
               },
             },

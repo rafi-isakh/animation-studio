@@ -1665,8 +1665,8 @@ export default function BgSheetGenerator() {
             ? bg.plannedPrompts![angleIndex]
             : "";
 
-          // Always open the prompt editor, copy prompt if available
-          return { ...img, prompt: plannedPrompt || img.prompt, isPromptOpen: true };
+          // Paste the planned prompt (prompt is always visible when it has content)
+          return { ...img, prompt: plannedPrompt || img.prompt };
         })
       };
     }));
@@ -1740,6 +1740,13 @@ export default function BgSheetGenerator() {
   const totalActiveFrames = useMemo(() => {
     return backgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false).length;
+    }, 0);
+  }, [backgrounds]);
+
+  // Total active frames with images (downloadable)
+  const totalDownloadableFrames = useMemo(() => {
+    return backgrounds.reduce((acc, bg) => {
+      return acc + bg.images.filter(img => img.isActive !== false && (img.imageBase64 || img.imageUrl)).length;
     }, 0);
   }, [backgrounds]);
 
@@ -2806,10 +2813,14 @@ export default function BgSheetGenerator() {
               {/* ZIP Download */}
               <button
                 onClick={handleZipDownload}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
+                disabled={totalDownloadableFrames === 0}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Package className="w-4 h-4" />
                 <span>{phrase(dictionary, "bgsheet_download_zip", language) || "ZIP"}</span>
+                <span className="bg-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {totalDownloadableFrames}/{totalActiveFrames}
+                </span>
               </button>
               <button
                 onClick={() => {
@@ -2876,58 +2887,86 @@ export default function BgSheetGenerator() {
 
                       {/* Right Column: Planned Prompts */}
                       <div className="flex flex-col h-full">
-                        {bg.referenceAnalysis && (
-                          <>
-                            {!bg.plannedPrompts ? (
-                              <button
-                                onClick={() => handlePlanPrompts(bg.id)}
-                                disabled={isPlanningPrompts[bg.id]}
-                                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20 transition-colors disabled:opacity-50"
-                              >
-                                {isPlanningPrompts[bg.id] ? (
-                                  <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                                ) : (
-                                  <Sparkles className="w-4 h-4" />
-                                )}
-                                <span className="text-xs font-medium">
-                                  {phrase(dictionary, "bgsheet_plan_prompts", language) || "Batch Plan from Ref"}
-                                </span>
-                              </button>
-                            ) : (
-                              <div className="flex flex-col flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    {phrase(dictionary, "bgsheet_planned_prompts", language) || "Planned Prompts"} ({bg.plannedPrompts.length})
-                                  </p>
+                        {!bg.plannedPrompts ? (
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={() => handlePlanPrompts(bg.id)}
+                              disabled={isPlanningPrompts[bg.id]}
+                              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20 transition-colors disabled:opacity-50"
+                            >
+                              {isPlanningPrompts[bg.id] ? (
+                                <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                              ) : (
+                                <Sparkles className="w-4 h-4" />
+                              )}
+                              <span className="text-xs font-medium">
+                                {phrase(dictionary, "bgsheet_plan_prompts", language) || "Generate Prompts (N-1 ~ N-9)"}
+                              </span>
+                            </button>
+                            {bg.referenceAnalysis && (
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+                                Reference analyzed
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {phrase(dictionary, "bgsheet_planned_prompts", language) || "Planned Prompts"} ({bg.plannedPrompts.length})
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handlePlanPrompts(bg.id)}
+                                  disabled={isPlanningPrompts[bg.id]}
+                                  className="text-xs text-blue-500 hover:text-blue-600 disabled:opacity-50"
+                                  title="Regenerate prompts"
+                                >
+                                  {isPlanningPrompts[bg.id] ? (
+                                    <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                                  ) : (
+                                    <Sparkles className="w-3 h-3" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleClearPlannedPrompts(bg.id)}
+                                  className="text-xs text-red-500 hover:text-red-600"
+                                >
+                                  {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', maxHeight: '300px' }}>
+                              {bg.plannedPrompts.map((prompt, idx) => (
+                                <div key={idx} className="flex gap-1.5 items-start group/prompt">
+                                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-7 shrink-0 pt-1">
+                                    N-{idx + 1}
+                                  </span>
+                                  <textarea
+                                    value={prompt}
+                                    onChange={(e) => handleUpdatePlannedPrompt(bg.id, idx, e.target.value)}
+                                    className="flex-1 text-[10px] bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded px-2 py-1 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                                    rows={2}
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                  />
                                   <button
-                                    onClick={() => handleClearPlannedPrompts(bg.id)}
-                                    className="text-xs text-red-500 hover:text-red-600"
+                                    onClick={() => navigator.clipboard.writeText(prompt)}
+                                    className="p-1 text-gray-300 dark:text-gray-600 hover:text-[#DB2777] dark:hover:text-[#DB2777] opacity-0 group-hover/prompt:opacity-100 transition-opacity shrink-0"
+                                    title="Copy prompt"
                                   >
-                                    {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
+                                    <FileDown className="w-3 h-3" />
                                   </button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                  {bg.plannedPrompts.map((prompt, idx) => (
-                                    <div key={idx} className="flex gap-2 items-start">
-                                      <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-5 shrink-0 pt-1">
-                                        N-{idx + 1}
-                                      </span>
-                                      <input
-                                        type="text"
-                                        value={prompt}
-                                        onChange={(e) => handleUpdatePlannedPrompt(bg.id, idx, e.target.value)}
-                                        className="flex-1 text-[10px] bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded px-2 py-1 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#DB2777]"
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                        {!bg.referenceAnalysis && (
-                          <div className="flex items-center justify-center h-full text-xs text-gray-400 dark:text-gray-500">
-                            {phrase(dictionary, "bgsheet_analyzing_reference", language) || "Analyzing reference..."}
+                              ))}
+                            </div>
+                            {/* Confirm: Apply prompts to image cards */}
+                            <button
+                              onClick={() => handleApplyPlannedPrompts(bg.id)}
+                              className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium rounded-lg transition-colors"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Confirm &amp; Apply to Cards</span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -3202,12 +3241,30 @@ export default function BgSheetGenerator() {
                           </div>
                         )}
 
-                        {/* Prompt Editor (shown when isPromptOpen and not finalized) */}
-                        {img.isPromptOpen && !isFinalized && (
-                          <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 mx-1 mt-1">
-                            <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Custom Prompt</p>
+                        {/* Planned Prompt (always visible when prompt exists, editable with real-time sync) */}
+                        {!isFinalized && img.prompt && (
+                          <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-purple-300/30 dark:border-purple-500/20 mx-1 mt-1">
                             <textarea
-                              value={img.prompt || ""}
+                              value={img.prompt}
+                              onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
+                              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[40px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            />
+                            <button
+                              onClick={() => handleGenerateSingleView(bg.id, idx, hasImage ? true : false)}
+                              disabled={img.isGenerating}
+                              className="w-full mt-1.5 py-1.5 bg-[#DB2777] text-white text-[10px] font-bold rounded hover:bg-[#DB2777]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {img.isGenerating ? "Generating..." : (hasImage ? "Regenerate" : "Generate")}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Empty Prompt Editor (shown when isPromptOpen, no prompt yet, and not finalized) */}
+                        {img.isPromptOpen && !img.prompt && !isFinalized && (
+                          <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 mx-1 mt-1">
+                            <textarea
+                              value=""
                               onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[50px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
                               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

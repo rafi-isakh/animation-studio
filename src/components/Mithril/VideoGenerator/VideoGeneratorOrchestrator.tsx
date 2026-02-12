@@ -35,6 +35,7 @@ import {
   mapJobToClipUpdate,
   getActiveProjectJobs,
 } from "../services/firestore";
+import { getScenes, getClips } from "../services/firestore/storyboard";
 import { useVideoOrchestrator, type ClipUpdate } from "./useVideoOrchestrator";
 
 interface LoaderProps {
@@ -264,6 +265,9 @@ export default function VideoGeneratorOrchestrator() {
         let savedVideoClips: Array<{
           sceneIndex: number;
           clipIndex: number;
+          sceneTitle?: string;
+          videoPrompt?: string;
+          length?: string;
           videoRef?: string | null;
           jobId?: string | null;
           s3FileName?: string | null;
@@ -326,6 +330,72 @@ export default function VideoGeneratorOrchestrator() {
               });
             }
           });
+        } else if (currentProjectId) {
+          // Storyboard context not available — load directly from Firestore
+          const firestoreScenes = await getScenes(currentProjectId);
+          const scenesWithClips = await Promise.all(
+            firestoreScenes.map(async (scene) => {
+              const clips = await getClips(currentProjectId, scene.sceneIndex);
+              return {
+                sceneTitle: scene.sceneTitle,
+                clips: clips.map((clip) => ({
+                  videoPrompt: clip.videoPrompt,
+                  soraVideoPrompt: clip.soraVideoPrompt,
+                  length: clip.length,
+                  imageRef: clip.imageRef,
+                })),
+              };
+            })
+          );
+
+          if (scenesWithClips.length > 0) {
+            scenesWithClips.forEach((scene, sceneIndex) => {
+              scene.clips.forEach((clip, clipIndex) => {
+                const key = `${sceneIndex}-${clipIndex}`;
+                const imageUrl = framesByClip.get(key) || null;
+                const savedClip = savedVideoClips.find(
+                  (c) => c.sceneIndex === sceneIndex && c.clipIndex === clipIndex
+                );
+
+                allClips.push({
+                  clipIndex,
+                  sceneIndex,
+                  sceneTitle: scene.sceneTitle || `Scene ${sceneIndex + 1}`,
+                  videoPrompt: clip.videoPrompt || "",
+                  soraVideoPrompt: clip.soraVideoPrompt || "",
+                  length: clip.length || "4초",
+                  imageBase64: imageUrl,
+                  videoUrl: savedClip?.videoRef || null,
+                  jobId: savedClip?.jobId || null,
+                  s3FileName: savedClip?.s3FileName || null,
+                  status: (savedClip?.status as VideoClip["status"]) || "pending",
+                  error: savedClip?.error,
+                  providerId: savedClip?.providerId,
+                });
+              });
+            });
+          } else if (savedVideoClips.length > 0) {
+            savedVideoClips.forEach((savedClip) => {
+              const key = `${savedClip.sceneIndex}-${savedClip.clipIndex}`;
+              const imageUrl = framesByClip.get(key) || null;
+
+              allClips.push({
+                clipIndex: savedClip.clipIndex,
+                sceneIndex: savedClip.sceneIndex,
+                sceneTitle: savedClip.sceneTitle || `Scene ${savedClip.sceneIndex + 1}`,
+                videoPrompt: savedClip.videoPrompt || "",
+                soraVideoPrompt: "",
+                length: savedClip.length || "4초",
+                imageBase64: imageUrl,
+                videoUrl: savedClip.videoRef || null,
+                jobId: savedClip.jobId || null,
+                s3FileName: savedClip.s3FileName || null,
+                status: (savedClip.status as VideoClip["status"]) || "pending",
+                error: savedClip.error,
+                providerId: savedClip.providerId,
+              });
+            });
+          }
         }
 
         allClips.sort((a, b) => {

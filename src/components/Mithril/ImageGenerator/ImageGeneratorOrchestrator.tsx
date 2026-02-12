@@ -38,6 +38,7 @@ import {
   saveImageGenFrame,
   clearImageGen,
 } from "../services/firestore/imageGen";
+import { getScenes, getClips } from "../services/firestore/storyboard";
 import {
   uploadImageGenReplacementAsset,
   deleteImageGenReplacementAsset,
@@ -401,8 +402,12 @@ export default function ImageGeneratorOrchestrator() {
       return;
     }
 
-    if (isContextLoading) return;
-    if (hasLoaded) return;
+    if (isContextLoading) {
+      return;
+    }
+    if (hasLoaded) {
+      return;
+    }
 
     const loadData = async () => {
       setIsLoadingData(true);
@@ -446,7 +451,7 @@ export default function ImageGeneratorOrchestrator() {
 
           // For CSV imports: reconstruct directly from Firestore (no storyboard merge)
           // For storyboard: merge saved data with storyboard frames
-          let mergedFrames: ImageGenFrame[];
+          let mergedFrames: ImageGenFrame[] = [];
 
           if (frameSource === 'csv') {
             mergedFrames = savedFrames.map((sf) => ({
@@ -472,31 +477,144 @@ export default function ImageGeneratorOrchestrator() {
             }));
           } else {
             const storyboardFrames = loadFramesFromStoryboard();
-            const savedFrameMap = new Map<string, typeof savedFrames[0]>();
-            savedFrames.forEach((f) => {
-              savedFrameMap.set(f.frameLabel, f);
-            });
 
-            mergedFrames = storyboardFrames.map((sbFrame) => {
-              const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
-              if (savedFrame) {
-                return {
-                  ...sbFrame,
-                  id: savedFrame.id || sbFrame.id,
-                  prompt: savedFrame.prompt || sbFrame.prompt,
-                  backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
-                  refFrame: savedFrame.refFrame || sbFrame.refFrame,
-                  imageUrl: savedFrame.imageRef || null,
-                  imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
-                  status: savedFrame.status ?? sbFrame.status,
-                  remixPrompt: savedFrame.remixPrompt || "",
-                  remixImageUrl: savedFrame.remixImageRef || null,
-                  hasDrawingEdits: !!savedFrame.editedImageRef,
-                  editedImageUrl: savedFrame.editedImageRef || null,
-                };
+            if (storyboardFrames.length > 0) {
+              const savedFrameMap = new Map<string, typeof savedFrames[0]>();
+              savedFrames.forEach((f) => {
+                savedFrameMap.set(f.frameLabel, f);
+              });
+
+              mergedFrames = storyboardFrames.map((sbFrame) => {
+                const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
+                if (savedFrame) {
+                  return {
+                    ...sbFrame,
+                    id: savedFrame.id || sbFrame.id,
+                    prompt: savedFrame.prompt || sbFrame.prompt,
+                    backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
+                    refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                    imageUrl: savedFrame.imageRef || null,
+                    imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
+                    status: savedFrame.status ?? sbFrame.status,
+                    remixPrompt: savedFrame.remixPrompt || "",
+                    remixImageUrl: savedFrame.remixImageRef || null,
+                    hasDrawingEdits: !!savedFrame.editedImageRef,
+                    editedImageUrl: savedFrame.editedImageRef || null,
+                  };
+                }
+                return sbFrame;
+              });
+            } else if (currentProjectId) {
+              // Storyboard context not available — load directly from Firestore
+              const firestoreScenes = await getScenes(currentProjectId);
+              const scenesWithClips: Scene[] = await Promise.all(
+                firestoreScenes.map(async (scene) => {
+                  const clips = await getClips(currentProjectId, scene.sceneIndex);
+                  return {
+                    sceneTitle: scene.sceneTitle,
+                    clips: clips.map((clip) => ({
+                      story: clip.story,
+                      imagePrompt: clip.imagePrompt,
+                      imagePromptEnd: clip.imagePromptEnd,
+                      videoPrompt: clip.videoPrompt,
+                      soraVideoPrompt: clip.soraVideoPrompt,
+                      backgroundPrompt: clip.backgroundPrompt,
+                      backgroundId: clip.backgroundId,
+                      characterInfo: clip.characterInfo,
+                      dialogue: clip.dialogue,
+                      dialogueEn: clip.dialogueEn,
+                      narration: clip.narration || "",
+                      narrationEn: clip.narrationEn || "",
+                      sfx: clip.sfx,
+                      sfxEn: clip.sfxEn,
+                      bgm: clip.bgm,
+                      bgmEn: clip.bgmEn,
+                      length: clip.length,
+                      accumulatedTime: clip.accumulatedTime,
+                      imageRef: clip.imageRef,
+                    })) as Continuity[],
+                  };
+                })
+              );
+
+              if (scenesWithClips.length > 0) {
+                const fbFrames: ImageGenFrame[] = [];
+                let shotGroup = 1;
+                scenesWithClips.forEach((scene, sceneIndex) => {
+                  scene.clips.forEach((clip, clipIndex) => {
+                    const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
+                    if (clip.imagePrompt) {
+                      fbFrames.push({
+                        id: uuidv4(),
+                        sceneIndex, clipIndex,
+                        frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
+                        frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
+                        shotGroup, prompt: clip.imagePrompt,
+                        backgroundId: clip.backgroundId || "", refFrame: "",
+                        imageUrl: clip.imageRef || null, imageBase64: null,
+                        status: clip.imageRef ? "completed" : "pending",
+                        isLoading: false, remixPrompt: "",
+                        remixImageUrl: null, remixImageBase64: null,
+                        hasDrawingEdits: false, editedImageUrl: null,
+                      });
+                    }
+                    if (clip.imagePromptEnd) {
+                      fbFrames.push({
+                        id: uuidv4(),
+                        sceneIndex, clipIndex,
+                        frameLabel: `${shotGroup}B`,
+                        frameNumber: `${frameNumber}B`,
+                        shotGroup, prompt: clip.imagePromptEnd,
+                        backgroundId: clip.backgroundId || "", refFrame: "",
+                        imageUrl: null, imageBase64: null,
+                        status: "pending", isLoading: false, remixPrompt: "",
+                        remixImageUrl: null, remixImageBase64: null,
+                        hasDrawingEdits: false, editedImageUrl: null,
+                      });
+                    }
+                    shotGroup++;
+                  });
+                });
+
+                const savedFrameMap = new Map<string, typeof savedFrames[0]>();
+                savedFrames.forEach((f) => savedFrameMap.set(f.frameLabel, f));
+
+                mergedFrames = fbFrames.map((fbFrame) => {
+                  const savedFrame = savedFrameMap.get(fbFrame.frameLabel);
+                  if (savedFrame) {
+                    return {
+                      ...fbFrame,
+                      id: savedFrame.id || fbFrame.id,
+                      prompt: savedFrame.prompt || fbFrame.prompt,
+                      backgroundId: savedFrame.backgroundId || fbFrame.backgroundId,
+                      refFrame: savedFrame.refFrame || fbFrame.refFrame,
+                      imageUrl: savedFrame.imageRef || null,
+                      imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
+                      status: savedFrame.status ?? fbFrame.status,
+                      remixPrompt: savedFrame.remixPrompt || "",
+                      remixImageUrl: savedFrame.remixImageRef || null,
+                      hasDrawingEdits: !!savedFrame.editedImageRef,
+                      editedImageUrl: savedFrame.editedImageRef || null,
+                    };
+                  }
+                  return fbFrame;
+                });
+
+                setStageResult(4, { scenes: scenesWithClips });
+              } else {
+                mergedFrames = savedFrames.map((sf) => ({
+                  id: sf.id, sceneIndex: sf.sceneIndex, clipIndex: sf.clipIndex,
+                  frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
+                  prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
+                  imageUrl: sf.imageRef || null, imageBase64: null,
+                  imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
+                  status: sf.status || ("pending" as const), isLoading: false,
+                  remixPrompt: sf.remixPrompt || "", remixImageUrl: sf.remixImageRef || null,
+                  remixImageBase64: null, hasDrawingEdits: !!sf.editedImageRef,
+                  editedImageUrl: sf.editedImageRef || null,
+                }));
               }
-              return sbFrame;
-            });
+            }
           }
 
           // Fetch active jobs from job_queue

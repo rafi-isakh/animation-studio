@@ -256,7 +256,7 @@ async def _generate_storyboard_with_gemini(
 
     **[가장 중요한 규칙]**
     - 하나의 클립은 반드시 하나의 단일 동작이나 정지된 장면만을 묘사해야 합니다.
-    - 출력은 반드시 유효한 JSON 객체여야 하며, 'scenes'와 'voicePrompts'라는 두 개의 키를 가져야 합니다.
+    - 출력은 반드시 유효한 JSON 객체여야 하며, 'scenes', 'voicePrompts', 'characterIdSummary', 'genre'라는 네 개의 키를 가져야 합니다.
 
     각 필드에 대한 지침:
 
@@ -295,6 +295,19 @@ async def _generate_storyboard_with_gemini(
     15. **backgroundPrompt**: 영어 배경 묘사
 
     16. **voicePrompts**: 주요 캐릭터의 보이스 프롬프트 (promptKo, promptEn)
+
+    17. **characterIdSummary**: **모든 클립의 imagePrompt에 등장하는 모든 대문자 캐릭터 ID**를 분석하여 생성한 요약 리스트입니다. 각 객체는 'characterId'와 'description' 키를 가져야 합니다.
+      **[characterIdSummary 생성 규칙]**:
+      1. **현재 시점의 주인공을 식별하고 가장 먼저 나열하되, "Protagonist. Default"라고 설명합니다.**
+      2. **각 캐릭터 그룹(예: LEON_*, KAIDEN_*, ELISA_*)에서 디폴트 버전을 먼저 식별합니다.** 디폴트는 가장 자주 등장하거나 현재 시점의 버전입니다.
+      3. **디폴트 캐릭터는 주인공과의 관계를 설명하고 "Default"를 추가합니다** (예: "Son of Protagonist. Default").
+      4. **변형(Variant) 캐릭터는 반드시 해당 캐릭터의 디폴트 ID를 기준으로 설명합니다:**
+         - 나이 변형: "6 year old version of [DEFAULT_ID]"
+         - 의상/상황 변형: "wearing [clothing description]"
+      5. **각 설명은 한 줄로 간결하게 작성합니다.**
+
+    18. **genre**: 원본 텍스트의 장르를 분석하여 한국어와 영어로 모두 표기한 문자열입니다.
+      **형식: "한국어 장르명 (English Genre Name)"** (예: "서양 판타지 (Western Fantasy)", "현대 로맨스 (Modern Romance)")
 
     {f'''
     **[사용자 특별 지시사항]**
@@ -377,8 +390,23 @@ async def _generate_storyboard_with_gemini(
                     "required": ["promptKo", "promptEn"],
                 },
             },
+            "characterIdSummary": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "characterId": {"type": "STRING"},
+                        "description": {"type": "STRING"},
+                    },
+                    "required": ["characterId", "description"],
+                },
+            },
+            "genre": {
+                "type": "STRING",
+            },
         },
-        "required": ["scenes", "voicePrompts"],
+        "required": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
+        "propertyOrdering": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
     }
 
     # Call Gemini with retry logic
@@ -447,5 +475,7 @@ async def _save_storyboard(
         project_id=project_id,
         scenes=result.get("scenes", []),
         voice_prompts=result.get("voicePrompts", []),
+        character_id_summary=result.get("characterIdSummary", []),
+        genre=result.get("genre", ""),
         job_id=job_id,
     )

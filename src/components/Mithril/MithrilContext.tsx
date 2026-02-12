@@ -213,7 +213,7 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams) => Promise<void>;
   splitStartEndFrames: () => Promise<void>;
-  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[]) => Promise<void>;
+  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => Promise<void>;
   clearStoryboardGeneration: () => void;
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   updateClipImageRef: (sceneIndex: number, clipIndex: number, imageRef: string) => void;
@@ -359,7 +359,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const storyboardProcessedJobIdsRef = useRef<Set<string>>(new Set());
 
   // Original storyboard for reset functionality
-  const [originalStoryboard, setOriginalStoryboard] = useState<{ scenes: Scene[]; voicePrompts: VoicePrompt[] } | null>(null);
+  const [originalStoryboard, setOriginalStoryboard] = useState<{ scenes: Scene[]; voicePrompts: VoicePrompt[]; characterIdSummary?: CharacterIdSummary[]; genre?: string } | null>(null);
 
   // BgSheet Generator state (Stage 4)
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
@@ -635,10 +635,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             ...prev,
             scenes: scenesWithClips,
             voicePrompts: storyboardData.voicePrompts,
+            characterIdSummary: storyboardMeta.characterIdSummary || [],
+            genre: storyboardMeta.genre || undefined,
           }));
 
           // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
-          setStageResults(prev => ({ ...prev, 4: storyboardData }));
+          setStageResults(prev => ({ ...prev, 4: { ...storyboardData, characterIdSummary: storyboardMeta.characterIdSummary, genre: storyboardMeta.genre } }));
 
           // Store original for reset functionality
           setOriginalStoryboard(storyboardData);
@@ -708,7 +710,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 promptEn: vp.promptEn,
               }));
 
-              const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts };
+              const restoredCharacterIdSummary = (jobStatus.characterIdSummary || []).map((c: { characterId: string; description: string }) => ({
+                characterId: c.characterId,
+                description: c.description,
+              }));
+              const restoredGenre = jobStatus.genre || undefined;
+
+              const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: restoredCharacterIdSummary, genre: restoredGenre };
               setOriginalStoryboard(result);
 
               setStoryboardGenerator({
@@ -716,6 +724,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 error: null,
                 scenes: normalizedScenes,
                 voicePrompts: normalizedVoicePrompts,
+                characterIdSummary: restoredCharacterIdSummary,
+                genre: restoredGenre,
               });
               setStageResults(prev => ({ ...prev, 4: result }));
             } else if (jobStatus.status === "failed") {
@@ -1012,7 +1022,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           promptEn: vp.promptEn,
         }));
 
-        const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts };
+        const normalizedCharacterIdSummary = (update.characterIdSummary || []).map(c => ({
+          characterId: c.characterId,
+          description: c.description,
+        }));
+        const normalizedGenre = update.genre || undefined;
+
+        const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: normalizedCharacterIdSummary, genre: normalizedGenre };
 
         // Store original for reset functionality
         setOriginalStoryboard(result);
@@ -1022,6 +1038,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           error: null,
           scenes: normalizedScenes,
           voicePrompts: normalizedVoicePrompts,
+          characterIdSummary: normalizedCharacterIdSummary,
+          genre: normalizedGenre,
         });
 
         // Save to Firestore only for NEW completions, not initial snapshot replays.
@@ -1033,7 +1051,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             try {
               console.log("[MithrilContext:StoryboardSave] Starting save — projectId=", currentProjectId, "sceneCount=", update.scenes!.length);
               await clearStoryboard(currentProjectId);
-              await saveStoryboardMeta(currentProjectId);
+              await saveStoryboardMeta(currentProjectId, undefined, undefined, normalizedCharacterIdSummary, normalizedGenre);
               await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
 
               for (let sceneIndex = 0; sceneIndex < update.scenes!.length; sceneIndex++) {
@@ -1425,7 +1443,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [storyboardGenerator.scenes, currentProjectId]);
 
   // Import storyboard from JSON file
-  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[]) => {
+  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => {
     if (!scenes || scenes.length === 0) {
       setStoryboardGenerator(prev => ({
         ...prev,
@@ -1446,7 +1464,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Save imported data to Firestore
     if (currentProjectId) {
       try {
-        await saveStoryboardMeta(currentProjectId);
+        await saveStoryboardMeta(currentProjectId, undefined, undefined, characterIdSummary, genre);
         await saveVoicePrompts(currentProjectId, voicePrompts || []);
 
         for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex++) {
@@ -1488,10 +1506,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       error: null,
       scenes,
       voicePrompts,
+      characterIdSummary: characterIdSummary || [],
+      genre,
     });
 
     // Store as original for reset functionality
-    setOriginalStoryboard({ scenes, voicePrompts });
+    setOriginalStoryboard({ scenes, voicePrompts, characterIdSummary, genre });
   }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {

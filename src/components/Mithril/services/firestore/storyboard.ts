@@ -83,7 +83,9 @@ export async function getStoryboardMeta(
 export async function saveStoryboardMeta(
   projectId: string,
   jobIdOrAspectRatio?: string,
-  aspectRatio?: string
+  aspectRatio?: string,
+  characterIdSummary?: Array<{ characterId: string; description: string }>,
+  genre?: string
 ): Promise<void> {
   const docRef = getStoryboardRef(projectId);
 
@@ -97,6 +99,8 @@ export async function saveStoryboardMeta(
     generatedAt: Timestamp.now(),
     aspectRatio: actualAspectRatio || '16:9',
     ...(actualJobId ? { jobId: actualJobId } : {}),
+    ...(characterIdSummary !== undefined ? { characterIdSummary } : {}),
+    ...(genre !== undefined ? { genre } : {}),
   }, { merge: true });
 
   // Update project metadata timestamp

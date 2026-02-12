@@ -554,7 +554,7 @@ export default function StoryboardGenerator() {
         }
 
         // Import the storyboard
-        await importStoryboard(data.scenes, data.voicePrompts || []);
+        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre);
 
         // Also restore conditions if available
         if (data.conditions) {

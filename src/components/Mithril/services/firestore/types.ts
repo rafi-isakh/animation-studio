@@ -296,6 +296,8 @@ export interface StoryboardDocument {
   generatedAt: Timestamp;
   aspectRatio?: string;
   jobId?: string | null;
+  characterIdSummary?: Array<{ characterId: string; description: string }>;
+  genre?: string;
 }
 
 export interface VoicePromptDocument {

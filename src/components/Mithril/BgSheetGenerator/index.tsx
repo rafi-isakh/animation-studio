@@ -251,10 +251,22 @@ const parseCsvRows = (csvContent: string): string[][] => {
   return rows;
 };
 
+// Column mapping configuration for CSV import
+interface CsvColumnMapping {
+  backgroundIdCol: number;    // Default: 4 (column E)
+  backgroundPromptCol: number; // Default: 5 (column F)
+  imagePromptCol: number;      // Default: 7 (column H)
+}
+
+const DEFAULT_CSV_COLUMN_MAPPING: CsvColumnMapping = {
+  backgroundIdCol: 4,
+  backgroundPromptCol: 5,
+  imagePromptCol: 7,
+};
+
 // CSV Import parser - parses storyboard CSV to extract backgrounds
-// Expected format: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),...
 // Each CSV row becomes a separate storyboard view (not fixed 9 angles)
-const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> => {
+const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping = DEFAULT_CSV_COLUMN_MAPPING): Map<string, CsvBackgroundData> => {
   // Map: background name -> { name, description, views: CsvViewData[] }
   const result = new Map<string, CsvBackgroundData>();
   const bgOrder: string[] = []; // Track order of backgrounds as they appear
@@ -264,14 +276,17 @@ const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> =
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
+  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
+  const minCols = Math.max(backgroundIdCol, backgroundPromptCol, imagePromptCol) + 1;
+
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
     const fields = rows[i];
-    if (fields.length < 6) continue;
+    if (fields.length < minCols) continue;
 
-    const bgIdRaw = fields[4]?.trim() || ""; // Background ID (e.g., "1-3", "2-1")
-    const bgPrompt = fields[5]?.trim() || ""; // Background Prompt (description)
-    const storyboardContext = fields[7]?.trim() || ""; // Image Prompt (Start) - storyboard context
+    const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
+    const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
+    const storyboardContext = fields[imagePromptCol]?.trim() || "";
 
     let bgPrefix = "";
     let fullId = "";
@@ -2092,11 +2107,16 @@ export default function BgSheetGenerator() {
 
   // === Phase 7: Import/Export Handlers ===
 
+  // CSV column mapping state
+  const [csvColumnMapping, setCsvColumnMapping] = useState<CsvColumnMapping>(DEFAULT_CSV_COLUMN_MAPPING);
+  const [csvPreviewData, setCsvPreviewData] = useState<{ headers: string[]; rows: string[][]; rawContent: string } | null>(null);
+  const [showCsvMappingModal, setShowCsvMappingModal] = useState(false);
+
   // File input refs for import
   const csvImportRef = useRef<HTMLInputElement>(null);
   const jsonImportRef = useRef<HTMLInputElement>(null);
 
-  // CSV Import handler - imports prompts from CSV file and creates backgrounds
+  // CSV Import handler - shows column mapping modal first
   const handleCsvImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2104,7 +2124,31 @@ export default function BgSheetGenerator() {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const csvContent = ev.target?.result as string;
-      const importedData = parseCsvForImport(csvContent);
+      const rows = parseCsvRows(csvContent);
+      if (rows.length <= 1) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+          description: phrase(dictionary, "bgsheet_no_data_found", language) || "No valid data found in CSV",
+        });
+        return;
+      }
+      // Show mapping modal with preview
+      setCsvPreviewData({ headers: rows[0], rows: rows.slice(1, 6), rawContent: csvContent });
+      setCsvColumnMapping(DEFAULT_CSV_COLUMN_MAPPING);
+      setShowCsvMappingModal(true);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }, [toast, dictionary, language]);
+
+  // CSV Import confirm - actually parses and imports after column mapping
+  const handleCsvImportConfirm = useCallback(async () => {
+    if (!csvPreviewData) return;
+    setShowCsvMappingModal(false);
+
+    const csvContent = csvPreviewData.rawContent;
+    const importedData = parseCsvForImport(csvContent, csvColumnMapping);
 
       if (importedData.size === 0) {
         toast({
@@ -2222,10 +2266,9 @@ export default function BgSheetGenerator() {
         title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
         description: `${importedData.size} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported"}`,
       });
-    };
-    reader.readAsText(file);
-    e.target.value = ""; // Reset input
-  }, [toast, dictionary, language, backgrounds, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
+
+    setCsvPreviewData(null);
+  }, [toast, dictionary, language, backgrounds, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult, csvPreviewData, csvColumnMapping]);
 
   // Storyboard Import handler - imports backgrounds from storyboard data
   const handleImportFromStoryboard = useCallback(async () => {
@@ -3150,9 +3193,19 @@ export default function BgSheetGenerator() {
                           </div>
                         )}
 
+                        {/* Storyboard Context (csvContext) - always visible when available */}
+                        {img.csvContext && (
+                          <div className="px-1 mt-1">
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-3" title={img.csvContext}>
+                              {img.csvContext}
+                            </p>
+                          </div>
+                        )}
+
                         {/* Prompt Editor (shown when isPromptOpen and not finalized) */}
                         {img.isPromptOpen && !isFinalized && (
                           <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 mx-1 mt-1">
+                            <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Custom Prompt</p>
                             <textarea
                               value={img.prompt || ""}
                               onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
@@ -3175,6 +3228,121 @@ export default function BgSheetGenerator() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* CSV Column Mapping Modal */}
+      {showCsvMappingModal && csvPreviewData && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">CSV Column Mapping</h3>
+              <button
+                onClick={() => { setShowCsvMappingModal(false); setCsvPreviewData(null); }}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Column Mapping Selectors */}
+            <div className="grid grid-cols-3 gap-4 mb-5">
+              {([
+                { label: "Background ID", key: "backgroundIdCol" as const, defaultCol: 4 },
+                { label: "Background Prompt", key: "backgroundPromptCol" as const, defaultCol: 5 },
+                { label: "Image Prompt", key: "imagePromptCol" as const, defaultCol: 7 },
+              ]).map(({ label, key, defaultCol }) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+                  <select
+                    value={csvColumnMapping[key]}
+                    onChange={(e) => setCsvColumnMapping(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
+                  >
+                    {csvPreviewData.headers.map((header, colIdx) => (
+                      <option key={colIdx} value={colIdx}>
+                        {String.fromCharCode(65 + colIdx)}: {header || `Column ${colIdx + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Default: Column {String.fromCharCode(65 + defaultCol)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Preview Table */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Preview (first {csvPreviewData.rows.length} rows)</p>
+              <div className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded-lg">
+                <table className="min-w-full text-[10px]">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-gray-700">
+                      {csvPreviewData.headers.map((header, colIdx) => {
+                        const isMapped = colIdx === csvColumnMapping.backgroundIdCol
+                          || colIdx === csvColumnMapping.backgroundPromptCol
+                          || colIdx === csvColumnMapping.imagePromptCol;
+                        return (
+                          <th
+                            key={colIdx}
+                            className={`px-2 py-1.5 text-left font-bold whitespace-nowrap ${
+                              isMapped
+                                ? "text-[#DB2777] bg-pink-50 dark:bg-pink-900/20"
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          >
+                            <span className="text-[9px] text-gray-400 mr-1">{String.fromCharCode(65 + colIdx)}</span>
+                            {header || `Col ${colIdx + 1}`}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {csvPreviewData.rows.map((row, rowIdx) => (
+                      <tr key={rowIdx} className="border-t border-gray-200 dark:border-gray-700">
+                        {csvPreviewData.headers.map((_, colIdx) => {
+                          const isMapped = colIdx === csvColumnMapping.backgroundIdCol
+                            || colIdx === csvColumnMapping.backgroundPromptCol
+                            || colIdx === csvColumnMapping.imagePromptCol;
+                          return (
+                            <td
+                              key={colIdx}
+                              className={`px-2 py-1 max-w-[200px] truncate ${
+                                isMapped
+                                  ? "text-gray-900 dark:text-white font-medium bg-pink-50/50 dark:bg-pink-900/10"
+                                  : "text-gray-500 dark:text-gray-400"
+                              }`}
+                              title={row[colIdx] || ""}
+                            >
+                              {row[colIdx] || ""}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setShowCsvMappingModal(false); setCsvPreviewData(null); }}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCsvImportConfirm}
+                className="px-4 py-2 text-sm bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors"
+              >
+                Import
+              </button>
+            </div>
           </div>
         </div>
       )}

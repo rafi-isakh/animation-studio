@@ -1643,7 +1643,7 @@ export async function getActiveProjectI2VStoryboardJobs(
   } as JobQueueDocument));
 
   // Filter to active (non-terminal) jobs
-  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+  const activeStatuses: JobStatus[] = ['pending', 'submitted', 'polling', 'preparing', 'generating', 'uploading'];
   return jobs.filter((job) => activeStatuses.includes(job.status));
 }
 

@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import re
 
 import httpx
 from google import genai
@@ -238,6 +239,23 @@ async def process_i2v_storyboard(
         }
 
 
+def _repair_json(text: str) -> str:
+    """Attempt to repair common JSON issues from LLM output."""
+    # Remove trailing commas before } or ]
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+    # Replace single-quoted keys/values with double quotes (naive)
+    # Only if the text doesn't already look like valid JSON with double quotes
+    # Fix unescaped newlines inside string values
+    text = text.replace('\\\n', '\\n')
+    # Truncate at the last valid closing brace if JSON is cut off
+    last_brace = text.rfind('}')
+    if last_brace != -1 and last_brace < len(text) - 1:
+        trailing = text[last_brace + 1:].strip()
+        if trailing and not trailing.startswith(']') and not trailing.startswith(','):
+            text = text[:last_brace + 1]
+    return text
+
+
 async def _generate_i2v_storyboard_with_gemini(
     job: JobDocument,
     api_key: str,
@@ -426,7 +444,30 @@ async def _generate_i2v_storyboard_with_gemini(
 
     # Clean up markdown code blocks if present
     json_text = response_text.replace("```json", "").replace("```", "").strip()
-    result = json.loads(json_text)
+
+    try:
+        result = json.loads(json_text)
+    except json.JSONDecodeError as parse_err:
+        logger.warning(f"[I2V-STORYBOARD] JSON parse failed: {parse_err}. Attempting repair...")
+        repaired = _repair_json(json_text)
+        try:
+            result = json.loads(repaired)
+            logger.info("[I2V-STORYBOARD] JSON repair succeeded")
+        except json.JSONDecodeError:
+            logger.warning("[I2V-STORYBOARD] JSON repair failed, retrying Gemini call...")
+            # One more attempt with the API
+            retry_response = await client.aio.models.generate_content(
+                model=MODEL_NAME,
+                contents=types.Content(parts=content_parts),
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=response_schema,
+                ),
+            )
+            retry_text = retry_response.text.strip() if retry_response.text else ""
+            retry_json = retry_text.replace("```json", "").replace("```", "").strip()
+            result = json.loads(retry_json)  # Let it raise if still broken
+            logger.info("[I2V-STORYBOARD] Retry succeeded")
 
     # Post-process: append suffix to all imagePrompts
     for scene in result.get("scenes", []):

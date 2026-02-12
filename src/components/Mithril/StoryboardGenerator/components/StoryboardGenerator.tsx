@@ -229,8 +229,8 @@ export default function StoryboardGenerator() {
   // Sync context results to stage results for other components
   useEffect(() => {
     if (scenes.length === 0) return;
-    setStageResult(4, { scenes, voicePrompts });
-  }, [scenes, voicePrompts, setStageResult]);
+    setStageResult(4, { scenes, voicePrompts, characterIdSummary, genre });
+  }, [scenes, voicePrompts, characterIdSummary, genre, setStageResult]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
@@ -322,42 +322,57 @@ export default function StoryboardGenerator() {
       "BGM (En)",
     ];
 
-    const csvContent = [
-      headers.join(","),
-      ...scenes.flatMap((scene, sceneIndex) =>
-        scene.clips.map((clip, clipIndex) => {
-          const row = [
-            `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-            `${sceneIndex + 1}-${clipIndex + 1}`,
-            clip.length,
-            clip.accumulatedTime,
-            clip.backgroundId,
-            `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
-            `"${clip.story.replace(/"/g, '""')}"`,
-            `"${clip.imagePrompt.replace(/"/g, '""')}"`,
-            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
-            `"${clip.videoPrompt.replace(/"/g, '""')}"`,
-            `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
-            `"${clip.dialogue.replace(/"/g, '""')}"`,
-            `"${clip.dialogueEn.replace(/"/g, '""')}"`,
-            `"${(clip.narration || "").replace(/"/g, '""')}"`,
-            `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
-            `"${clip.sfx.replace(/"/g, '""')}"`,
-            `"${clip.sfxEn.replace(/"/g, '""')}"`,
-            `"${clip.bgm.replace(/"/g, '""')}"`,
-            `"${clip.bgmEn.replace(/"/g, '""')}"`,
-          ];
-          return row.join(",");
-        })
-      ),
-    ].join("\n");
+    const clipRows = scenes.flatMap((scene, sceneIndex) =>
+      scene.clips.map((clip, clipIndex) => {
+        const row = [
+          `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+          `${sceneIndex + 1}-${clipIndex + 1}`,
+          clip.length,
+          clip.accumulatedTime,
+          clip.backgroundId,
+          `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
+          `"${clip.story.replace(/"/g, '""')}"`,
+          `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+          `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
+          `"${clip.videoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.dialogue.replace(/"/g, '""')}"`,
+          `"${clip.dialogueEn.replace(/"/g, '""')}"`,
+          `"${(clip.narration || "").replace(/"/g, '""')}"`,
+          `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
+          `"${clip.sfx.replace(/"/g, '""')}"`,
+          `"${clip.sfxEn.replace(/"/g, '""')}"`,
+          `"${clip.bgm.replace(/"/g, '""')}"`,
+          `"${clip.bgmEn.replace(/"/g, '""')}"`,
+        ];
+        return row.join(",");
+      })
+    );
+
+    // Append character ID summary and genre after an empty row
+    const extraRows: string[] = [];
+    if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+      extraRows.push(""); // empty spacer row
+      if (characterIdSummary && characterIdSummary.length > 0) {
+        extraRows.push("Character ID,Description");
+        for (const char of characterIdSummary) {
+          extraRows.push(`"${char.characterId.replace(/"/g, '""')}","${char.description.replace(/"/g, '""')}"`);
+        }
+      }
+      if (genre) {
+        extraRows.push(""); // spacer before genre
+        extraRows.push(`Genre,"${genre.replace(/"/g, '""')}"`);
+      }
+    }
+
+    const csvContent = [headers.join(","), ...clipRows, ...extraRows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `storyboard_part${selectedPartIndex + 1}.csv`;
     link.click();
-  }, [scenes, selectedPartIndex]);
+  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
 
   const handleApplyPreset = useCallback((preset: GenrePreset) => {
     setStoryCondition(preset.story);
@@ -377,6 +392,8 @@ export default function StoryboardGenerator() {
     const exportData = {
       scenes,
       voicePrompts,
+      characterIdSummary,
+      genre,
       metadata: {
         exportedAt: new Date().toISOString(),
         partIndex: selectedPartIndex + 1,
@@ -447,35 +464,49 @@ export default function StoryboardGenerator() {
         "BGM (En)",
       ];
 
-      const csvContent = [
-        headers.join(","),
-        ...scenes.flatMap((scene, sceneIndex) =>
-          scene.clips.map((clip, clipIndex) => {
-            const row = [
-              `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-              `${sceneIndex + 1}-${clipIndex + 1}`,
-              clip.length,
-              clip.accumulatedTime,
-              clip.backgroundId,
-              `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
-              `"${clip.story.replace(/"/g, '""')}"`,
-              `"${clip.imagePrompt.replace(/"/g, '""')}"`,
-              `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
-              `"${clip.videoPrompt.replace(/"/g, '""')}"`,
-              `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
-              `"${clip.dialogue.replace(/"/g, '""')}"`,
-              `"${clip.dialogueEn.replace(/"/g, '""')}"`,
-              `"${(clip.narration || "").replace(/"/g, '""')}"`,
-              `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
-              `"${clip.sfx.replace(/"/g, '""')}"`,
-              `"${clip.sfxEn.replace(/"/g, '""')}"`,
-              `"${clip.bgm.replace(/"/g, '""')}"`,
-              `"${clip.bgmEn.replace(/"/g, '""')}"`,
-            ];
-            return row.join(",");
-          })
-        ),
-      ].join("\n");
+      const driveClipRows = scenes.flatMap((scene, sceneIndex) =>
+        scene.clips.map((clip, clipIndex) => {
+          const row = [
+            `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+            `${sceneIndex + 1}-${clipIndex + 1}`,
+            clip.length,
+            clip.accumulatedTime,
+            clip.backgroundId,
+            `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
+            `"${clip.story.replace(/"/g, '""')}"`,
+            `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
+            `"${clip.videoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.dialogue.replace(/"/g, '""')}"`,
+            `"${clip.dialogueEn.replace(/"/g, '""')}"`,
+            `"${(clip.narration || "").replace(/"/g, '""')}"`,
+            `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
+            `"${clip.sfx.replace(/"/g, '""')}"`,
+            `"${clip.sfxEn.replace(/"/g, '""')}"`,
+            `"${clip.bgm.replace(/"/g, '""')}"`,
+            `"${clip.bgmEn.replace(/"/g, '""')}"`,
+          ];
+          return row.join(",");
+        })
+      );
+
+      const driveExtraRows: string[] = [];
+      if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+        driveExtraRows.push("");
+        if (characterIdSummary && characterIdSummary.length > 0) {
+          driveExtraRows.push("Character ID,Description");
+          for (const char of characterIdSummary) {
+            driveExtraRows.push(`"${char.characterId.replace(/"/g, '""')}","${char.description.replace(/"/g, '""')}"`);
+          }
+        }
+        if (genre) {
+          driveExtraRows.push("");
+          driveExtraRows.push(`Genre,"${genre.replace(/"/g, '""')}"`);
+        }
+      }
+
+      const csvContent = [headers.join(","), ...driveClipRows, ...driveExtraRows].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const fileName = `storyboard_part${selectedPartIndex + 1}_${new Date().toISOString().slice(0, 19).replace(/[:]/g, "-")}.csv`;

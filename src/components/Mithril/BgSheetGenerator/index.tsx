@@ -20,8 +20,6 @@ import {
   Upload,
   X,
   Check,
-  Clock,
-  RefreshCw,
   FileUp,
   Package,
   FileJson,
@@ -253,10 +251,22 @@ const parseCsvRows = (csvContent: string): string[][] => {
   return rows;
 };
 
+// Column mapping configuration for CSV import
+interface CsvColumnMapping {
+  backgroundIdCol: number;    // Default: 4 (column E)
+  backgroundPromptCol: number; // Default: 5 (column F)
+  imagePromptCol: number;      // Default: 7 (column H)
+}
+
+const DEFAULT_CSV_COLUMN_MAPPING: CsvColumnMapping = {
+  backgroundIdCol: 4,
+  backgroundPromptCol: 5,
+  imagePromptCol: 7,
+};
+
 // CSV Import parser - parses storyboard CSV to extract backgrounds
-// Expected format: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,Image Prompt (Start),...
 // Each CSV row becomes a separate storyboard view (not fixed 9 angles)
-const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> => {
+const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping = DEFAULT_CSV_COLUMN_MAPPING): Map<string, CsvBackgroundData> => {
   // Map: background name -> { name, description, views: CsvViewData[] }
   const result = new Map<string, CsvBackgroundData>();
   const bgOrder: string[] = []; // Track order of backgrounds as they appear
@@ -266,14 +276,17 @@ const parseCsvForImport = (csvContent: string): Map<string, CsvBackgroundData> =
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
+  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
+  const minCols = Math.max(backgroundIdCol, backgroundPromptCol, imagePromptCol) + 1;
+
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
     const fields = rows[i];
-    if (fields.length < 6) continue;
+    if (fields.length < minCols) continue;
 
-    const bgIdRaw = fields[4]?.trim() || ""; // Background ID (e.g., "1-3", "2-1")
-    const bgPrompt = fields[5]?.trim() || ""; // Background Prompt (description)
-    const storyboardContext = fields[7]?.trim() || ""; // Image Prompt (Start) - storyboard context
+    const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
+    const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
+    const storyboardContext = fields[imagePromptCol]?.trim() || "";
 
     let bgPrefix = "";
     let fullId = "";
@@ -558,128 +571,6 @@ export default function BgSheetGenerator() {
       isMountedRef.current = false;
     };
   }, []);
-
-  // === Cost Tracking (Phase 6) ===
-  // Cost rates per API usage
-  const COST_RATES = useMemo(() => ({
-    inputToken: 0.0000001,
-    outputToken: 0.0000004,
-    image: 0.04,
-  }), []);
-
-  // Cost session state
-  interface CostSession {
-    active: boolean;
-    sessionStarted: boolean;
-    startTime: number | null;
-    endTime: number | null;
-    textUsage: { input: number; output: number; requestCount: number };
-    imageUsage: { count: number };
-  }
-
-  const [costSession, setCostSession] = useState<CostSession>({
-    active: false,
-    sessionStarted: false,
-    startTime: null,
-    endTime: null,
-    textUsage: { input: 0, output: 0, requestCount: 0 },
-    imageUsage: { count: 0 },
-  });
-
-  // Cost tracking handlers
-  const handleClockIn = useCallback(() => {
-    setCostSession({
-      active: true,
-      sessionStarted: true,
-      startTime: Date.now(),
-      endTime: null,
-      textUsage: { input: 0, output: 0, requestCount: 0 },
-      imageUsage: { count: 0 },
-    });
-  }, []);
-
-  const handleClockOut = useCallback(() => {
-    setCostSession(prev => ({
-      ...prev,
-      active: false,
-      endTime: Date.now(),
-    }));
-  }, []);
-
-  const handleRestartClockIn = useCallback(() => {
-    handleClockIn();
-  }, [handleClockIn]);
-
-  // Track API usage costs
-  const trackCost = useCallback((type: 'text' | 'image', usage?: { inputTokens?: number; outputTokens?: number; images?: number }) => {
-    setCostSession(prev => {
-      if (!prev.active) return prev;
-
-      const inputTokens = usage?.inputTokens || 0;
-      const outputTokens = usage?.outputTokens || 0;
-      const images = usage?.images || (type === 'image' ? 1 : 0);
-
-      return {
-        ...prev,
-        textUsage: {
-          input: prev.textUsage.input + inputTokens,
-          output: prev.textUsage.output + outputTokens,
-          requestCount: type === 'text' ? prev.textUsage.requestCount + 1 : prev.textUsage.requestCount,
-        },
-        imageUsage: {
-          count: prev.imageUsage.count + images,
-        },
-      };
-    });
-  }, []);
-
-  // Computed costs
-  const currentTextCost = useMemo(() => {
-    return (costSession.textUsage.input * COST_RATES.inputToken) +
-           (costSession.textUsage.output * COST_RATES.outputToken);
-  }, [costSession.textUsage, COST_RATES]);
-
-  const currentImageCost = useMemo(() => {
-    return costSession.imageUsage.count * COST_RATES.image;
-  }, [costSession.imageUsage.count, COST_RATES]);
-
-  const totalCost = useMemo(() => {
-    return currentTextCost + currentImageCost;
-  }, [currentTextCost, currentImageCost]);
-
-  // Download invoice
-  const downloadInvoice = useCallback(() => {
-    const sessionDuration = costSession.startTime && costSession.endTime
-      ? Math.round((costSession.endTime - costSession.startTime) / 1000 / 60)
-      : 0;
-
-    const invoiceContent = `=== API Usage Invoice ===
-Generated Date: ${new Date().toLocaleString()}
-Session Duration: ${sessionDuration} minutes
-
---- Text API Usage ---
-Input Tokens: ${costSession.textUsage.input.toLocaleString()}
-Output Tokens: ${costSession.textUsage.output.toLocaleString()}
-Text Requests: ${costSession.textUsage.requestCount}
-Text Cost: $${currentTextCost.toFixed(4)}
-
---- Image API Usage ---
-Images Generated: ${costSession.imageUsage.count}
-Image Cost: $${currentImageCost.toFixed(4)}
-
-=== TOTAL COST: $${totalCost.toFixed(4)} ===
-`;
-
-    const blob = new Blob([invoiceContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `bgsheet_invoice_${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [costSession, currentTextCost, currentImageCost, totalCost]);
 
   // Cleanup: abort any pending requests when component unmounts
   useEffect(() => {
@@ -1774,8 +1665,8 @@ Image Cost: $${currentImageCost.toFixed(4)}
             ? bg.plannedPrompts![angleIndex]
             : "";
 
-          // Always open the prompt editor, copy prompt if available
-          return { ...img, prompt: plannedPrompt || img.prompt, isPromptOpen: true };
+          // Paste the planned prompt (prompt is always visible when it has content)
+          return { ...img, prompt: plannedPrompt || img.prompt };
         })
       };
     }));
@@ -1849,6 +1740,13 @@ Image Cost: $${currentImageCost.toFixed(4)}
   const totalActiveFrames = useMemo(() => {
     return backgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false).length;
+    }, 0);
+  }, [backgrounds]);
+
+  // Total active frames with images (downloadable)
+  const totalDownloadableFrames = useMemo(() => {
+    return backgrounds.reduce((acc, bg) => {
+      return acc + bg.images.filter(img => img.isActive !== false && (img.imageBase64 || img.imageUrl)).length;
     }, 0);
   }, [backgrounds]);
 
@@ -2216,11 +2114,16 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
   // === Phase 7: Import/Export Handlers ===
 
+  // CSV column mapping state
+  const [csvColumnMapping, setCsvColumnMapping] = useState<CsvColumnMapping>(DEFAULT_CSV_COLUMN_MAPPING);
+  const [csvPreviewData, setCsvPreviewData] = useState<{ headers: string[]; rows: string[][]; rawContent: string } | null>(null);
+  const [showCsvMappingModal, setShowCsvMappingModal] = useState(false);
+
   // File input refs for import
   const csvImportRef = useRef<HTMLInputElement>(null);
   const jsonImportRef = useRef<HTMLInputElement>(null);
 
-  // CSV Import handler - imports prompts from CSV file and creates backgrounds
+  // CSV Import handler - shows column mapping modal first
   const handleCsvImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2228,7 +2131,31 @@ Image Cost: $${currentImageCost.toFixed(4)}
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const csvContent = ev.target?.result as string;
-      const importedData = parseCsvForImport(csvContent);
+      const rows = parseCsvRows(csvContent);
+      if (rows.length <= 1) {
+        toast({
+          variant: "destructive",
+          title: phrase(dictionary, "bgsheet_import_failed", language) || "Import Failed",
+          description: phrase(dictionary, "bgsheet_no_data_found", language) || "No valid data found in CSV",
+        });
+        return;
+      }
+      // Show mapping modal with preview
+      setCsvPreviewData({ headers: rows[0], rows: rows.slice(1, 6), rawContent: csvContent });
+      setCsvColumnMapping(DEFAULT_CSV_COLUMN_MAPPING);
+      setShowCsvMappingModal(true);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }, [toast, dictionary, language]);
+
+  // CSV Import confirm - actually parses and imports after column mapping
+  const handleCsvImportConfirm = useCallback(async () => {
+    if (!csvPreviewData) return;
+    setShowCsvMappingModal(false);
+
+    const csvContent = csvPreviewData.rawContent;
+    const importedData = parseCsvForImport(csvContent, csvColumnMapping);
 
       if (importedData.size === 0) {
         toast({
@@ -2346,10 +2273,9 @@ Image Cost: $${currentImageCost.toFixed(4)}
         title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
         description: `${importedData.size} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported"}`,
       });
-    };
-    reader.readAsText(file);
-    e.target.value = ""; // Reset input
-  }, [toast, dictionary, language, backgrounds, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
+
+    setCsvPreviewData(null);
+  }, [toast, dictionary, language, backgrounds, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult, csvPreviewData, csvColumnMapping]);
 
   // Storyboard Import handler - imports backgrounds from storyboard data
   const handleImportFromStoryboard = useCallback(async () => {
@@ -2665,94 +2591,6 @@ Image Cost: $${currentImageCost.toFixed(4)}
         </p>
       </div>
 
-      {/* Cost Tracking Panel (Phase 6) */}
-      {!isLoadingData && (
-        <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            {/* Clock In/Out Controls */}
-            <div className="flex items-center gap-2">
-              {!costSession.active ? (
-                costSession.sessionStarted ? (
-                  <>
-                    <button
-                      onClick={handleRestartClockIn}
-                      className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-[#DB2777] dark:hover:text-[#DB2777] transition-colors"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      {phrase(dictionary, "bgsheet_restart", language) || "Restart"}
-                    </button>
-                    <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-                    <button
-                      onClick={downloadInvoice}
-                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#DB2777] dark:hover:text-[#DB2777] underline decoration-dotted transition-colors"
-                    >
-                      {phrase(dictionary, "bgsheet_last_invoice", language) || "Last Invoice"}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={handleClockIn}
-                    className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-[#DB2777] dark:hover:text-[#DB2777] transition-colors"
-                  >
-                    <Clock className="w-3 h-3" />
-                    {phrase(dictionary, "bgsheet_clock_in", language) || "Clock In"}
-                  </button>
-                )
-              ) : (
-                <button
-                  onClick={handleClockOut}
-                  className="flex items-center gap-1.5 text-xs font-bold text-green-600 dark:text-green-400 hover:text-green-500 transition-colors animate-pulse"
-                >
-                  <Clock className="w-3 h-3" />
-                  {phrase(dictionary, "bgsheet_clock_out", language) || "Clock Out"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Cost Display */}
-          {(costSession.sessionStarted || costSession.active) && (
-            <div className="flex items-center gap-3 px-3 py-1.5 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-xs font-mono">
-              <div className="flex flex-col leading-tight">
-                <span className="text-gray-400 dark:text-gray-500 text-[10px]">
-                  {phrase(dictionary, "bgsheet_text_plan", language) || "Text Plan"}
-                </span>
-                <span className="text-purple-600 dark:text-purple-400 font-bold">
-                  ${currentTextCost.toFixed(4)}
-                </span>
-              </div>
-              <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-gray-400 dark:text-gray-500 text-[10px]">
-                  {phrase(dictionary, "bgsheet_img_gen", language) || "Img Gen"}
-                </span>
-                <span className="text-teal-600 dark:text-teal-400 font-bold">
-                  ${currentImageCost.toFixed(4)}
-                </span>
-              </div>
-              <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-gray-400 dark:text-gray-500 text-[10px]">
-                  {phrase(dictionary, "bgsheet_total", language) || "Total"}
-                </span>
-                <span className="text-[#DB2777] font-bold">
-                  ${totalCost.toFixed(4)}
-                </span>
-              </div>
-              <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-gray-400 dark:text-gray-500 text-[10px]">
-                  {phrase(dictionary, "bgsheet_images", language) || "Images"}
-                </span>
-                <span className="text-gray-600 dark:text-gray-300 font-bold">
-                  {costSession.imageUsage.count}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Loading State */}
       {isLoadingData && (
         <div className="flex flex-col items-center justify-center space-y-4 py-12">
@@ -2975,10 +2813,14 @@ Image Cost: $${currentImageCost.toFixed(4)}
               {/* ZIP Download */}
               <button
                 onClick={handleZipDownload}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
+                disabled={totalDownloadableFrames === 0}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Package className="w-4 h-4" />
                 <span>{phrase(dictionary, "bgsheet_download_zip", language) || "ZIP"}</span>
+                <span className="bg-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {totalDownloadableFrames}/{totalActiveFrames}
+                </span>
               </button>
               <button
                 onClick={() => {
@@ -3045,58 +2887,86 @@ Image Cost: $${currentImageCost.toFixed(4)}
 
                       {/* Right Column: Planned Prompts */}
                       <div className="flex flex-col h-full">
-                        {bg.referenceAnalysis && (
-                          <>
-                            {!bg.plannedPrompts ? (
-                              <button
-                                onClick={() => handlePlanPrompts(bg.id)}
-                                disabled={isPlanningPrompts[bg.id]}
-                                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20 transition-colors disabled:opacity-50"
-                              >
-                                {isPlanningPrompts[bg.id] ? (
-                                  <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                                ) : (
-                                  <Sparkles className="w-4 h-4" />
-                                )}
-                                <span className="text-xs font-medium">
-                                  {phrase(dictionary, "bgsheet_plan_prompts", language) || "Batch Plan from Ref"}
-                                </span>
-                              </button>
-                            ) : (
-                              <div className="flex flex-col flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    {phrase(dictionary, "bgsheet_planned_prompts", language) || "Planned Prompts"} ({bg.plannedPrompts.length})
-                                  </p>
+                        {!bg.plannedPrompts ? (
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={() => handlePlanPrompts(bg.id)}
+                              disabled={isPlanningPrompts[bg.id]}
+                              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20 transition-colors disabled:opacity-50"
+                            >
+                              {isPlanningPrompts[bg.id] ? (
+                                <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                              ) : (
+                                <Sparkles className="w-4 h-4" />
+                              )}
+                              <span className="text-xs font-medium">
+                                {phrase(dictionary, "bgsheet_plan_prompts", language) || "Generate Prompts (N-1 ~ N-9)"}
+                              </span>
+                            </button>
+                            {bg.referenceAnalysis && (
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+                                Reference analyzed
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {phrase(dictionary, "bgsheet_planned_prompts", language) || "Planned Prompts"} ({bg.plannedPrompts.length})
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handlePlanPrompts(bg.id)}
+                                  disabled={isPlanningPrompts[bg.id]}
+                                  className="text-xs text-blue-500 hover:text-blue-600 disabled:opacity-50"
+                                  title="Regenerate prompts"
+                                >
+                                  {isPlanningPrompts[bg.id] ? (
+                                    <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                                  ) : (
+                                    <Sparkles className="w-3 h-3" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleClearPlannedPrompts(bg.id)}
+                                  className="text-xs text-red-500 hover:text-red-600"
+                                >
+                                  {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', maxHeight: '300px' }}>
+                              {bg.plannedPrompts.map((prompt, idx) => (
+                                <div key={idx} className="flex gap-1.5 items-start group/prompt">
+                                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-7 shrink-0 pt-1">
+                                    N-{idx + 1}
+                                  </span>
+                                  <textarea
+                                    value={prompt}
+                                    onChange={(e) => handleUpdatePlannedPrompt(bg.id, idx, e.target.value)}
+                                    className="flex-1 text-[10px] bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded px-2 py-1 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                                    rows={2}
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                  />
                                   <button
-                                    onClick={() => handleClearPlannedPrompts(bg.id)}
-                                    className="text-xs text-red-500 hover:text-red-600"
+                                    onClick={() => navigator.clipboard.writeText(prompt)}
+                                    className="p-1 text-gray-300 dark:text-gray-600 hover:text-[#DB2777] dark:hover:text-[#DB2777] opacity-0 group-hover/prompt:opacity-100 transition-opacity shrink-0"
+                                    title="Copy prompt"
                                   >
-                                    {phrase(dictionary, "bgsheet_clear_prompts", language) || "Clear"}
+                                    <FileDown className="w-3 h-3" />
                                   </button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto space-y-1.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                  {bg.plannedPrompts.map((prompt, idx) => (
-                                    <div key={idx} className="flex gap-2 items-start">
-                                      <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-5 shrink-0 pt-1">
-                                        N-{idx + 1}
-                                      </span>
-                                      <input
-                                        type="text"
-                                        value={prompt}
-                                        onChange={(e) => handleUpdatePlannedPrompt(bg.id, idx, e.target.value)}
-                                        className="flex-1 text-[10px] bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded px-2 py-1 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#DB2777]"
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                        {!bg.referenceAnalysis && (
-                          <div className="flex items-center justify-center h-full text-xs text-gray-400 dark:text-gray-500">
-                            {phrase(dictionary, "bgsheet_analyzing_reference", language) || "Analyzing reference..."}
+                              ))}
+                            </div>
+                            {/* Confirm: Apply prompts to image cards */}
+                            <button
+                              onClick={() => handleApplyPlannedPrompts(bg.id)}
+                              className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium rounded-lg transition-colors"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Confirm &amp; Apply to Cards</span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -3362,11 +3232,39 @@ Image Cost: $${currentImageCost.toFixed(4)}
                           </div>
                         )}
 
-                        {/* Prompt Editor (shown when isPromptOpen and not finalized) */}
-                        {img.isPromptOpen && !isFinalized && (
+                        {/* Storyboard Context (csvContext) - always visible when available */}
+                        {img.csvContext && (
+                          <div className="px-1 mt-1">
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-3" title={img.csvContext}>
+                              {img.csvContext}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Planned Prompt (always visible when prompt exists, editable with real-time sync) */}
+                        {!isFinalized && img.prompt && (
+                          <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-purple-300/30 dark:border-purple-500/20 mx-1 mt-1">
+                            <textarea
+                              value={img.prompt}
+                              onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
+                              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[40px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            />
+                            <button
+                              onClick={() => handleGenerateSingleView(bg.id, idx, hasImage ? true : false)}
+                              disabled={img.isGenerating}
+                              className="w-full mt-1.5 py-1.5 bg-[#DB2777] text-white text-[10px] font-bold rounded hover:bg-[#DB2777]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {img.isGenerating ? "Generating..." : (hasImage ? "Regenerate" : "Generate")}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Empty Prompt Editor (shown when isPromptOpen, no prompt yet, and not finalized) */}
+                        {img.isPromptOpen && !img.prompt && !isFinalized && (
                           <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 mx-1 mt-1">
                             <textarea
-                              value={img.prompt || ""}
+                              value=""
                               onChange={(e) => handleUpdatePrompt(bg.id, idx, e.target.value)}
                               className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-[10px] text-gray-700 dark:text-gray-300 min-h-[50px] focus:outline-none focus:ring-1 focus:ring-[#DB2777] resize-none"
                               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -3387,6 +3285,121 @@ Image Cost: $${currentImageCost.toFixed(4)}
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* CSV Column Mapping Modal */}
+      {showCsvMappingModal && csvPreviewData && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">CSV Column Mapping</h3>
+              <button
+                onClick={() => { setShowCsvMappingModal(false); setCsvPreviewData(null); }}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Column Mapping Selectors */}
+            <div className="grid grid-cols-3 gap-4 mb-5">
+              {([
+                { label: "Background ID", key: "backgroundIdCol" as const, defaultCol: 4 },
+                { label: "Background Prompt", key: "backgroundPromptCol" as const, defaultCol: 5 },
+                { label: "Image Prompt", key: "imagePromptCol" as const, defaultCol: 7 },
+              ]).map(({ label, key, defaultCol }) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+                  <select
+                    value={csvColumnMapping[key]}
+                    onChange={(e) => setCsvColumnMapping(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
+                  >
+                    {csvPreviewData.headers.map((header, colIdx) => (
+                      <option key={colIdx} value={colIdx}>
+                        {String.fromCharCode(65 + colIdx)}: {header || `Column ${colIdx + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Default: Column {String.fromCharCode(65 + defaultCol)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Preview Table */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Preview (first {csvPreviewData.rows.length} rows)</p>
+              <div className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded-lg">
+                <table className="min-w-full text-[10px]">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-gray-700">
+                      {csvPreviewData.headers.map((header, colIdx) => {
+                        const isMapped = colIdx === csvColumnMapping.backgroundIdCol
+                          || colIdx === csvColumnMapping.backgroundPromptCol
+                          || colIdx === csvColumnMapping.imagePromptCol;
+                        return (
+                          <th
+                            key={colIdx}
+                            className={`px-2 py-1.5 text-left font-bold whitespace-nowrap ${
+                              isMapped
+                                ? "text-[#DB2777] bg-pink-50 dark:bg-pink-900/20"
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          >
+                            <span className="text-[9px] text-gray-400 mr-1">{String.fromCharCode(65 + colIdx)}</span>
+                            {header || `Col ${colIdx + 1}`}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {csvPreviewData.rows.map((row, rowIdx) => (
+                      <tr key={rowIdx} className="border-t border-gray-200 dark:border-gray-700">
+                        {csvPreviewData.headers.map((_, colIdx) => {
+                          const isMapped = colIdx === csvColumnMapping.backgroundIdCol
+                            || colIdx === csvColumnMapping.backgroundPromptCol
+                            || colIdx === csvColumnMapping.imagePromptCol;
+                          return (
+                            <td
+                              key={colIdx}
+                              className={`px-2 py-1 max-w-[200px] truncate ${
+                                isMapped
+                                  ? "text-gray-900 dark:text-white font-medium bg-pink-50/50 dark:bg-pink-900/10"
+                                  : "text-gray-500 dark:text-gray-400"
+                              }`}
+                              title={row[colIdx] || ""}
+                            >
+                              {row[colIdx] || ""}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setShowCsvMappingModal(false); setCsvPreviewData(null); }}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCsvImportConfirm}
+                className="px-4 py-2 text-sm bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors"
+              >
+                Import
+              </button>
+            </div>
           </div>
         </div>
       )}

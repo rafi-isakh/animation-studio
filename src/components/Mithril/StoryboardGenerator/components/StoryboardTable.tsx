@@ -29,7 +29,6 @@ export default function StoryboardTable({
     phrase(dictionary, "table_length", language),
     phrase(dictionary, "table_accumulated_time", language),
     phrase(dictionary, "table_background_id", language),
-    phrase(dictionary, "table_character_info", language),
     phrase(dictionary, "table_story", language),
     phrase(dictionary, "table_image_prompt", language),
     phrase(dictionary, "table_image_prompt_end", language),
@@ -167,80 +166,60 @@ export default function StoryboardTable({
                 })}
               </React.Fragment>
             ))}
+            {/* Spacer row + Character ID Summary + Genre after last clip */}
+            {(characterIdSummary && characterIdSummary.length > 0 || genre) && (
+              <>
+                {/* Empty spacer row */}
+                <tr>
+                  <td colSpan={clipHeaders.length} className="py-4" />
+                </tr>
+
+                {/* Character ID Summary rows */}
+                {characterIdSummary && characterIdSummary.length > 0 && (
+                  <>
+                    <tr className="bg-purple-100 dark:bg-purple-900/30">
+                      <td
+                        colSpan={clipHeaders.length}
+                        className="px-4 py-3 text-lg font-bold text-purple-900 dark:text-purple-200"
+                      >
+                        {phrase(dictionary, "table_character_id_summary", language)}
+                      </td>
+                    </tr>
+                    {characterIdSummary.map((char, index) => (
+                      <tr key={`char-${index}`} className="bg-purple-50 dark:bg-purple-900/10">
+                        <td className="px-4 py-2 font-mono font-bold text-sm text-purple-700 dark:text-purple-300 whitespace-nowrap">
+                          {char.characterId}
+                        </td>
+                        <td
+                          colSpan={clipHeaders.length - 1}
+                          className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          {char.description}
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                )}
+
+                {/* Genre row */}
+                {genre && (
+                  <tr className="bg-blue-50 dark:bg-blue-900/20">
+                    <td className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase whitespace-nowrap">
+                      {phrase(dictionary, "table_genre", language)}
+                    </td>
+                    <td
+                      colSpan={clipHeaders.length - 1}
+                      className="px-4 py-2 text-sm font-bold text-blue-800 dark:text-blue-300"
+                    >
+                      {genre}
+                    </td>
+                  </tr>
+                )}
+              </>
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* Character ID Summary Section */}
-      {characterIdSummary && characterIdSummary.length > 0 && (
-        <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
-          <h3 className="text-lg font-bold text-purple-900 dark:text-purple-200 mb-4 flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
-              />
-            </svg>
-            {phrase(dictionary, "table_character_id_summary", language)}
-          </h3>
-          <div className="space-y-2">
-            {characterIdSummary.map((char, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-md border border-purple-200 dark:border-purple-700 hover:shadow-md transition-shadow"
-              >
-                <span className="font-mono font-bold text-purple-700 dark:text-purple-300 text-sm min-w-[180px] break-all">
-                  {char.characterId}:
-                </span>
-                <span className="text-gray-700 dark:text-gray-300 text-sm flex-1">
-                  {char.description}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Genre Section */}
-      {genre && (
-        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
-          <div className="flex items-center gap-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6 text-blue-600 dark:text-blue-400"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 6h.008v.008H6V6Z"
-              />
-            </svg>
-            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase">
-              {phrase(dictionary, "table_genre", language)}:
-            </span>
-            <span className="text-base font-bold text-blue-800 dark:text-blue-300">
-              {genre}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

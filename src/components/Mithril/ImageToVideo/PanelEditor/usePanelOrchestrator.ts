@@ -97,7 +97,12 @@ export function usePanelOrchestrator({
         const updates: PanelUpdate[] = [];
         latestByPanel.forEach((job) => {
           const update = mapPanelJobToPanelUpdate(job);
-          processedJobIdsRef.current.add(job.id);
+          // Only mark terminal jobs as processed; in-flight jobs must remain
+          // eligible for subsequent snapshot updates (e.g., generating → completed)
+          const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+          if (isTerminal) {
+            processedJobIdsRef.current.add(job.id);
+          }
           updates.push(update);
         });
 

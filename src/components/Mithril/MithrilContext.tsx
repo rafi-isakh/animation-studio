@@ -967,7 +967,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     console.log("[MithrilContext:StoryboardSubscription] Setting up subscription for project:", currentProjectId);
 
-    const processStoryboardUpdate = (update: ReturnType<typeof mapStoryboardJobToUpdate>) => {
+    const processStoryboardUpdate = (update: ReturnType<typeof mapStoryboardJobToUpdate>, isInitialSnapshot: boolean = false) => {
       // Skip already-processed jobs
       if (storyboardProcessedJobIdsRef.current.has(update.jobId)) return;
 
@@ -1024,45 +1024,53 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           voicePrompts: normalizedVoicePrompts,
         });
 
-        // Save to Firestore (clear old data first to avoid stale scenes/clips persisting)
-        (async () => {
-          try {
-            await clearStoryboard(currentProjectId);
-            await saveStoryboardMeta(currentProjectId);
-            await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
+        // Save to Firestore only for NEW completions, not initial snapshot replays.
+        // On page refresh, the initial snapshot replays already-completed jobs. If we
+        // re-save here, clearStoryboard() races against loadFromFirestore and
+        // ImageGenerator's direct Firestore reads, causing them to find 0 scenes.
+        if (!isInitialSnapshot) {
+          (async () => {
+            try {
+              console.log("[MithrilContext:StoryboardSave] Starting save — projectId=", currentProjectId, "sceneCount=", update.scenes!.length);
+              await clearStoryboard(currentProjectId);
+              await saveStoryboardMeta(currentProjectId);
+              await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
 
-            for (let sceneIndex = 0; sceneIndex < update.scenes!.length; sceneIndex++) {
-              const scene = update.scenes![sceneIndex];
-              await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+              for (let sceneIndex = 0; sceneIndex < update.scenes!.length; sceneIndex++) {
+                const scene = update.scenes![sceneIndex];
+                await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
 
-              for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
-                const clip = scene.clips[clipIndex];
-                await saveClip(currentProjectId, sceneIndex, clipIndex, {
-                  story: clip.story || "",
-                  imagePrompt: clip.imagePrompt || "",
-                  imagePromptEnd: clip.imagePromptEnd || "",
-                  videoPrompt: clip.videoPrompt || "",
-                  soraVideoPrompt: clip.soraVideoPrompt || "",
-                  backgroundPrompt: clip.backgroundPrompt || "",
-                  backgroundId: clip.backgroundId || "",
-                  dialogue: clip.dialogue || "",
-                  dialogueEn: clip.dialogueEn || "",
-                  narration: clip.narration || "",
-                  narrationEn: clip.narrationEn || "",
-                  sfx: clip.sfx || "",
-                  sfxEn: clip.sfxEn || "",
-                  bgm: clip.bgm || "",
-                  bgmEn: clip.bgmEn || "",
-                  length: clip.length || "",
-                  accumulatedTime: clip.accumulatedTime || "",
-                });
+                for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+                  const clip = scene.clips[clipIndex];
+                  await saveClip(currentProjectId, sceneIndex, clipIndex, {
+                    story: clip.story || "",
+                    imagePrompt: clip.imagePrompt || "",
+                    imagePromptEnd: clip.imagePromptEnd || "",
+                    videoPrompt: clip.videoPrompt || "",
+                    soraVideoPrompt: clip.soraVideoPrompt || "",
+                    backgroundPrompt: clip.backgroundPrompt || "",
+                    backgroundId: clip.backgroundId || "",
+                    dialogue: clip.dialogue || "",
+                    dialogueEn: clip.dialogueEn || "",
+                    narration: clip.narration || "",
+                    narrationEn: clip.narrationEn || "",
+                    sfx: clip.sfx || "",
+                    sfxEn: clip.sfxEn || "",
+                    bgm: clip.bgm || "",
+                    bgmEn: clip.bgmEn || "",
+                    length: clip.length || "",
+                    accumulatedTime: clip.accumulatedTime || "",
+                  });
+                }
               }
+              console.log("[MithrilContext:StoryboardSave] COMPLETE — sceneCount=", update.scenes!.length);
+            } catch (saveErr) {
+              console.error("[MithrilContext:StoryboardSave] ERROR saving storyboard:", saveErr);
             }
-            console.log("[MithrilContext] Storyboard saved to Firestore");
-          } catch (saveErr) {
-            console.error("[MithrilContext] Error saving storyboard to Firestore:", saveErr);
-          }
-        })();
+          })();
+        } else {
+          console.log("[MithrilContext:StoryboardSubscription] Skipping Firestore save for initial snapshot replay — data already persisted");
+        }
       } else if (update.status === "failed") {
         storyboardProcessedJobIdsRef.current.add(update.jobId);
         storyboardJobIdRef.current = null;
@@ -1118,7 +1126,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             // Queue terminal job for processing — loadFromFirestore will handle it
             // via the status API, but process it here too as a fallback
             console.log("[MithrilContext:StoryboardSubscription] Initial snapshot - processing terminal job:", update.jobId, update.status);
-            processStoryboardUpdate(update);
+            processStoryboardUpdate(update, true);
           }
         });
         return;

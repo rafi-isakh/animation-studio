@@ -34,6 +34,7 @@ export default function StoryboardTable({
     phrase(dictionary, "table_image_prompt_end", language),
     phrase(dictionary, "table_video_prompt", language),
     phrase(dictionary, "table_sora_video_prompt", language),
+    phrase(dictionary, "table_veo_video_prompt", language),
     phrase(dictionary, "table_dialogue_ko", language),
     phrase(dictionary, "table_dialogue_en", language),
     phrase(dictionary, "table_narration_ko", language),
@@ -166,60 +167,59 @@ export default function StoryboardTable({
                 })}
               </React.Fragment>
             ))}
-            {/* Spacer row + Character ID Summary + Genre after last clip */}
-            {(characterIdSummary && characterIdSummary.length > 0 || genre) && (
-              <>
-                {/* Empty spacer row */}
-                <tr>
-                  <td colSpan={clipHeaders.length} className="py-4" />
-                </tr>
-
-                {/* Character ID Summary rows */}
-                {characterIdSummary && characterIdSummary.length > 0 && (
-                  <>
-                    <tr className="bg-purple-100 dark:bg-purple-900/30">
-                      <td
-                        colSpan={clipHeaders.length}
-                        className="px-4 py-3 text-lg font-bold text-purple-900 dark:text-purple-200"
-                      >
-                        {phrase(dictionary, "table_character_id_summary", language)}
-                      </td>
-                    </tr>
-                    {characterIdSummary.map((char, index) => (
-                      <tr key={`char-${index}`} className="bg-purple-50 dark:bg-purple-900/10">
-                        <td className="px-4 py-2 font-mono font-bold text-sm text-purple-700 dark:text-purple-300 whitespace-nowrap">
-                          {char.characterId}
-                        </td>
-                        <td
-                          colSpan={clipHeaders.length - 1}
-                          className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300"
-                        >
-                          {char.description}
-                        </td>
-                      </tr>
-                    ))}
-                  </>
-                )}
-
-                {/* Genre row */}
-                {genre && (
-                  <tr className="bg-blue-50 dark:bg-blue-900/20">
-                    <td className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase whitespace-nowrap">
-                      {phrase(dictionary, "table_genre", language)}
-                    </td>
-                    <td
-                      colSpan={clipHeaders.length - 1}
-                      className="px-4 py-2 text-sm font-bold text-blue-800 dark:text-blue-300"
-                    >
-                      {genre}
-                    </td>
-                  </tr>
-                )}
-              </>
-            )}
           </tbody>
         </table>
       </div>
+
+      {/* Character ID Summary Footer */}
+      {characterIdSummary && characterIdSummary.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-200 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 text-[#DB2777]">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            {phrase(dictionary, "table_character_id_summary", language)}
+          </h3>
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-1/4">
+                    Character ID
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                {characterIdSummary.map((char, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#DB2777] font-mono">
+                      {char.characterId}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      {char.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Genre Footer */}
+      {genre && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-6 py-4 flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase">
+            {phrase(dictionary, "table_genre", language)}
+          </span>
+          <span className="text-sm font-bold text-blue-800 dark:text-blue-300">
+            {genre}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

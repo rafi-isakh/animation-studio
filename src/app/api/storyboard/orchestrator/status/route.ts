@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
       // Results
       scenes: data.scenes,
       voicePrompts: data.voice_prompts,
+      characterIdSummary: data.character_id_summary,
+      genre: data.genre,
       sceneCount: data.scene_count,
       clipCount: data.clip_count,
       // Error info

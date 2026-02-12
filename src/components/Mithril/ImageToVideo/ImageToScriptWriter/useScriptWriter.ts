@@ -52,9 +52,20 @@ export function useScriptWriter() {
 
   // Handle real-time job updates from Firestore subscription
   const handleJobUpdate = useCallback((update: StoryboardJobUpdate) => {
+    console.log('[ScriptWriter] handleJobUpdate called:', { status: update.status, jobId: update.jobId, hasScenes: !!update.scenes });
+
+    // For in-progress statuses, ensure the UI shows generating state
+    const inProgressStatuses = ['pending', 'submitted', 'polling', 'preparing', 'generating', 'uploading'];
+    if (inProgressStatuses.includes(update.status)) {
+      console.log('[ScriptWriter] In-progress status detected, dispatching START_GENERATING');
+      dispatch({ type: 'START_GENERATING' });
+      return;
+    }
+
     if (update.status === 'completed' && update.scenes) {
       // Map referenceImageIndex to actual panel images
       const currentPanels = allPanelsRef.current;
+      console.log('[ScriptWriter] Job completed, mapping scenes with', currentPanels.length, 'panels available');
       const updatedScenes: Scene[] = update.scenes.map((scene) => ({
         ...scene,
         clips: scene.clips.map((clip) => {
@@ -79,8 +90,10 @@ export function useScriptWriter() {
       setStageResult(2, { scenes: updatedScenes, voicePrompts });
       // No need to save to Firestore - backend already saved to i2vScript subcollection
     } else if (update.status === 'failed') {
+      console.log('[ScriptWriter] Job failed');
       dispatch({ type: 'GENERATION_ERROR' });
     } else if (update.status === 'cancelled') {
+      console.log('[ScriptWriter] Job cancelled');
       dispatch({ type: 'GENERATION_ERROR' });
     }
   }, [setStageResult]);
@@ -101,8 +114,13 @@ export function useScriptWriter() {
 
   // Apply pending completed update once panel data is loaded
   useEffect(() => {
-    if (!orchestrator.pendingUpdate || allPanelsRef.current.length === 0) return;
+    if (!orchestrator.pendingUpdate) return;
+    if (allPanelsRef.current.length === 0) {
+      console.log('[ScriptWriter] pendingUpdate exists but panels not loaded yet, waiting...', { status: orchestrator.pendingUpdate.status });
+      return;
+    }
 
+    console.log('[ScriptWriter] Applying pendingUpdate now, panels available:', allPanelsRef.current.length);
     handleJobUpdate(orchestrator.pendingUpdate);
     orchestrator.clearPendingUpdate();
   }, [orchestrator.pendingUpdate, handleJobUpdate, orchestrator.clearPendingUpdate]);
@@ -189,12 +207,14 @@ export function useScriptWriter() {
 
         // Check for any active I2V storyboard jobs (restore generating state)
         const activeJobs = await getActiveProjectI2VStoryboardJobs(currentProjectId);
+        console.log('[ScriptWriter] loadFromFirestore: active jobs query returned', activeJobs.length, 'jobs:', activeJobs.map(j => ({ id: j.id, status: j.status })));
         if (activeJobs.length > 0) {
           // Sort by created_at descending and take the most recent
           const sortedJobs = activeJobs.sort((a, b) =>
             (b.created_at || '').localeCompare(a.created_at || '')
           );
           const latestJob = sortedJobs[0];
+          console.log('[ScriptWriter] loadFromFirestore: restoring active job', latestJob.id, 'status:', latestJob.status);
           orchestratorRef.current.setActiveJobId(latestJob.id);
           dispatch({ type: 'START_GENERATING' });
         }

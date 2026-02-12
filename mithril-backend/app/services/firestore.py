@@ -1348,6 +1348,8 @@ class StoryboardService:
         project_id: str,
         scenes: list[dict],
         voice_prompts: list[dict],
+        character_id_summary: list[dict] | None = None,
+        genre: str | None = None,
         job_id: str | None = None,
     ) -> None:
         """
@@ -1363,6 +1365,8 @@ class StoryboardService:
             project_id: The project ID
             scenes: List of scene objects with clips
             voice_prompts: List of voice prompt objects
+            character_id_summary: List of character ID summary objects
+            genre: Detected genre string
             job_id: Optional job ID for tracking
         """
         from google.cloud.firestore_v1 import SERVER_TIMESTAMP
@@ -1374,6 +1378,10 @@ class StoryboardService:
         }
         if job_id:
             storyboard_data["jobId"] = job_id
+        if character_id_summary is not None:
+            storyboard_data["characterIdSummary"] = character_id_summary
+        if genre is not None:
+            storyboard_data["genre"] = genre
 
         await self._storyboard_ref(project_id).set(storyboard_data, merge=True)
         logger.debug(f"Saved storyboard metadata for project {project_id}")
@@ -1401,6 +1409,7 @@ class StoryboardService:
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
+                    "veoVideoPrompt": clip.get("veoVideoPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),
                     "dialogue": clip.get("dialogue", ""),

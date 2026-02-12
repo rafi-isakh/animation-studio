@@ -638,6 +638,7 @@ class StoryboardClip(BaseModel):
     imagePromptEnd: str | None = None
     videoPrompt: str
     soraVideoPrompt: str
+    veoVideoPrompt: str = ""
     backgroundPrompt: str
     backgroundId: str
     dialogue: str
@@ -667,6 +668,13 @@ class StoryboardVoicePrompt(BaseModel):
     promptEn: str
 
 
+class StoryboardCharacterIdSummary(BaseModel):
+    """Character ID summary entry."""
+
+    characterId: str
+    description: str
+
+
 class StoryboardJobStatusResponse(BaseModel):
     """Response model for storyboard job status queries."""
 
@@ -676,6 +684,8 @@ class StoryboardJobStatusResponse(BaseModel):
     # Result
     scenes: list[StoryboardScene] | None = None
     voice_prompts: list[StoryboardVoicePrompt] | None = None
+    character_id_summary: list[StoryboardCharacterIdSummary] | None = None
+    genre: str | None = None
     scene_count: int | None = None
     clip_count: int | None = None
     # Error handling

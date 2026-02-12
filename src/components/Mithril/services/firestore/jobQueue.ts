@@ -104,6 +104,7 @@ export interface JobQueueDocument {
         imagePromptEnd?: string;
         videoPrompt: string;
         soraVideoPrompt: string;
+        veoVideoPrompt?: string;
         backgroundPrompt: string;
         backgroundId: string;
         dialogue: string;
@@ -123,6 +124,11 @@ export interface JobQueueDocument {
       promptKo: string;
       promptEn: string;
     }>;
+    characterIdSummary?: Array<{
+      characterId: string;
+      description: string;
+    }>;
+    genre?: string;
   };
   // I2V Storyboard-specific fields
   panel_urls?: string[];
@@ -1395,6 +1401,7 @@ export interface StoryboardScene {
     imagePromptEnd?: string;
     videoPrompt: string;
     soraVideoPrompt: string;
+    veoVideoPrompt?: string;
     backgroundPrompt: string;
     backgroundId: string;
     dialogue: string;
@@ -1429,6 +1436,8 @@ export interface StoryboardJobUpdate {
   // Results
   scenes?: StoryboardScene[];
   voicePrompts?: StoryboardVoicePrompt[];
+  characterIdSummary?: Array<{ characterId: string; description: string }>;
+  genre?: string;
   sceneCount?: number;
   clipCount?: number;
   // Error info
@@ -1547,6 +1556,8 @@ export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUp
     progress: job.progress,
     scenes: result?.scenes,
     voicePrompts: result?.voicePrompts,
+    characterIdSummary: result?.characterIdSummary,
+    genre: result?.genre,
     sceneCount: result?.scenes?.length,
     clipCount,
     error: job.error_message,
@@ -1643,7 +1654,7 @@ export async function getActiveProjectI2VStoryboardJobs(
   } as JobQueueDocument));
 
   // Filter to active (non-terminal) jobs
-  const activeStatuses: JobStatus[] = ['pending', 'preparing', 'generating', 'uploading'];
+  const activeStatuses: JobStatus[] = ['pending', 'submitted', 'polling', 'preparing', 'generating', 'uploading'];
   return jobs.filter((job) => activeStatuses.includes(job.status));
 }
 

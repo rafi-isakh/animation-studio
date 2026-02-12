@@ -2,6 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
 import JSZip from 'jszip';
+import { useToast } from '@/hooks/use-toast';
 import { useMithril } from '../../MithrilContext';
 import { imageSplitterReducer, initialState } from './reducer';
 import type { ImageSplitterState, MangaPage, MangaPanel, ReadingDirection, ProcessingStatus } from './types';
@@ -82,6 +83,7 @@ function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus
 
 export function useImageSplitter() {
   const { setStageResult, currentProjectId, customApiKey } = useMithril();
+  const { toast } = useToast();
   const [state, dispatch] = useReducer(imageSplitterReducer, initialState);
   const isLoadingRef = useRef(false);
   const processingStartTimeRef = useRef<number | null>(null);
@@ -458,6 +460,11 @@ export function useImageSplitter() {
             newPages.push(...extractedPages);
           } catch (error) {
             console.error('Failed to extract ZIP file:', error);
+            toast({
+              variant: 'destructive',
+              title: 'Failed to extract ZIP file',
+              description: 'The ZIP file may be corrupted or use an unsupported compression format. Try re-creating it with standard ZIP compression.',
+            });
           }
           continue;
         }

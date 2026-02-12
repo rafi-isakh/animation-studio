@@ -12,6 +12,7 @@ from app.models.job import (
     JobStatus,
     JobSubmitResponse,
     JobType,
+    StoryboardCharacterIdSummary,
     StoryboardClip,
     StoryboardJobSubmitRequest,
     StoryboardJobStatusResponse,
@@ -109,6 +110,8 @@ async def get_storyboard_job_status(
     # Convert storyboard_result to typed objects
     scenes = None
     voice_prompts = None
+    character_id_summary = None
+    genre = None
     scene_count = None
     clip_count = None
 
@@ -131,12 +134,22 @@ async def get_storyboard_job_status(
                 for vp in result["voicePrompts"]
             ]
 
+        if "characterIdSummary" in result:
+            character_id_summary = [
+                StoryboardCharacterIdSummary(**c)
+                for c in result["characterIdSummary"]
+            ]
+
+        genre = result.get("genre")
+
     return StoryboardJobStatusResponse(
         job_id=job.id,
         status=job.status,
         progress=job.progress,
         scenes=scenes,
         voice_prompts=voice_prompts,
+        character_id_summary=character_id_summary,
+        genre=genre,
         scene_count=scene_count,
         clip_count=clip_count,
         error=error,
@@ -256,6 +269,8 @@ async def get_project_storyboard_jobs(
 
         scenes = None
         voice_prompts = None
+        character_id_summary = None
+        genre = None
         scene_count = None
         clip_count = None
 
@@ -278,6 +293,14 @@ async def get_project_storyboard_jobs(
                     for vp in result["voicePrompts"]
                 ]
 
+            if "characterIdSummary" in result:
+                character_id_summary = [
+                    StoryboardCharacterIdSummary(**c)
+                    for c in result["characterIdSummary"]
+                ]
+
+            genre = result.get("genre")
+
         responses.append(
             StoryboardJobStatusResponse(
                 job_id=job.id,
@@ -285,6 +308,8 @@ async def get_project_storyboard_jobs(
                 progress=job.progress,
                 scenes=scenes,
                 voice_prompts=voice_prompts,
+                character_id_summary=character_id_summary,
+                genre=genre,
                 scene_count=scene_count,
                 clip_count=clip_count,
                 error=error,

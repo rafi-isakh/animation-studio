@@ -4,6 +4,7 @@ export interface Continuity {
   imagePromptEnd?: string; // End frame prompt for Vidu (motion-heavy clips only)
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   dialogue: string;
   dialogueEn: string;
   narration: string; // Narration text (Korean) - for clips without dialogue

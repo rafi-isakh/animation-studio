@@ -296,6 +296,8 @@ export interface StoryboardDocument {
   generatedAt: Timestamp;
   aspectRatio?: string;
   jobId?: string | null;
+  characterIdSummary?: Array<{ characterId: string; description: string }>;
+  genre?: string;
 }
 
 export interface VoicePromptDocument {
@@ -317,6 +319,7 @@ export interface ClipDocument {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -563,6 +566,7 @@ export interface SaveClipInput {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -586,6 +590,7 @@ export interface UpdateClipInput {
   imagePromptEnd?: string;
   videoPrompt?: string;
   soraVideoPrompt?: string;
+  veoVideoPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
   characterInfo?: string;

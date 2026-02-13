@@ -60,6 +60,23 @@ function generateId(): string {
   return `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
+// Helper: Get image dimensions
+function getImageDimensions(file: File): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      resolve({ w: img.width, h: img.height });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      resolve({ w: 0, h: 0 });
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
 // Helper: Map orchestrator status to local processing status
 function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus {
   switch (status) {
@@ -425,6 +442,8 @@ export function useImageSplitter() {
         const blob = await zipEntry.async('blob');
         const mimeType = getMimeType(filename);
         const file = new File([blob], filename.split('/').pop() || filename, { type: mimeType });
+        
+        const dims = await getImageDimensions(file);
 
         extractedPages.push({
           id: generateId(),
@@ -434,6 +453,8 @@ export function useImageSplitter() {
           panels: [],
           status: 'pending',
           readingDirection,
+          width: dims.w,
+          height: dims.h,
         });
       }
 
@@ -471,6 +492,8 @@ export function useImageSplitter() {
 
         // Handle image files
         if (file.type.startsWith('image/')) {
+          const dims = await getImageDimensions(file);
+          
           newPages.push({
             id: generateId(),
             file,
@@ -479,6 +502,8 @@ export function useImageSplitter() {
             panels: [],
             status: 'pending',
             readingDirection: state.readingDirection,
+            width: dims.w,
+            height: dims.h,
           });
         }
       }
@@ -820,9 +845,39 @@ export function useImageSplitter() {
     setStageResult(1, { pages: completedPages });
   }, [state.pages, setStageResult]);
 
+  // Set active page
+  const setActivePage = useCallback((id: string | null) => {
+    dispatch({ type: 'SET_ACTIVE_PAGE', id });
+  }, []);
+
+  // Add panel manually
+  const addPanel = useCallback((panel: MangaPanel) => {
+    if (!state.activePageId) return;
+    dispatch({ type: 'ADD_PANEL', pageId: state.activePageId, panel });
+  }, [state.activePageId]);
+
+  // Delete panel
+  const deletePanel = useCallback((panelId: string) => {
+    if (!state.activePageId) return;
+    dispatch({ type: 'DELETE_PANEL', pageId: state.activePageId, panelId });
+  }, [state.activePageId]);
+
+  // Update panel
+  const updatePanel = useCallback((panelId: string, updates: Partial<MangaPanel>) => {
+    if (!state.activePageId) return;
+    dispatch({ type: 'UPDATE_PANEL', pageId: state.activePageId, panelId, panel: updates });
+  }, [state.activePageId]);
+
+  // Update panel storyboard
+  const updatePanelStoryboard = useCallback((panelId: string, text: string) => {
+    if (!state.activePageId) return;
+    dispatch({ type: 'UPDATE_PANEL_STORYBOARD', pageId: state.activePageId, panelId, text });
+  }, [state.activePageId]);
+
   // Derived state
   const hasResults = state.pages.some((p) => p.panels.length > 0);
   const pendingCount = state.pages.filter((p) => p.status === 'pending').length;
+  const activePage = state.pages.find((p) => p.id === state.activePageId);
 
   return {
     // State
@@ -831,6 +886,7 @@ export function useImageSplitter() {
     // Derived state
     hasResults,
     pendingCount,
+    activePage,
 
     // Actions
     upload,
@@ -839,6 +895,11 @@ export function useImageSplitter() {
     remove,
     clear,
     setReadingDirection,
+    setActivePage,
+    addPanel,
+    deletePanel,
+    updatePanel,
+    updatePanelStoryboard,
     downloadZip,
     exportJSON,
     saveToStageResult,

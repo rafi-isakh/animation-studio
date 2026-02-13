@@ -14,6 +14,12 @@ export type ImageSplitterAction =
   | { type: 'UPDATE_PAGE_STATUS'; id: string; status: ProcessingStatus }
   | { type: 'SET_PAGE_PANELS'; id: string; panels: MangaPanel[]; previewUrl?: string }
   | { type: 'SET_PAGE_INDEX'; id: string; pageIndex: number }
+  | { type: 'SET_PAGE_DIMENSIONS'; id: string; width: number; height: number }
+  | { type: 'SET_ACTIVE_PAGE'; id: string | null }
+  | { type: 'ADD_PANEL'; pageId: string; panel: MangaPanel }
+  | { type: 'DELETE_PANEL'; pageId: string; panelId: string }
+  | { type: 'UPDATE_PANEL'; pageId: string; panelId: string; panel: Partial<MangaPanel> }
+  | { type: 'UPDATE_PANEL_STORYBOARD'; pageId: string; panelId: string; text: string }
   | { type: 'SET_READING_DIRECTION'; direction: ReadingDirection }
   | { type: 'START_PROCESSING'; total: number }
   | { type: 'INCREMENT_PROGRESS' }
@@ -28,6 +34,7 @@ export const initialState: ImageSplitterState = {
   progress: { current: 0, total: 0 },
   readingDirection: 'rtl',
   processingStats: null,
+  activePageId: null,
 };
 
 // Reducer function
@@ -40,13 +47,16 @@ export function imageSplitterReducer(
       return {
         ...state,
         pages: [...state.pages, ...action.pages],
-        processingStats: null, // Reset stats when new files are added
+        activePageId: state.activePageId || (action.pages.length > 0 ? action.pages[0].id : null),
       };
 
     case 'REMOVE_PAGE':
       return {
         ...state,
         pages: state.pages.filter((p) => p.id !== action.id),
+        activePageId: state.activePageId === action.id
+          ? (state.pages.length > 1 ? state.pages.find(p => p.id !== action.id)?.id || null : null)
+          : state.activePageId,
       };
 
     case 'UPDATE_PAGE_STATUS':
@@ -78,6 +88,77 @@ export function imageSplitterReducer(
         ...state,
         pages: state.pages.map((p) =>
           p.id === action.id ? { ...p, pageIndex: action.pageIndex } : p
+        ),
+      };
+
+    case 'SET_PAGE_DIMENSIONS':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.id ? { ...p, width: action.width, height: action.height } : p
+        ),
+      };
+
+    case 'SET_ACTIVE_PAGE':
+      return {
+        ...state,
+        activePageId: action.id,
+      };
+
+    case 'ADD_PANEL':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.pageId
+            ? { ...p, panels: [...p.panels, action.panel] }
+            : p
+        ),
+      };
+
+    case 'DELETE_PANEL':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.pageId
+            ? {
+                ...p,
+                panels: p.panels
+                  .filter((panel) => panel.id !== action.panelId)
+                  .map((panel, idx) => ({ ...panel, label: String(idx + 1) })),
+              }
+            : p
+        ),
+      };
+
+    case 'UPDATE_PANEL':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.pageId
+            ? {
+                ...p,
+                panels: p.panels.map((panel) =>
+                  panel.id === action.panelId ? { ...panel, ...action.panel } : panel
+                ),
+              }
+            : p
+        ),
+      };
+
+    case 'UPDATE_PANEL_STORYBOARD':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.pageId
+            ? {
+                ...p,
+                panels: p.panels.map((panel) =>
+                  panel.id === action.panelId
+                    ? { ...panel, storyboard: { text: action.text } }
+                    : panel
+                ),
+              }
+            : p
         ),
       };
 

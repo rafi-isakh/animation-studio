@@ -10,6 +10,7 @@ export interface MangaPanel {
   box_2d: number[]; // [ymin, xmin, ymax, xmax] 0-1000 scale
   label?: string;
   imageUrl?: string; // Cropped base64 image
+  storyboard?: { text: string }; // Transcription/storyboard text
 }
 
 // A single manga/comic page with its detected panels
@@ -23,6 +24,8 @@ export interface MangaPage {
   panels: MangaPanel[];
   status: ProcessingStatus;
   readingDirection: ReadingDirection;
+  width?: number; // Image width for coordinate calculations
+  height?: number; // Image height for coordinate calculations
 }
 
 // Processing progress tracker
@@ -43,6 +46,7 @@ export interface ImageSplitterState {
   pages: MangaPage[];
   isProcessing: boolean;
   progress: ProcessingProgress;
+  activePageId: string | null; // Currently selected page for editing
   readingDirection: ReadingDirection;
   processingStats: ProcessingStats | null;
 }

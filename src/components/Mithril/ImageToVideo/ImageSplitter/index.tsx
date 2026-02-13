@@ -1,11 +1,16 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { Upload, Scissors, Loader2, Check, AlertCircle, Download, Trash2, X } from "lucide-react";
+import React, { useRef, useEffect, useState, MouseEvent } from "react";
+import { Upload, Check, Download, Trash2, X } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
+import type { MangaPanel } from "./types";
 
 // Re-export types for external consumers
 export type { ProcessingStatus, ReadingDirection, MangaPanel, MangaPage } from "./types";
+
+// -- Types --
+interface Point { x: number; y: number; }
+type DragMode = 'draw' | 'move' | 'resize-nw' | 'resize-ne' | 'resize-sw' | 'resize-se' | 'resize-n' | 'resize-s' | 'resize-w' | 'resize-e';
 
 // -- Icons --
 const MagicWandIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -29,6 +34,7 @@ const PlusIcon: React.FC<{className?: string}> = ({ className }) => (
 
 export default function ImageSplitter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const {
     state,
@@ -37,18 +43,28 @@ export default function ImageSplitter() {
     activePage,
     upload,
     process,
-    cancelProcessing,
     remove,
     clear,
     setReadingDirection,
     setActivePage,
+    addPanel,
     deletePanel,
+    updatePanel,
+    updatePanelStoryboard,
     downloadZip,
-    exportJSON,
     saveToStageResult,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
+
+  // Interaction State
+  const [dragMode, setDragMode] = useState<DragMode | null>(null);
+  const [activePanelId, setActivePanelId] = useState<string | null>(null);
+  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  
+  // For Drawing New Box
+  const [newBoxStart, setNewBoxStart] = useState<Point | null>(null);
+  const [currentRect, setCurrentRect] = useState<number[] | null>(null); // [top, left, height, width] %
 
   // Save results when processing completes
   useEffect(() => {
@@ -64,6 +80,169 @@ export default function ImageSplitter() {
       upload(files);
     }
     event.target.value = "";
+  };
+
+  // -- Coordinate Helpers --
+  const getRelativeCoords = (e: MouseEvent) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    return { x, y };
+  };
+
+  // -- Mouse Handlers --
+  const handleMouseDown = (e: MouseEvent, panelId?: string, mode?: DragMode) => {
+    if (!activePage) return;
+    e.stopPropagation();
+
+    // If clicking inside a text area, do NOT trigger drag
+    if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') {
+      return;
+    }
+
+    // If clicking on a handle or panel body
+    if (panelId && mode) {
+      setDragMode(mode);
+      setActivePanelId(panelId);
+      setStartPoint({ x: e.clientX, y: e.clientY });
+      return;
+    }
+
+    // If clicking on a button, don't draw
+    if ((e.target as HTMLElement).closest('button')) return;
+    
+    // Draw new box
+    const coords = getRelativeCoords(e);
+    setNewBoxStart(coords);
+    setDragMode('draw');
+    setCurrentRect(null);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!dragMode || !activePage || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    if (dragMode === 'draw' && newBoxStart) {
+      const coords = getRelativeCoords(e);
+      const left = Math.min(newBoxStart.x, coords.x);
+      const top = Math.min(newBoxStart.y, coords.y);
+      const width = Math.abs(coords.x - newBoxStart.x);
+      const height = Math.abs(coords.y - newBoxStart.y);
+      setCurrentRect([top, left, height, width]);
+      return;
+    }
+
+    // Move/Resize - work with 0-1000 scale
+    if (activePanelId && startPoint && activePage.width && activePage.height) {
+      const panel = activePage.panels.find(p => p.id === activePanelId);
+      if (!panel) return;
+
+      const dxPx = e.clientX - startPoint.x;
+      const dyPx = e.clientY - startPoint.y;
+      
+      // Convert screen delta to 0-1000 scale
+      const scaleX = 1000 / rect.width;
+      const scaleY = 1000 / rect.height;
+      
+      const dx = dxPx * scaleX;
+      const dy = dyPx * scaleY;
+
+      let [ymin, xmin, ymax, xmax] = panel.box_2d;
+
+      if (dragMode === 'move') {
+        let newYmin = ymin + dy;
+        let newYmax = ymax + dy;
+        let newXmin = xmin + dx;
+        let newXmax = xmax + dx;
+
+        // Constrain Y
+        if (newYmin < 0) {
+          newYmax += (0 - newYmin);
+          newYmin = 0;
+        }
+        if (newYmax > 1000) {
+          newYmin -= (newYmax - 1000);
+          newYmax = 1000;
+        }
+        if (newYmin < 0) newYmin = 0;
+
+        // Constrain X
+        if (newXmin < 0) {
+          newXmax += (0 - newXmin);
+          newXmin = 0;
+        }
+        if (newXmax > 1000) {
+          newXmin -= (newXmax - 1000);
+          newXmax = 1000;
+        }
+        if (newXmin < 0) newXmin = 0;
+
+        ymin = newYmin;
+        ymax = newYmax;
+        xmin = newXmin;
+        xmax = newXmax;
+      } else {
+        // Resize with Constraints (minimum 20 units)
+        const MIN_SIZE = 20;
+        if (dragMode === 'resize-nw') {
+          ymin = Math.max(0, Math.min(ymin + dy, ymax - MIN_SIZE));
+          xmin = Math.max(0, Math.min(xmin + dx, xmax - MIN_SIZE));
+        } else if (dragMode === 'resize-ne') {
+          ymin = Math.max(0, Math.min(ymin + dy, ymax - MIN_SIZE));
+          xmax = Math.min(1000, Math.max(xmax + dx, xmin + MIN_SIZE));
+        } else if (dragMode === 'resize-sw') {
+          ymax = Math.min(1000, Math.max(ymax + dy, ymin + MIN_SIZE));
+          xmin = Math.max(0, Math.min(xmin + dx, xmax - MIN_SIZE));
+        } else if (dragMode === 'resize-se') {
+          ymax = Math.min(1000, Math.max(ymax + dy, ymin + MIN_SIZE));
+          xmax = Math.min(1000, Math.max(xmax + dx, xmin + MIN_SIZE));
+        } else if (dragMode === 'resize-n') {
+          ymin = Math.max(0, Math.min(ymin + dy, ymax - MIN_SIZE));
+        } else if (dragMode === 'resize-s') {
+          ymax = Math.min(1000, Math.max(ymax + dy, ymin + MIN_SIZE));
+        } else if (dragMode === 'resize-w') {
+          xmin = Math.max(0, Math.min(xmin + dx, xmax - MIN_SIZE));
+        } else if (dragMode === 'resize-e') {
+          xmax = Math.min(1000, Math.max(xmax + dx, xmin + MIN_SIZE));
+        }
+      }
+
+      // Update Panel
+      updatePanel(panel.id, { box_2d: [ymin, xmin, ymax, xmax] });
+      setStartPoint({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (dragMode === 'draw' && newBoxStart && currentRect && activePage) {
+      // Commit new box if large enough
+      if (currentRect[2] > 1 && currentRect[3] > 1) {
+        const topPct = currentRect[0] / 100;
+        const leftPct = currentRect[1] / 100;
+        const hPct = currentRect[2] / 100;
+        const wPct = currentRect[3] / 100;
+
+        const ymin = Math.round(topPct * 1000);
+        const xmin = Math.round(leftPct * 1000);
+        const ymax = Math.round((topPct + hPct) * 1000);
+        const xmax = Math.round((leftPct + wPct) * 1000);
+
+        const newPanel: MangaPanel = {
+          id: `panel-${Date.now()}`,
+          box_2d: [ymin, xmin, ymax, xmax],
+          label: String(activePage.panels.length + 1)
+        };
+        addPanel(newPanel);
+      }
+    }
+
+    setDragMode(null);
+    setStartPoint(null);
+    setNewBoxStart(null);
+    setCurrentRect(null);
+    setActivePanelId(null);
   };
 
   const errorCount = pages.filter(p => p.status === 'error').length;
@@ -214,8 +393,16 @@ export default function ImageSplitter() {
       {/* -- Main Workspace -- */}
       <div className="flex-1 bg-gray-900 flex flex-col overflow-hidden relative select-none">
         {activePage ? (
-          <div className="flex-1 overflow-auto flex items-start justify-center p-8 relative">
+          <div 
+            className="flex-1 overflow-auto flex items-start justify-center p-8 relative"
+            style={{ cursor: dragMode === 'draw' ? 'crosshair' : 'default' }}
+            onMouseDown={(e) => handleMouseDown(e)}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
             <div 
+              ref={containerRef}
               className="relative shadow-2xl border border-gray-700 select-none group/canvas"
               style={{ maxWidth: '90%' }} 
             >
@@ -227,7 +414,7 @@ export default function ImageSplitter() {
                 alt="Work area" 
               />
 
-              {/* Page Processing Overlay on Main Canvas */}
+              {/* Page Processing Overlay */}
               {activePage.status === 'processing' && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
                   <div className="bg-gray-900/80 p-4 rounded-xl flex flex-col items-center shadow-2xl border border-[#DB2777]/50 backdrop-blur-sm">
@@ -237,54 +424,144 @@ export default function ImageSplitter() {
                 </div>
               )}
               
-              {/* Render Panels */}
-              {activePage.panels.map((panel) => {
-                if (!activePage.width || !activePage.height) return null;
-                
+              {/* Render Panels with Transform Handles */}
+              {activePage.panels.map((panel, panelIndex) => {
                 const top = (panel.box_2d[0] / 1000) * 100;
                 const left = (panel.box_2d[1] / 1000) * 100;
                 const height = ((panel.box_2d[2] - panel.box_2d[0]) / 1000) * 100;
                 const width = ((panel.box_2d[3] - panel.box_2d[1]) / 1000) * 100;
 
+                const isInteracting = activePanelId === panel.id;
+                const panelNumber = panelIndex + 1;
+                // Use storyboard text if available, otherwise fall back to label (description from backend)
+                const transcriptionText = panel.storyboard?.text ?? panel.label ?? '';
+
                 return (
-                  <div
-                    key={panel.id}
-                    className="absolute group border-2 border-green-400 hover:border-yellow-200 z-20"
-                    style={{
-                      top: `${top}%`,
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      height: `${height}%`,
-                    }}
-                  >
-                    {/* Panel Body BG */}
-                    <div className="absolute inset-0 bg-green-500/10 group-hover:bg-green-500/20 transition-colors" />
-
-                    {/* Label */}
-                    <div className="absolute -top-3 -left-3 bg-green-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow border border-white pointer-events-none z-30">
-                      {panel.label}
-                    </div>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deletePanel(panel.id);
+                  <React.Fragment key={panel.id}>
+                    <div
+                      className={`absolute group border-2 z-20 ${isInteracting ? 'border-yellow-400 z-50' : 'border-green-400 hover:border-yellow-200'}`}
+                      style={{
+                        top: `${top}%`,
+                        left: `${left}%`,
+                        width: `${width}%`,
+                        height: `${height}%`,
+                        cursor: 'move'
                       }}
-                      className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow border border-white transition-opacity z-30 cursor-pointer"
+                      onMouseDown={(e) => handleMouseDown(e, panel.id, 'move')}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
+                      {/* Panel Body BG */}
+                      <div className={`absolute inset-0 transition-colors overflow-hidden ${isInteracting ? 'bg-yellow-500/10' : 'bg-green-500/10 group-hover:bg-green-500/20'}`} />
+
+                      {/* Label Badge - Shows panel number only */}
+                      <div className="absolute -top-3 -left-3 bg-green-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow border border-white pointer-events-none z-30">
+                        {panelNumber}
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePanel(panel.id);
+                        }}
+                        className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow border border-white transition-opacity z-30 cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+
+                      {/* Resize Handles */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* NW Corner */}
+                        <div 
+                          className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-nw-resize z-40"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-nw')}
+                        />
+                        {/* NE Corner */}
+                        <div 
+                          className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-ne-resize z-40"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-ne')}
+                        />
+                        {/* SW Corner */}
+                        <div 
+                          className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-sw-resize z-40"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-sw')}
+                        />
+                        {/* SE Corner */}
+                        <div 
+                          className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-se-resize z-40"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-se')}
+                        />
+                        
+                        {/* Edge Handles */}
+                        <div 
+                          className="absolute -top-1 left-2 right-2 h-2 cursor-ns-resize z-35"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-n')}
+                        />
+                        <div 
+                          className="absolute -bottom-1 left-2 right-2 h-2 cursor-ns-resize z-35"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-s')}
+                        />
+                        <div 
+                          className="absolute top-2 bottom-2 -left-1 w-2 cursor-ew-resize z-35"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-w')}
+                        />
+                        <div 
+                          className="absolute top-2 bottom-2 -right-1 w-2 cursor-ew-resize z-35"
+                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-e')}
+                        />
+                      </div>
+
+                      {/* Transcription Box - Inside panel, shows on hover */}
+                      <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      >
+                        <div 
+                          className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-xl z-50 pointer-events-auto"
+                          style={{ width: '200px', minWidth: '150px' }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <div className="px-2 py-1 border-b border-gray-700 bg-gray-700/50 rounded-t">
+                            <span className="text-[10px] font-bold text-gray-300">PANEL {panelNumber}</span>
+                          </div>
+                          <div className="p-2">
+                            <textarea 
+                              value={transcriptionText} 
+                              onChange={(e) => updatePanelStoryboard(panel.id, e.target.value)}
+                              className="w-full h-20 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-white font-mono leading-relaxed focus:border-[#DB2777] focus:outline-none resize-none"
+                              placeholder={`VISUAL: ...\nDIALOGUE: ...`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </React.Fragment>
                 );
               })}
+
+              {/* Render New Drawing Rect */}
+              {dragMode === 'draw' && currentRect && (
+                <div
+                  className="absolute border-2 border-white bg-white/20 z-30 pointer-events-none"
+                  style={{
+                    top: `${currentRect[0]}%`,
+                    left: `${currentRect[1]}%`,
+                    height: `${currentRect[2]}%`,
+                    width: `${currentRect[3]}%`,
+                    borderStyle: 'dashed'
+                  }}
+                >
+                  <div className="absolute top-0 right-0 bg-white text-black text-[10px] px-1 font-bold">
+                    New
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
             <Upload className="w-16 h-16 mb-4 text-gray-600" />
             <p className="text-lg">Select a page to start</p>
-            <p className="text-sm mt-2 opacity-50">Upload manga pages to begin panel detection</p>
+            <p className="text-sm mt-2 opacity-50">Drag background to crop • Drag boxes to move/resize</p>
           </div>
         )}
 

@@ -12,8 +12,9 @@ export interface VideoClip {
   sceneIndex: number; // Which scene this clip belongs to
   sceneTitle: string;
   videoPrompt: string;
-  soraVideoPrompt: string; // Provider-specific prompt (kept for backwards compatibility)
-  customPrompt?: string; // User-edited prompt (overrides soraVideoPrompt/videoPrompt)
+  soraVideoPrompt: string; // Sora-specific prompt
+  veoVideoPrompt: string; // Veo-specific prompt
+  customPrompt?: string; // User-edited prompt (overrides provider-specific prompts)
   length: string; // "1초" or "2초"
   imageBase64: string | null; // From ImageGen (Stage 6)
   videoUrl: string | null;

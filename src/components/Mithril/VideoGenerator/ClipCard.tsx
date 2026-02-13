@@ -24,6 +24,7 @@ function isUrl(str: string): boolean {
 
 interface ClipCardProps {
   clip: VideoClip;
+  selectedProvider: string;
   onGenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
   onRegenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
   onUpdatePrompt: (clipIndex: number, sceneIndex: number, prompt: string) => void;
@@ -74,6 +75,7 @@ const StatusBadge = ({ status }: { status: ClipStatus }) => {
 
 export default function ClipCard({
   clip,
+  selectedProvider,
   onGenerate,
   onRegenerate,
   onUpdatePrompt,
@@ -92,12 +94,16 @@ export default function ClipCard({
     status,
     error,
     soraVideoPrompt,
+    veoVideoPrompt,
     videoPrompt,
     customPrompt,
   } = clip;
 
-  // Use custom prompt if set, otherwise fall back to soraVideoPrompt or videoPrompt
-  const currentPrompt = customPrompt || soraVideoPrompt || videoPrompt || "";
+  // Use custom prompt if set, otherwise use provider-specific prompt
+  const providerPrompt = selectedProvider === "veo3"
+    ? (veoVideoPrompt || videoPrompt)
+    : (soraVideoPrompt || videoPrompt);
+  const currentPrompt = customPrompt || providerPrompt || "";
 
   const [isDownloading, setIsDownloading] = useState(false);
 

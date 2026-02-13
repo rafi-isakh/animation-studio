@@ -282,6 +282,7 @@ export default function I2VVideoGenerator() {
                   imagePromptEnd: clip.imagePromptEnd,
                   videoPrompt: clip.videoPrompt || "",
                   soraVideoPrompt: clip.soraVideoPrompt || "",
+                  veoVideoPrompt: clip.veoVideoPrompt || "",
                   dialogue: clip.dialogue || "",
                   dialogueEn: clip.dialogueEn || "",
                   sfx: clip.sfx || "",
@@ -358,6 +359,7 @@ export default function I2VVideoGenerator() {
                   sceneTitle: scene.sceneTitle || `Scene ${sceneIndex + 1}`,
                   videoPrompt: storyboardClip.videoPrompt || "",
                   soraVideoPrompt: storyboardClip.soraVideoPrompt || "",
+                  veoVideoPrompt: "",
                   length: storyboardClip.length || "4초",
                   imageBase64: imageUrl,
                   videoUrl: savedClip?.videoRef || null,
@@ -505,11 +507,26 @@ export default function I2VVideoGenerator() {
             : prev
         );
 
+        const providerPrompt = selectedProvider === "veo3"
+          ? (clip.veoVideoPrompt || clip.videoPrompt)
+          : (clip.soraVideoPrompt || clip.videoPrompt);
         const promptToUse =
           customPrompt ||
           clip.customPrompt ||
-          clip.soraVideoPrompt ||
-          clip.videoPrompt;
+          providerPrompt;
+
+        console.log(`[I2VVideoGenerator] Scene ${sceneIndex + 1}, Clip ${clipIndex + 1}`, {
+          provider: selectedProvider,
+          promptSource: customPrompt ? 'custom(arg)' : clip.customPrompt ? 'custom(saved)' : selectedProvider === 'veo3' ? 'veoVideoPrompt' : 'soraVideoPrompt',
+          promptToUse: promptToUse?.substring(0, 120),
+          allPrompts: {
+            customArg: customPrompt?.substring(0, 60),
+            customSaved: clip.customPrompt?.substring(0, 60),
+            veo: clip.veoVideoPrompt?.substring(0, 60),
+            sora: clip.soraVideoPrompt?.substring(0, 60),
+            generic: clip.videoPrompt?.substring(0, 60),
+          },
+        });
 
         // Submit to orchestrator
         const response = await submitJob({
@@ -1007,6 +1024,7 @@ export default function I2VVideoGenerator() {
           <ClipCard
             key={`${clip.sceneIndex}-${clip.clipIndex}`}
             clip={clip}
+            selectedProvider={selectedProvider}
             onGenerate={generateClip}
             onRegenerate={regenerateClip}
             onUpdatePrompt={updateClipPrompt}

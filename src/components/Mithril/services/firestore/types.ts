@@ -896,6 +896,7 @@ export interface I2VStoryboardClipDocument {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
   // Dialogue

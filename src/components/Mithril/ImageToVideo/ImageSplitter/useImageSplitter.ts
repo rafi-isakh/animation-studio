@@ -60,21 +60,77 @@ function generateId(): string {
   return `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Helper: Get image dimensions
-function getImageDimensions(file: File): Promise<{ w: number; h: number }> {
-  return new Promise((resolve) => {
+// Helper: Get image dimensions from File
+function getImageDimensions(file: File): Promise<{ w: number; h: number }>;
+// Helper: Get image dimensions from URL (overload)
+function getImageDimensions(fileOrUrl: string): Promise<{ w: number; h: number }>;
+// Implementation
+function getImageDimensions(fileOrUrl: File | string): Promise<{ w: number; h: number }> {
+  return new Promise(async (resolve) => {
     const img = new Image();
-    const url = URL.createObjectURL(file);
+    let objectUrl: string | null = null;
+
+    if (typeof fileOrUrl === 'string') {
+      // Check if URL is S3/CloudFront URL that needs proxying
+      const isS3Url = (url: string) =>
+        url.includes('s3.amazonaws.com') ||
+        url.includes('s3.ap-northeast-2.amazonaws.com') ||
+        url.includes('cloudfront.net');
+
+      if (isS3Url(fileOrUrl)) {
+        // Use proxy for S3 URLs to avoid CORS issues
+        try {
+          const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(fileOrUrl)}`;
+          const response = await fetch(proxyUrl);
+          if (!response.ok) {
+            console.error('Failed to fetch image through proxy for dimensions');
+            resolve({ w: 0, h: 0 });
+            return;
+          }
+          const blob = await response.blob();
+          objectUrl = URL.createObjectURL(blob);
+          img.src = objectUrl;
+        } catch (error) {
+          console.error('Error fetching image through proxy for dimensions:', error);
+          resolve({ w: 0, h: 0 });
+          return;
+        }
+      } else {
+        // Other remote URLs - use directly with crossOrigin
+        img.crossOrigin = 'anonymous';
+        img.src = fileOrUrl;
+      }
+    } else {
+      // File object - create blob URL
+      objectUrl = URL.createObjectURL(fileOrUrl);
+      img.src = objectUrl;
+    }
+
     img.onload = () => {
-      resolve({ w: img.width, h: img.height });
-      URL.revokeObjectURL(url);
+      resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
     img.onerror = () => {
       resolve({ w: 0, h: 0 });
-      URL.revokeObjectURL(url);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-    img.src = url;
   });
+}
+
+// Helper: Apply padding to panel box coordinates (0-1000 scale)
+function applyPaddingToBox(box_2d: number[], padding: number): number[] {
+  const [ymin, xmin, ymax, xmax] = box_2d;
+
+  // Apply padding (padding is in pixels, need to convert based on image scale)
+  // Assuming 0-1000 scale, convert pixel padding to scale units
+  const paddingScale = padding; // Direct padding in scale units for simplicity
+
+  return [
+    Math.max(0, ymin - paddingScale),     // ymin
+    Math.max(0, xmin - paddingScale),     // xmin
+    Math.min(1000, ymax + paddingScale),  // ymax
+    Math.min(1000, xmax + paddingScale),  // xmax
+  ];
 }
 
 // Helper: Map orchestrator status to local processing status
@@ -108,6 +164,13 @@ export function useImageSplitter() {
   // Track active jobs: pageId -> jobId
   const [activeJobs, setActiveJobs] = useState<Record<string, string>>({});
 
+  // Auto-transcription state
+  const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
+  const [scriptProgress, setScriptProgress] = useState('');
+
+  // Panel padding state (in 0-1000 scale units, ~50 units ≈ 5% of image)
+  const [panelPadding, setPanelPadding] = useState(50);
+
   // Control when Firestore subscription starts (prevents race condition with loadFromFirestore)
   const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
 
@@ -136,7 +199,9 @@ export function useImageSplitter() {
     fileName: string,
     pageImageUrl: string | undefined,
     panels: Array<{ id: string; box_2d: number[]; label: string; imageUrl?: string }>,
-    readingDirection: ReadingDirection
+    readingDirection: ReadingDirection,
+    width?: number,
+    height?: number
   ) => {
     if (!currentProjectId) return;
 
@@ -148,6 +213,8 @@ export function useImageSplitter() {
         readingDirection,
         status: 'completed',
         originalPageId: pageId, // Preserve original ID for matching with job queue
+        width, // Save dimensions for resize calculations
+        height,
       });
 
       // Save each panel
@@ -200,7 +267,7 @@ export function useImageSplitter() {
       });
 
       // Persist results to Firestore (async, fire-and-forget)
-      persistPageResults(pageId, pageIndex, fileName, pageImageUrl, mappedPanels, page.readingDirection);
+      persistPageResults(pageId, pageIndex, fileName, pageImageUrl, mappedPanels, page.readingDirection, page.width, page.height);
 
     } else if (localStatus === 'error') {
       dispatch({ type: 'UPDATE_PAGE_STATUS', id: pageId, status: 'error' });
@@ -300,7 +367,23 @@ export function useImageSplitter() {
             box_2d: p.box_2d,
             label: p.label,
             imageUrl: p.imageRef, // S3 URL stored as imageRef
+            storyboard: p.storyboard, // Load storyboard data if exists
           }));
+
+          // Load dimensions from Firestore or get from image if missing
+          let width = page.width;
+          let height = page.height;
+
+          // If dimensions are missing (backward compatibility), load image to get them
+          if (!width || !height) {
+            try {
+              const dims = await getImageDimensions(page.imageRef);
+              width = dims.w;
+              height = dims.h;
+            } catch (error) {
+              console.warn(`Failed to get dimensions for page ${page.pageIndex}:`, error);
+            }
+          }
 
           loadedPages.push({
             // Use originalPageId if available (for matching with job queue), otherwise fall back to Firestore id
@@ -311,6 +394,8 @@ export function useImageSplitter() {
             panels,
             status: page.status as 'pending' | 'processing' | 'completed' | 'error',
             readingDirection: page.readingDirection as ReadingDirection,
+            width,
+            height,
           });
         }
 
@@ -613,12 +698,15 @@ export function useImageSplitter() {
 
         // Save each page with processing status (no imageRef yet - will be set on completion)
         for (const page of pagesToSubmit) {
+          const pageData = stateRef.current.pages.find((p) => p.id === page.pageId);
           await saveMangaPage(currentProjectId, page.pageIndex, {
             fileName: page.fileName,
             imageRef: '', // Will be populated when job completes
             readingDirection: page.readingDirection,
             status: 'processing',
             originalPageId: page.pageId, // Store original ID for matching with job queue
+            width: pageData?.width, // Store dimensions for resize calculations
+            height: pageData?.height,
           });
           // Also store pageIndex in local state for later reference
           dispatch({ type: 'SET_PAGE_INDEX', id: page.pageId, pageIndex: page.pageIndex });
@@ -726,6 +814,94 @@ export function useImageSplitter() {
     dispatch({ type: 'SET_READING_DIRECTION', direction });
   }, []);
 
+  // Helper to crop panel from source image using box_2d coordinates
+  const cropPanelFromSource = useCallback(async (
+    sourceImageUrl: string,
+    box_2d: number[],
+    width: number,
+    height: number
+  ): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      const img = new Image();
+
+      // Helper to check if URL is an S3/CloudFront URL that needs proxying
+      const isS3Url = (url: string) =>
+        url.includes('s3.amazonaws.com') ||
+        url.includes('s3.ap-northeast-2.amazonaws.com') ||
+        url.includes('cloudfront.net');
+
+      // Load source image through proxy if needed
+      let imageSrc = sourceImageUrl;
+      if (isS3Url(sourceImageUrl)) {
+        try {
+          const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(sourceImageUrl)}`;
+          const response = await fetch(proxyUrl);
+          if (!response.ok) {
+            reject(new Error('Failed to fetch image through proxy'));
+            return;
+          }
+          const blob = await response.blob();
+          imageSrc = URL.createObjectURL(blob);
+        } catch (error) {
+          reject(error);
+          return;
+        }
+      } else if (!sourceImageUrl.startsWith('blob:') && !sourceImageUrl.startsWith('data:')) {
+        img.crossOrigin = 'anonymous';
+      }
+
+      img.onload = () => {
+        try {
+          const [ymin, xmin, ymax, xmax] = box_2d;
+
+          // Convert from 0-1000 scale to pixel coordinates
+          const cropX = (xmin / 1000) * width;
+          const cropY = (ymin / 1000) * height;
+          const cropWidth = ((xmax - xmin) / 1000) * width;
+          const cropHeight = ((ymax - ymin) / 1000) * height;
+
+          // Create canvas and crop
+          const canvas = document.createElement('canvas');
+          canvas.width = cropWidth;
+          canvas.height = cropHeight;
+          const ctx = canvas.getContext('2d');
+
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+
+          // Draw cropped section
+          ctx.drawImage(
+            img,
+            cropX, cropY, cropWidth, cropHeight,
+            0, 0, cropWidth, cropHeight
+          );
+
+          const result = canvas.toDataURL('image/jpeg', 0.9);
+
+          // Clean up blob URL if we created one
+          if (imageSrc.startsWith('blob:') && imageSrc !== sourceImageUrl) {
+            URL.revokeObjectURL(imageSrc);
+          }
+
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      img.onerror = () => {
+        if (imageSrc.startsWith('blob:') && imageSrc !== sourceImageUrl) {
+          URL.revokeObjectURL(imageSrc);
+        }
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = imageSrc;
+    });
+  }, []);
+
   // Download panels as ZIP
   const downloadZip = useCallback(async () => {
     const completedPages = state.pages.filter(
@@ -742,17 +918,61 @@ export function useImageSplitter() {
       url.includes('s3.ap-northeast-2.amazonaws.com') ||
       url.includes('cloudfront.net');
 
-    for (const page of completedPages) {
+    // Collect storyboard scripts for export
+    const scriptLines: string[] = [];
+    scriptLines.push('='.repeat(80));
+    scriptLines.push('MANGA STORYBOARD SCRIPT');
+    scriptLines.push('Generated by Toonyz Mithril');
+    scriptLines.push(`Exported: ${new Date().toLocaleString()}`);
+    scriptLines.push('='.repeat(80));
+    scriptLines.push('');
+
+    for (let pageIdx = 0; pageIdx < completedPages.length; pageIdx++) {
+      const page = completedPages[pageIdx];
+      const baseName = page.fileName.replace(/\.[^/.]+$/, '');
+
+      // Add page header to script
+      scriptLines.push('─'.repeat(80));
+      scriptLines.push(`PAGE ${pageIdx + 1}: ${page.fileName}`);
+      scriptLines.push(`Reading Direction: ${page.readingDirection === 'rtl' ? 'Right-to-Left' : 'Left-to-Right'}`);
+      scriptLines.push(`Total Panels: ${page.panels.length}`);
+      scriptLines.push('─'.repeat(80));
+      scriptLines.push('');
+
       for (let idx = 0; idx < page.panels.length; idx++) {
         const panel = page.panels[idx];
-        if (panel.imageUrl) {
-          const baseName = page.fileName.replace(/\.[^/.]+$/, '');
-          const filename = `${baseName}_panel_${String(idx + 1).padStart(2, '0')}.jpg`;
+        const filename = `${baseName}_panel_${String(idx + 1).padStart(2, '0')}.jpg`;
 
-          try {
-            // Check if it's a URL (S3) or base64 data
+        // Add panel info to script
+        scriptLines.push(`[PANEL ${idx + 1}] (${filename})`);
+        if (panel.storyboard?.text) {
+          scriptLines.push(panel.storyboard.text);
+        } else {
+          scriptLines.push('(No script available)');
+        }
+        scriptLines.push('');
+
+        // Add panel image to ZIP - use current box_2d to crop from source
+        try {
+          // Always re-crop from source using current box_2d to respect manual resizing
+          if (page.previewUrl && page.width && page.height) {
+            const croppedImage = await cropPanelFromSource(
+              page.previewUrl,
+              panel.box_2d,
+              page.width,
+              page.height
+            );
+
+            // Remove data URL prefix
+            const base64Data = croppedImage.includes(',')
+              ? croppedImage.split(',')[1]
+              : croppedImage;
+
+            zip.file(filename, base64Data, { base64: true });
+            hasContent = true;
+          } else if (panel.imageUrl) {
+            // Fallback to stored panel image if source not available
             if (panel.imageUrl.startsWith('http://') || panel.imageUrl.startsWith('https://')) {
-              // Use proxy for S3 URLs to avoid CORS issues
               const fetchUrl = isS3Url(panel.imageUrl)
                 ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageUrl)}`
                 : panel.imageUrl;
@@ -764,19 +984,27 @@ export function useImageSplitter() {
                 hasContent = true;
               }
             } else {
-              // Handle base64 data
               const base64Data = panel.imageUrl.includes(',')
                 ? panel.imageUrl.split(',')[1]
                 : panel.imageUrl;
               zip.file(filename, base64Data, { base64: true });
               hasContent = true;
             }
-          } catch (error) {
-            console.error(`Failed to add panel ${idx} from ${page.fileName} to ZIP:`, error);
           }
+        } catch (error) {
+          console.error(`Failed to add panel ${idx} from ${page.fileName} to ZIP:`, error);
         }
       }
+
+      scriptLines.push('');
     }
+
+    // Add storyboard script text file to ZIP
+    scriptLines.push('='.repeat(80));
+    scriptLines.push('END OF STORYBOARD SCRIPT');
+    scriptLines.push('='.repeat(80));
+    const scriptContent = scriptLines.join('\n');
+    zip.file('storyboard_script.txt', scriptContent);
 
     if (hasContent) {
       const blob = await zip.generateAsync({ type: 'blob' });
@@ -787,7 +1015,7 @@ export function useImageSplitter() {
       a.click();
       URL.revokeObjectURL(url);
     }
-  }, [state.pages]);
+  }, [state.pages, cropPanelFromSource]);
 
   // Export panels as JSON
   const exportJSON = useCallback(() => {
@@ -874,6 +1102,286 @@ export function useImageSplitter() {
     dispatch({ type: 'UPDATE_PANEL_STORYBOARD', pageId: state.activePageId, panelId, text });
   }, [state.activePageId]);
 
+  // Apply padding to all panels in active page
+  const applyPaddingToActivePage = useCallback(async () => {
+    const page = stateRef.current.pages.find(p => p.id === stateRef.current.activePageId);
+    if (!page || page.panels.length === 0) return;
+
+    // Apply padding to all panels
+    const paddedPanels = page.panels.map(panel => ({
+      ...panel,
+      box_2d: applyPaddingToBox(panel.box_2d, panelPadding)
+    }));
+
+    // Update state
+    dispatch({
+      type: 'SET_PAGE_PANELS',
+      id: page.id,
+      panels: paddedPanels,
+    });
+
+    // Persist to Firestore if page has pageIndex
+    if (currentProjectId && page.pageIndex !== undefined) {
+      try {
+        for (let i = 0; i < paddedPanels.length; i++) {
+          const panel = paddedPanels[i];
+          await saveMangaPanel(currentProjectId, page.pageIndex, i, {
+            box_2d: panel.box_2d,
+            label: panel.label || '',
+            imageRef: panel.imageUrl || '',
+            storyboard: panel.storyboard,
+          });
+        }
+        toast({
+          title: 'Padding applied',
+          description: `Applied ${panelPadding} units of padding to ${paddedPanels.length} panels.`,
+        });
+      } catch (error) {
+        console.error('Failed to persist padded panels to Firestore:', error);
+      }
+    }
+  }, [panelPadding, currentProjectId, toast]);
+
+  // Create annotated image with panel boxes drawn for AI analysis
+  const createAnnotatedImage = useCallback(async (page: MangaPage): Promise<string> => {
+    return new Promise(async (resolve) => {
+      const img = new Image();
+
+      // Helper to check if URL is an S3/CloudFront URL that needs proxying
+      const isS3Url = (url: string) =>
+        url.includes('s3.amazonaws.com') ||
+        url.includes('s3.ap-northeast-2.amazonaws.com') ||
+        url.includes('cloudfront.net');
+
+      // Use proxy for S3 URLs to avoid CORS issues, otherwise use direct URL
+      let imageSrc = page.previewUrl;
+      if (isS3Url(page.previewUrl)) {
+        // For S3 URLs, fetch through proxy and convert to blob URL
+        try {
+          const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(page.previewUrl)}`;
+          const response = await fetch(proxyUrl);
+          if (!response.ok) {
+            console.error('Failed to fetch image through proxy');
+            resolve('');
+            return;
+          }
+          const blob = await response.blob();
+          imageSrc = URL.createObjectURL(blob);
+        } catch (error) {
+          console.error('Error fetching image through proxy:', error);
+          resolve('');
+          return;
+        }
+      } else if (!page.previewUrl.startsWith('blob:') && !page.previewUrl.startsWith('data:')) {
+        // For other remote URLs (not blob or data), set crossOrigin
+        img.crossOrigin = 'anonymous';
+      }
+
+      img.src = imageSrc;
+
+      await new Promise((r) => {
+        img.onload = r;
+        img.onerror = () => {
+          console.error('Failed to load image for annotation');
+          // Clean up blob URL if we created one
+          if (imageSrc.startsWith('blob:') && imageSrc !== page.previewUrl) {
+            URL.revokeObjectURL(imageSrc);
+          }
+          resolve('');
+        };
+      });
+
+      // Limit dimension to 2000px for good OCR but reasonable payload
+      const MAX_DIM = 2000;
+      let width = img.naturalWidth || img.width;
+      let height = img.naturalHeight || img.height;
+      let scale = 1;
+
+      if (width > MAX_DIM || height > MAX_DIM) {
+        const ratio = width / height;
+        if (width > height) {
+          width = MAX_DIM;
+          height = MAX_DIM / ratio;
+        } else {
+          height = MAX_DIM;
+          width = MAX_DIM * ratio;
+        }
+        scale = width / (img.naturalWidth || img.width);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve('');
+        return;
+      }
+
+      // Draw scaled image
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Draw panel boxes and labels
+      ctx.strokeStyle = '#00FF00';
+      ctx.lineWidth = 4;
+      ctx.font = 'bold 24px Arial';
+
+      page.panels.forEach((panel) => {
+        const [ymin, xmin, ymax, xmax] = panel.box_2d;
+
+        // Convert from 0-1000 scale to pixel coordinates
+        const imgWidth = img.naturalWidth || img.width;
+        const imgHeight = img.naturalHeight || img.height;
+
+        const s_xmin = (xmin / 1000) * imgWidth * scale;
+        const s_ymin = (ymin / 1000) * imgHeight * scale;
+        const s_w = ((xmax - xmin) / 1000) * imgWidth * scale;
+        const s_h = ((ymax - ymin) / 1000) * imgHeight * scale;
+
+        // Draw box
+        ctx.strokeRect(s_xmin, s_ymin, s_w, s_h);
+
+        // Draw label background
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(s_xmin, s_ymin - 30, 40, 30);
+
+        // Draw label text
+        ctx.fillStyle = '#00FF00';
+        ctx.fillText(panel.label || '?', s_xmin + 8, s_ymin - 7);
+      });
+
+      const result = canvas.toDataURL('image/jpeg', 0.8);
+
+      // Clean up blob URL if we created one for S3 proxy
+      if (imageSrc.startsWith('blob:') && imageSrc !== page.previewUrl) {
+        URL.revokeObjectURL(imageSrc);
+      }
+
+      resolve(result);
+    });
+  }, []);
+
+  // Analyze all pages with storyboard transcription
+  const analyzeScriptAll = useCallback(async () => {
+    if (isAnalyzingScript || stateRef.current.pages.length === 0) return;
+
+    // Only analyze completed pages with panels
+    const pagesWithPanels = stateRef.current.pages.filter(
+      (p) => p.status === 'completed' && p.panels.length > 0
+    );
+
+    if (pagesWithPanels.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No panels to analyze',
+        description: 'Please detect panels first using Auto-Detect.',
+      });
+      return;
+    }
+
+    setIsAnalyzingScript(true);
+
+    // Process pages sequentially to avoid rate limits
+    for (let i = 0; i < pagesWithPanels.length; i++) {
+      const page = pagesWithPanels[i];
+      setScriptProgress(`${i + 1}/${pagesWithPanels.length}`);
+
+      try {
+        // Create annotated image with panel boxes
+        const annotatedImageBase64 = await createAnnotatedImage(page);
+        if (!annotatedImageBase64) {
+          console.error(`Failed to create annotated image for page ${page.id}`);
+          continue;
+        }
+
+        // Remove data URL prefix if present
+        const base64Data = annotatedImageBase64.includes(',')
+          ? annotatedImageBase64.split(',')[1]
+          : annotatedImageBase64;
+
+        // Call API to analyze storyboard
+        // Send numeric labels (1, 2, 3...) to match what AI returns
+        const response = await fetch('/api/manga/analyze-storyboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: base64Data,
+            panels: page.panels.map((_, idx) => ({ label: String(idx + 1) })),
+            apiKey: customApiKey,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Storyboard analysis failed:', error);
+          continue;
+        }
+
+        const result = await response.json();
+
+        // Update panels with storyboard data
+        if (result.success && result.panels) {
+          const storyboardMap: Record<string, string> = {};
+          result.panels.forEach((p: { label: string; script: string }) => {
+            storyboardMap[p.label] = p.script;
+          });
+
+          console.log('[Transcription] Received storyboard for page:', page.id);
+          console.log('[Transcription] Storyboard map:', storyboardMap);
+          console.log('[Transcription] Page panels count:', page.panels.length);
+
+          // Create updated panels with storyboard - match by index position
+          const updatedPanels = page.panels.map((panel, idx) => {
+            const numericLabel = String(idx + 1); // 1, 2, 3...
+            const script = storyboardMap[numericLabel];
+            const hasStoryboard = !!script;
+            console.log(`[Transcription] Panel ${idx + 1} (${panel.label}): hasStoryboard=${hasStoryboard}`);
+            return {
+              ...panel,
+              storyboard: script ? { text: script } : panel.storyboard,
+            };
+          });
+
+          // Update state with storyboard data
+          dispatch({
+            type: 'SET_PAGE_PANELS',
+            id: page.id,
+            panels: updatedPanels,
+          });
+
+          // Persist to Firestore if page has pageIndex
+          if (currentProjectId && page.pageIndex !== undefined) {
+            try {
+              for (let j = 0; j < updatedPanels.length; j++) {
+                const panel = updatedPanels[j];
+                if (panel.storyboard) {
+                  await saveMangaPanel(currentProjectId, page.pageIndex, j, {
+                    box_2d: panel.box_2d,
+                    label: panel.label || '',
+                    imageRef: panel.imageUrl || '',
+                    storyboard: panel.storyboard,
+                  });
+                }
+              }
+            } catch (error) {
+              console.error('Failed to persist storyboard to Firestore:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error analyzing page ${page.id}:`, error);
+      }
+    }
+
+    setIsAnalyzingScript(false);
+    setScriptProgress('');
+
+    toast({
+      title: 'Transcription complete',
+      description: `Analyzed ${pagesWithPanels.length} pages.`,
+    });
+  }, [isAnalyzingScript, createAnnotatedImage, customApiKey, currentProjectId, toast]);
+
   // Derived state
   const hasResults = state.pages.some((p) => p.panels.length > 0);
   const pendingCount = state.pages.filter((p) => p.status === 'pending').length;
@@ -888,6 +1396,14 @@ export function useImageSplitter() {
     pendingCount,
     activePage,
 
+    // Transcription state
+    isAnalyzingScript,
+    scriptProgress,
+
+    // Padding state
+    panelPadding,
+    setPanelPadding,
+
     // Actions
     upload,
     process,
@@ -900,8 +1416,10 @@ export function useImageSplitter() {
     deletePanel,
     updatePanel,
     updatePanelStoryboard,
+    applyPaddingToActivePage,
     downloadZip,
     exportJSON,
     saveToStageResult,
+    analyzeScriptAll,
   };
 }

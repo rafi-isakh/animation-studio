@@ -41,6 +41,8 @@ export default function ImageSplitter() {
     hasResults,
     pendingCount,
     activePage,
+    isAnalyzingScript,
+    scriptProgress,
     upload,
     process,
     remove,
@@ -53,6 +55,7 @@ export default function ImageSplitter() {
     updatePanelStoryboard,
     downloadZip,
     saveToStageResult,
+    analyzeScriptAll,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
@@ -72,6 +75,19 @@ export default function ImageSplitter() {
       saveToStageResult();
     }
   }, [isProcessing, hasResults, saveToStageResult]);
+
+  // Debug: Log active page dimensions
+  useEffect(() => {
+    if (activePage) {
+      console.log('[ImageSplitter] Active page changed:', {
+        id: activePage.id,
+        fileName: activePage.fileName,
+        width: activePage.width,
+        height: activePage.height,
+        panelsCount: activePage.panels.length,
+      });
+    }
+  }, [activePage]);
 
   // Handle file input change
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -367,6 +383,24 @@ export default function ImageSplitter() {
 
         <div className="p-4 border-t border-gray-700 bg-gray-800 space-y-2 flex-shrink-0">
           <button
+            onClick={analyzeScriptAll}
+            disabled={!hasResults || isAnalyzingScript}
+            className="w-full flex items-center justify-center bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded font-bold shadow transition-colors text-sm"
+          >
+            {isAnalyzingScript ? (
+              <>
+                <SpinnerIcon className="w-4 h-4 mr-2" />
+                Transcribing ({scriptProgress})...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Analyze & Transcribe
+              </>
+            )}
+          </button>
+
+          <button
             onClick={downloadZip}
             disabled={!hasResults}
             className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded font-bold shadow transition-colors text-sm"
@@ -433,8 +467,12 @@ export default function ImageSplitter() {
 
                 const isInteracting = activePanelId === panel.id;
                 const panelNumber = panelIndex + 1;
-                // Use storyboard text if available, otherwise fall back to label (description from backend)
-                const transcriptionText = panel.storyboard?.text ?? panel.label ?? '';
+                const showTranscription = !!panel.storyboard;
+
+                // Debug: Log panel storyboard status
+                if (panel.storyboard) {
+                  console.log(`[UI] Panel ${panel.label} has storyboard:`, panel.storyboard);
+                }
 
                 return (
                   <React.Fragment key={panel.id}>
@@ -459,7 +497,7 @@ export default function ImageSplitter() {
 
                       {/* Delete Button */}
                       <button
-                        onMouseDown={(e) => e.stopPropagation()} 
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
                           deletePanel(panel.id);
@@ -472,68 +510,72 @@ export default function ImageSplitter() {
                       {/* Resize Handles */}
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                         {/* NW Corner */}
-                        <div 
+                        <div
                           className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-nw-resize z-40"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-nw')}
                         />
                         {/* NE Corner */}
-                        <div 
+                        <div
                           className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-ne-resize z-40"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-ne')}
                         />
                         {/* SW Corner */}
-                        <div 
+                        <div
                           className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-sw-resize z-40"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-sw')}
                         />
                         {/* SE Corner */}
-                        <div 
+                        <div
                           className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-se-resize z-40"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-se')}
                         />
-                        
+
                         {/* Edge Handles */}
-                        <div 
+                        <div
                           className="absolute -top-1 left-2 right-2 h-2 cursor-ns-resize z-35"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-n')}
                         />
-                        <div 
+                        <div
                           className="absolute -bottom-1 left-2 right-2 h-2 cursor-ns-resize z-35"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-s')}
                         />
-                        <div 
+                        <div
                           className="absolute top-2 bottom-2 -left-1 w-2 cursor-ew-resize z-35"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-w')}
                         />
-                        <div 
+                        <div
                           className="absolute top-2 bottom-2 -right-1 w-2 cursor-ew-resize z-35"
                           onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-e')}
                         />
                       </div>
+                    </div>
 
-                      {/* Transcription Box - Inside panel, shows on hover */}
-                      <div 
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                    {/* Transcription Box - Floats to the right of panel, always visible when exists */}
+                    {showTranscription && (
+                      <div
+                        className="absolute bg-gray-800/90 border border-gray-600 rounded shadow-xl z-40 overflow-y-auto backdrop-blur-sm"
+                        style={{
+                          top: `${top}%`,
+                          left: `${left + width}%`,
+                          width: '280px',
+                          maxHeight: '300px',
+                          marginLeft: '8px'
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                       >
-                        <div 
-                          className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded shadow-xl z-50 pointer-events-auto"
-                          style={{ width: '200px', minWidth: '150px' }}
-                          onMouseDown={(e) => e.stopPropagation()}
-                        >
-                          <div className="px-2 py-1 border-b border-gray-700 bg-gray-700/50 rounded-t">
-                            <span className="text-[10px] font-bold text-gray-300">PANEL {panelNumber}</span>
+                        <div className="p-2 space-y-1">
+                          <div className="flex justify-between items-center pb-1 border-b border-gray-700 mb-2">
+                            <span className="text-[10px] font-bold text-gray-400">RAW SCRIPT</span>
                           </div>
-                          <div className="p-2">
-                            <textarea 
-                              value={transcriptionText} 
-                              onChange={(e) => updatePanelStoryboard(panel.id, e.target.value)}
-                              className="w-full h-20 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-white font-mono leading-relaxed focus:border-[#DB2777] focus:outline-none resize-none"
-                              placeholder={`VISUAL: ...\nDIALOGUE: ...`}
-                            />
-                          </div>
+                          <textarea
+                            value={panel.storyboard?.text || ''}
+                            onChange={(e) => updatePanelStoryboard(panel.id, e.target.value)}
+                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 h-48 resize-y text-xs font-mono leading-relaxed focus:border-[#DB2777] outline-none"
+                            placeholder="VISUAL: ...&#10;DIALOGUE: ...&#10;SFX: ..."
+                          />
                         </div>
                       </div>
-                    </div>
+                    )}
                   </React.Fragment>
                 );
               })}

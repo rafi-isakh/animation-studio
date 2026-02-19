@@ -8,6 +8,7 @@ import {
   ProcessingStatus,
 } from './types';
 import { usePanelOrchestrator, PanelUpdate } from './usePanelOrchestrator';
+import { useMithril } from '../../MithrilContext';
 
 // Helper to read file to base64
 const fileToBase64 = (file: File): Promise<string> => {
@@ -36,8 +37,11 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   // Generate a unique session ID for this panel editor instance
   const [sessionId] = useState(() => uuidv4());
 
-  // API key for Gemini - user can provide this
-  const [apiKey, setApiKey] = useState<string>('');
+  // Use the global API key from MithrilContext (same field shown in the top-right key input)
+  const { customApiKey } = useMithril();
+
+  // Provider selection
+  const [provider, setProvider] = useState<'gemini' | 'grok'>('gemini');
 
   // Track active jobs: panelId -> jobId mapping
   const activeJobsRef = useRef<Map<string, string>>(new Map());
@@ -203,7 +207,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           mimeType: panel.file.type || 'image/png',
           targetAspectRatio: state.config.targetAspectRatio,
           refinementMode,
-          apiKey: apiKey || undefined,
+          apiKey: customApiKey || undefined,
+          provider,
         });
 
         // Track this job
@@ -232,7 +237,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
         });
       }
     },
-    [state.panels, state.config.targetAspectRatio, projectId, sessionId, apiKey, submitJob, cancelJob]
+    [state.panels, state.config.targetAspectRatio, projectId, sessionId, customApiKey, provider, submitJob, cancelJob]
   );
 
   // Process all panels
@@ -344,8 +349,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   return {
     state,
     sessionId,
-    apiKey,
-    setApiKey,
+    provider,
+    setProvider,
     addFilesToLibrary,
     addPanelsFromManifest,
     addPanels,

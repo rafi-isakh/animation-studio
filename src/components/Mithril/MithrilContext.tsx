@@ -25,8 +25,6 @@ import {
 import {
   getMetadata,
   updateCurrentStage as updateCurrentStageFirestore,
-  updateCustomApiKey as updateCustomApiKeyFirestore,
-  updateVideoApiKey as updateVideoApiKeyFirestore,
   getChapter,
   getStorySplits,
   saveStorySplits,
@@ -422,8 +420,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           const normalized = normalizeStageForPipeline(metadata.currentStage || 1);
           setCurrentStageState(normalized);
         }
-        setCustomApiKeyState(metadata.customApiKey || "");
-        setVideoApiKeyState(metadata.videoApiKey || "");
+        // API keys are intentionally not loaded from Firestore (kept in-memory only)
       }
 
       // Load chapter data (including uploadType)
@@ -888,29 +885,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [currentProjectId, router, searchParams]);
 
-  // Wrapper for setCustomApiKey that also updates Firestore
-  const setCustomApiKey = useCallback(async (key: string) => {
+  // API keys are kept in-memory only (not persisted to Firestore)
+  const setCustomApiKey = useCallback((key: string) => {
     setCustomApiKeyState(key);
-    if (currentProjectId) {
-      try {
-        await updateCustomApiKeyFirestore(currentProjectId, key);
-      } catch (error) {
-        console.error("Error updating custom API key in Firestore:", error);
-      }
-    }
-  }, [currentProjectId]);
+  }, []);
 
-  // Wrapper for setVideoApiKey that also updates Firestore
-  const setVideoApiKey = useCallback(async (key: string) => {
+  const setVideoApiKey = useCallback((key: string) => {
     setVideoApiKeyState(key);
-    if (currentProjectId) {
-      try {
-        await updateVideoApiKeyFirestore(currentProjectId, key);
-      } catch (error) {
-        console.error("Error updating video API key in Firestore:", error);
-      }
-    }
-  }, [currentProjectId]);
+  }, []);
 
   // Helper to clear specific stage results
   const clearStageResult = useCallback((stage: number) => {

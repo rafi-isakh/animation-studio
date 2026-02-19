@@ -12,8 +12,6 @@ export interface ProjectMetadata {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   currentStage: number;
-  customApiKey?: string;
-  videoApiKey?: string;
   ownerId: string; // User ID who owns this project
 }
 
@@ -26,8 +24,6 @@ export interface CreateProjectInput {
 export interface UpdateProjectInput {
   name?: string;
   currentStage?: number;
-  customApiKey?: string;
-  videoApiKey?: string;
 }
 
 // ============================================

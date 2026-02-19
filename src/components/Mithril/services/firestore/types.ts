@@ -689,6 +689,7 @@ export interface MangaPanelDocument {
   box_2d: number[]; // [ymin, xmin, ymax, xmax] in 0-1000 scale
   label: string;
   imageRef?: string; // S3 URL for cropped panel image
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 export interface MangaPageDocument {
@@ -701,6 +702,8 @@ export interface MangaPageDocument {
   panelCount: number;
   createdAt: Timestamp;
   originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface ImageSplitterDocument {
@@ -716,12 +719,15 @@ export interface SaveMangaPageInput {
   readingDirection: ReadingDirection;
   status?: MangaPanelStatus;
   originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface SaveMangaPanelInput {
   box_2d: number[];
   label: string;
   imageRef?: string;
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 // ============================================

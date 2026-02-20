@@ -60,6 +60,7 @@ export default function PanelEditor() {
     provider,
     setProvider,
     addFilesToLibrary,
+    importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
     removePanel,
@@ -284,6 +285,7 @@ export default function PanelEditor() {
       <FileLibrary
         files={fileLibrary}
         onFilesAdded={addFilesToLibrary}
+        onImportAll={importAllFromLibrary}
         onManifestLoaded={addPanelsFromManifest}
       />
 

@@ -129,6 +129,20 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
   }, []);
 
+  // Import all files from library to workspace
+  const importAllFromLibrary = useCallback(() => {
+    const libraryFiles = Object.values(state.fileLibrary) as File[];
+    if (libraryFiles.length === 0) return;
+    const newPanels: PanelData[] = libraryFiles.map((file) => ({
+      id: uuidv4(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+      status: ProcessingStatus.Idle,
+    }));
+    dispatch({ type: 'ADD_PANELS', panels: newPanels });
+  }, [state.fileLibrary]);
+
   // Add files from manifest to processing queue
   const addPanelsFromManifest = useCallback((files: File[]) => {
     const newPanels: PanelData[] = files.map((file) => ({
@@ -352,6 +366,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     provider,
     setProvider,
     addFilesToLibrary,
+    importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
     removePanel,

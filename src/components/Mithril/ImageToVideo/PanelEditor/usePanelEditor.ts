@@ -9,21 +9,7 @@ import {
 } from './types';
 import { usePanelOrchestrator, PanelUpdate } from './usePanelOrchestrator';
 import { useMithril } from '../../MithrilContext';
-
-// Helper to read file to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove Data-URI prefix to get pure base64
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = (error) => reject(error);
-  });
-};
+import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
 
 interface UsePanelEditorOptions {
   projectId: string;  // Project ID from MithrilContext for S3 storage
@@ -208,8 +194,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       });
 
       try {
-        // Convert file to base64
-        const imageBase64 = await fileToBase64(panel.file);
+        // Compress image to stay within Firestore's ~1MB document size limit
+        const imageBase64 = await compressImage(panel.file, 1500, 0.8);
 
         // Submit job to orchestrator
         const response = await submitJob({
@@ -218,7 +204,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           panelId: panel.id,
           fileName: panel.fileName,
           imageBase64,
-          mimeType: panel.file.type || 'image/png',
+          mimeType: 'image/jpeg',
           targetAspectRatio: state.config.targetAspectRatio,
           refinementMode,
           apiKey: customApiKey || undefined,

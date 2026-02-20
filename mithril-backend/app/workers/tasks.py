@@ -288,7 +288,11 @@ async def retry_failed_prop_design_sheet_job(
 
 
 @broker.task
-async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
+async def process_panel_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
     """
     Main panel editor generation task.
 
@@ -300,6 +304,7 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
 
     Args:
         job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
         api_key: Optional custom API key (passed through task queue, not stored)
 
     Returns:
@@ -311,7 +316,7 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
     logger.info(f"[{worker_id}] Processing panel job: {job_id} (custom_key: {bool(api_key)})")
 
     try:
-        result = await process_panel_generation(job_id, worker_id, api_key)
+        result = await process_panel_generation(job_id, image_base64, worker_id, api_key)
         logger.info(f"[{worker_id}] Panel job {job_id} finished with status: {result.get('status')}")
         return result
 
@@ -328,6 +333,7 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
 async def retry_failed_panel_job(
     job_id: str,
     delay_seconds: float = 0,
+    image_base64: str = "",
     api_key: str | None = None,
 ) -> dict:
     """
@@ -336,6 +342,7 @@ async def retry_failed_panel_job(
     Args:
         job_id: The job ID to retry
         delay_seconds: Delay before processing
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
         api_key: Optional API key (if not provided, uses settings fallback)
 
     Returns:
@@ -347,7 +354,7 @@ async def retry_failed_panel_job(
         logger.info(f"Waiting {delay_seconds}s before retrying panel job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_panel_job(job_id, api_key)
+    return await process_panel_job(job_id, image_base64, api_key)
 
 
 # ============================================================================

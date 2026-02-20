@@ -47,9 +47,9 @@ async def submit_panel_job(
     job = await job_queue_service.create_panel_job(request, user.uid)
     logger.info(f"[PANEL-API] Job created: {job.id}")
 
-    # Queue for processing (pass API key through task queue, not stored in DB)
+    # Queue for processing (pass image_base64 and API key through task queue, not stored in DB)
     logger.debug(f"[PANEL-API] Queuing job {job.id} for processing...")
-    await process_panel_job.kiq(job.id, request.api_key)
+    await process_panel_job.kiq(job.id, request.image_base64, request.api_key)
     logger.info(f"[PANEL-API] Job {job.id} queued successfully")
 
     return JobSubmitResponse(

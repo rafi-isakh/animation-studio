@@ -336,7 +336,8 @@ class JobQueueService:
             session_id=request.session_id,  # For real-time tracking
             panel_id=request.panel_id,
             file_name=request.file_name,
-            source_image_base64=request.image_base64,
+            # NOTE: image_base64 is passed through task queue, not stored in Firestore
+            # to avoid the 1MB document size limit (same pattern as panel splitter)
             source_mime_type=request.mime_type,
             refinement_mode=request.refinement_mode,
             max_retries=2,  # Fewer retries for panels

@@ -185,6 +185,7 @@ async def generate_panel_image_for_provider(
 
 async def process_panel_generation(
     job_id: str,
+    image_base64: str,
     worker_id: str = "worker-1",
     custom_api_key: str | None = None,
 ) -> dict:
@@ -239,7 +240,7 @@ async def process_panel_generation(
         await check_cancellation(job_id)
 
         # === Stage 2: Generate image ===
-        image_bytes = await _stage_generate(job, prompt, api_key, state_machine)
+        image_bytes = await _stage_generate(job, image_base64, prompt, api_key, state_machine)
 
         # === CHECKPOINT 3: Before upload ===
         await check_cancellation(job_id)
@@ -267,12 +268,12 @@ async def process_panel_generation(
 
     except VideoJobError as e:
         logger.error(f"[PANEL-GEN] {job_id} - VideoJobError: {e.code.value} - {e.message}")
-        return await _handle_error(job, e, state_machine, custom_api_key)
+        return await _handle_error(job, e, state_machine, image_base64, custom_api_key)
 
     except Exception as e:
         logger.exception(f"[PANEL-GEN] {job_id} - Unexpected error: {type(e).__name__}: {str(e)}")
         video_error = classify_exception(e)
-        return await _handle_error(job, video_error, state_machine, custom_api_key)
+        return await _handle_error(job, video_error, state_machine, image_base64, custom_api_key)
 
 
 def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
@@ -321,6 +322,7 @@ async def _stage_prepare(
 
 async def _stage_generate(
     job: JobDocument,
+    image_base64: str,
     prompt: str,
     api_key: str,
     state_machine: JobStateMachine,
@@ -336,7 +338,7 @@ async def _stage_generate(
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to GENERATING in Firestore")
 
     # Validate we have source image
-    if not job.source_image_base64:
+    if not image_base64:
         raise VideoJobError.invalid_request("No source image provided")
 
     # Generate image
@@ -344,8 +346,8 @@ async def _stage_generate(
     try:
         image_bytes = await generate_panel_image_for_provider(
             provider_id=provider_id,
-            image_base64=job.source_image_base64,
-            mime_type=job.source_mime_type or "image/png",
+            image_base64=image_base64,
+            mime_type=job.source_mime_type or "image/jpeg",
             prompt=prompt,
             aspect_ratio=job.aspect_ratio,
             api_key=api_key,
@@ -409,7 +411,6 @@ async def _stage_complete(
 
     state_machine.transition_to(JobStatus.COMPLETED)
 
-    # Update job queue - also clear the source_image_base64 to save space
     logger.debug(f"[PANEL-GEN] {job.id} - Updating job_queue status to COMPLETED")
     await job_queue_service.update_job_status(
         job.id,
@@ -417,12 +418,6 @@ async def _stage_complete(
         image_url=result["image_url"],
         s3_file_name=result["s3_file_name"],
         progress=1.0,
-    )
-
-    # Clear source image from Firestore to save space
-    await job_queue_service.update_job(
-        job.id,
-        unset_fields=["source_image_base64"],
     )
 
     logger.info(f"[PANEL-GEN] {job.id} - Job queue updated")
@@ -449,6 +444,7 @@ async def _handle_error(
     job: JobDocument,
     error: VideoJobError,
     state_machine: JobStateMachine,
+    image_base64: str = "",
     custom_api_key: str | None = None,
 ) -> dict:
     """Handle job error with potential retry."""
@@ -487,8 +483,8 @@ async def _handle_error(
             error_retryable=True,
         )
 
-        # Queue retry task with delay and API key
-        await retry_failed_panel_job.kiq(job.id, delay, custom_api_key)
+        # Queue retry task with delay, image, and API key
+        await retry_failed_panel_job.kiq(job.id, delay, image_base64, custom_api_key)
 
         return {
             "job_id": job.id,

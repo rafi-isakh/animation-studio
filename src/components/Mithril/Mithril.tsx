@@ -1,19 +1,9 @@
 "use client";
 
 import { useMemo, useState, ComponentType } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Key, Eye, EyeOff, Clock, Download, RotateCcw, FolderOpen, Wand2, Shield, Globe, LogOut } from "lucide-react";
+import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import { useMithrilAuth } from "@/components/Mithril/auth";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/shadcnUI/Dialog";
-import { Button } from "@/components/shadcnUI/Button";
-import { langPairList } from "@/utils/phrases";
-import type { Language } from "@/components/Types";
+import MithrilHeader from "./MithrilHeader";
 import UploadManager from "./UploadManager";
 import IdConverter from "./IdConverter";
 import StorySplitter from "./StorySplitter";
@@ -222,17 +212,6 @@ function MithrilContent() {
   } = useMithril();
   const { language, dictionary } = useLanguage();
 
-  // Auth + navigation
-  const { user, logout, isAuthenticated, isAdmin } = useMithrilAuth();
-  const { setLanguageOverride } = useLanguage();
-  const pathname = usePathname();
-  const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguageOverride(lang);
-    setOpenLanguageDialog(false);
-  };
-
   // API key visibility toggles
   const [showApiKey, setShowApiKey] = useState(false);
   const [showVideoApiKey, setShowVideoApiKey] = useState(false);
@@ -281,115 +260,71 @@ function MithrilContent() {
   const pipelineLabel = projectTypeConfig ? phrase(dictionary, projectTypeConfig.labelKey, language) : "Pipeline";
   const settingsLabel = phrase(dictionary, "mithril_settings", language) || "Settings";
 
-  // Stepper rows — shared between desktop right panel and mobile top bar
-  const stepperRows = stages.map((stage, index) => {
-    const skipped = isStageSkipped(stage.id);
-    return (
-      <div key={stage.id} className="flex flex-col">
-        <button
-          onClick={() => !skipped && setCurrentStage(stage.id)}
-          disabled={skipped}
-          className={`flex items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors w-full
-            ${skipped ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}
-            ${stage.id === currentStage ? 'bg-gray-100 dark:bg-gray-800' : ''}
-          `}
-          title={skipped ? 'Skipped (Single Chapter upload)' : undefined}
-        >
-          <div className={`
-            w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0
-            transition-all duration-200
-            ${skipped
-              ? "bg-gray-300 dark:bg-gray-600 text-gray-400 dark:text-gray-500"
-              : stage.id === currentStage
-              ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
-              : stage.id < currentStage
-              ? `${stage.color.bg} text-white`
-              : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-            }
-          `}>
-            {stage.stepNumber}
-          </div>
-          <span className={`
-            text-xs font-medium leading-tight
-            ${skipped
-              ? "text-gray-400 dark:text-gray-500 line-through"
-              : stage.id === currentStage
-              ? stage.color.text
-              : stage.id < currentStage
-              ? stage.color.text
-              : "text-gray-500 dark:text-gray-400"
-            }
-          `}>
-            {stage.label}
-          </span>
-        </button>
-        {index < stages.length - 1 && (
-          <div className={`w-px h-4 ml-6 shrink-0 ${stage.id < currentStage ? "bg-gray-400 dark:bg-gray-500" : "bg-gray-200 dark:bg-gray-700"}`} />
-        )}
-      </div>
-    );
-  });
+  // Stepper grid — 2-column tile cards for desktop right panel
+  const stepperGrid = (
+    <div className="grid grid-cols-2 gap-2">
+      {stages.map((stage) => {
+        const skipped = isStageSkipped(stage.id);
+        const isActive = stage.id === currentStage;
+        const isCompleted = stage.id < currentStage;
+        return (
+          <button
+            key={stage.id}
+            onClick={() => !skipped && setCurrentStage(stage.id)}
+            disabled={skipped}
+            title={skipped ? 'Skipped (Single Chapter upload)' : stage.label}
+            className={`
+              flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200 text-center
+              ${skipped
+                ? 'opacity-40 cursor-not-allowed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
+                : isActive
+                ? `border-current ${stage.color.text} bg-white dark:bg-gray-800 shadow-sm`
+                : isCompleted
+                ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
+                : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
+              }
+            `}
+          >
+            {/* Circle */}
+            <div className={`
+              w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
+              transition-all duration-200
+              ${skipped
+                ? "bg-gray-300 dark:bg-gray-600 text-gray-400"
+                : isActive
+                ? `${stage.color.bg} text-white ring-4 ${stage.color.ring}`
+                : isCompleted
+                ? `${stage.color.bg} text-white`
+                : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500"
+              }
+            `}>
+              {stage.stepNumber}
+            </div>
+            {/* Label */}
+            <span className={`
+              text-[10px] font-medium leading-tight
+              ${skipped
+                ? "text-gray-400 dark:text-gray-500 line-through"
+                : isActive
+                ? stage.color.text
+                : isCompleted
+                ? "text-gray-600 dark:text-gray-400"
+                : "text-gray-400 dark:text-gray-500"
+              }
+            `}>
+              {stage.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
 
       {/* ── TOP HEADER ── */}
-      <header className="fixed top-0 left-0 right-0 h-14 z-20
-                         bg-white dark:bg-gray-900
-                         border-b border-gray-200 dark:border-gray-800
-                         flex items-center justify-between px-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Wand2 size={18} className="text-[#DB2777] shrink-0" />
-          <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">Mithril</span>
-        </div>
-        <div className="flex items-center gap-1">
-          {isAuthenticated && user && (
-            <span className="text-xs text-gray-400 dark:text-gray-500 mr-2 hidden sm:block truncate max-w-[180px]">
-              {user.email}
-            </span>
-          )}
-          <button
-            onClick={() => setOpenLanguageDialog(true)}
-            title="Language"
-            className="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <Globe size={16} />
-          </button>
-          {isAdmin && (
-            <Link
-              href="/mithril/admin"
-              title="Admin"
-              className={`p-2 rounded-md transition-colors ${
-                pathname.startsWith('/mithril/admin')
-                  ? "text-[#DB2777]"
-                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-            >
-              <Shield size={16} />
-            </Link>
-          )}
-          <Link
-            href="/projects"
-            title="Projects"
-            className={`p-2 rounded-md transition-colors ${
-              pathname === '/projects' || pathname === '/'
-                ? "text-[#DB2777]"
-                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            <FolderOpen size={16} />
-          </Link>
-          {isAuthenticated && (
-            <button
-              onClick={() => logout()}
-              title="Logout"
-              className="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <LogOut size={16} />
-            </button>
-          )}
-        </div>
-      </header>
+      <MithrilHeader />
 
       {/* ── DESKTOP: 3-panel card layout ── */}
       <div className="hidden md:flex fixed top-14 left-0 right-0 bottom-0 gap-3 p-3 bg-[#f0f4f9] dark:bg-[#111]">
@@ -446,7 +381,7 @@ function MithrilContent() {
         {/* Right panel: Stepper */}
         <PanelCard title={pipelineLabel} className="w-[220px] shrink-0">
           <div className="flex-1 overflow-y-auto p-3">
-            {stepperRows}
+            {stepperGrid}
           </div>
         </PanelCard>
 
@@ -550,27 +485,6 @@ function MithrilContent() {
           />
         </div>
       </div>
-
-      {/* Language Dialog */}
-      <Dialog open={openLanguageDialog} onOpenChange={setOpenLanguageDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{phrase(dictionary, "language", language) || "Language"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-2 py-4">
-            {langPairList.map((langPair) => (
-              <Button
-                key={langPair.code}
-                variant={language === langPair.code ? "default" : "outline"}
-                className="w-full justify-start"
-                onClick={() => handleLanguageChange(langPair.code as Language)}
-              >
-                {langPair.name}
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );

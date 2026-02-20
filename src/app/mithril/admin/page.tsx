@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { AdminAuthGate } from '@/components/Mithril/auth';
 import { useMithrilAuth } from '@/components/Mithril/auth';
+import MithrilHeader from '@/components/Mithril/MithrilHeader';
 import type { MithrilUserRole } from '@/components/Mithril/services/firestore/types';
 
 interface AdminUser {
@@ -276,8 +277,9 @@ function UserManagementContent() {
   const isSelf = (userId: string) => currentUser?.id === userId;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1A1A1A] p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
+      <MithrilHeader />
+      <div className="max-w-7xl mx-auto p-8 pt-20">
         <Card className="dark:bg-[#211F21] dark:border-gray-800">
           <CardHeader>
             <div className="flex justify-between items-center">

@@ -412,6 +412,7 @@ class PanelJobSubmitRequest(BaseModel):
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     refinement_mode: Literal["default", "zoom", "expand"] = "default"
     api_key: str | None = None  # Custom API key (optional)
+    provider: Literal["gemini", "grok"] = "gemini"  # Image generation provider
 
 
 class PanelJobStatusResponse(BaseModel):

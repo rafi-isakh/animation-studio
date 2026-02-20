@@ -324,7 +324,7 @@ class JobQueueService:
             project_id=request.project_id,  # Use actual project_id for S3 storage
             scene_index=0,  # Not used for panels
             clip_index=0,  # Not used for panels
-            provider_id="gemini",  # Currently only Gemini for panels
+            provider_id=request.provider,
             prompt="",  # Prompt is built in the handler
             aspect_ratio=request.target_aspect_ratio,
             api_key_hash=hash_api_key(request.api_key),

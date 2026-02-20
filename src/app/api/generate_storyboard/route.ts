@@ -96,10 +96,49 @@ async function generateStoryboardWithRetry(
 
     **[가장 중요한 규칙]**
     - 하나의 클립은 반드시 하나의 단일 동작이나 정지된 장면만을 묘사해야 합니다. 'A가 문을 연다'와 'B가 방으로 들어온다'와 같은 연속적인 동작은 **절대로** 하나의 클립에 포함될 수 없으며, 반드시 별개의 클립으로 분리해야 합니다.
-    - 출력은 반드시 유효한 JSON 객체여야 하며, 'scenes'와 'voicePrompts'라는 두 개의 키를 가져야 합니다.
+    - 출력은 반드시 유효한 JSON 객체여야 하며, 'scenes', 'voicePrompts', 'characterIdSummary', 'genre'라는 네 개의 키를 가져야 합니다.
     - 'scenes' 키의 값은 각 객체가 단일 '씬'을 나타내는 객체 배열이어야 합니다. 각 '씬' 객체는 "sceneTitle"과 "clips" 키를 가져야 합니다.
     - 'clips' 키의 값은 각 객체가 단일 클립을 나타내는 객체 배열이어야 하며, 각 클립 객체는 "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "dialogue", "dialogueEn", "sfx", "sfxEn", "bgm", "bgmEn", "length", "accumulatedTime", "backgroundPrompt", "backgroundId" 키를 가져야 합니다.
     - 'voicePrompts' 키의 값은 주요 캐릭터들의 보이스 프롬프트가 포함된 객체 배열이어야 합니다. 각 객체는 'promptKo' (한국어 버전)와 'promptEn' (영어 버전) 키를 가져야 합니다. 이 프롬프트는 ElevenLabs에서 사용될 것이며, 각 캐릭터의 성격, 특성을 반영하고 참고할 만한 실제 인물의 목소리를 추천해야 합니다. **원문에서 언급된 모든 주요 캐릭터를 포함해야 합니다.** **참고 인물을 추천할 때, 'promptKo'에는 한국인을, 'promptEn'에는 미국인을 추천해야 합니다.**
+    - 'characterIdSummary' 키의 값은 **모든 클립의 imagePrompt에 등장하는 모든 대문자 캐릭터 ID**를 분석하여 생성한 요약 리스트입니다. 각 객체는 'characterId'와 'description' 키를 가져야 합니다.
+      **[characterIdSummary 생성 규칙]**:
+      1. **현재 시점의 주인공을 식별하고 가장 먼저 나열하되, "Protagonist. Default"라고 설명합니다.**
+      2. **각 캐릭터 그룹(예: LEON_*, KAIDEN_*, ELISA_*)에서 디폴트 버전을 먼저 식별합니다.** 디폴트는 가장 자주 등장하거나 현재 시점의 버전입니다.
+      3. **디폴트 캐릭터는 주인공과의 관계를 설명하고 "Default"를 추가합니다** (예: "Son of Protagonist. Default", "Husband of Protagonist. Default").
+      4. **변형(Variant) 캐릭터는 반드시 해당 캐릭터의 디폴트 ID를 기준으로 설명합니다. 주인공이 아닌 디폴트 ID와의 관계를 명시하세요:**
+         - 나이 변형: "6 year old version of [DEFAULT_ID]", "Adult past 25 year old version of [DEFAULT_ID]"
+         - 의상/상황 변형: "wearing [clothing description]" (디폴트 ID 언급 불필요), "[situational context]"
+      5. **각 설명은 한 줄로 간결하게 작성하며, 강조할 특징(나이, 의상, 상황)을 명확히 표현합니다.**
+      6. **올바른 예시 형식**:
+         - ELISA_PRESENT: Protagonist. Default
+         - ELISA_PAST_19: 19 year old version of ELISA_PRESENT
+         - LEON_PRESENT_CHILD: Son of Protagonist. Default
+         - LEON_PAST_CHILD: 6 year old version of LEON_PRESENT_CHILD
+         - LEON_PAST_ADULT: Adult past 25 year old version of LEON_PRESENT_CHILD
+         - KAIDEN_EMPEROR: Husband of Protagonist. Default
+         - KAIDEN_BALLROOM: Husband of Protagonist, wearing formal ballroom attire
+         - KAIDEN_EMPEROR_PAST: 25 year old version of KAIDEN_EMPEROR
+      7. **잘못된 예시 (따라하지 마시오)**:
+         - ❌ LEON_PAST_ADULT: 30 year old son of the protagonist (variant가 protagonist 언급)
+         - ❌ LEON_PRESENT_CHILD: 10 year old version of LEON_PAST_ADULT. Default (default가 variant 언급)
+         - ✅ LEON_PRESENT_CHILD: Son of Protagonist. Default (default는 protagonist 관계)
+         - ✅ LEON_PAST_ADULT: Adult past 25 year old version of LEON_PRESENT_CHILD (variant는 default 언급)
+    - 'genre' 키의 값은 원본 텍스트의 장르를 분석하여 한국어와 영어로 모두 표기한 문자열입니다.
+      **[genre 생성 규칙]**:
+      1. **원본 텍스트의 배경, 설정, 분위기, 캐릭터 관계를 종합적으로 분석하여 가장 적합한 장르를 결정합니다.**
+      2. **형식: "한국어 장르명 (English Genre Name)"** (예: "서양 판타지 (Western Fantasy)", "무협 (Wuxia)")
+      3. **장르 예시**:
+         - 서양 판타지 (Western Fantasy) - 중세 유럽풍 마법, 기사, 용 등
+         - 동양 판타지 (Eastern Fantasy) - 도사, 신선, 영물 등
+         - 무협 (Wuxia) - 강호, 무림, 무공 등
+         - 현대 로맨스 (Modern Romance) - 현대 배경의 연애물
+         - 현대 판타지 액션 (Modern Fantasy Action) - 현대 배경 + 초능력/이능
+         - 현대 사이버펑크 (Modern Cyberpunk) - 미래 도시, 첨단기술, 디스토피아
+         - 역사물 (Historical Drama) - 역사적 사건 기반
+         - 스릴러 (Thriller) - 긴장감, 추리, 범죄
+         - SF (Science Fiction) - 우주, 외계, 미래 과학 기술
+         - 학원물 (School Life) - 학교 배경
+      4. **명확한 장르로 분류하되, 복합 장르인 경우 가장 주된 장르를 선택하거나 두 장르를 조합합니다** (예: "현대 판타지 로맨스 (Modern Fantasy Romance)")
 
     **[전체 콘티 공통 연출 가이드라인 (필수 적용)]**
     1. **동적/정적 밸런스 (33% vs 66%)**:
@@ -203,6 +242,13 @@ async function generateStoryboardWithRetry(
     11. **bgmEn**:
         - 'bgm' 필드의 영어 번역본입니다. 없으면 빈 문자열 ""로 둡니다.
 
+    17. **veoVideoPrompt**:
+        - 반드시 영어로 작성해야 합니다.
+        - **지침**: Google Veo 비디오 AI용 프롬프트입니다. 다음 3가지 템플릿 중 하나를 선택하여 생성합니다:
+          - **캐릭터 + 대사가 있는 클립**: \`Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"\`
+          - **배경만 있는 클립 (캐릭터 없음)**: \`Fixed lo-fi static background wallpaper, slow dolly-in\`
+          - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: \`Static storybook lofi wallpaper, narration says "[narrationEn 내용]"\`
+
     12. **soraVideoPrompt**:
         - 반드시 영어로 작성해야 합니다.
         - **지침**: 이 필드는 Sora 비디오 생성 AI에 바로 입력될 프롬프트입니다.
@@ -236,6 +282,14 @@ async function generateStoryboardWithRetry(
         - 반드시 영어로 작성해야 합니다.
         - **지침: 클립의 정적 배경을 'imagePrompt'와는 별개로, 매우 상세하고 풍부하게 묘사합니다. 배경의 분위기, 주요 사물, 빛의 상태, 재질감 등 시각적 요소를 풍부하게 포함해야 합니다. 동일한 배경을 공유하는 연속적인 클립에는 동일한 \`backgroundPrompt\` 값을 사용해야 합니다. 씬 내에서 배경이 변경될 때만 이 프롬프트를 변경합니다.**
         - **예시: "A dimly lit, ornate Victorian-style bedroom with a large four-poster bed, a vintage wooden wardrobe, and flickering gas lamps. Dust motes visible in the sparse light."**
+
+    16. **characterInfo**:
+        - 반드시 영어로 작성해야 합니다.
+        - **지침: 해당 클립에 등장하는 주요 캐릭터들의 간단한 관계 정보를 작성합니다. 각 캐릭터는 "CHARACTER_ID=주인공과의 관계 또는 특징" 형식으로 1~2단어 이내로 요약하여, 쉼표(,)로 구분하여 나열합니다.**
+        - **형식: "CHARACTER_ID1=relationship/trait, CHARACTER_ID2=relationship/trait"**
+        - **예시: "AREL=Protagonist's son, RIFANA=Nursemaid, KANIA=19-year-old self"**
+        - **중요: imagePrompt에 등장하는 모든 대문자 캐릭터 ID에 대해 작성하되, 배경이나 사물은 제외합니다. 관계는 주인공 기준으로 작성하며, 매우 간결하게 표현해야 합니다 (예: "son", "wife", "younger self", "Master", "Rival").**
+        - **클립에 캐릭터가 등장하지 않거나 캐릭터 정보가 불필요한 경우 빈 문자열 ""로 둡니다.**
 
     ${customInstruction ? `
     **[사용자 특별 지시사항 (Story Guide)]**
@@ -294,6 +348,11 @@ async function generateStoryboardWithRetry(
                     description:
                       "Visual description (no names) + camera moves + dialogue/sfx/bgm info appended at the end.",
                   },
+                  veoVideoPrompt: {
+                    type: Type.STRING,
+                    description:
+                      "Google Veo video prompt using 3-template system: character+dialogue, background-only, or character+narration.",
+                  },
                   dialogue: {
                     type: Type.STRING,
                     description:
@@ -346,12 +405,18 @@ async function generateStoryboardWithRetry(
                     description:
                       "The ID # of the background and shot type, e.g. 1-2 or 1-2-1. Empty for extreme close-ups.",
                   },
+                  characterInfo: {
+                    type: Type.STRING,
+                    description:
+                      "Brief character relationships in format 'CHARACTER_ID=relationship, CHARACTER_ID2=relationship'. Empty if no characters appear.",
+                  },
                 },
                 required: [
                   "story",
                   "imagePrompt",
                   "videoPrompt",
                   "soraVideoPrompt",
+                  "veoVideoPrompt",
                   "dialogue",
                   "dialogueEn",
                   "narration",
@@ -364,6 +429,7 @@ async function generateStoryboardWithRetry(
                   "accumulatedTime",
                   "backgroundPrompt",
                   "backgroundId",
+                  "characterInfo",
                 ],
                 propertyOrdering: [
                   "dialogue",
@@ -378,10 +444,12 @@ async function generateStoryboardWithRetry(
                   "accumulatedTime",
                   "backgroundId",
                   "backgroundPrompt",
+                  "characterInfo",
                   "story",
                   "imagePrompt",
                   "videoPrompt",
                   "soraVideoPrompt",
+                  "veoVideoPrompt",
                 ],
               },
             },
@@ -402,9 +470,32 @@ async function generateStoryboardWithRetry(
           propertyOrdering: ["promptKo", "promptEn"],
         },
       },
+      characterIdSummary: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            characterId: {
+              type: Type.STRING,
+              description: "The uppercase character ID (e.g., ELISA_PRESENT, KAIDEN_EMPEROR).",
+            },
+            description: {
+              type: Type.STRING,
+              description:
+                "Brief description of the character's role and variant details (e.g., 'Protagonist. Default', '19 year old version of ELISA_PRESENT').",
+            },
+          },
+          required: ["characterId", "description"],
+          propertyOrdering: ["characterId", "description"],
+        },
+      },
+      genre: {
+        type: Type.STRING,
+        description: "Story genre in both Korean and English (e.g., '서양 판타지 (Western Fantasy)', '무협 (Wuxia)').",
+      },
     },
-    required: ["scenes", "voicePrompts"],
-    propertyOrdering: ["scenes", "voicePrompts"],
+    required: ["scenes", "voicePrompts", "characterIdSummary", "genre"],
+    propertyOrdering: ["scenes", "voicePrompts", "characterIdSummary", "genre"],
   };
 
   let attempt = 0;

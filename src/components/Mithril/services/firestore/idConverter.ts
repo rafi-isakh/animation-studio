@@ -19,10 +19,13 @@ export async function getIdConverter(projectId: string): Promise<IdConverterDocu
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
+    console.log("[Firestore:idConverter] getIdConverter - document not found for project:", projectId);
     return null;
   }
 
-  return docSnap.data() as IdConverterDocument;
+  const data = docSnap.data() as IdConverterDocument;
+  console.log("[Firestore:idConverter] getIdConverter - loaded document, glossaryJobId:", data.glossaryJobId, "currentStep:", data.currentStep);
+  return data;
 }
 
 /**
@@ -34,15 +37,22 @@ export async function saveIdConverter(
 ): Promise<void> {
   const docRef = getIdConverterRef(projectId);
 
-  await setDoc(docRef, {
+  const data: Record<string, unknown> = {
     fileName: input.fileName,
-    originalFullText: input.originalFullText,
+    // Note: originalFullText is no longer stored in Firestore (too large)
+    // Text is stored in S3 and referenced via textFileUrl
+    textFileUrl: input.textFileUrl || null,
     fileUri: input.fileUri || null,
     glossary: input.glossary || [],
     chunks: input.chunks || [],
     currentStep: input.currentStep || 'upload',
+    uploadType: input.uploadType || null,
     generatedAt: Timestamp.now(),
-  });
+  };
+  if (input.glossaryJobId !== undefined) data.glossaryJobId = input.glossaryJobId;
+  if (input.batchJobId !== undefined) data.batchJobId = input.batchJobId;
+
+  await setDoc(docRef, data);
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);
@@ -59,16 +69,24 @@ export async function updateIdConverter(
   const docRef = getIdConverterRef(projectId);
 
   // Build update object with only defined fields
+  // Note: originalFullText is no longer stored in Firestore (too large)
+  // Text is stored in S3 and referenced via textFileUrl
   const updateData: Record<string, unknown> = {};
   if (input.fileName !== undefined) updateData.fileName = input.fileName;
-  if (input.originalFullText !== undefined) updateData.originalFullText = input.originalFullText;
+  if (input.textFileUrl !== undefined) updateData.textFileUrl = input.textFileUrl;
   if (input.fileUri !== undefined) updateData.fileUri = input.fileUri;
   if (input.glossary !== undefined) updateData.glossary = input.glossary;
   if (input.chunks !== undefined) updateData.chunks = input.chunks;
   if (input.currentStep !== undefined) updateData.currentStep = input.currentStep;
+  if (input.uploadType !== undefined) updateData.uploadType = input.uploadType;
+  if (input.glossaryJobId !== undefined) updateData.glossaryJobId = input.glossaryJobId;
+  if (input.batchJobId !== undefined) updateData.batchJobId = input.batchJobId;
   updateData.generatedAt = Timestamp.now();
 
+  console.log("[Firestore:idConverter] updateIdConverter - fields to write:", Object.keys(updateData));
+
   await setDoc(docRef, updateData, { merge: true });
+  console.log("[Firestore:idConverter] updateIdConverter - write complete");
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);

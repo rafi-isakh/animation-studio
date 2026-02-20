@@ -19,6 +19,7 @@ interface DetectRequest {
   scenes: Scene[];
   objectIds?: string[]; // Object IDs to analyze
   characterIds?: string[]; // Character IDs to analyze
+  characterDescriptions?: Record<string, string>; // Character ID -> description from storyboard generator
   targetIds?: string[]; // Legacy: treated as objectIds for backward compatibility
   genre: string;
   customApiKey?: string;
@@ -95,7 +96,7 @@ const characterDetectionSchema = {
       description: {
         type: Type.STRING,
         description:
-          "English visual description of the character's appearance: face, hair, body type, distinguishing features. Use keywords and short phrases.",
+          "English visual description focusing on KEY visual features only: hair color, hair style, eye color. Use concise keywords and short phrases (e.g., 'Silver long hair, golden eyes'). Exclude clothing and personality.",
       },
       descriptionKo: {
         type: Type.STRING,
@@ -137,6 +138,18 @@ const characterDetectionSchema = {
         type: Type.STRING,
         description: "Gender of the character: 'Male' or 'Female'",
       },
+      hairColor: {
+        type: Type.STRING,
+        description: "Hair color in 1-2 English words (e.g., 'Silver', 'Dark brown', 'Golden blonde', 'Black')",
+      },
+      hairStyle: {
+        type: Type.STRING,
+        description: "Hair style in 1-3 English words (e.g., 'Long straight', 'Short spiky', 'Wavy shoulder-length', 'Bob cut')",
+      },
+      eyeColor: {
+        type: Type.STRING,
+        description: "Eye color in 1-2 English words (e.g., 'Golden', 'Blue', 'Dark brown', 'Crimson red')",
+      },
       personality: {
         type: Type.STRING,
         description: "Character personality in max 4 English words (e.g., 'Smart and calm', 'Brave and loyal')",
@@ -170,6 +183,9 @@ const characterDetectionSchema = {
       "characterSheetPrompt",
       "age",
       "gender",
+      "hairColor",
+      "hairStyle",
+      "eyeColor",
       "personality",
       "role",
       "isVariant",
@@ -228,14 +244,23 @@ async function detectCharacters(
   ai: GoogleGenAI,
   allClips: { clipId: string; story: string; imagePrompt: string }[],
   targetIds: string[],
-  genre: string
+  genre: string,
+  characterDescriptions?: Record<string, string>
 ) {
+  // Build character description reference section if available
+  const descriptionSection = characterDescriptions && Object.keys(characterDescriptions).length > 0
+    ? `\n**[캐릭터 ID 설명 참조 - 반드시 준수]**
+아래는 스토리보드 생성 단계에서 확정된 캐릭터 ID별 설명입니다. 'role' 필드를 결정할 때 반드시 이 설명을 기반으로 하십시오. AI가 임의로 관계를 추측하지 마십시오.
+${Object.entries(characterDescriptions).map(([id, desc]) => `- **${id}**: ${desc}`).join("\n")}
+`
+    : "";
+
   const prompt = `
 [캐릭터 감지 및 디자인 시트 마스터 프롬프트]
 장르/시대 배경: ${genre || "Modern"}
 
 다음 애니메이션 콘티 데이터를 분석하여, 아래 제공된 'Target Character IDs' 리스트에 있는 모든 캐릭터에 대한 상세 정보를 생성해줘.
-
+${descriptionSection}
 **[필수 지시사항]**
 1. **Target Character IDs 리스트에 포함된 모든 ID를 무조건 결과에 포함하십시오.**
 2. **출력 필드 'name'은 반드시 해당 ID와 동일해야 합니다.**
@@ -246,7 +271,7 @@ async function detectCharacters(
 
 **[Easy Mode 데이터 추출 - 필수]**
 나중에 'Easy Mode' 템플릿을 생성하기 위해 다음 정보를 추가로 분석하십시오:
-- **role**: 주인공과의 관계 (예: Partner, Rival, Enemy, Sister, Mentor, Protagonist 등). 영어로 작성.
+- **role**: 주인공과의 관계. **위에 제공된 '캐릭터 ID 설명 참조'가 있다면 반드시 해당 설명에서 관계를 추출하십시오.** 예를 들어 설명에 "Protagonist's son"이 있으면 role은 "Son"이어야 합니다. 설명이 없는 경우에만 콘티에서 추론하십시오. 영어로 작성.
 - **age**: 추정 나이 (숫자 문자열로, 예: "25", "30").
 - **gender**: 성별 (Male 또는 Female).
 - **personality**: 성격 묘사 (최대 4단어 영어, 예: "Smart and calm", "Brave and loyal").
@@ -287,7 +312,7 @@ ${JSON.stringify(allClips, null, 2)}
 export async function POST(request: NextRequest) {
   try {
     const body: DetectRequest = await request.json();
-    const { scenes, objectIds, characterIds, targetIds, genre, customApiKey } = body;
+    const { scenes, objectIds, characterIds, characterDescriptions, targetIds, genre, customApiKey } = body;
 
     if (!scenes || !Array.isArray(scenes)) {
       return NextResponse.json(
@@ -345,7 +370,7 @@ export async function POST(request: NextRequest) {
 
     if (finalCharacterIds.length > 0) {
       promises.push(
-        detectCharacters(ai, allClips, finalCharacterIds, genre).then((chars) => {
+        detectCharacters(ai, allClips, finalCharacterIds, genre, characterDescriptions).then((chars) => {
           results.characters = chars;
           console.log("[detect-props] Detected", chars.length, "characters");
         })

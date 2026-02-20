@@ -8,21 +8,8 @@ import {
   ProcessingStatus,
 } from './types';
 import { usePanelOrchestrator, PanelUpdate } from './usePanelOrchestrator';
-
-// Helper to read file to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove Data-URI prefix to get pure base64
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = (error) => reject(error);
-  });
-};
+import { useMithril } from '../../MithrilContext';
+import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
 
 interface UsePanelEditorOptions {
   projectId: string;  // Project ID from MithrilContext for S3 storage
@@ -36,8 +23,11 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   // Generate a unique session ID for this panel editor instance
   const [sessionId] = useState(() => uuidv4());
 
-  // API key for Gemini - user can provide this
-  const [apiKey, setApiKey] = useState<string>('');
+  // Use the global API key from MithrilContext (same field shown in the top-right key input)
+  const { customApiKey } = useMithril();
+
+  // Provider selection
+  const [provider, setProvider] = useState<'gemini' | 'grok'>('gemini');
 
   // Track active jobs: panelId -> jobId mapping
   const activeJobsRef = useRef<Map<string, string>>(new Map());
@@ -99,16 +89,45 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   }, []);
 
   // Use the panel orchestrator hook
-  const { submitJob, cancelJob } = usePanelOrchestrator({
+  const { submitJob, cancelJob, pendingUpdates, clearPendingUpdates } = usePanelOrchestrator({
     sessionId,
     onPanelUpdate: handlePanelUpdate,
     enabled: true,
   });
 
+  // Apply pending updates from initial Firestore snapshot
+  useEffect(() => {
+    if (pendingUpdates.length === 0) return;
+
+    pendingUpdates.forEach((update) => {
+      // Re-track in-flight jobs so subsequent snapshots pick them up
+      const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
+      if (!isTerminal) {
+        activeJobsRef.current.set(update.panelId, update.jobId);
+      }
+      handlePanelUpdate(update);
+    });
+    clearPendingUpdates();
+  }, [pendingUpdates, handlePanelUpdate, clearPendingUpdates]);
+
   // Add files to library
   const addFilesToLibrary = useCallback((files: File[]) => {
     dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
   }, []);
+
+  // Import all files from library to workspace
+  const importAllFromLibrary = useCallback(() => {
+    const libraryFiles = Object.values(state.fileLibrary) as File[];
+    if (libraryFiles.length === 0) return;
+    const newPanels: PanelData[] = libraryFiles.map((file) => ({
+      id: uuidv4(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+      status: ProcessingStatus.Idle,
+    }));
+    dispatch({ type: 'ADD_PANELS', panels: newPanels });
+  }, [state.fileLibrary]);
 
   // Add files from manifest to processing queue
   const addPanelsFromManifest = useCallback((files: File[]) => {
@@ -175,8 +194,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       });
 
       try {
-        // Convert file to base64
-        const imageBase64 = await fileToBase64(panel.file);
+        // Compress image to stay within Firestore's ~1MB document size limit
+        const imageBase64 = await compressImage(panel.file, 1500, 0.8);
 
         // Submit job to orchestrator
         const response = await submitJob({
@@ -185,10 +204,11 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           panelId: panel.id,
           fileName: panel.fileName,
           imageBase64,
-          mimeType: panel.file.type || 'image/png',
+          mimeType: 'image/jpeg',
           targetAspectRatio: state.config.targetAspectRatio,
           refinementMode,
-          apiKey: apiKey || undefined,
+          apiKey: customApiKey || undefined,
+          provider,
         });
 
         // Track this job
@@ -217,7 +237,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
         });
       }
     },
-    [state.panels, state.config.targetAspectRatio, projectId, sessionId, apiKey, submitJob, cancelJob]
+    [state.panels, state.config.targetAspectRatio, projectId, sessionId, customApiKey, provider, submitJob, cancelJob]
   );
 
   // Process all panels
@@ -329,9 +349,10 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   return {
     state,
     sessionId,
-    apiKey,
-    setApiKey,
+    provider,
+    setProvider,
     addFilesToLibrary,
+    importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
     removePanel,

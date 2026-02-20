@@ -20,6 +20,7 @@ import type {
 } from "./services/firestore/types";
 import { AnalysisView } from "./IdConverter/AnalysisView";
 import { ProcessingView } from "./IdConverter/ProcessingView";
+import { useIdConverterOrchestrator, IdConverterJobUpdate } from "./IdConverter/hooks/useIdConverterOrchestrator";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -84,6 +85,8 @@ interface ProjectState {
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  uploadType?: 'novel' | 'chapter';
+  batchJobId?: string;
 }
 
 const INITIAL_STATE: ProjectState = {
@@ -92,6 +95,8 @@ const INITIAL_STATE: ProjectState = {
   glossary: [],
   chunks: [],
   currentStep: "upload",
+  uploadType: undefined,
+  batchJobId: undefined,
 };
 
 export default function IdConverter() {
@@ -106,11 +111,139 @@ export default function IdConverter() {
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string>("");
+  const [glossaryJobId, setGlossaryJobId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load from Firestore on mount
+  // Reload data from Firestore with retry for eventual consistency
+  const reloadData = useCallback(async (retryCount = 0, clearLoadingOnComplete = false, expectGlossary = false) => {
+    if (!currentProjectId) return;
+
+    try {
+      const doc = await getIdConverter(currentProjectId);
+      if (doc) {
+        console.log("[IdConverter] Loaded data:", {
+          currentStep: doc.currentStep,
+          glossaryCount: doc.glossary?.length,
+          chunksCount: doc.chunks?.length,
+          hasTextFileUrl: !!doc.textFileUrl,
+        });
+
+        // If we expect glossary data but it's not there yet, retry
+        if (expectGlossary && retryCount < 5 && (!doc.glossary || doc.glossary.length === 0 || doc.currentStep !== "analysis")) {
+          const delay = Math.min(500 * Math.pow(2, retryCount), 3000);
+          console.log(`[IdConverter] Glossary not ready (attempt ${retryCount + 1}/5), retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
+          return;
+        }
+
+        // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
+        let originalFullText = doc.originalFullText || "";
+        if (doc.textFileUrl) {
+          try {
+            console.log("[IdConverter] reloadData - Fetching text from S3:", doc.textFileUrl);
+            // Use proxy to avoid CORS issues on Vercel deployment
+            const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
+            const textResponse = await fetch(proxyUrl);
+            if (textResponse.ok) {
+              originalFullText = await textResponse.text();
+            }
+          } catch (fetchErr) {
+            console.error("[IdConverter] reloadData - Error fetching text from S3:", fetchErr);
+          }
+        }
+
+        setState({
+          fileName: doc.fileName,
+          originalFullText,
+          fileUri: doc.fileUri,
+          glossary: doc.glossary || [],
+          chunks: doc.chunks || [],
+          currentStep: doc.currentStep || "upload",
+          uploadType: doc.uploadType,
+          batchJobId: doc.batchJobId,
+        });
+
+        // Sync uploadType with MithrilContext if it exists in the document
+        if (doc.uploadType) {
+          setUploadType(doc.uploadType);
+        }
+
+        // Clear loading state after data is loaded
+        if (clearLoadingOnComplete) {
+          setIsLoading(false);
+          setLoadingStatus("");
+        }
+      } else if (retryCount < 3) {
+        // Document not found, retry after a short delay
+        console.log("[IdConverter] Document not found, retrying...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
+      } else if (clearLoadingOnComplete) {
+        // Max retries reached, still clear loading
+        setIsLoading(false);
+        setLoadingStatus("");
+      }
+    } catch (err) {
+      console.error("Error reloading IdConverter from Firestore:", err);
+      if (clearLoadingOnComplete) {
+        setIsLoading(false);
+        setLoadingStatus("");
+      }
+    }
+  }, [currentProjectId]);
+
+  // Ref to track glossary job ID synchronously (avoids race condition with state)
+  const glossaryJobIdRef = useRef<string | null>(null);
+
+  // Handle job updates from orchestrator
+  const handleJobUpdate = useCallback((update: IdConverterJobUpdate) => {
+    console.log("[IdConverter] Job update:", update);
+
+    if (update.jobType === "id_converter_glossary") {
+      // Only process updates for the current glossary job
+      const currentJobId = glossaryJobIdRef.current;
+      if (!currentJobId || update.jobId !== currentJobId) {
+        console.log("[IdConverter] Ignoring update for different job:", update.jobId, "current:", currentJobId);
+        return;
+      }
+
+      if (update.status === "completed") {
+        // Glossary analysis complete - reload data from Firestore
+        // Keep loading indicator until data is actually loaded
+        glossaryJobIdRef.current = null;
+        setGlossaryJobId(null);
+        setError(null); // Clear any previous errors
+        setLoadingStatus("Loading results...");
+
+        // Reload with expectGlossary=true to retry until data is ready
+        reloadData(0, true, true);
+      } else if (update.status === "failed") {
+        setError(update.error || "Glossary analysis failed");
+        setIsLoading(false);
+        setLoadingStatus("");
+        glossaryJobIdRef.current = null;
+        setGlossaryJobId(null);
+      } else if (update.status === "generating") {
+        setLoadingStatus("Analyzing narrative entities...");
+        setError(null); // Clear errors when job starts processing
+      }
+    }
+    // Batch job updates are handled by ProcessingView
+  }, [reloadData, currentProjectId]);
+
+  // Initialize orchestrator hook
+  const { submitGlossaryJob, getJobStatus } = useIdConverterOrchestrator({
+    projectId: currentProjectId || "",
+    customApiKey,
+    onJobUpdate: handleJobUpdate,
+    enabled: !!currentProjectId,
+  });
+
+  // Load from Firestore on mount and check for active jobs
   useEffect(() => {
     const loadData = async () => {
+      console.log("[IdConverter] loadData called, projectId:", currentProjectId);
       if (!currentProjectId) {
         setIsInitialLoading(false);
         return;
@@ -118,15 +251,101 @@ export default function IdConverter() {
 
       try {
         const doc = await getIdConverter(currentProjectId);
+        console.log("[IdConverter] Loaded doc from Firestore:", {
+          hasDoc: !!doc,
+          glossaryJobId: doc?.glossaryJobId,
+          currentStep: doc?.currentStep,
+          hasOriginalFullText: !!doc?.originalFullText,
+          hasTextFileUrl: !!doc?.textFileUrl,
+          glossaryLength: doc?.glossary?.length,
+        });
+
         if (doc) {
+          // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
+          let originalFullText = doc.originalFullText || "";
+          if (doc.textFileUrl) {
+            try {
+              console.log("[IdConverter] Fetching text from S3:", doc.textFileUrl);
+              // Use proxy to avoid CORS issues on Vercel deployment
+              const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
+              const textResponse = await fetch(proxyUrl);
+              if (textResponse.ok) {
+                originalFullText = await textResponse.text();
+                console.log("[IdConverter] Text fetched from S3, length:", originalFullText.length);
+              } else {
+                console.error("[IdConverter] Failed to fetch text from S3:", textResponse.status);
+              }
+            } catch (fetchErr) {
+              console.error("[IdConverter] Error fetching text from S3:", fetchErr);
+            }
+          }
+
           setState({
             fileName: doc.fileName,
-            originalFullText: doc.originalFullText,
+            originalFullText,
             fileUri: doc.fileUri,
             glossary: doc.glossary || [],
             chunks: doc.chunks || [],
             currentStep: doc.currentStep || "upload",
+            uploadType: doc.uploadType,
+            batchJobId: doc.batchJobId,
           });
+
+          // Sync uploadType with MithrilContext if it exists in the document
+          if (doc.uploadType) {
+            setUploadType(doc.uploadType);
+          }
+
+          // Check if there's an active glossary job
+          const hasText = !!originalFullText || !!doc.textFileUrl;
+          const shouldRestoreJob = doc.glossaryJobId && doc.currentStep === "upload" && hasText;
+          console.log("[IdConverter] Should restore job?", shouldRestoreJob, {
+            hasGlossaryJobId: !!doc.glossaryJobId,
+            isUploadStep: doc.currentStep === "upload",
+            hasText,
+          });
+
+          if (shouldRestoreJob && doc.glossaryJobId) {
+            // There might be a glossary job in progress - restore tracking
+            const jobId = doc.glossaryJobId;
+            console.log("[IdConverter] Found glossaryJobId on mount:", jobId);
+
+            // Set the ref first so subscription can handle updates
+            glossaryJobIdRef.current = jobId;
+            setGlossaryJobId(jobId);
+            setIsLoading(true);
+            setLoadingStatus("Analyzing narrative entities...");
+
+            // Manually fetch job status to handle the race condition where
+            // the Firestore subscription fired before we restored the jobId
+            try {
+              const jobStatus = await getJobStatus(jobId);
+              console.log("[IdConverter] Fetched job status on mount:", jobStatus);
+
+              if (jobStatus.status === "completed") {
+                // Job completed while we were away - reload data
+                glossaryJobIdRef.current = null;
+                setGlossaryJobId(null);
+                setError(null);
+                reloadData(0, true, true);
+              } else if (jobStatus.status === "failed") {
+                // Job failed while we were away
+                setError(jobStatus.error || "Glossary analysis failed");
+                setIsLoading(false);
+                setLoadingStatus("");
+                glossaryJobIdRef.current = null;
+                setGlossaryJobId(null);
+              }
+              // If status is pending/generating, keep loading state - subscription will handle updates
+            } catch (statusErr) {
+              console.error("[IdConverter] Error fetching job status:", statusErr);
+              // Job might not exist anymore - clear loading state
+              setIsLoading(false);
+              setLoadingStatus("");
+              glossaryJobIdRef.current = null;
+              setGlossaryJobId(null);
+            }
+          }
         }
       } catch (err) {
         console.error("Error loading IdConverter from Firestore:", err);
@@ -136,32 +355,9 @@ export default function IdConverter() {
     };
 
     loadData();
-  }, [currentProjectId]);
+  }, [currentProjectId, getJobStatus, reloadData]);
 
-  // Analyze glossary using AI
-  const analyzeGlossary = useCallback(
-    async (text: string): Promise<IdConverterEntity[]> => {
-      const response = await fetch("/api/id-converter/analyze-glossary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          apiKey: customApiKey,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to analyze glossary");
-      }
-
-      const data = await response.json();
-      return data.entities || [];
-    },
-    [customApiKey]
-  );
-
-  // Process uploaded file
+  // Process uploaded file using async job orchestrator
   const processFile = useCallback(
     async (file: File) => {
       if (!currentProjectId) {
@@ -181,8 +377,13 @@ export default function IdConverter() {
         return;
       }
 
+      // Reset all states for new upload
       setIsLoading(true);
       setError(null);
+      setLoadingStatus("");
+      glossaryJobIdRef.current = null;
+      setGlossaryJobId(null);
+      setSelectedFile("");
 
       try {
         const text = await file.text();
@@ -194,17 +395,33 @@ export default function IdConverter() {
             const loadedState = JSON.parse(text) as ProjectState;
             setState(loadedState);
 
-            // Save to Firestore
+            // Upload text to S3 first (to avoid Firestore 1MB limit)
+            setLoadingStatus("Uploading file...");
+            const s3Response = await fetch("/api/mithril/s3/text", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ projectId: currentProjectId, text: loadedState.originalFullText }),
+            });
+            const s3Data = await s3Response.json();
+            if (!s3Response.ok || !s3Data.success) {
+              throw new Error(s3Data.error || "Failed to upload text to S3");
+            }
+            const textFileUrl = s3Data.url;
+            console.log("[IdConverter] JSON project text uploaded to S3:", textFileUrl);
+
+            // Save to Firestore (with S3 URL, not the actual text)
             await saveIdConverter(currentProjectId, {
               fileName: loadedState.fileName,
-              originalFullText: loadedState.originalFullText,
+              textFileUrl,
               fileUri: loadedState.fileUri,
               glossary: loadedState.glossary,
               chunks: loadedState.chunks,
               currentStep: loadedState.currentStep,
+              uploadType: loadedState.uploadType,
             });
 
             setIsLoading(false);
+            setLoadingStatus("");
             return;
           } catch {
             setError("Invalid JSON file");
@@ -213,41 +430,76 @@ export default function IdConverter() {
           }
         }
 
-        // New text file - analyze for entities
-        setLoadingStatus("Analyzing narrative entities...");
+        // New text file - clear old state first, then submit async glossary analysis job
+        setLoadingStatus("Uploading file...");
 
-        const glossary = await analyzeGlossary(text);
-
-        const newState: ProjectState = {
+        // Immediately clear old state (keep text in local state for UI)
+        setState({
           fileName: name,
           originalFullText: text,
-          glossary,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
-        };
+          currentStep: "upload",
+          uploadType,
+        });
 
-        setState(newState);
+        // Upload text to S3 first (to avoid Firestore 1MB limit)
+        const s3Response = await fetch("/api/mithril/s3/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: currentProjectId, text }),
+        });
+        const s3Data = await s3Response.json();
+        if (!s3Response.ok || !s3Data.success) {
+          throw new Error(s3Data.error || "Failed to upload text to S3");
+        }
+        const textFileUrl = s3Data.url;
+        console.log("[IdConverter] Text uploaded to S3:", textFileUrl);
 
-        // Save to Firestore
+        // Save initial state to Firestore (with S3 URL, not the actual text)
+        setLoadingStatus("Submitting for analysis...");
         await saveIdConverter(currentProjectId, {
           fileName: name,
-          originalFullText: text,
-          glossary,
+          textFileUrl,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
+          currentStep: "upload", // Will be updated to "analysis" when job completes
+          uploadType,
         });
+
+        // Submit glossary analysis job via orchestrator
+        setLoadingStatus("Analyzing narrative entities...");
+        const result = await submitGlossaryJob({ originalText: text });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to submit glossary job");
+        }
+
+        // Store job ID for tracking (both ref and state)
+        glossaryJobIdRef.current = result.jobId || null;
+        setGlossaryJobId(result.jobId || null);
+        console.log("[IdConverter] Glossary job submitted:", result.jobId);
+
+        // Save jobId to Firestore so it persists across page navigations
+        if (result.jobId) {
+          console.log("[IdConverter] Saving glossaryJobId to Firestore:", result.jobId);
+          await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
+          console.log("[IdConverter] glossaryJobId saved successfully");
+        }
+
+        // Job is now running in background - UI will update via Firestore subscription
+        // The loading state will be cleared when the job completes (in handleJobUpdate)
       } catch (err) {
         console.error("Error processing file:", err);
         setError(err instanceof Error ? err.message : "Failed to process file");
-      } finally {
         setIsLoading(false);
         setLoadingStatus("");
       }
     },
-    [currentProjectId, dictionary, language, analyzeGlossary]
+    [currentProjectId, dictionary, language, submitGlossaryJob]
   );
 
-  // Handle sample file selection
+  // Handle sample file selection using async job orchestrator
   const handleFileSelect = useCallback(
     async (file: (typeof SAMPLE_FILES)[0]) => {
       if (!currentProjectId) {
@@ -258,10 +510,13 @@ export default function IdConverter() {
       // Sample files are always treated as 'novel' type
       setUploadType('novel');
 
+      // Reset all states for new upload
       setSelectedFile(file.path);
       setError(null);
       setIsLoading(true);
       setLoadingStatus("Loading file...");
+      glossaryJobIdRef.current = null;
+      setGlossaryJobId(null);
 
       try {
         const response = await fetch(file.path);
@@ -270,37 +525,71 @@ export default function IdConverter() {
         }
         const text = await response.text();
 
-        setLoadingStatus("Analyzing narrative entities...");
-        const glossary = await analyzeGlossary(text);
-
-        const newState: ProjectState = {
+        // Immediately clear old state (keep text in local state for UI)
+        setState({
           fileName: file.name,
           originalFullText: text,
-          glossary,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
-        };
+          currentStep: "upload",
+          uploadType: 'novel', // Sample files are always novels
+        });
 
-        setState(newState);
+        // Upload text to S3 first (to avoid Firestore 1MB limit)
+        setLoadingStatus("Uploading file...");
+        const s3Response = await fetch("/api/mithril/s3/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: currentProjectId, text }),
+        });
+        const s3Data = await s3Response.json();
+        if (!s3Response.ok || !s3Data.success) {
+          throw new Error(s3Data.error || "Failed to upload text to S3");
+        }
+        const textFileUrl = s3Data.url;
+        console.log("[IdConverter] Sample text uploaded to S3:", textFileUrl);
 
-        // Save to Firestore
+        // Save initial state to Firestore (with S3 URL, not the actual text)
+        setLoadingStatus("Submitting for analysis...");
         await saveIdConverter(currentProjectId, {
           fileName: file.name,
-          originalFullText: text,
-          glossary,
+          textFileUrl,
+          glossary: [],
           chunks: [],
-          currentStep: "analysis",
+          currentStep: "upload",
+          uploadType: 'novel', // Sample files are always novels
         });
+
+        // Submit glossary analysis job via orchestrator
+        setLoadingStatus("Analyzing narrative entities...");
+        const result = await submitGlossaryJob({ originalText: text });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to submit glossary job");
+        }
+
+        // Store job ID for tracking (both ref and state)
+        glossaryJobIdRef.current = result.jobId || null;
+        setGlossaryJobId(result.jobId || null);
+        console.log("[IdConverter] Glossary job submitted for sample:", result.jobId);
+
+        // Save jobId to Firestore so it persists across page navigations
+        if (result.jobId) {
+          console.log("[IdConverter] Saving glossaryJobId to Firestore (sample):", result.jobId);
+          await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
+          console.log("[IdConverter] glossaryJobId saved successfully (sample)");
+        }
+
+        // Job is now running in background - UI will update via Firestore subscription
       } catch (err) {
         console.error("Error loading file:", err);
         setError(err instanceof Error ? err.message : "Failed to load file");
         setSelectedFile("");
-      } finally {
         setIsLoading(false);
         setLoadingStatus("");
       }
     },
-    [currentProjectId, analyzeGlossary, setUploadType]
+    [currentProjectId, submitGlossaryJob, setUploadType]
   );
 
   // Drag and drop handlers
@@ -375,7 +664,57 @@ export default function IdConverter() {
 
     setState((prev) => ({ ...prev, currentStep: "completed" }));
     await updateIdConverter(currentProjectId, { currentStep: "completed" });
-  }, [currentProjectId]);
+
+    // Auto-create chapter document for StoryboardGenerator stage
+    // This is needed because IdConverter is now Stage 1, replacing UploadManager
+    try {
+      const { saveChapter } = await import("./services/firestore/chapter");
+
+      // Combine all converted chunks into a single text
+      const convertedText = state.chunks
+        .filter(chunk => chunk.status === "completed" && chunk.translatedText)
+        .map(chunk => chunk.translatedText)
+        .join("\n\n");
+
+      if (convertedText) {
+        await saveChapter(currentProjectId, {
+          content: convertedText,
+          filename: state.fileName,
+          uploadType: uploadType || 'novel',
+        });
+        console.log("[IdConverter] Chapter document created for downstream stages");
+
+        // If chapter type, auto-create single-part storySplits to skip Stage 2
+        if (uploadType === 'chapter') {
+          const { saveStorySplits } = await import("./services/firestore/storySplitter");
+          await saveStorySplits(currentProjectId, {
+            guidelines: '',
+            parts: [{ text: convertedText, cliffhangers: [] }],
+          });
+          console.log("[IdConverter] Single-part storySplits created (chapter mode)");
+        } else {
+          // Clear any existing story splits if novel type
+          const { deleteStorySplits } = await import("./services/firestore/storySplitter");
+          await deleteStorySplits(currentProjectId);
+        }
+      }
+    } catch (err) {
+      console.error("[IdConverter] Failed to create chapter document:", err);
+      // Non-fatal error - continue anyway
+    }
+  }, [currentProjectId, state.chunks, state.fileName, uploadType]);
+
+  // Save batch job ID to Firestore for resume after page refresh
+  const handleBatchJobStarted = useCallback(
+    async (jobId: string) => {
+      if (!currentProjectId) return;
+
+      console.log("[IdConverter] Saving batchJobId to Firestore:", jobId);
+      setState((prev) => ({ ...prev, batchJobId: jobId }));
+      await updateIdConverter(currentProjectId, { batchJobId: jobId });
+    },
+    [currentProjectId]
+  );
 
   // Save project as JSON
   const saveProject = useCallback(() => {
@@ -390,12 +729,33 @@ export default function IdConverter() {
     document.body.removeChild(element);
   }, [state]);
 
+  // Upload type change handler - save to Firestore
+  const handleUploadTypeChange = useCallback(async (type: 'novel' | 'chapter') => {
+    setUploadType(type);
+
+    // Save to Firestore if we have a file loaded
+    if (currentProjectId && state.fileName) {
+      try {
+        await updateIdConverter(currentProjectId, { uploadType: type });
+        setState(prev => ({ ...prev, uploadType: type }));
+      } catch (err) {
+        console.error("Error saving uploadType to Firestore:", err);
+      }
+    }
+  }, [currentProjectId, state.fileName, setUploadType]);
+
   // Reset handler
   const handleReset = useCallback(async () => {
     if (!confirm("Are you sure? Unsaved progress will be lost.")) return;
 
+    // Reset all states
     setState(INITIAL_STATE);
     setSelectedFile("");
+    setError(null);
+    setIsLoading(false);
+    setLoadingStatus("");
+    glossaryJobIdRef.current = null;
+    setGlossaryJobId(null);
 
     if (currentProjectId) {
       await deleteIdConverter(currentProjectId);
@@ -412,7 +772,10 @@ export default function IdConverter() {
   }
 
   // Check if we have content loaded
-  const hasContent = state.currentStep !== "upload" && state.originalFullText;
+  // Content is considered loaded if:
+  // 1. We're past the upload step AND have text in memory, OR
+  // 2. We're past the upload step AND have a text file URL (text may still be loading from S3)
+  const hasContent = state.currentStep !== "upload" && (state.originalFullText || state.fileUri);
 
   return (
     <div className="space-y-8">
@@ -434,7 +797,7 @@ export default function IdConverter() {
             </label>
             <div className="flex gap-2">
               <button
-                onClick={() => setUploadType('novel')}
+                onClick={() => handleUploadTypeChange('novel')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
                   uploadType === 'novel'
                     ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
@@ -448,7 +811,7 @@ export default function IdConverter() {
                 </div>
               </button>
               <button
-                onClick={() => setUploadType('chapter')}
+                onClick={() => handleUploadTypeChange('chapter')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all duration-200 ${
                   uploadType === 'chapter'
                     ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
@@ -625,13 +988,18 @@ export default function IdConverter() {
           )}
 
           {/* Processing View */}
-          {(state.currentStep === "processing" || state.currentStep === "completed") && (
+          {(state.currentStep === "processing" || state.currentStep === "completed") && currentProjectId && (
             <div className="relative">
               <ProcessingView
+                key={`${currentProjectId}-${state.fileName}`}
+                projectId={currentProjectId}
+                fileName={state.fileName}
                 originalText={state.originalFullText}
                 glossary={state.glossary}
                 initialChunks={state.chunks}
+                existingBatchJobId={state.batchJobId}
                 onSaveProgress={handleUpdateChunks}
+                onBatchJobStarted={handleBatchJobStarted}
                 onComplete={handleComplete}
                 apiKey={customApiKey}
               />

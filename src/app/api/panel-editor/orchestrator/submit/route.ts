@@ -16,6 +16,7 @@ interface PanelJobSubmitRequest {
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   refinementMode: "default" | "zoom" | "expand";
   apiKey?: string;
+  provider?: "gemini" | "grok";
 }
 
 export async function POST(request: NextRequest) {
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
         target_aspect_ratio: body.targetAspectRatio,
         refinement_mode: body.refinementMode,
         api_key: body.apiKey,
+        provider: body.provider ?? "gemini",
       }),
     });
 

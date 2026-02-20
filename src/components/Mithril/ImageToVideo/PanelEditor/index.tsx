@@ -9,6 +9,13 @@ import { PanelCard } from './PanelCard';
 import { usePanelEditor } from './usePanelEditor';
 import { useMithril } from '../../MithrilContext';
 import { ProcessingStatus, PanelData } from './types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcnUI/Select';
 
 // Helper to read file to base64 for saving JSON
 const fileToBase64 = (file: File): Promise<string> => {
@@ -50,9 +57,10 @@ export default function PanelEditor() {
 
   const {
     state,
-    apiKey,
-    setApiKey,
+    provider,
+    setProvider,
     addFilesToLibrary,
+    importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
     removePanel,
@@ -222,6 +230,43 @@ export default function PanelEditor() {
         </p>
       </div>
 
+      {/* Settings: Provider */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="max-w-xs">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+            AI Provider
+          </label>
+          <Select
+            value={provider}
+            onValueChange={(v) => setProvider(v as 'gemini' | 'grok')}
+            disabled={state.isProcessing}
+          >
+            <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select provider" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+              <SelectItem value="gemini" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Gemini <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-2.0-flash-exp)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Google — image editing with source image</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="grok" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Grok Aurora <span className="text-gray-500 dark:text-gray-400 font-normal">(grok-2-image-1212)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">xAI — vision analysis + image generation</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {provider === 'grok' && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+              Enter your xAI API key in the field above
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Control Bar */}
       <ControlBar
         config={config}
@@ -240,6 +285,7 @@ export default function PanelEditor() {
       <FileLibrary
         files={fileLibrary}
         onFilesAdded={addFilesToLibrary}
+        onImportAll={importAllFromLibrary}
         onManifestLoaded={addPanelsFromManifest}
       />
 

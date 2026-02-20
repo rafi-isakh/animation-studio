@@ -43,33 +43,25 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const masterPrompt = `
-      Look at the background image I uploaded. Please generate a list of 9 prompts (N-1 to N-9) for different camera angles.
+    const masterPrompt = `First, look at the background image uploaded as master reference. Please generate a list of 9 prompts (N-1 to N-9). The prompts that get called in should work like below, don't add anything or reword.
 
-      The prompts should follow these templates exactly:
+For N-1: Make a slight closeup of the background.
+For N-2: Make a worm's eye view low angle version of the background. 2d anime background style.
+For N-3 and N-4: Strictly follow the prompt wording template of: detect [LARGE NOTICEABLE OBJECT EYE LEVEL WHERE CHARACTER IS EXPECTED TO BE IN BG] and make a closeup. No characters. 2d anime background style.
+For N-7 and N-8: Strictly follow the prompt wording template of: detect [LARGE NOTICEABLE OBJECT EYE LEVEL WHERE CHARACTER IS EXPECTED TO BE IN BG] and make a closeup. Part of the [CEILING/SKY depending on bg] should be visible. No characters. 2d anime background style.
+For N-5: detect corner of the background and make a close up. part of the [CEILING/SKY depending on bg] should be visible. 2d anime background style
+For N-6: make high angle almost bird's eye view of the background, 2d anime background style
+For N-9: detect the [ENTER floor/carpet/ocean, etc depending on the place] and do a macroshot of it 2d anime background style.
 
-      N-1 (Front View): Make a slight closeup of the background
-      N-2 (Worm View): Make a worm's eye view low angle version of the background. 2d anime background style.
-      N-3 (Character A View): detect [LARGE NOTICEABLE OBJECT EYE LEVEL WHERE CHARACTER WOULD STAND] and make a closeup. No characters. 2d anime background style.
-      N-4 (Character B View): detect [DIFFERENT LARGE OBJECT EYE LEVEL] and make a closeup. No characters. 2d anime background style.
-      N-5 (Rear View): detect corner of the background and make a close up. part of the [CEILING/SKY depending on bg] should be visible. 2d anime background style
-      N-6 (Bird's Eye View): make high angle almost bird's eye view of the background, 2d anime background style
-      N-7 (Over-Shoulder A): detect [LARGE OBJECT EYE LEVEL] and make a closeup. Part of the [CEILING/SKY] should be visible. No characters. 2d anime background style.
-      N-8 (Over-Shoulder B): detect [DIFFERENT LARGE OBJECT EYE LEVEL] and make a closeup. Part of the [CEILING/SKY] should be visible. No characters. 2d anime background style.
-      N-9 (Floor Close-up): detect the [floor/carpet/ocean/ground type] and do a macroshot of it 2d anime background style.
+[Examples]
+N-4: Detect crib in the background and make a close up. eye level. 2d anime background style No characters.
+N-8: Detect upper half of [LARGE NOTICEABLE OBJECT EYE LEVEL] in the background and make a close up. part of the [SKY/CEILING] should be visible. 2d anime background style. No characters.
 
-      IMPORTANT RULES:
-      - Objects for N-3 and N-4 MUST be different
-      - Objects for N-7 and N-8 MUST be different
-      - Replace [CEILING/SKY] with actual ceiling (indoor) or sky (outdoor)
-      - Replace [floor/carpet/ocean/ground type] with actual floor/ground material
-      - Keep "2d anime background style" in prompts where specified
-      - Choose logical objects that would be near where characters stand
+CONDITION: Assigned OBJECT for N-3 and N-4 should be different, and assigned OBJECT for N-7 and N-8 should be different.
 
-      Background Description: ${backgroundDesc}
+Background Description: ${backgroundDesc}
 
-      Output ONLY a JSON array of exactly 9 prompt strings, in order from N-1 to N-9.
-    `;
+Output ONLY a JSON array of exactly 9 prompt strings, in order from N-1 to N-9. Replace all bracket placeholders with actual objects/materials detected from the image.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",

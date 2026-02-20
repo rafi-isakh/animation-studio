@@ -28,6 +28,7 @@ import {
 import StoryboardTable from "./StoryboardTable";
 import DriveSettings from "./DriveSettings";
 import GenrePresets, { type GenrePreset } from "./GenrePresets";
+import { useGenrePresets } from "../hooks/useGenrePresets";
 import { uploadFileToDrive } from "../services";
 import { getChapter } from "../../services/firestore";
 import { useProject } from "@/contexts/ProjectContext";
@@ -100,7 +101,7 @@ export default function StoryboardGenerator() {
     clearStoryboardGeneration,
     isStageSkipped,
   } = useMithril();
-  const { isGenerating, error, scenes, voicePrompts } = storyboardGenerator;
+  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -146,7 +147,14 @@ export default function StoryboardGenerator() {
 24. 시각적 인물 수 제한 (Visual Constraint): 등장인물의 수는 화면 구성의 명확성을 위해 반드시 최대 5명 이하로 제한한다.
 -변환 규칙: 원문에 다수(예: 20명, 군중, 학자들 전체)가 등장하더라도, 이미지 프롬프트 작성 시에는 가장 가까이 있는 3~5명의 인물로 축소하여 묘사한다.
 -금지 사항: 'All 20 scholars', 'The crowd'와 같이 전체를 지칭하는 표현을 금지하고, '3 scholars', '5 people'과 같이 구체적인 숫자를 명시한다.
--예외: 대규모 전투씬(Battle scenes)은 이 규칙에서 제외한다.`,
+-예외: 대규모 전투씬(Battle scenes)은 이 규칙에서 제외한다.
+25. **[대문자 ID 표기 (UPPERCASE ID Convention)]**: imagePrompt에 등장하는 주요 캐릭터명과 고유 아이템/소품은 반드시 대문자(UPPERCASE)로 표기하십시오. 소유격('s)은 금지하고, 언더바(_)로 연결합니다.
+- 예시: 'Princess Kania holds her sword' (X) → 'KANIA holds KANIA_SWORD' (O)
+- 예시: 'Arel rides his horse' (X) → 'AREL rides AREL_HORSE' (O)
+- 재질이나 속성은 ID에 통합: 'glass bottle' (X) → 'GLASS_BOTTLE' (O)
+- 셀 수 없는 명사(juice, blood, fire)는 대문자 금지. 셀 수 있는 사물만 대문자 ID 적용.
+- 일반 군중(crowd, people)은 대문자 금지.
+- 직함이나 외형 묘사를 이름에 붙이지 마십시오: 'Princess KANIA' (X) → 'KANIA' (O)`,
       video: `1. 카메라 앵글과 동작 위주로 간결하게 구성한다.
 2. 음향 중 캐릭터가 대사를 말하는 장면인 경우, 비디오 프롬프트에 애니메이션에서 말하는것처럼 말하는 묘사가 반드시 비디오 프롬프트에 포함되어야 한다 (i.e. character speaks, character talks, etc)
 3. Don't use figurative words like 'delivers a warning', 'shoots an expression' , 'promises', 'expresses', etc. 대사가 있는 장면의 경우, figurative 하거나 동작이 애매한 프롬프트를 아예 제외하고, 확실히 말을 한다, 확실히 소리친다, 어떠한 톤으로 어떻게 말한다 이렇게 작관적으로만 표기해줘.
@@ -166,6 +174,15 @@ export default function StoryboardGenerator() {
   // State from Stage 3 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
   const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+
+  // Genre presets hook
+  const {
+    presets: genrePresets,
+    addPreset: addGenrePreset,
+    updatePreset: updateGenrePreset,
+    renamePreset: renameGenrePreset,
+    deletePreset: deleteGenrePreset,
+  } = useGenrePresets();
 
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
@@ -222,8 +239,8 @@ export default function StoryboardGenerator() {
   // Sync context results to stage results for other components
   useEffect(() => {
     if (scenes.length === 0) return;
-    setStageResult(4, { scenes, voicePrompts });
-  }, [scenes, voicePrompts, setStageResult]);
+    setStageResult(4, { scenes, voicePrompts, characterIdSummary, genre });
+  }, [scenes, voicePrompts, characterIdSummary, genre, setStageResult]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
@@ -305,6 +322,7 @@ export default function StoryboardGenerator() {
       "Image Prompt (End)",
       "Video Prompt",
       "Sora Video Prompt",
+      "Veo Video Prompt",
       "Dialogue (Ko)",
       "Dialogue (En)",
       "Narration (Ko)",
@@ -315,54 +333,93 @@ export default function StoryboardGenerator() {
       "BGM (En)",
     ];
 
-    const csvContent = [
-      headers.join(","),
-      ...scenes.flatMap((scene, sceneIndex) =>
-        scene.clips.map((clip, clipIndex) => {
-          const row = [
-            `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-            `${sceneIndex + 1}-${clipIndex + 1}`,
-            clip.length,
-            clip.accumulatedTime,
-            clip.backgroundId,
-            `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
-            `"${clip.story.replace(/"/g, '""')}"`,
-            `"${clip.imagePrompt.replace(/"/g, '""')}"`,
-            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
-            `"${clip.videoPrompt.replace(/"/g, '""')}"`,
-            `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
-            `"${clip.dialogue.replace(/"/g, '""')}"`,
-            `"${clip.dialogueEn.replace(/"/g, '""')}"`,
-            `"${(clip.narration || "").replace(/"/g, '""')}"`,
-            `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
-            `"${clip.sfx.replace(/"/g, '""')}"`,
-            `"${clip.sfxEn.replace(/"/g, '""')}"`,
-            `"${clip.bgm.replace(/"/g, '""')}"`,
-            `"${clip.bgmEn.replace(/"/g, '""')}"`,
-          ];
-          return row.join(",");
-        })
-      ),
-    ].join("\n");
+    const clipRows = scenes.flatMap((scene, sceneIndex) =>
+      scene.clips.map((clip, clipIndex) => {
+        const row = [
+          `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+          `${sceneIndex + 1}-${clipIndex + 1}`,
+          clip.length,
+          clip.accumulatedTime,
+          clip.backgroundId,
+          `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
+          `"${clip.story.replace(/"/g, '""')}"`,
+          `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+          `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
+          `"${clip.videoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.veoVideoPrompt.replace(/"/g, '""')}"`,
+          `"${clip.dialogue.replace(/"/g, '""')}"`,
+          `"${clip.dialogueEn.replace(/"/g, '""')}"`,
+          `"${(clip.narration || "").replace(/"/g, '""')}"`,
+          `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
+          `"${clip.sfx.replace(/"/g, '""')}"`,
+          `"${clip.sfxEn.replace(/"/g, '""')}"`,
+          `"${clip.bgm.replace(/"/g, '""')}"`,
+          `"${clip.bgmEn.replace(/"/g, '""')}"`,
+        ];
+        return row.join(",");
+      })
+    );
+
+    // Append character ID summary and genre after an empty row
+    const extraRows: string[] = [];
+    if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+      extraRows.push(""); // empty spacer row
+      if (characterIdSummary && characterIdSummary.length > 0) {
+        extraRows.push("Character ID,Description");
+        for (const char of characterIdSummary) {
+          extraRows.push(`"${char.characterId.replace(/"/g, '""')}","${char.description.replace(/"/g, '""')}"`);
+        }
+      }
+      if (genre) {
+        extraRows.push(""); // spacer before genre
+        extraRows.push(`Genre,"${genre.replace(/"/g, '""')}"`);
+      }
+    }
+
+    const csvContent = [headers.join(","), ...clipRows, ...extraRows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `storyboard_part${selectedPartIndex + 1}.csv`;
     link.click();
-  }, [scenes, selectedPartIndex]);
+  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
 
   const handleApplyPreset = useCallback((preset: GenrePreset) => {
     setStoryCondition(preset.story);
     setImageCondition(preset.image);
     setVideoCondition(preset.video);
     setSoundCondition(preset.sound);
+    const presetName = preset.isSystem && preset.nameKey
+      ? phrase(dictionary, preset.nameKey, language)
+      : preset.name || preset.id;
     toast({
       variant: "success",
       title: phrase(dictionary, "storyboard_preset_applied", language),
-      description: phrase(dictionary, preset.nameKey, language),
+      description: presetName,
     });
   }, [toast, dictionary, language]);
+
+  const handleSaveCurrentToPreset = useCallback((id: string) => {
+    updateGenrePreset(id, {
+      story: storyCondition,
+      image: imageCondition,
+      video: videoCondition,
+      sound: soundCondition,
+    });
+    toast({
+      variant: "success",
+      title: phrase(dictionary, "preset_saved", language),
+    });
+  }, [updateGenrePreset, storyCondition, imageCondition, videoCondition, soundCondition, toast, dictionary, language]);
+
+  const currentConditions = useMemo(() => ({
+    story: storyCondition,
+    image: imageCondition,
+    video: videoCondition,
+    sound: soundCondition,
+  }), [storyCondition, imageCondition, videoCondition, soundCondition]);
 
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
@@ -370,6 +427,8 @@ export default function StoryboardGenerator() {
     const exportData = {
       scenes,
       voicePrompts,
+      characterIdSummary,
+      genre,
       metadata: {
         exportedAt: new Date().toISOString(),
         partIndex: selectedPartIndex + 1,
@@ -430,6 +489,7 @@ export default function StoryboardGenerator() {
         "Image Prompt (End)",
         "Video Prompt",
         "Sora Video Prompt",
+        "Veo Video Prompt",
         "Dialogue (Ko)",
         "Dialogue (En)",
         "Narration (Ko)",
@@ -440,35 +500,50 @@ export default function StoryboardGenerator() {
         "BGM (En)",
       ];
 
-      const csvContent = [
-        headers.join(","),
-        ...scenes.flatMap((scene, sceneIndex) =>
-          scene.clips.map((clip, clipIndex) => {
-            const row = [
-              `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-              `${sceneIndex + 1}-${clipIndex + 1}`,
-              clip.length,
-              clip.accumulatedTime,
-              clip.backgroundId,
-              `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
-              `"${clip.story.replace(/"/g, '""')}"`,
-              `"${clip.imagePrompt.replace(/"/g, '""')}"`,
-              `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
-              `"${clip.videoPrompt.replace(/"/g, '""')}"`,
-              `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
-              `"${clip.dialogue.replace(/"/g, '""')}"`,
-              `"${clip.dialogueEn.replace(/"/g, '""')}"`,
-              `"${(clip.narration || "").replace(/"/g, '""')}"`,
-              `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
-              `"${clip.sfx.replace(/"/g, '""')}"`,
-              `"${clip.sfxEn.replace(/"/g, '""')}"`,
-              `"${clip.bgm.replace(/"/g, '""')}"`,
-              `"${clip.bgmEn.replace(/"/g, '""')}"`,
-            ];
-            return row.join(",");
-          })
-        ),
-      ].join("\n");
+      const driveClipRows = scenes.flatMap((scene, sceneIndex) =>
+        scene.clips.map((clip, clipIndex) => {
+          const row = [
+            `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+            `${sceneIndex + 1}-${clipIndex + 1}`,
+            clip.length,
+            clip.accumulatedTime,
+            clip.backgroundId,
+            `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
+            `"${clip.story.replace(/"/g, '""')}"`,
+            `"${clip.imagePrompt.replace(/"/g, '""')}"`,
+            `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
+            `"${clip.videoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.veoVideoPrompt.replace(/"/g, '""')}"`,
+            `"${clip.dialogue.replace(/"/g, '""')}"`,
+            `"${clip.dialogueEn.replace(/"/g, '""')}"`,
+            `"${(clip.narration || "").replace(/"/g, '""')}"`,
+            `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
+            `"${clip.sfx.replace(/"/g, '""')}"`,
+            `"${clip.sfxEn.replace(/"/g, '""')}"`,
+            `"${clip.bgm.replace(/"/g, '""')}"`,
+            `"${clip.bgmEn.replace(/"/g, '""')}"`,
+          ];
+          return row.join(",");
+        })
+      );
+
+      const driveExtraRows: string[] = [];
+      if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+        driveExtraRows.push("");
+        if (characterIdSummary && characterIdSummary.length > 0) {
+          driveExtraRows.push("Character ID,Description");
+          for (const char of characterIdSummary) {
+            driveExtraRows.push(`"${char.characterId.replace(/"/g, '""')}","${char.description.replace(/"/g, '""')}"`);
+          }
+        }
+        if (genre) {
+          driveExtraRows.push("");
+          driveExtraRows.push(`Genre,"${genre.replace(/"/g, '""')}"`);
+        }
+      }
+
+      const csvContent = [headers.join(","), ...driveClipRows, ...driveExtraRows].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const fileName = `storyboard_part${selectedPartIndex + 1}_${new Date().toISOString().slice(0, 19).replace(/[:]/g, "-")}.csv`;
@@ -516,7 +591,7 @@ export default function StoryboardGenerator() {
         }
 
         // Import the storyboard
-        await importStoryboard(data.scenes, data.voicePrompts || []);
+        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre);
 
         // Also restore conditions if available
         if (data.conditions) {
@@ -591,6 +666,7 @@ export default function StoryboardGenerator() {
           imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
           video: findIdx(["Video Prompt", "비디오 프롬프트"]),
           sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
+          veo: findIdx(["Veo", "Veo Video Prompt"]),
           dialogue: findIdx(["Dialogue (Ko)", "대사 (Ko)", "대사"]),
           dialogueEn: findIdx(["Dialogue (En)", "대사 (En)"]),
           narration: findIdx(["Narration (Ko)", "나레이션 (Ko)", "나레이션"]),
@@ -626,6 +702,7 @@ export default function StoryboardGenerator() {
             imagePromptEnd: getVal(idx.imgEnd) || undefined,
             videoPrompt: getVal(idx.video),
             soraVideoPrompt: getVal(idx.sora),
+            veoVideoPrompt: getVal(idx.veo),
             dialogue: getVal(idx.dialogue),
             dialogueEn: getVal(idx.dialogueEn),
             narration: getVal(idx.narration),
@@ -951,7 +1028,16 @@ export default function StoryboardGenerator() {
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
             {/* Genre Presets */}
             <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <GenrePresets onApply={handleApplyPreset} />
+              <GenrePresets
+                presets={genrePresets}
+                onApply={handleApplyPreset}
+                onSaveCurrent={handleSaveCurrentToPreset}
+                onAddPreset={addGenrePreset}
+                onUpdatePreset={updateGenrePreset}
+                onRenamePreset={renameGenrePreset}
+                onDeletePreset={deleteGenrePreset}
+                currentConditions={currentConditions}
+              />
             </div>
 
             <div>
@@ -1164,7 +1250,12 @@ export default function StoryboardGenerator() {
             </div>
           </div>
 
-          <StoryboardTable data={scenes} voicePrompts={voicePrompts} />
+          <StoryboardTable 
+            data={scenes} 
+            voicePrompts={voicePrompts} 
+            characterIdSummary={characterIdSummary}
+            genre={genre}
+          />
         </div>
       )}
     </div>

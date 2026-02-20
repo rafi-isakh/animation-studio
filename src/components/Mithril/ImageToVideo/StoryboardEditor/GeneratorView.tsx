@@ -1,11 +1,23 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, Download, ImageIcon, Sparkles } from 'lucide-react';
 import { AssetManager } from './AssetManager';
-import { generateImage, remixImage } from './services';
-import { useMithril } from '../../MithrilContext';
+import { uploadI2VStoryboardFrameImage, uploadI2VStoryboardAssetImage } from '../../services/s3/images';
 import type { Scene, Continuity, Asset, AspectRatio } from './types';
+
+// Helper to check if a string is a URL (not base64)
+function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://');
+}
+
+// Helper to strip data URI prefix from base64
+function getBase64(data: string): string {
+  if (data.startsWith('data:')) {
+    return data.split(',')[1] || data;
+  }
+  return data;
+}
 
 // Shot group color utility for alternating group colors (matching ImageGenerator)
 const getSequenceColor = (index: number) => {
@@ -20,26 +32,55 @@ const getSequenceColor = (index: number) => {
   return colors[index % colors.length];
 };
 
+interface SubmitGenerateParams {
+  sceneIndex: number;
+  clipIndex: number;
+  frameType: 'start' | 'end';
+  prompt: string;
+  referenceImageUrl?: string;
+  assetImageUrls?: string[];
+  aspectRatio?: '1:1' | '16:9' | '9:16';
+}
+
+interface SubmitRemixParams {
+  sceneIndex: number;
+  clipIndex: number;
+  frameType: 'start' | 'end';
+  prompt: string;
+  originalImageUrl: string;
+  originalContext: string;
+  remixPrompt: string;
+  assetImageUrls?: string[];
+  aspectRatio?: '1:1' | '16:9' | '9:16';
+}
+
 interface GeneratorViewProps {
   scenes: Scene[];
   assets: Asset[];
   aspectRatio: AspectRatio;
+  projectId: string;
+  generatingFrames: Record<string, string>;
   onUpdateClip: (sIdx: number, cIdx: number, updatedClip: Continuity) => void;
   onAddAssets: (type: 'character' | 'background', files: FileList) => void;
   onUpdateAssetTags: (id: string, tags: string) => void;
   onDeleteAsset: (id: string) => void;
+  onSubmitGenerate: (params: SubmitGenerateParams) => Promise<{ success: boolean; error?: string }>;
+  onSubmitRemix: (params: SubmitRemixParams) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const GeneratorView: React.FC<GeneratorViewProps> = ({
   scenes,
   assets,
   aspectRatio,
+  projectId,
+  generatingFrames,
   onUpdateClip,
   onAddAssets,
   onUpdateAssetTags,
   onDeleteAsset,
+  onSubmitGenerate,
+  onSubmitRemix,
 }) => {
-  const { customApiKey } = useMithril();
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 w-full bg-gray-950 min-h-[600px]">
@@ -74,8 +115,11 @@ export const GeneratorView: React.FC<GeneratorViewProps> = ({
                 scene={scene}
                 assets={assets}
                 aspectRatio={aspectRatio}
+                projectId={projectId}
+                generatingFrames={generatingFrames}
                 onUpdateClip={onUpdateClip}
-                customApiKey={customApiKey}
+                onSubmitGenerate={onSubmitGenerate}
+                onSubmitRemix={onSubmitRemix}
               />
             ))}
           </div>
@@ -91,9 +135,12 @@ const SequenceGroup: React.FC<{
   scene: Scene;
   assets: Asset[];
   aspectRatio: AspectRatio;
+  projectId: string;
+  generatingFrames: Record<string, string>;
   onUpdateClip: (sIdx: number, cIdx: number, updatedClip: Continuity) => void;
-  customApiKey: string;
-}> = ({ sIdx, scene, assets, aspectRatio, onUpdateClip, customApiKey }) => {
+  onSubmitGenerate: (params: SubmitGenerateParams) => Promise<{ success: boolean; error?: string }>;
+  onSubmitRemix: (params: SubmitRemixParams) => Promise<{ success: boolean; error?: string }>;
+}> = ({ sIdx, scene, assets, aspectRatio, projectId, generatingFrames, onUpdateClip, onSubmitGenerate, onSubmitRemix }) => {
   return (
     <div
       className={`p-5 rounded-2xl border-l-4 ${getSequenceColor(sIdx)} shadow-xl relative`}
@@ -122,8 +169,11 @@ const SequenceGroup: React.FC<{
             clip={clip}
             assets={assets}
             aspectRatio={aspectRatio}
+            projectId={projectId}
+            generatingFrames={generatingFrames}
             onUpdateClip={onUpdateClip}
-            customApiKey={customApiKey}
+            onSubmitGenerate={onSubmitGenerate}
+            onSubmitRemix={onSubmitRemix}
           />
         ))}
       </div>
@@ -138,9 +188,12 @@ const FrameCard: React.FC<{
   clip: Continuity;
   assets: Asset[];
   aspectRatio: AspectRatio;
+  projectId: string;
+  generatingFrames: Record<string, string>;
   onUpdateClip: (sIdx: number, cIdx: number, updatedClip: Continuity) => void;
-  customApiKey: string;
-}> = ({ sIdx, cIdx, clip, assets, aspectRatio, onUpdateClip, customApiKey }) => {
+  onSubmitGenerate: (params: SubmitGenerateParams) => Promise<{ success: boolean; error?: string }>;
+  onSubmitRemix: (params: SubmitRemixParams) => Promise<{ success: boolean; error?: string }>;
+}> = ({ sIdx, cIdx, clip, assets, aspectRatio, projectId, generatingFrames, onUpdateClip, onSubmitGenerate, onSubmitRemix }) => {
   const [loadingA, setLoadingA] = useState(false);
   const [loadingB, setLoadingB] = useState(false);
   const [remixOpenA, setRemixOpenA] = useState(false);
@@ -149,6 +202,25 @@ const FrameCard: React.FC<{
   const [remixPromptB, setRemixPromptB] = useState('');
   const [remixLoadingA, setRemixLoadingA] = useState(false);
   const [remixLoadingB, setRemixLoadingB] = useState(false);
+  const [imgErrorA, setImgErrorA] = useState(false);
+  const [imgErrorB, setImgErrorB] = useState(false);
+
+  // Clear local loading states when Firestore job status updates or completes
+  useEffect(() => {
+    const frameKeyA = `${sIdx}-${cIdx}-start`;
+    const frameKeyB = `${sIdx}-${cIdx}-end`;
+    const jobStatusA = generatingFrames[frameKeyA];
+    const jobStatusB = generatingFrames[frameKeyB];
+
+    // If frame A has a job status, ensure local loading is cleared (job is tracked by Firestore)
+    if (jobStatusA && loadingA) {
+      setLoadingA(false);
+    }
+    // If frame B has a job status, ensure local loading is cleared
+    if (jobStatusB && loadingB) {
+      setLoadingB(false);
+    }
+  }, [generatingFrames, sIdx, cIdx, loadingA, loadingB]);
 
   // Find all relevant assets by tags matching prompt content
   const findReferenceAssets = (prompt: string) => {
@@ -168,28 +240,56 @@ const FrameCard: React.FC<{
 
   const handleGenerate = async (isEnd: boolean) => {
     isEnd ? setLoadingB(true) : setLoadingA(true);
+    isEnd ? setImgErrorB(false) : setImgErrorA(false);
     try {
       const currentPrompt = isEnd ? (clip.imagePromptEnd || clip.imagePrompt) : clip.imagePrompt;
       const refAssets = findReferenceAssets(currentPrompt);
-      const colorRefs = refAssets.map((a) => a.image);
       const mangaRef = shouldUseMangaRef(isEnd) ? clip.referenceImage : undefined;
 
-      const result = await generateImage({
+      // Upload asset images to S3 if they're base64
+      const assetImageUrls: string[] = [];
+      for (const asset of refAssets) {
+        if (isUrl(asset.image)) {
+          assetImageUrls.push(asset.image);
+        } else {
+          const url = await uploadI2VStoryboardAssetImage(
+            projectId, asset.id, asset.tags.includes('bg') ? 'background' : 'character',
+            getBase64(asset.image)
+          );
+          assetImageUrls.push(url);
+        }
+      }
+
+      // Upload manga reference to S3 if it's base64
+      let referenceImageUrl: string | undefined;
+      if (mangaRef) {
+        if (isUrl(mangaRef)) {
+          referenceImageUrl = mangaRef;
+        } else {
+          referenceImageUrl = await uploadI2VStoryboardFrameImage(
+            projectId, sIdx, cIdx, getBase64(mangaRef)
+          );
+        }
+      }
+
+      const result = await onSubmitGenerate({
+        sceneIndex: sIdx,
+        clipIndex: cIdx,
+        frameType: isEnd ? 'end' : 'start',
         prompt: currentPrompt,
-        referenceImage: mangaRef,
-        assetImages: colorRefs,
+        referenceImageUrl,
+        assetImageUrls,
         aspectRatio,
-        customApiKey,
       });
 
-      const updatedClip = { ...clip };
-      if (isEnd) updatedClip.generatedImageEnd = result;
-      else updatedClip.generatedImage = result;
-
-      onUpdateClip(sIdx, cIdx, updatedClip);
+      if (!result.success) {
+        alert('Generation failed: ' + (result.error || 'Unknown error'));
+        // Only reset loading on failure; on success, let Firestore subscription handle it
+        isEnd ? setLoadingB(false) : setLoadingA(false);
+      }
+      // Note: On success, loading state will be controlled by generatingFrames (Firestore subscription)
     } catch (err) {
       alert('Generation failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
       isEnd ? setLoadingB(false) : setLoadingA(false);
     }
   };
@@ -199,30 +299,56 @@ const FrameCard: React.FC<{
     if (!originalImg) return;
 
     isEnd ? setRemixLoadingB(true) : setRemixLoadingA(true);
+    isEnd ? setImgErrorB(false) : setImgErrorA(false);
     try {
-      const prompt = isEnd ? remixPromptB : remixPromptA;
+      const remixPromptText = isEnd ? remixPromptB : remixPromptA;
       const currentContext = isEnd ? (clip.imagePromptEnd || clip.imagePrompt) : clip.imagePrompt;
       const refAssets = findReferenceAssets(currentContext);
-      const colorRefs = refAssets.map((a) => a.image);
 
-      const result = await remixImage({
-        originalImage: originalImg,
-        remixPrompt: prompt,
+      // Upload asset images to S3 if they're base64
+      const assetImageUrls: string[] = [];
+      for (const asset of refAssets) {
+        if (isUrl(asset.image)) {
+          assetImageUrls.push(asset.image);
+        } else {
+          const url = await uploadI2VStoryboardAssetImage(
+            projectId, asset.id, asset.tags.includes('bg') ? 'background' : 'character',
+            getBase64(asset.image)
+          );
+          assetImageUrls.push(url);
+        }
+      }
+
+      // Upload original image to S3 if it's base64
+      let originalImageUrl: string;
+      if (isUrl(originalImg)) {
+        originalImageUrl = originalImg;
+      } else {
+        originalImageUrl = await uploadI2VStoryboardFrameImage(
+          projectId, sIdx, cIdx, getBase64(originalImg)
+        );
+      }
+
+      const result = await onSubmitRemix({
+        sceneIndex: sIdx,
+        clipIndex: cIdx,
+        frameType: isEnd ? 'end' : 'start',
+        prompt: currentContext,
+        originalImageUrl,
         originalContext: currentContext,
-        assetImages: colorRefs,
+        remixPrompt: remixPromptText,
+        assetImageUrls,
         aspectRatio,
-        customApiKey,
       });
 
-      const updatedClip = { ...clip };
-      if (isEnd) updatedClip.generatedImageEnd = result;
-      else updatedClip.generatedImage = result;
-
-      onUpdateClip(sIdx, cIdx, updatedClip);
-      isEnd ? setRemixOpenB(false) : setRemixOpenA(false);
+      if (!result.success) {
+        alert('Remix failed: ' + (result.error || 'Unknown error'));
+        // Only reset loading on failure; on success, let Firestore subscription handle it
+        isEnd ? setRemixLoadingB(false) : setRemixLoadingA(false);
+      }
+      // Note: On success, loading state will be controlled by generatingFrames (Firestore subscription)
     } catch (err) {
       alert('Remix failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
       isEnd ? setRemixLoadingB(false) : setRemixLoadingA(false);
     }
   };
@@ -250,7 +376,10 @@ const FrameCard: React.FC<{
   const renderFrameSection = (isEnd: boolean) => {
     const prompt = isEnd ? clip.imagePromptEnd : clip.imagePrompt;
     const generated = isEnd ? clip.generatedImageEnd : clip.generatedImage;
-    const loading = isEnd ? loadingB : loadingA;
+    const localLoading = isEnd ? loadingB : loadingA;
+    const frameKey = `${sIdx}-${cIdx}-${isEnd ? 'end' : 'start'}`;
+    const jobStatus = generatingFrames[frameKey];
+    const loading = localLoading || !!jobStatus;
     const remixOpen = isEnd ? remixOpenB : remixOpenA;
     const setRemixOpen = isEnd ? setRemixOpenB : setRemixOpenA;
     const remixPrompt = isEnd ? remixPromptB : remixPromptA;
@@ -274,11 +403,16 @@ const FrameCard: React.FC<{
           className="w-full bg-gray-950 rounded-xl overflow-hidden border border-gray-800 flex items-center justify-center relative shadow-inner"
         >
           {loading && (
-            <div className="absolute inset-0 bg-black/60 z-10 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 z-10 flex flex-col items-center justify-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+              {jobStatus && (
+                <span className="text-[10px] text-cyan-300/70 uppercase font-bold tracking-widest">
+                  {jobStatus === 'pending' ? 'Queued' : jobStatus === 'preparing' ? 'Preparing' : jobStatus === 'generating' ? 'Generating' : jobStatus === 'uploading' ? 'Uploading' : jobStatus}
+                </span>
+              )}
             </div>
           )}
-          {generated ? (
+          {generated && !(isEnd ? imgErrorB : imgErrorA) ? (
             <img
               src={
                 generated.startsWith('data:') || generated.startsWith('http')
@@ -287,8 +421,9 @@ const FrameCard: React.FC<{
               }
               className="w-full h-full object-cover"
               alt="Generated"
+              onError={() => isEnd ? setImgErrorB(true) : setImgErrorA(true)}
             />
-          ) : referenceToShow ? (
+          ) : referenceToShow && !(isEnd ? imgErrorB : imgErrorA) ? (
             <img
               src={
                 referenceToShow.startsWith('data:') || referenceToShow.startsWith('http')
@@ -297,12 +432,13 @@ const FrameCard: React.FC<{
               }
               className="w-full h-full object-cover opacity-30 blur-[1px]"
               alt="Reference"
+              onError={() => isEnd ? setImgErrorB(true) : setImgErrorA(true)}
             />
           ) : (
             <div className="text-gray-700 flex flex-col items-center space-y-2">
               <ImageIcon className="w-8 h-8 opacity-20" />
               <span className="text-[10px] uppercase font-bold tracking-widest opacity-30">
-                Waiting
+                {(isEnd ? imgErrorB : imgErrorA) ? 'Failed to load' : 'Waiting'}
               </span>
             </div>
           )}
@@ -329,9 +465,10 @@ const FrameCard: React.FC<{
             </button>
             <button
               onClick={() => handleGenerate(isEnd)}
-              className="px-6 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-black rounded-lg transition-all shadow-lg active:scale-95 uppercase tracking-tighter"
+              disabled={loading}
+              className="px-6 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-black rounded-lg transition-all shadow-lg active:scale-95 uppercase tracking-tighter"
             >
-              Generate
+              {loading ? 'Processing...' : 'Generate'}
             </button>
           </div>
         </div>
@@ -377,10 +514,10 @@ const FrameCard: React.FC<{
               />
               <button
                 onClick={() => handleRunRemix(isEnd)}
-                disabled={!generated}
+                disabled={!generated || loading}
                 className="w-full py-2.5 bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-black rounded-lg transition-all disabled:opacity-30 flex items-center justify-center space-x-2 shadow-xl shadow-purple-900/20 uppercase tracking-tighter"
               >
-                <span>RUN REMIX</span>
+                <span>{loading ? 'Processing...' : 'RUN REMIX'}</span>
               </button>
             </div>
           </div>

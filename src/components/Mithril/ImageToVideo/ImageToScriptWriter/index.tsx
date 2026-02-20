@@ -12,6 +12,8 @@ import {
   Trash2,
   ImageIcon,
   FileArchive,
+  XCircle,
+  RotateCcw,
 } from "lucide-react";
 import { useScriptWriter } from "./useScriptWriter";
 import { StoryboardTable } from "./StoryboardTable";
@@ -39,6 +41,8 @@ export default function ImageToScriptWriter() {
     uploadMangaFiles,
     clearMangaImages,
     generate,
+    cancel,
+    clear,
     splitStartEnd,
     updateClip,
     exportCSV,
@@ -332,7 +336,7 @@ export default function ImageToScriptWriter() {
       </div>
 
       {/* Generate Button */}
-      <div className="flex justify-center gap-4 flex-wrap">
+      <div className="flex justify-end gap-4 flex-wrap">
         <button
           onClick={handleGenerate}
           disabled={processing.isGenerating || totalPanels === 0}
@@ -350,6 +354,16 @@ export default function ImageToScriptWriter() {
             </>
           )}
         </button>
+
+        {processing.isGenerating && (
+          <button
+            onClick={cancel}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg flex items-center gap-2"
+          >
+            <XCircle className="w-5 h-5" />
+            Cancel
+          </button>
+        )}
 
         {hasResults && (
           <>
@@ -386,6 +400,15 @@ export default function ImageToScriptWriter() {
             >
               <Download className="w-4 h-4" />
               CSV (Text Only)
+            </button>
+
+            <button
+              onClick={clear}
+              disabled={processing.isGenerating || processing.isSplitting}
+              className="px-6 py-3 bg-red-600/80 hover:bg-red-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Clear Script
             </button>
           </>
         )}

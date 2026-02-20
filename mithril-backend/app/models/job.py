@@ -15,6 +15,13 @@ class JobType(str, Enum):
     BACKGROUND = "background"
     PROP_DESIGN_SHEET = "prop_design_sheet"
     PANEL = "panel"
+    ID_CONVERTER_GLOSSARY = "id_converter_glossary"
+    ID_CONVERTER_BATCH = "id_converter_batch"
+    STORY_SPLITTER = "story_splitter"
+    PANEL_SPLITTER = "panel_splitter"
+    STORYBOARD = "storyboard"
+    I2V_STORYBOARD = "i2v_storyboard"
+    STORYBOARD_EDITOR = "storyboard_editor"
 
 
 class JobStatus(str, Enum):
@@ -129,6 +136,56 @@ class JobDocument(BaseModel):
     source_image_base64: str | None = None  # Base64 encoded source image
     source_mime_type: str | None = None  # MIME type of source image
     refinement_mode: str | None = None  # "default", "zoom", or "expand"
+
+    # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
+    original_text: str | None = None  # Full text for glossary analysis
+    file_uri: str | None = None  # Gemini File API URI
+    glossary_result: list[dict] | None = None  # Extracted entities
+    total_chunks: int | None = None  # For batch conversion
+    completed_chunks: int | None = None  # Completed chunk count
+    current_chunk_index: int | None = None  # Currently processing chunk
+    chunks_data: list[dict] | None = None  # Array of chunk conversion data
+
+    # Story Splitter-specific fields (for type=STORY_SPLITTER)
+    story_text: str | None = None  # Full story text to split
+    guidelines: str | None = None  # Genre-specific splitting guidelines
+    num_parts: int | None = None  # Number of parts to split into
+    split_result: list[dict] | None = None  # Array of {text, cliffhangers} parts
+
+    # Panel Splitter-specific fields (for type=PANEL_SPLITTER)
+    page_id: str | None = None  # Page ID from frontend
+    page_index: int | None = None  # Page index in sequence
+    reading_direction: str | None = None  # 'rtl' or 'ltr'
+    detected_panels: list[dict] | None = None  # Array of detected panels with box_2d
+
+    # I2V Storyboard-specific fields (for type=I2V_STORYBOARD)
+    panel_urls: list[str] = []  # S3 URLs of panel images
+    panel_labels: list[str] = []  # Labels for each panel
+    target_duration: str | None = None  # Target duration (MM:SS format)
+
+    # Storyboard Editor-specific fields (for type=STORYBOARD_EDITOR)
+    frame_type: str | None = None  # "start" or "end"
+    operation: str | None = None  # "generate" or "remix"
+    original_image_url: str | None = None  # For remix: S3 URL of source image
+    original_context: str | None = None  # For remix: original prompt context
+    remix_prompt: str | None = None  # For remix: modification instructions
+    asset_image_urls: list[str] = []  # S3 URLs for color reference assets
+
+    # Storyboard-specific fields (for type=STORYBOARD)
+    source_text: str | None = None  # Source text for storyboard generation
+    part_index: int | None = None  # Part index from story splitter
+    target_time: str | None = None  # Target duration (MM:SS format)
+    story_condition: str | None = None  # Story generation conditions
+    image_condition: str | None = None  # Image prompt conditions
+    video_condition: str | None = None  # Video prompt conditions
+    sound_condition: str | None = None  # Sound conditions
+    image_guide: str | None = None  # Additional image guide
+    video_guide: str | None = None  # Additional video guide
+    custom_instruction: str | None = None  # Custom story instructions
+    background_instruction: str | None = None  # Background ID rules
+    negative_instruction: str | None = None  # Negative prompts
+    video_instruction: str | None = None  # Video prompt rules
+    storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
     status: JobStatus = JobStatus.PENDING
@@ -355,6 +412,7 @@ class PanelJobSubmitRequest(BaseModel):
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     refinement_mode: Literal["default", "zoom", "expand"] = "default"
     api_key: str | None = None  # Custom API key (optional)
+    provider: Literal["gemini", "grok"] = "gemini"  # Image generation provider
 
 
 class PanelJobStatusResponse(BaseModel):
@@ -363,6 +421,338 @@ class PanelJobStatusResponse(BaseModel):
     job_id: str
     panel_id: str
     session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# ID Converter Job Models
+# ============================================================================
+
+
+class IdConverterGlossaryJobSubmitRequest(BaseModel):
+    """Request model for submitting a glossary analysis job."""
+
+    project_id: str
+    original_text: str  # Full text for entity analysis
+    file_uri: str | None = None  # Optional Gemini File API URI
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class IdConverterBatchJobSubmitRequest(BaseModel):
+    """Request model for submitting a batch chunk conversion job."""
+
+    project_id: str
+    glossary: list[dict]  # List of entity objects with variants
+    chunks: list[dict]  # List of {originalIndex, originalText}
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class IdConverterChunkData(BaseModel):
+    """Data model for a single chunk in batch conversion."""
+
+    original_index: int
+    original_text: str
+    translated_text: str = ""
+    status: Literal["pending", "processing", "completed", "error"] = "pending"
+
+
+class IdConverterJobStatusResponse(BaseModel):
+    """Response model for ID converter job status queries."""
+
+    job_id: str
+    job_type: Literal["glossary", "batch"]
+    status: JobStatus
+    progress: float = 0.0
+    # Glossary job results
+    entities: list[dict] | None = None
+    entities_count: int | None = None
+    # Batch job results
+    total_chunks: int | None = None
+    completed_chunks: int | None = None
+    current_chunk_index: int | None = None
+    # Error handling
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Story Splitter Job Models
+# ============================================================================
+
+
+class StorySplitterJobSubmitRequest(BaseModel):
+    """Request model for submitting a story splitter job."""
+
+    project_id: str
+    text: str  # Full story text to split
+    guidelines: str = ""  # Genre-specific splitting guidelines
+    num_parts: int = Field(ge=2, le=50, default=8)  # Number of parts to split into
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class StorySplitterCliffhanger(BaseModel):
+    """Cliffhanger analysis for a story part."""
+
+    sentence: str
+    reason: str
+
+
+class StorySplitterPart(BaseModel):
+    """A single part of the split story."""
+
+    text: str
+    cliffhangers: list[StorySplitterCliffhanger] = []
+
+
+class StorySplitterJobStatusResponse(BaseModel):
+    """Response model for story splitter job status queries."""
+
+    job_id: str
+    status: JobStatus
+    progress: float = 0.0
+    # Result
+    parts: list[StorySplitterPart] | None = None
+    parts_count: int | None = None
+    # Error handling
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Panel Splitter Job Models
+# ============================================================================
+
+
+class PanelSplitterJobSubmitRequest(BaseModel):
+    """Request model for submitting a panel splitter job."""
+
+    project_id: str
+    page_id: str  # Page ID for tracking
+    page_index: int  # Page index in sequence
+    file_name: str  # Original filename
+    image_base64: str  # Base64 encoded image
+    reading_direction: Literal["rtl", "ltr"] = "rtl"
+    api_key: str | None = None  # Custom API key (optional)
+
+
+class DetectedPanel(BaseModel):
+    """A single detected panel."""
+
+    id: str
+    box_2d: list[int]  # [ymin, xmin, ymax, xmax] in 0-1000 scale
+    label: str = ""
+    imageUrl: str | None = None  # S3 URL of cropped panel
+
+
+class PanelSplitterJobStatusResponse(BaseModel):
+    """Response model for panel splitter job status queries."""
+
+    job_id: str
+    page_id: str
+    page_index: int
+    file_name: str
+    status: JobStatus
+    progress: float = 0.0
+    detected_panels: list[DetectedPanel] | None = None
+    panel_count: int | None = None
+    image_url: str | None = None  # S3 URL of source page
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+class PanelSplitterPageItem(BaseModel):
+    """A single page item in a batch panel splitter request."""
+
+    page_id: str
+    page_index: int
+    file_name: str
+    image_base64: str
+    reading_direction: Literal["rtl", "ltr"] | None = None  # Override batch-level
+    api_key: str | None = None  # Override batch-level
+
+
+class PanelSplitterBatchSubmitRequest(BaseModel):
+    """Request model for submitting multiple panel splitter jobs."""
+
+    project_id: str
+    pages: list[PanelSplitterPageItem]
+    reading_direction: Literal["rtl", "ltr"] = "rtl"
+    api_key: str | None = None  # Batch-level fallback
+
+
+class PanelSplitterBatchSubmitResponse(BaseModel):
+    """Response model for batch panel splitter job submission."""
+
+    batch_id: str
+    jobs: list[JobSubmitResponse]
+    total_count: int
+    status: str = "submitted"
+
+
+# ============================================================================
+# Storyboard Generation Job Models
+# ============================================================================
+
+
+class StoryboardJobSubmitRequest(BaseModel):
+    """Request model for submitting a storyboard generation job."""
+
+    project_id: str
+    source_text: str  # Source text for storyboard generation
+    part_index: int = 0  # Part index from story splitter
+    target_time: str = "03:00"  # Target duration (MM:SS format)
+    # Conditions
+    story_condition: str = ""
+    image_condition: str = ""
+    video_condition: str = ""
+    sound_condition: str = ""
+    # Guides
+    image_guide: str = ""
+    video_guide: str = ""
+    # Additional instructions
+    custom_instruction: str = ""
+    background_instruction: str = ""
+    negative_instruction: str = ""
+    video_instruction: str = ""
+    # API key
+    api_key: str | None = None
+
+
+class StoryboardClip(BaseModel):
+    """A single clip in a storyboard scene."""
+
+    story: str
+    imagePrompt: str
+    imagePromptEnd: str | None = None
+    videoPrompt: str
+    soraVideoPrompt: str
+    veoVideoPrompt: str = ""
+    backgroundPrompt: str
+    backgroundId: str
+    dialogue: str
+    dialogueEn: str
+    narration: str = ""
+    narrationEn: str = ""
+    sfx: str
+    sfxEn: str
+    bgm: str
+    bgmEn: str
+    length: str
+    accumulatedTime: str
+    referenceImageIndex: int = 0
+
+
+class StoryboardScene(BaseModel):
+    """A single scene in the storyboard."""
+
+    sceneTitle: str
+    clips: list[StoryboardClip]
+
+
+class StoryboardVoicePrompt(BaseModel):
+    """Voice prompt for a character."""
+
+    promptKo: str
+    promptEn: str
+
+
+class StoryboardCharacterIdSummary(BaseModel):
+    """Character ID summary entry."""
+
+    characterId: str
+    description: str
+
+
+class StoryboardJobStatusResponse(BaseModel):
+    """Response model for storyboard job status queries."""
+
+    job_id: str
+    status: JobStatus
+    progress: float = 0.0
+    # Result
+    scenes: list[StoryboardScene] | None = None
+    voice_prompts: list[StoryboardVoicePrompt] | None = None
+    character_id_summary: list[StoryboardCharacterIdSummary] | None = None
+    genre: str | None = None
+    scene_count: int | None = None
+    clip_count: int | None = None
+    # Error handling
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# I2V Storyboard Generation Job Models
+# ============================================================================
+
+
+class I2VStoryboardJobSubmitRequest(BaseModel):
+    """Request model for submitting an I2V storyboard generation job."""
+
+    project_id: str
+    panel_urls: list[str]  # S3 URLs of panel images
+    panel_labels: list[str]  # Labels for each panel
+    source_text: str = ""  # Optional context text
+    target_duration: str = "03:00"  # Target duration (MM:SS format)
+    # Conditions
+    story_condition: str = ""
+    image_condition: str = ""
+    video_condition: str = ""
+    sound_condition: str = ""
+    # Guides
+    image_guide: str = ""
+    video_guide: str = ""
+    # API key
+    api_key: str | None = None
+
+
+# ============================================================================
+# Storyboard Editor Job Models
+# ============================================================================
+
+
+class StoryboardEditorJobSubmitRequest(BaseModel):
+    """Request model for submitting a storyboard editor job (generate or remix)."""
+
+    project_id: str
+    scene_index: int
+    clip_index: int
+    frame_type: Literal["start", "end"]  # A or B frame
+    operation: Literal["generate", "remix"]
+    prompt: str  # Image prompt (for generate) or unused (for remix)
+    reference_image_url: str | None = None  # S3 URL of manga panel reference
+    asset_image_urls: list[str] = []  # S3 URLs of asset reference images
+    # Remix-specific fields
+    original_image_url: str | None = None  # S3 URL of image to remix
+    original_context: str = ""  # Original image prompt for context
+    remix_prompt: str = ""  # Modification instructions
+    aspect_ratio: Literal["1:1", "16:9", "9:16"] = "16:9"
+    api_key: str | None = None
+
+
+class StoryboardEditorJobStatusResponse(BaseModel):
+    """Response model for storyboard editor job status queries."""
+
+    job_id: str
+    scene_index: int
+    clip_index: int
+    frame_type: str
+    operation: str
     status: JobStatus
     progress: float = 0.0
     image_url: str | None = None

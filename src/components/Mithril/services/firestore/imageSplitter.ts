@@ -127,6 +127,11 @@ export async function saveMangaPage(
     status: input.status || 'pending',
     panelCount: 0,
     createdAt: Timestamp.now(),
+    // Store original page ID for matching with job queue
+    ...(input.originalPageId ? { originalPageId: input.originalPageId } : {}),
+    // Store dimensions for proper resize calculations
+    ...(input.width ? { width: input.width } : {}),
+    ...(input.height ? { height: input.height } : {}),
   });
 
   return pageId;
@@ -179,6 +184,7 @@ export async function saveMangaPanel(
     box_2d: input.box_2d,
     label: input.label,
     imageRef: input.imageRef || '',
+    ...(input.storyboard ? { storyboard: input.storyboard } : {}),
   });
 
   return panelId;

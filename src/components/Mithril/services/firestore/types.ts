@@ -12,8 +12,6 @@ export interface ProjectMetadata {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   currentStage: number;
-  customApiKey?: string;
-  videoApiKey?: string;
   ownerId: string; // User ID who owns this project
 }
 
@@ -26,8 +24,6 @@ export interface CreateProjectInput {
 export interface UpdateProjectInput {
   name?: string;
   currentStage?: number;
-  customApiKey?: string;
-  videoApiKey?: string;
 }
 
 // ============================================
@@ -61,6 +57,7 @@ export interface StorySplitsDocument {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
   generatedAt: Timestamp;
+  jobId?: string;  // Active/last story splitter job ID
 }
 
 // ============================================
@@ -193,6 +190,7 @@ export interface PropDocument {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts: PropContextDocument[];
   designSheetPrompt: string;
@@ -203,6 +201,9 @@ export interface PropDocument {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string; // e.g., 'Silver', 'Dark brown'
+  hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
+  eyeColor?: string; // e.g., 'Golden', 'Blue'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -232,6 +233,7 @@ export interface SavePropInput {
   category: 'character' | 'object';
   description: string;
   descriptionKo: string;
+  csvDescription?: string;
   appearingClips: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
@@ -242,6 +244,9 @@ export interface SavePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -256,6 +261,7 @@ export interface UpdatePropInput {
   category?: 'character' | 'object';
   description?: string;
   descriptionKo?: string;
+  csvDescription?: string;
   appearingClips?: string[];
   contextPrompts?: PropContextDocument[];
   designSheetPrompt?: string;
@@ -266,6 +272,9 @@ export interface UpdatePropInput {
   // Character metadata (for Easy Mode)
   age?: string;
   gender?: string;
+  hairColor?: string;
+  hairStyle?: string;
+  eyeColor?: string;
   personality?: string;
   role?: string;
 
@@ -282,6 +291,9 @@ export interface UpdatePropInput {
 export interface StoryboardDocument {
   generatedAt: Timestamp;
   aspectRatio?: string;
+  jobId?: string | null;
+  characterIdSummary?: Array<{ characterId: string; description: string }>;
+  genre?: string;
 }
 
 export interface VoicePromptDocument {
@@ -303,8 +315,10 @@ export interface ClipDocument {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   // Dialogue
   dialogue: string;
   dialogueEn: string;
@@ -431,6 +445,7 @@ export interface SaveChapterInput {
 export interface SaveStorySplitsInput {
   guidelines: string;
   parts: PartWithAnalysisDocument[];
+  jobId?: string;
 }
 
 export interface SaveCharacterSheetSettingsInput {
@@ -547,8 +562,10 @@ export interface SaveClipInput {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
+  characterInfo?: string;
   dialogue: string;
   dialogueEn: string;
   narration?: string;
@@ -569,8 +586,10 @@ export interface UpdateClipInput {
   imagePromptEnd?: string;
   videoPrompt?: string;
   soraVideoPrompt?: string;
+  veoVideoPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
+  characterInfo?: string;
   dialogue?: string;
   dialogueEn?: string;
   narration?: string;
@@ -666,6 +685,7 @@ export interface MangaPanelDocument {
   box_2d: number[]; // [ymin, xmin, ymax, xmax] in 0-1000 scale
   label: string;
   imageRef?: string; // S3 URL for cropped panel image
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 export interface MangaPageDocument {
@@ -677,6 +697,9 @@ export interface MangaPageDocument {
   status: MangaPanelStatus;
   panelCount: number;
   createdAt: Timestamp;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface ImageSplitterDocument {
@@ -691,12 +714,16 @@ export interface SaveMangaPageInput {
   imageRef: string;
   readingDirection: ReadingDirection;
   status?: MangaPanelStatus;
+  originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface SaveMangaPanelInput {
   box_2d: number[];
   label: string;
   imageRef?: string;
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 // ============================================
@@ -809,30 +836,40 @@ export interface IdConverterChunk {
 
 export interface IdConverterDocument {
   fileName: string;
-  originalFullText: string;
-  fileUri?: string;          // Gemini File API URI
+  originalFullText?: string;  // Deprecated: now stored in S3 (for backward compat)
+  textFileUrl?: string;       // S3 URL for source text
+  fileUri?: string;           // Gemini File API URI
   glossary: IdConverterEntity[];
   chunks: IdConverterChunk[];
   currentStep: IdConverterStep;
+  uploadType?: UploadType;    // Upload type (novel or chapter) - optional for backward compat
   generatedAt: Timestamp;
+  glossaryJobId?: string;     // Active/last glossary job ID
+  batchJobId?: string;        // Active/last batch job ID
 }
 
 export interface SaveIdConverterInput {
   fileName: string;
-  originalFullText: string;
+  textFileUrl?: string;        // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;     // Upload type (novel or chapter)
+  glossaryJobId?: string;
+  batchJobId?: string;
 }
 
 export interface UpdateIdConverterInput {
   fileName?: string;
-  originalFullText?: string;
+  textFileUrl?: string;         // S3 URL for source text
   fileUri?: string;
   glossary?: IdConverterEntity[];
   chunks?: IdConverterChunk[];
   currentStep?: IdConverterStep;
+  uploadType?: UploadType;      // Upload type (novel or chapter)
+  glossaryJobId?: string;
+  batchJobId?: string;
 }
 
 // ============================================

@@ -594,6 +594,8 @@ storysplitter_split_results,분할 결과,,Split Results
 storysplitter_parts,파트,,Parts
 storysplitter_download_zip,ZIP 다운로드,,Download ZIP
 storysplitter_clear,초기화,,Clear
+storysplitter_upload_txt,또는 여기에 TXT 파일을 직접 업로드하세요,,Or upload a TXT file directly here
+storysplitter_upload_txt_desc,이전 단계와 무관하게 새 파일을 업로드하여 대체할 수 있습니다,,You can upload a new file to replace the text independently from previous stages
 storysplitter_part,파트,,Part
 storysplitter_more_chars,개의 문자가 더 있습니다,,more characters
 storysplitter_error,오류:,,Error:
@@ -636,11 +638,13 @@ table_clip,클립,,Clip
 table_length,길이,,Length
 table_accumulated_time,누적 시간,,Accumulated Time
 table_background_id,배경 ID,,Background ID
+table_character_info,캐릭터 정보,,Character Info
 table_story,스토리,,Story
 table_image_prompt,이미지 프롬프트,,Image Prompt
 table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
 table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
+table_veo_video_prompt,Veo 비디오 프롬프트,,Veo Video Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
 table_dialogue_en,대사 (En),,Dialogue (En)
 table_narration_ko,나레이션 (Ko),,Narration (Ko)
@@ -652,6 +656,8 @@ table_bgm_en,BGM (En),,BGM (En)
 table_empty_title,이곳에 콘티가 표시됩니다,,Storyboard will be displayed here
 table_empty_desc,파트를 선택하고 조건을 설정하여 생성하세요.,,Select a part and set conditions to generate.
 table_voice_prompts,캐릭터 보이스 프롬프트,,Character Voice Prompts
+table_character_id_summary,캐릭터 ID 요약,,Character ID Summary
+table_genre,장르,,Genre
 table_prompt,프롬프트,,Prompt
 table_korean,[한글]:,,[Korean]:
 table_scene,씬,,Scene
@@ -983,6 +989,24 @@ genre_modern_romance,현대 로맨스,,Modern Romance
 genre_medieval_action_fantasy,중세 액션 판타지,,Medieval Action Fantasy
 genre_modern_action_fantasy,현대 액션 판타지,,Modern Action Fantasy
 genre_select_preset,프리셋 선택,,Select Preset
+preset_apply,적용,,Apply
+preset_save_current,현재 조건 저장,,Save Current
+preset_new_from_current,새 프리셋으로 저장,,New Preset
+preset_manage,프리셋 관리,,Manage Presets
+preset_system,시스템,,System
+preset_custom,커스텀 프리셋,,Custom Preset
+preset_saved,프리셋이 저장되었습니다,,Preset Saved
+preset_manager_title,프리셋 관리,,Preset Manager
+preset_manager_desc,장르 프리셋을 관리하고 편집합니다,,Manage and edit genre presets
+preset_field_story,스토리 조건,,Story Conditions
+preset_field_image,이미지 조건,,Image Conditions
+preset_field_video,비디오 조건,,Video Conditions
+preset_field_sound,사운드 조건,,Sound Conditions
+preset_rename,이름 변경,,Rename
+preset_delete,삭제,,Delete
+preset_add_new,새 프리셋 추가,,Add New Preset
+preset_save,저장,,Save
+preset_select_to_edit,편집할 프리셋을 선택하세요,,Select a preset to edit
 storyboard_split_frames,Start/End 프레임 분리,,Split Start/End Frames
 storyboard_split_complete,프레임 분리 완료,,Frame Split Complete
 storyboard_split_description,이미지 프롬프트가 Start/End 프레임으로 분리되었습니다,,Image prompts have been split into Start/End frames

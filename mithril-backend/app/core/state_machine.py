@@ -14,6 +14,7 @@ VALID_TRANSITIONS: dict[JobStatus, Set[JobStatus]] = {
     JobStatus.PENDING: {
         JobStatus.SUBMITTED,  # Video: Job picked up by worker
         JobStatus.PREPARING,  # Image: Job picked up, fetching references
+        JobStatus.GENERATING, # ID Converter: Direct to generating (no preparation needed)
         JobStatus.FAILED,     # Validation failed
         JobStatus.CANCELLED,  # Cancelled before start
     },
@@ -36,6 +37,7 @@ VALID_TRANSITIONS: dict[JobStatus, Set[JobStatus]] = {
     },
     JobStatus.GENERATING: {
         JobStatus.UPLOADING,  # Image: Generation complete, uploading
+        JobStatus.COMPLETED,  # ID Converter: Direct to completed (no upload needed)
         JobStatus.FAILED,     # Generation failed
         JobStatus.CANCELLED,  # Cancelled during generation
     },

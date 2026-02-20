@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState } from 'react';
-import { UploadIcon, DocumentTextIcon } from './Icons';
+import { UploadIcon, DocumentTextIcon, PlayIcon } from './Icons';
 
 interface FileLibraryProps {
   files: Record<string, File>;
   onFilesAdded: (files: File[]) => void;
+  onImportAll: () => void;
   onManifestLoaded: (filesToProcess: File[]) => void;
 }
 
 export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
   onFilesAdded,
+  onImportAll,
   onManifestLoaded,
 }) => {
   const [isDraggingImages, setIsDraggingImages] = useState(false);
@@ -135,16 +137,27 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
               {fileList.length} files
             </span>
           </h2>
-          <label className="cursor-pointer text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white px-3 py-1.5 rounded-lg transition-colors">
-            + Add Images
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageInputChange}
-            />
-          </label>
+          <div className="flex gap-2">
+            {fileList.length > 0 && (
+              <button
+                onClick={onImportAll}
+                className="text-xs bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-[#DB2777] px-3 py-1.5 rounded-lg transition-colors border border-[#DB2777]/30 flex items-center gap-1.5"
+              >
+                <PlayIcon className="w-3 h-3" />
+                Push All to Workspace
+              </button>
+            )}
+            <label className="cursor-pointer text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white px-3 py-1.5 rounded-lg transition-colors">
+              + Add Images
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageInputChange}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0 relative">
@@ -251,8 +264,8 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
 
         <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-300 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-500">
           <p>1. Upload images to Data Storage.</p>
-          <p>2. Upload text file with filenames (one per line).</p>
-          <p>3. App will auto-queue matching files.</p>
+          <p>2. &quot;Push All&quot; OR upload .txt manifest.</p>
+          <p>3. Files appear in Workspace for conversion.</p>
         </div>
       </div>
     </div>

@@ -61,7 +61,6 @@ async function handleSingleSubmit(
   body: OrchestratorBgSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[BgOrchestrator] Submitting to:", `${ORCHESTRATOR_URL}/api/v1/bg-jobs/submit`);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/bg-jobs/submit`, {
     method: "POST",
@@ -84,7 +83,6 @@ async function handleSingleSubmit(
   });
 
   const responseText = await response.text();
-  console.log("[BgOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
   let data;
   try {
@@ -115,8 +113,6 @@ async function handleBatchSubmit(
   body: OrchestratorBgBatchSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[BgOrchestrator] Submitting batch to:", `${ORCHESTRATOR_URL}/api/v1/bg-jobs/submit-batch`);
-  console.log("[BgOrchestrator] Batch size:", body.jobs.length);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/bg-jobs/submit-batch`, {
     method: "POST",
@@ -143,7 +139,6 @@ async function handleBatchSubmit(
   });
 
   const responseText = await response.text();
-  console.log("[BgOrchestrator] Batch response status:", response.status);
 
   let data;
   try {

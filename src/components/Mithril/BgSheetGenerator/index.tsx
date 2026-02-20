@@ -545,7 +545,6 @@ export default function BgSheetGenerator() {
     const loadActiveJobs = async () => {
       try {
         const activeJobs = await getActiveProjectBgJobs(currentProjectId);
-        console.log(`[BgSheet] Found ${activeJobs.length} active bg jobs`);
 
         activeJobs.forEach(job => {
           if (job.bg_id && job.bg_angle) {

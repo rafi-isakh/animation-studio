@@ -66,7 +66,6 @@ export default function ProjectListPage() {
       // 1. Delete all S3 files (images and videos)
       try {
         const deletedCount = await clearAllProjectFiles(projectId);
-        console.log(`Deleted ${deletedCount} S3 files for project ${projectId}`);
       } catch (s3Error) {
         console.error('Failed to delete S3 files:', s3Error);
         // Continue with Firestore deletion even if S3 cleanup fails

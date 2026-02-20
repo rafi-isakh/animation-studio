@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
         file_uri: body.fileUri,
         api_key: body.apiKey,
       };
-      console.log("[IdConverterOrchestrator] Submitting glossary job to:", endpoint);
     } else if (body.jobType === "batch") {
       // Batch conversion job
       endpoint = `${ORCHESTRATOR_URL}/api/v1/id-converter-jobs/submit-batch`;
@@ -63,8 +62,6 @@ export async function POST(request: NextRequest) {
         chunks: body.chunks,
         api_key: body.apiKey,
       };
-      console.log("[IdConverterOrchestrator] Submitting batch job to:", endpoint);
-      console.log("[IdConverterOrchestrator] Chunks count:", body.chunks.length);
     } else {
       return NextResponse.json(
         { error: "Invalid jobType. Must be 'glossary' or 'batch'" },
@@ -84,7 +81,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[IdConverterOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

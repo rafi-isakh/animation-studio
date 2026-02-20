@@ -76,16 +76,8 @@ export default function ImageSplitter() {
     }
   }, [isProcessing, hasResults, saveToStageResult]);
 
-  // Debug: Log active page dimensions
   useEffect(() => {
     if (activePage) {
-      console.log('[ImageSplitter] Active page changed:', {
-        id: activePage.id,
-        fileName: activePage.fileName,
-        width: activePage.width,
-        height: activePage.height,
-        panelsCount: activePage.panels.length,
-      });
     }
   }, [activePage]);
 
@@ -469,9 +461,7 @@ export default function ImageSplitter() {
                 const panelNumber = panelIndex + 1;
                 const showTranscription = !!panel.storyboard;
 
-                // Debug: Log panel storyboard status
                 if (panel.storyboard) {
-                  console.log(`[UI] Panel ${panel.label} has storyboard:`, panel.storyboard);
                 }
 
                 return (

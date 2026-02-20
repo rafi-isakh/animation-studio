@@ -25,7 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[StoryboardEditorOrchestrator] Cancelling job:", body.jobId);
 
     const response = await fetch(
       `${ORCHESTRATOR_URL}/api/v1/storyboard-editor-jobs/${body.jobId}/cancel`,
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
     );
 
     const responseText = await response.text();
-    console.log("[StoryboardEditorOrchestrator] Cancel response status:", response.status);
 
     let data;
     try {

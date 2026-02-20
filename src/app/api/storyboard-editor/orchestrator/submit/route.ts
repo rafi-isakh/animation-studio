@@ -34,10 +34,6 @@ export async function POST(request: NextRequest) {
 
     const body: StoryboardEditorSubmitRequest = await request.json();
 
-    console.log(
-      "[StoryboardEditorOrchestrator] Submitting job:",
-      `op=${body.operation}, frame=${body.frameType}, scene=${body.sceneIndex}, clip=${body.clipIndex}`
-    );
 
     const response = await fetch(
       `${ORCHESTRATOR_URL}/api/v1/storyboard-editor-jobs/submit`,
@@ -68,12 +64,6 @@ export async function POST(request: NextRequest) {
     );
 
     const responseText = await response.text();
-    console.log(
-      "[StoryboardEditorOrchestrator] Response status:",
-      response.status,
-      "body:",
-      responseText.substring(0, 500)
-    );
 
     let data;
     try {

@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward to orchestrator backend
-    console.log("[StoryboardOrchestrator] Getting status for job:", jobId);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/storyboard-jobs/${jobId}/status`, {
       method: "GET",
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[StoryboardOrchestrator] Status response:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

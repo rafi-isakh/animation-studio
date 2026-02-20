@@ -66,9 +66,6 @@ export async function POST(request: NextRequest) {
       allReferenceImages.push(referenceImageBase64);
     }
 
-    console.log("[generate-prop-image] Model: gemini-3-pro-image-preview");
-    console.log("[generate-prop-image] Aspect ratio:", aspectRatio);
-    console.log("[generate-prop-image] Reference images count:", allReferenceImages.length);
 
     // Build content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];

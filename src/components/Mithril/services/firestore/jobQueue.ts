@@ -1460,7 +1460,6 @@ export function subscribeToProjectStoryboardJobs(
   projectId: string,
   callback: JobsStatusCallback
 ): Unsubscribe {
-  console.log("[jobQueue:subscribeToProjectStoryboardJobs] Creating subscription for project:", projectId);
 
   const jobsQuery = query(
     collection(db, 'job_queue'),
@@ -1469,21 +1468,9 @@ export function subscribeToProjectStoryboardJobs(
   );
 
   return onSnapshot(jobsQuery, (snapshot) => {
-    console.log("[jobQueue:subscribeToProjectStoryboardJobs] Snapshot received:", {
-      docCount: snapshot.docs.length,
-      fromCache: snapshot.metadata.fromCache,
-      hasPendingWrites: snapshot.metadata.hasPendingWrites,
-    });
 
     const jobs = snapshot.docs.map((docSnapshot) => {
       const data = docSnapshot.data();
-      console.log("[jobQueue:subscribeToProjectStoryboardJobs] Job doc:", {
-        id: docSnapshot.id,
-        status: data.status,
-        type: data.type,
-        hasStoryboardResult: !!data.storyboard_result,
-        sceneCount: data.storyboard_result?.scenes?.length,
-      });
       return {
         ...data,
         id: docSnapshot.id,
@@ -1563,15 +1550,6 @@ export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUp
     error: job.error_message,
   };
 
-  console.log("[jobQueue:mapStoryboardJobToUpdate] Mapped job:", {
-    jobId: update.jobId,
-    rawStatus: job.status,
-    mappedStatus: update.status,
-    hasResult: !!result,
-    sceneCount: update.sceneCount,
-    clipCount: update.clipCount,
-    retryCount: job.retry_count,
-  });
 
   return update;
 }

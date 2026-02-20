@@ -5,6 +5,7 @@ import { UploadIcon, DocumentTextIcon, PlayIcon } from './Icons';
 
 interface FileLibraryProps {
   files: Record<string, File>;
+  isLoading?: boolean;
   onFilesAdded: (files: File[]) => void;
   onImportAll: () => void;
   onManifestLoaded: (filesToProcess: File[]) => void;
@@ -12,6 +13,7 @@ interface FileLibraryProps {
 
 export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
+  isLoading = false,
   onFilesAdded,
   onImportAll,
   onManifestLoaded,
@@ -133,9 +135,19 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
         <div className="p-4 border-b border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 flex justify-between items-center">
           <h2 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
             Data Storage{' '}
-            <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
-              {fileList.length} files
-            </span>
+            {isLoading ? (
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Loading panels...
+              </span>
+            ) : (
+              <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
+                {fileList.length} files
+              </span>
+            )}
           </h2>
           <div className="flex gap-2">
             {fileList.length > 0 && (
@@ -175,10 +187,10 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
             >
               <UploadIcon />
               <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
-                Drag & Drop panel images here
+                {isLoading ? 'Loading panels from Image Splitter...' : 'Drag & Drop panel images here'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500">
-                They will be stored here until you upload a manifest.
+                {isLoading ? 'This may take a moment.' : 'Panels from Image Splitter are loaded automatically.'}
               </p>
             </div>
           ) : (

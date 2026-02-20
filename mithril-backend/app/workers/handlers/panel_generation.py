@@ -125,7 +125,7 @@ async def _generate_panel_image_gemini(
         config=generate_config,
     )
 
-    if response.candidates and response.candidates[0].content.parts:
+    if response.candidates and response.candidates[0].content and response.candidates[0].content.parts:
         for part in response.candidates[0].content.parts:
             if part.inline_data and part.inline_data.data:
                 return part.inline_data.data

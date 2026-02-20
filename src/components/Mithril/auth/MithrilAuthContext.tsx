@@ -9,6 +9,7 @@ interface MithrilAuthContextProps {
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -73,6 +74,34 @@ export const MithrilAuthProvider: React.FC<MithrilAuthProviderProps> = ({ childr
     }
   };
 
+  const register = async (email: string, password: string, displayName: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/mithril/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, displayName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+
+      if (data.success && data.user) {
+        setUser(data.user);
+        return { success: true };
+      }
+
+      return { success: false, error: 'Registration failed' };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, error: 'An error occurred during registration' };
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       await fetch('/api/mithril/auth/logout', {
@@ -96,6 +125,7 @@ export const MithrilAuthProvider: React.FC<MithrilAuthProviderProps> = ({ childr
         isLoading,
         isAdmin,
         login,
+        register,
         logout,
         refreshSession,
       }}

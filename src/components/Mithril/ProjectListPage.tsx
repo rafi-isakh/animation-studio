@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, Pencil, FileText, Images } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles } from './services/s3';
@@ -159,15 +159,25 @@ export default function ProjectListPage() {
 
   // Get project type display info
   function getProjectTypeDisplay(projectType: ProjectType) {
-    if (projectType === 'image-to-video') {
+    const nsfw = getProjectTypeConfig(projectType).isNsfw;
+    const nsfwSuffix = nsfw ? ' · 18+' : '';
+
+    if (projectType === 'manga-to-video' || projectType === 'manga-to-video-nsfw' || projectType === 'image-to-video') {
       return {
-        label: 'Manga to Anime',
-        icon: <Images className="w-3 h-3" />,
+        label: `Manga to Video${nsfwSuffix}`,
+        icon: <BookOpen className="w-3 h-3" />,
         color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
       };
     }
+    if (projectType === 'webtoon-to-video' || projectType === 'webtoon-to-video-nsfw') {
+      return {
+        label: `Webtoon to Video${nsfwSuffix}`,
+        icon: <Palette className="w-3 h-3" />,
+        color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+      };
+    }
     return {
-      label: 'Novel to Video',
+      label: `Novel to Video${nsfwSuffix}`,
       icon: <FileText className="w-3 h-3" />,
       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     };

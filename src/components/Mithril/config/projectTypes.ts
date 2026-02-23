@@ -1,5 +1,15 @@
 // Project type identifiers
-export type ProjectType = 'text-to-video' | 'image-to-video';
+export type ProjectType =
+  | 'text-to-video'
+  | 'text-to-video-nsfw'
+  | 'manga-to-video'
+  | 'manga-to-video-nsfw'
+  | 'webtoon-to-video'
+  | 'webtoon-to-video-nsfw'
+  | 'image-to-video';              // legacy — kept for backward compatibility only
+
+// Which underlying pipeline a project type uses
+export type ProjectPipeline = 'text-to-video' | 'image-to-video';
 
 // Stage definition structure
 export interface StageDefinition {
@@ -22,6 +32,10 @@ export interface ProjectTypeConfig {
   descriptionKey: string;  // i18n key for description
   icon: string;            // Icon identifier for UI
   stages: StageDefinition[];
+  pipeline: ProjectPipeline; // Which pipeline stages this type uses
+  isNsfw: boolean;
+  /** If true, this type is not shown as a creation option (legacy/backward compat) */
+  deprecated?: boolean;
 }
 
 // Stage configurations for Text-to-Video (existing pipeline)
@@ -37,7 +51,7 @@ const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
 ];
 
-// Stage configurations for Image-to-Video (manga-to-anime pipeline)
+// Stage configurations for Image-to-Video (manga/webtoon pipeline)
 const IMAGE_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter', labelKey: 'mithril_i2v_stage1', component: 'ImageSplitter' },
   { id: 2, key: 'panel-editor', labelKey: 'mithril_i2v_stage2', component: 'PanelEditor' },
@@ -54,13 +68,64 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     descriptionKey: 'project_type_text_to_video_desc',
     icon: 'FileText',
     stages: TEXT_TO_VIDEO_STAGES,
+    pipeline: 'text-to-video',
+    isNsfw: false,
   },
+  'text-to-video-nsfw': {
+    type: 'text-to-video-nsfw',
+    labelKey: 'project_type_text_to_video_nsfw',
+    descriptionKey: 'project_type_text_to_video_nsfw_desc',
+    icon: 'FileText',
+    stages: TEXT_TO_VIDEO_STAGES,
+    pipeline: 'text-to-video',
+    isNsfw: true,
+  },
+  'manga-to-video': {
+    type: 'manga-to-video',
+    labelKey: 'project_type_manga_to_video',
+    descriptionKey: 'project_type_manga_to_video_desc',
+    icon: 'BookOpen',
+    stages: IMAGE_TO_VIDEO_STAGES,
+    pipeline: 'image-to-video',
+    isNsfw: false,
+  },
+  'manga-to-video-nsfw': {
+    type: 'manga-to-video-nsfw',
+    labelKey: 'project_type_manga_to_video_nsfw',
+    descriptionKey: 'project_type_manga_to_video_nsfw_desc',
+    icon: 'BookOpen',
+    stages: IMAGE_TO_VIDEO_STAGES,
+    pipeline: 'image-to-video',
+    isNsfw: true,
+  },
+  'webtoon-to-video': {
+    type: 'webtoon-to-video',
+    labelKey: 'project_type_webtoon_to_video',
+    descriptionKey: 'project_type_webtoon_to_video_desc',
+    icon: 'Palette',
+    stages: IMAGE_TO_VIDEO_STAGES,
+    pipeline: 'image-to-video',
+    isNsfw: false,
+  },
+  'webtoon-to-video-nsfw': {
+    type: 'webtoon-to-video-nsfw',
+    labelKey: 'project_type_webtoon_to_video_nsfw',
+    descriptionKey: 'project_type_webtoon_to_video_nsfw_desc',
+    icon: 'Palette',
+    stages: IMAGE_TO_VIDEO_STAGES,
+    pipeline: 'image-to-video',
+    isNsfw: true,
+  },
+  // Legacy type — kept so existing projects load correctly; not shown in creation UI
   'image-to-video': {
     type: 'image-to-video',
     labelKey: 'project_type_image_to_video',
     descriptionKey: 'project_type_image_to_video_desc',
     icon: 'Images',
     stages: IMAGE_TO_VIDEO_STAGES,
+    pipeline: 'image-to-video',
+    isNsfw: false,
+    deprecated: true,
   },
 };
 
@@ -105,10 +170,12 @@ export function isValidStage(type: ProjectType, stageId: number): boolean {
 }
 
 /**
- * Get all available project types
+ * Get all available (non-deprecated) project types for the creation UI
  */
 export function getAvailableProjectTypes(): ProjectType[] {
-  return Object.keys(PROJECT_TYPE_CONFIGS) as ProjectType[];
+  return (Object.keys(PROJECT_TYPE_CONFIGS) as ProjectType[]).filter(
+    type => !PROJECT_TYPE_CONFIGS[type].deprecated
+  );
 }
 
 /**
@@ -116,4 +183,18 @@ export function getAvailableProjectTypes(): ProjectType[] {
  */
 export function getDefaultProjectType(): ProjectType {
   return 'text-to-video';
+}
+
+/**
+ * Returns true for any Text-to-Video variant (general or NSFW)
+ */
+export function isTextToVideoType(type: ProjectType): boolean {
+  return PROJECT_TYPE_CONFIGS[type].pipeline === 'text-to-video';
+}
+
+/**
+ * Returns true for any Image-to-Video variant (manga, webtoon, legacy, general or NSFW)
+ */
+export function isImageToVideoType(type: ProjectType): boolean {
+  return PROJECT_TYPE_CONFIGS[type].pipeline === 'image-to-video';
 }

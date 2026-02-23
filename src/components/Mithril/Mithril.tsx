@@ -22,7 +22,7 @@ import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { getProjectTypeConfig, getPipelineStages } from "./config/projectTypes";
+import { getProjectTypeConfig, getPipelineStages, isTextToVideoType, isImageToVideoType } from "./config/projectTypes";
 
 // Component mapping for dynamic rendering
 const STAGE_COMPONENTS: Record<string, ComponentType> = {
@@ -244,8 +244,8 @@ function MithrilContent() {
   const currentStageConfig = stages.find(s => s.id === currentStage);
   const StageComponent = currentStageConfig ? STAGE_COMPONENTS[currentStageConfig.component] : null;
 
-  const isTextToVideo = projectType === 'text-to-video';
-  const isImageToVideo = projectType === 'image-to-video';
+  const isTextToVideo = isTextToVideoType(projectType);
+  const isImageToVideo = isImageToVideoType(projectType);
 
   const needsImageApiKey = (
     (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7))) ||

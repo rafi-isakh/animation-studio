@@ -59,6 +59,7 @@ export default function PanelEditor() {
     state,
     provider,
     setProvider,
+    isLoadingSplitterPanels,
     addFilesToLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,
@@ -284,6 +285,7 @@ export default function PanelEditor() {
       {/* Data Storage Section */}
       <FileLibrary
         files={fileLibrary}
+        isLoading={isLoadingSplitterPanels}
         onFilesAdded={addFilesToLibrary}
         onImportAll={importAllFromLibrary}
         onManifestLoaded={addPanelsFromManifest}

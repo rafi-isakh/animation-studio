@@ -10,6 +10,7 @@ import {
 import { usePanelOrchestrator, PanelUpdate } from './usePanelOrchestrator';
 import { useMithril } from '../../MithrilContext';
 import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
+import { getMangaPages, getMangaPanels } from '../../services/firestore/imageSplitter';
 
 interface UsePanelEditorOptions {
   projectId: string;  // Project ID from MithrilContext for S3 storage
@@ -29,6 +30,9 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   // Provider selection
   const [provider, setProvider] = useState<'gemini' | 'grok'>('gemini');
 
+  // Loading state for pre-populating file library from ImageSplitter results
+  const [isLoadingSplitterPanels, setIsLoadingSplitterPanels] = useState(false);
+
   // Track active jobs: panelId -> jobId mapping
   const activeJobsRef = useRef<Map<string, string>>(new Map());
 
@@ -40,6 +44,59 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       activeJobsRef.current.clear();
     };
   }, []);
+
+  // Pre-populate file library with panels from the ImageSplitter stage
+  useEffect(() => {
+    if (!projectId) return;
+
+    const loadSplitterPanels = async () => {
+      setIsLoadingSplitterPanels(true);
+      try {
+        const pages = await getMangaPages(projectId);
+        if (!pages.length) return;
+
+        const files: File[] = [];
+
+        // Sort pages by index, then collect panels in order
+        const sortedPages = [...pages].sort((a, b) => a.pageIndex - b.pageIndex);
+        for (const page of sortedPages) {
+          const panels = await getMangaPanels(projectId, page.pageIndex);
+          const sortedPanels = [...panels].sort((a, b) => a.panelIndex - b.panelIndex);
+
+          for (const panel of sortedPanels) {
+            if (!panel.imageRef) continue;
+
+            try {
+              // Fetch via proxy to avoid CORS issues with S3/CloudFront URLs
+              const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageRef)}`;
+              const response = await fetch(proxyUrl);
+              if (!response.ok) continue;
+
+              const blob = await response.blob();
+              const mimeType = blob.type || 'image/jpeg';
+              const ext = mimeType.split('/')[1] || 'jpg';
+              const fileName = `page${page.pageIndex + 1}_panel${panel.panelIndex + 1}.${ext}`;
+              files.push(new File([blob], fileName, { type: mimeType }));
+            } catch {
+              // Skip panels that fail to load
+            }
+          }
+        }
+
+        if (files.length > 0 && isMountedRef.current) {
+          dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
+        }
+      } catch {
+        // Silently skip if no ImageSplitter data exists for this project
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoadingSplitterPanels(false);
+        }
+      }
+    };
+
+    loadSplitterPanels();
+  }, [projectId]);
 
   // Handle panel updates from Firestore
   const handlePanelUpdate = useCallback((update: PanelUpdate) => {
@@ -351,6 +408,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     sessionId,
     provider,
     setProvider,
+    isLoadingSplitterPanels,
     addFilesToLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,

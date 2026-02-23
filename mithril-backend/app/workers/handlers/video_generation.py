@@ -180,6 +180,7 @@ async def _stage_submit(
     request = VideoSubmitRequest(
         prompt=job.prompt,
         image_url=job.image_url,
+        image_end_url=job.image_end_url,
         duration=job.duration,
         aspect_ratio=job.aspect_ratio,
     )

@@ -83,7 +83,7 @@ class SoraProvider(VideoProvider):
 
         files = {}
 
-        # Add image if provided (image-to-video)
+        # Add start image if provided (image-to-video)
         if request.image_base64 or request.image_url:
             resized_base64 = await prepare_image_for_provider(
                 request.image_base64,

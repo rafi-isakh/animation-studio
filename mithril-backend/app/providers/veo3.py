@@ -53,7 +53,7 @@ class Veo3Provider(VideoProvider):
 
     @property
     def model_name(self) -> str:
-        return "veo-3.1-generate-preview"
+        return "veo-3.1-fast-generate-preview"
 
     def get_constraints(self) -> ProviderConstraints:
         return VEO3_CONSTRAINTS
@@ -76,7 +76,8 @@ class Veo3Provider(VideoProvider):
         logger.info(f"[veo3] Model: {self.model_name}")
         logger.info(f"[veo3] Duration: {duration} seconds")
         logger.info(f"[veo3] Aspect ratio: {request.aspect_ratio}")
-        logger.info(f"[veo3] Has image: {bool(request.image_base64 or request.image_url)}")
+        logger.info(f"[veo3] Has start image: {bool(request.image_base64 or request.image_url)}")
+        logger.info(f"[veo3] Has end image: {bool(request.image_end_url)}")
 
         # Initialize the SDK client
         client = genai.Client(api_key=api_key)
@@ -88,7 +89,7 @@ class Veo3Provider(VideoProvider):
             "person_generation": "allow_adult",
         }
 
-        # Prepare image if provided
+        # Prepare start image if provided
         image_data = None
         if request.image_base64 or request.image_url:
             resized_base64 = await prepare_image_for_provider(
@@ -102,22 +103,40 @@ class Veo3Provider(VideoProvider):
                     "mime_type": "image/jpeg",
                 }
 
+        # Prepare end image if provided
+        image_end_data = None
+        if request.image_end_url:
+            resized_end_base64 = await prepare_image_for_provider(
+                None,
+                request.image_end_url,
+                request.aspect_ratio,
+            )
+            if resized_end_base64:
+                image_end_data = {
+                    "image_bytes": resized_end_base64,
+                    "mime_type": "image/jpeg",
+                }
+
+        logger.info(f"[veo3] image_data present: {image_data is not None}")
+        logger.info(f"[veo3] image_end_data present: {image_end_data is not None}")
+        logger.info(f"[veo3] config before submit: { {k: v for k, v in config.items() if k != 'last_frame'} }")
+
         try:
             # Use the SDK to generate video (run sync SDK in thread pool)
             def _submit():
+                kwargs = {
+                    "model": self.model_name,
+                    "prompt": request.prompt,
+                    "config": config,
+                }
                 if image_data:
-                    return client.models.generate_videos(
-                        model=self.model_name,
-                        prompt=request.prompt,
-                        config=config,
-                        image=image_data,
-                    )
-                else:
-                    return client.models.generate_videos(
-                        model=self.model_name,
-                        prompt=request.prompt,
-                        config=config,
-                    )
+                    kwargs["image"] = image_data
+                    # lastFrame requires image (start frame) — camelCase matches REST API
+                    if image_end_data:
+                        config["lastFrame"] = image_end_data
+                logger.info(f"[veo3] generate_videos kwargs keys: {list(kwargs.keys())}")
+                logger.info(f"[veo3] config keys: {list(config.keys())}")
+                return client.models.generate_videos(**kwargs)
 
             operation = await asyncio.to_thread(_submit)
 
@@ -140,6 +159,10 @@ class Veo3Provider(VideoProvider):
 
         except Exception as e:
             error_msg = str(e)
+            logger.error(f"[veo3] Exception type: {type(e).__name__}")
+            logger.error(f"[veo3] Full error: {e}")
+            if hasattr(e, '__dict__'):
+                logger.error(f"[veo3] Error attrs: {e.__dict__}")
             if "rate limit" in error_msg.lower() or "429" in error_msg:
                 raise Exception("Rate limit exceeded. Please try again later.")
             if "quota" in error_msg.lower() or "402" in error_msg:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Play,
   Download,
@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Edit3,
+  Upload,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,6 +29,9 @@ interface ClipCardProps {
   onGenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
   onRegenerate: (clipIndex: number, sceneIndex: number, customPrompt?: string) => void;
   onUpdatePrompt: (clipIndex: number, sceneIndex: number, prompt: string) => void;
+  onUpdateFrames?: (clipIndex: number, sceneIndex: number, startImage: string | null, endImage: string | null) => void;
+  onUpdateDuration?: (clipIndex: number, sceneIndex: number, duration: number) => void;
+  providerDurations?: number[];
   isGeneratingAll: boolean;
 }
 
@@ -77,23 +82,30 @@ export default function ClipCard({
   onGenerate,
   onRegenerate,
   onUpdatePrompt,
+  onUpdateFrames,
+  onUpdateDuration,
+  providerDurations,
   isGeneratingAll,
 }: ClipCardProps) {
   const { language, dictionary } = useLanguage();
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const startFileInputRef = useRef<HTMLInputElement>(null);
+  const endFileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     clipIndex,
     sceneIndex,
     sceneTitle,
     imageBase64,
+    imageEndBase64,
     videoUrl,
     status,
     error,
     soraVideoPrompt,
     videoPrompt,
     customPrompt,
+    customDuration,
   } = clip;
 
   // Use custom prompt if set, otherwise fall back to soraVideoPrompt or videoPrompt
@@ -168,6 +180,37 @@ export default function ClipCard({
     setIsPromptExpanded(false);
   };
 
+  const handleFrameFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isEnd: boolean
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !onUpdateFrames) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      onUpdateFrames(
+        clipIndex,
+        sceneIndex,
+        isEnd ? (imageBase64 ?? null) : dataUrl,
+        isEnd ? dataUrl : (imageEndBase64 ?? null)
+      );
+    };
+    reader.readAsDataURL(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+  };
+
+  const handleClearFrame = (isEnd: boolean) => {
+    if (!onUpdateFrames) return;
+    onUpdateFrames(
+      clipIndex,
+      sceneIndex,
+      isEnd ? (imageBase64 ?? null) : null,
+      isEnd ? null : (imageEndBase64 ?? null)
+    );
+  };
+
   return (
     <div className="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
       {/* Image/Video Preview */}
@@ -185,6 +228,8 @@ export default function ClipCard({
           <Image
             src={
               isUrl(imageBase64)
+                ? imageBase64
+                : imageBase64.startsWith("data:")
                 ? imageBase64
                 : `data:image/jpeg;base64,${imageBase64}`
             }
@@ -223,6 +268,103 @@ export default function ClipCard({
         )}
       </div>
 
+      {/* Start / End frame thumbnails */}
+      {onUpdateFrames && (
+        <div className="grid grid-cols-2 border-t border-gray-200 dark:border-gray-600">
+          {/* hidden file inputs */}
+          <input
+            ref={startFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFrameFileChange(e, false)}
+          />
+          <input
+            ref={endFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFrameFileChange(e, true)}
+          />
+
+          {/* Start frame cell */}
+          <div className="relative group border-r border-gray-200 dark:border-gray-600">
+            <button
+              type="button"
+              onClick={() => startFileInputRef.current?.click()}
+              className="relative w-full aspect-video flex items-center justify-center bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors overflow-hidden"
+              title="Upload start frame"
+            >
+              {imageBase64 ? (
+                <Image
+                  src={isUrl(imageBase64) ? imageBase64 : imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`}
+                  alt="Start frame"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <Upload size={12} className="text-gray-400 dark:text-gray-500" />
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <Upload size={12} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
+            {imageBase64 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleClearFrame(false); }}
+                className="absolute top-0.5 right-0.5 z-10 w-3.5 h-3.5 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center"
+                title="Clear start frame"
+              >
+                <X size={8} className="text-white" />
+              </button>
+            )}
+            <span className="block text-center text-[9px] text-gray-500 dark:text-gray-400 py-0.5 bg-gray-100 dark:bg-gray-700">
+              Start
+            </span>
+          </div>
+
+          {/* End frame cell */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => endFileInputRef.current?.click()}
+              className="relative w-full aspect-video flex items-center justify-center bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors overflow-hidden"
+              title="Upload end frame"
+            >
+              {imageEndBase64 ? (
+                <Image
+                  src={isUrl(imageEndBase64) ? imageEndBase64 : imageEndBase64.startsWith("data:") ? imageEndBase64 : `data:image/jpeg;base64,${imageEndBase64}`}
+                  alt="End frame"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <Upload size={12} className="text-gray-400 dark:text-gray-500" />
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <Upload size={12} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
+            {imageEndBase64 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleClearFrame(true); }}
+                className="absolute top-0.5 right-0.5 z-10 w-3.5 h-3.5 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center"
+                title="Clear end frame"
+              >
+                <X size={8} className="text-white" />
+              </button>
+            )}
+            <span className="block text-center text-[9px] text-gray-500 dark:text-gray-400 py-0.5 bg-gray-100 dark:bg-gray-700">
+              End
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Info & Actions */}
       <div className="p-2 space-y-2">
         {/* Title and status */}
@@ -232,6 +374,29 @@ export default function ClipCard({
           </span>
           <StatusBadge status={status} />
         </div>
+
+        {/* Duration selector */}
+        {providerDurations && providerDurations.length > 0 && onUpdateDuration && (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-gray-500 dark:text-gray-400 shrink-0">Duration:</span>
+            <div className="flex gap-0.5">
+              {providerDurations.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => onUpdateDuration(clipIndex, sceneIndex, d)}
+                  className={`px-1.5 py-0.5 text-[9px] font-medium rounded transition-colors ${
+                    customDuration === d
+                      ? "bg-[#DB2777] text-white"
+                      : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"
+                  }`}
+                >
+                  {d}s
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Error message - show for failed and retrying status */}
         {(status === "failed" || status === "retrying") && error && (

@@ -15,7 +15,9 @@ export interface VideoClip {
   soraVideoPrompt: string; // Provider-specific prompt (kept for backwards compatibility)
   customPrompt?: string; // User-edited prompt (overrides soraVideoPrompt/videoPrompt)
   length: string; // "1초" or "2초"
-  imageBase64: string | null; // From ImageGen (Stage 6)
+  imageBase64: string | null; // From ImageGen (Stage 6) — start frame
+  imageEndBase64?: string | null; // End frame (optional override)
+  customDuration?: number | null; // User-selected duration override
   videoUrl: string | null;
   jobId: string | null;
   s3FileName: string | null; // S3 filename for permanent storage

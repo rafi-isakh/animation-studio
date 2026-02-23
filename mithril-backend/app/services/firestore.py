@@ -134,6 +134,7 @@ class JobQueueService:
             provider_id=request.provider_id,
             prompt=request.prompt,
             image_url=request.image_url,
+            image_end_url=request.image_end_url,
             duration=request.duration,
             aspect_ratio=request.aspect_ratio,
             api_key_hash=hash_api_key(request.api_key),

@@ -80,6 +80,9 @@ class GrokI2VProvider(VideoProvider):
             "resolution": "720P",
         }
 
+        if request.image_end_url:
+            payload["end_image"] = await self._resolve_end_image_url(request.image_end_url)
+
         async with httpx.AsyncClient(timeout=60.0) as client:
             logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
             resp = await client.post(MODELSLAB_VIDEO_URL, json=payload)
@@ -179,24 +182,45 @@ class GrokI2VProvider(VideoProvider):
         """Return a publicly accessible URL for the source image.
 
         Uses image_url directly when available (CloudFront URL from S3).
-        Falls back to uploading image_base64 to S3 if only base64 is provided.
+        Falls back to uploading image_base64 or data URL to S3 if needed.
         """
-        if request.image_url:
+        if request.image_url and not request.image_url.startswith("data:"):
             return request.image_url
 
-        if request.image_base64:
-            import base64
-            import time
-            from app.services.s3 import upload_image
+        import base64
+        import time
+        from app.services.s3 import upload_image
 
-            image_bytes = base64.b64decode(request.image_base64)
-            timestamp = int(time.time() * 1000)
-            s3_key = f"mithril/temp/grok-i2v-source/{timestamp}.jpg"
-            url = await upload_image(image_bytes, s3_key, "image/jpeg")
-            logger.info(f"[GROK_I2V] Uploaded source frame to S3: {url}")
-            return url
+        raw = request.image_base64 or request.image_url
+        if not raw:
+            raise ValueError("No source image provided (image_url or image_base64 required)")
 
-        raise ValueError("No source image provided (image_url or image_base64 required)")
+        # Strip data URI prefix if present
+        if "," in raw:
+            raw = raw.split(",", 1)[1]
+        image_bytes = base64.b64decode(raw)
+        timestamp = int(time.time() * 1000)
+        s3_key = f"mithril/temp/grok-i2v-source/{timestamp}.jpg"
+        url = await upload_image(image_bytes, s3_key, "image/jpeg")
+        logger.info(f"[GROK_I2V] Uploaded source frame to S3: {url}")
+        return url
+
+    async def _resolve_end_image_url(self, image_end_url: str) -> str:
+        """Upload a data URL end frame to S3 and return a public URL."""
+        if not image_end_url.startswith("data:"):
+            return image_end_url
+
+        import base64
+        import time
+        from app.services.s3 import upload_image
+
+        raw = image_end_url.split(",", 1)[1] if "," in image_end_url else image_end_url
+        image_bytes = base64.b64decode(raw)
+        timestamp = int(time.time() * 1000)
+        s3_key = f"mithril/temp/grok-i2v-end/{timestamp}.jpg"
+        url = await upload_image(image_bytes, s3_key, "image/jpeg")
+        logger.info(f"[GROK_I2V] Uploaded end frame to S3: {url}")
+        return url
 
 
 # Singleton instance

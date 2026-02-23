@@ -68,6 +68,7 @@ class JobSubmitRequest(BaseModel):
     provider_id: Literal["sora", "veo3", "grok_i2v"]
     prompt: str
     image_url: str | None = None
+    image_end_url: str | None = None  # Optional end frame
     duration: int = Field(ge=4, le=12)
     aspect_ratio: Literal["16:9", "9:16"]
     api_key: str | None = None  # Custom API key (optional)
@@ -109,6 +110,7 @@ class JobDocument(BaseModel):
     # Request parameters
     prompt: str
     image_url: str | None = None  # Video: source image for video generation
+    image_end_url: str | None = None  # Video: optional end frame
     duration: int | None = None  # Video only
     aspect_ratio: str
     api_key_hash: str | None = None  # Hashed for audit

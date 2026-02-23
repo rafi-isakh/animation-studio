@@ -12,6 +12,7 @@ interface SubmitJobParams {
   providerId: 'sora' | 'veo3' | 'grok_i2v' | 'wan_i2v' | 'wan22_i2v';
   prompt: string;
   imageUrl?: string;
+  imageEndUrl?: string;
   duration: number;
   aspectRatio: '16:9' | '9:16';
   apiKey?: string;

@@ -110,7 +110,10 @@ export default function PanelEditor() {
       } else if (panel.resultUrl?.startsWith('blob:') || panel.resultUrl?.startsWith('http')) {
         // Handle blob URLs and remote URLs (S3)
         try {
-          const response = await fetch(panel.resultUrl);
+          const fetchUrl = panel.resultUrl.startsWith('http')
+            ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+            : panel.resultUrl;
+          const response = await fetch(fetchUrl);
           const blob = await response.blob();
           zip.file(fileName, blob);
         } catch (err) {

@@ -157,6 +157,10 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         if not settings.gemini_api_key:
             raise VideoJobError.invalid_request("No Gemini API key configured")
         return settings.gemini_api_key
+    elif job.provider_id == "grok_i2v":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured")
+        return settings.modelslab_api_key
     else:
         raise VideoJobError.invalid_request(f"Unknown provider: {job.provider_id}")
 

@@ -65,7 +65,7 @@ class JobSubmitRequest(BaseModel):
     project_id: str
     scene_index: int
     clip_index: int
-    provider_id: Literal["sora", "veo3"]
+    provider_id: Literal["sora", "veo3", "grok_i2v"]
     prompt: str
     image_url: str | None = None
     duration: int = Field(ge=4, le=12)

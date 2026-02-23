@@ -7,6 +7,7 @@ import {
   getUserByEmail,
   updateLastLogin,
   toPublicUser,
+  createUser,
 } from '@/components/Mithril/services/firestore/mithrilUsers';
 import type { MithrilSession, MithrilUserPublic } from '@/components/Mithril/services/firestore/types';
 
@@ -160,4 +161,39 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function isAdmin(): Promise<boolean> {
   const session = await getCurrentSession();
   return session?.role === 'admin';
+}
+
+/**
+ * Register a new user with role 'user' and auto-login
+ */
+export async function register(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<{ user: MithrilUserPublic } | { error: string }> {
+  try {
+    const userId = await createUser({
+      email,
+      password,
+      displayName,
+      role: 'user',
+      createdBy: 'self',
+    });
+
+    const user = await getUserByEmail(email.toLowerCase().trim());
+    if (!user) {
+      return { error: 'Registration failed' };
+    }
+
+    const sessionId = generateSessionId();
+    await createSession(sessionId, { ...user, id: userId }, SESSION_DURATION_DAYS);
+    await setSessionCookie(sessionId);
+
+    return { user: toPublicUser({ ...user, id: userId }) };
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Email already exists') {
+      return { error: 'An account with this email already exists' };
+    }
+    return { error: 'Registration failed' };
+  }
 }

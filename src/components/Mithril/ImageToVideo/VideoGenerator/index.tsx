@@ -516,7 +516,7 @@ export default function I2VVideoGenerator() {
           projectId: currentProjectId,
           sceneIndex,
           clipIndex,
-          providerId: selectedProvider as "sora" | "veo3" | "grok_i2v",
+          providerId: selectedProvider as "sora" | "veo3" | "grok_i2v" | "wan_i2v" | "wan22_i2v",
           prompt: promptToUse,
           imageUrl: clip.imageBase64 || undefined,
           duration: mappedDuration,

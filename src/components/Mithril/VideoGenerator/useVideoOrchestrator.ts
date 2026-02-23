@@ -9,7 +9,7 @@ interface SubmitJobParams {
   projectId: string;
   sceneIndex: number;
   clipIndex: number;
-  providerId: 'sora' | 'veo3' | 'grok_i2v';
+  providerId: 'sora' | 'veo3' | 'grok_i2v' | 'wan_i2v' | 'wan22_i2v';
   prompt: string;
   imageUrl?: string;
   duration: number;

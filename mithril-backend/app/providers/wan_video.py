@@ -23,7 +23,7 @@ IMMEDIATE_PREFIX = "immediate:"
 
 # WAN 2.1 — 480p @ 16 FPS
 _WAN21_CONSTRAINTS = ProviderConstraints(
-    durations=[5, 10],
+    durations=[5],
     sizes={
         "16:9": "1280x720",
         "9:16": "720x1280",
@@ -34,11 +34,11 @@ _WAN21_CONSTRAINTS = ProviderConstraints(
     ),
     supports_image_to_video=True,
 )
-_WAN21_FRAMES = {5: 81, 10: 161}
+_WAN21_FRAMES = {5: 81}
 
-# WAN 2.2 — 720p @ 24 FPS
+# WAN 2.2 — 480p @ 24 FPS
 _WAN22_CONSTRAINTS = ProviderConstraints(
-    durations=[5, 10],
+    durations=[5],
     sizes={
         "16:9": "1280x720",
         "9:16": "720x1280",
@@ -49,7 +49,7 @@ _WAN22_CONSTRAINTS = ProviderConstraints(
     ),
     supports_image_to_video=True,
 )
-_WAN22_FRAMES = {5: 120, 10: 240}
+_WAN22_FRAMES = {5: 120}
 
 
 class _WanI2VBase(VideoProvider):

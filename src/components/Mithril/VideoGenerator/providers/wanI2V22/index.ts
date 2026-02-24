@@ -1,4 +1,4 @@
-// WAN 2.2 Image-to-Video Provider (ModelsLab image-to-video-ultra, 720p @ 24fps)
+// WAN 2.2 Image-to-Video Provider (ModelsLab image-to-video-ultra, 480p @ 24fps)
 
 import type {
   VideoProvider,
@@ -10,7 +10,7 @@ import type {
 } from "../types";
 
 const WAN22_I2V_CONSTRAINTS: ProviderConstraints = {
-  durations: [5, 10],
+  durations: [5],
   aspectRatios: [
     { value: "16:9", label: "Landscape (16:9)" },
     { value: "9:16", label: "Portrait (9:16)" },
@@ -29,7 +29,7 @@ const WAN22_I2V_CONSTRAINTS: ProviderConstraints = {
 class Wan22I2VProvider implements VideoProvider {
   readonly id = "wan22_i2v";
   readonly name = "WAN 2.2";
-  readonly description = "ModelsLab's WAN 2.2 image-to-video ultra model (720p)";
+  readonly description = "ModelsLab's WAN 2.2 image-to-video ultra model (480p)";
   readonly modelName = "wan-2.2-i2v";
 
   getConstraints(): ProviderConstraints {

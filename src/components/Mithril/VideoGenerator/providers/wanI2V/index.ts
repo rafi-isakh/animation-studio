@@ -10,7 +10,7 @@ import type {
 } from "../types";
 
 const WAN_I2V_CONSTRAINTS: ProviderConstraints = {
-  durations: [5, 10],
+  durations: [5],
   aspectRatios: [
     { value: "16:9", label: "Landscape (16:9)" },
     { value: "9:16", label: "Portrait (9:16)" },

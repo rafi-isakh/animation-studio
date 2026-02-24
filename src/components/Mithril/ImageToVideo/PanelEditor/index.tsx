@@ -110,7 +110,10 @@ export default function PanelEditor() {
       } else if (panel.resultUrl?.startsWith('blob:') || panel.resultUrl?.startsWith('http')) {
         // Handle blob URLs and remote URLs (S3)
         try {
-          const response = await fetch(panel.resultUrl);
+          const fetchUrl = panel.resultUrl.startsWith('http')
+            ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+            : panel.resultUrl;
+          const response = await fetch(fetchUrl);
           const blob = await response.blob();
           zip.file(fileName, blob);
         } catch (err) {
@@ -239,7 +242,7 @@ export default function PanelEditor() {
           </label>
           <Select
             value={provider}
-            onValueChange={(v) => setProvider(v as 'gemini' | 'grok')}
+            onValueChange={(v) => setProvider(v as 'gemini' | 'grok' | 'z_image_turbo')}
             disabled={state.isProcessing}
           >
             <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -258,11 +261,17 @@ export default function PanelEditor() {
                   <span className="text-xs text-gray-500 dark:text-gray-400">xAI — vision analysis + image generation</span>
                 </div>
               </SelectItem>
+              <SelectItem value="z_image_turbo" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Z-Image Turbo <span className="text-gray-500 dark:text-gray-400 font-normal">(z-image-turbo)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — fast image-to-image transformation</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
-          {provider === 'grok' && (
+          {(provider === 'grok' || provider === 'z_image_turbo') && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-              Enter your xAI API key in the field above
+              Enter your {provider === 'grok' ? 'xAI' : 'ModelsLab'} API key in the field above
             </p>
           )}
         </div>

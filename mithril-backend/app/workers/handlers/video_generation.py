@@ -157,6 +157,10 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         if not settings.gemini_api_key:
             raise VideoJobError.invalid_request("No Gemini API key configured")
         return settings.gemini_api_key
+    elif job.provider_id in ("grok_i2v", "wan_i2v", "wan22_i2v"):
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured")
+        return settings.modelslab_api_key
     else:
         raise VideoJobError.invalid_request(f"Unknown provider: {job.provider_id}")
 
@@ -176,6 +180,7 @@ async def _stage_submit(
     request = VideoSubmitRequest(
         prompt=job.prompt,
         image_url=job.image_url,
+        image_end_url=job.image_end_url,
         duration=job.duration,
         aspect_ratio=job.aspect_ratio,
     )

@@ -351,6 +351,7 @@ export default function I2VVideoGenerator() {
 
                 // Use generatedImage from storyboard as start frame if available
                 const imageUrl = storyboardClip.generatedImage || storyboardClip.referenceImage || null;
+                const imageEndUrl = storyboardClip.generatedImageEnd || null;
 
                 allClips.push({
                   clipIndex,
@@ -360,6 +361,7 @@ export default function I2VVideoGenerator() {
                   soraVideoPrompt: storyboardClip.soraVideoPrompt || "",
                   length: storyboardClip.length || "4초",
                   imageBase64: imageUrl,
+                  imageEndBase64: imageEndUrl,
                   videoUrl: savedClip?.videoRef || null,
                   jobId: savedClip?.jobId || null,
                   s3FileName: savedClip?.s3FileName || null,
@@ -456,6 +458,34 @@ export default function I2VVideoGenerator() {
     clearPendingUpdates();
   }, [isLoadingData, hasLoaded, pendingUpdates, handleClipUpdate, clearPendingUpdates]);
 
+  // Update start/end frames for a clip (manual upload override)
+  const updateClipFrames = useCallback(
+    (clipIndex: number, sceneIndex: number, startImage: string | null, endImage: string | null) => {
+      setClips((prev) =>
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+            ? { ...c, imageBase64: startImage, imageEndBase64: endImage }
+            : c
+        )
+      );
+      setIsSaved(false);
+    },
+    []
+  );
+
+  const updateClipDuration = useCallback(
+    (clipIndex: number, sceneIndex: number, duration: number) => {
+      setClips((prev) =>
+        prev.map((c) =>
+          c.clipIndex === clipIndex && c.sceneIndex === sceneIndex
+            ? { ...c, customDuration: duration }
+            : c
+        )
+      );
+    },
+    []
+  );
+
   // Update custom prompt for a clip
   const updateClipPrompt = useCallback(
     (clipIndex: number, sceneIndex: number, prompt: string) => {
@@ -491,19 +521,20 @@ export default function I2VVideoGenerator() {
       );
 
       try {
-        // Parse duration from length
-        const durationMatch = clip.length.match(/(\d+)/);
-        const parsedDuration = durationMatch
-          ? parseInt(durationMatch[1], 10)
-          : 4;
-
         const constraints = getProviderConstraints(selectedProvider);
         const validDurations = constraints?.durations || [4, 8, 12];
-        const mappedDuration = validDurations.reduce((prev, curr) =>
-          Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration)
-            ? curr
-            : prev
-        );
+
+        // Use user-selected duration if set, otherwise parse from storyboard length
+        let mappedDuration: number;
+        if (clip.customDuration != null && validDurations.includes(clip.customDuration)) {
+          mappedDuration = clip.customDuration;
+        } else {
+          const durationMatch = clip.length.match(/(\d+)/);
+          const parsedDuration = durationMatch ? parseInt(durationMatch[1], 10) : 4;
+          mappedDuration = validDurations.reduce((prev, curr) =>
+            Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration) ? curr : prev
+          );
+        }
 
         const promptToUse =
           customPrompt ||
@@ -516,9 +547,10 @@ export default function I2VVideoGenerator() {
           projectId: currentProjectId,
           sceneIndex,
           clipIndex,
-          providerId: selectedProvider as "sora" | "veo3",
+          providerId: selectedProvider as "sora" | "veo3" | "grok_i2v" | "wan_i2v" | "wan22_i2v",
           prompt: promptToUse,
           imageUrl: clip.imageBase64 || undefined,
+          imageEndUrl: clip.imageEndBase64 || undefined,
           duration: mappedDuration,
           aspectRatio,
           apiKey: videoApiKey || undefined,
@@ -1010,6 +1042,9 @@ export default function I2VVideoGenerator() {
             onGenerate={generateClip}
             onRegenerate={regenerateClip}
             onUpdatePrompt={updateClipPrompt}
+            onUpdateFrames={updateClipFrames}
+            onUpdateDuration={updateClipDuration}
+            providerDurations={providerConstraints?.durations}
             isGeneratingAll={isGeneratingAll}
           />
         ))}

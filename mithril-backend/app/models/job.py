@@ -65,10 +65,11 @@ class JobSubmitRequest(BaseModel):
     project_id: str
     scene_index: int
     clip_index: int
-    provider_id: Literal["sora", "veo3"]
+    provider_id: Literal["sora", "veo3", "grok_i2v", "wan_i2v", "wan22_i2v"]
     prompt: str
     image_url: str | None = None
-    duration: int = Field(ge=4, le=12)
+    image_end_url: str | None = None  # Optional end frame
+    duration: int = Field(ge=4, le=240)
     aspect_ratio: Literal["16:9", "9:16"]
     api_key: str | None = None  # Custom API key (optional)
 
@@ -109,6 +110,7 @@ class JobDocument(BaseModel):
     # Request parameters
     prompt: str
     image_url: str | None = None  # Video: source image for video generation
+    image_end_url: str | None = None  # Video: optional end frame
     duration: int | None = None  # Video only
     aspect_ratio: str
     api_key_hash: str | None = None  # Hashed for audit
@@ -412,7 +414,7 @@ class PanelJobSubmitRequest(BaseModel):
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     refinement_mode: Literal["default", "zoom", "expand"] = "default"
     api_key: str | None = None  # Custom API key (optional)
-    provider: Literal["gemini", "grok"] = "gemini"  # Image generation provider
+    provider: Literal["gemini", "grok", "z_image_turbo"] = "gemini"  # Image generation provider
 
 
 class PanelJobStatusResponse(BaseModel):

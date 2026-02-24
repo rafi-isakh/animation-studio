@@ -127,6 +127,9 @@ async def prepare_image_for_provider(
     # Get image bytes
     if image_base64:
         image_bytes = decode_base64_image(image_base64)
+    elif image_url and image_url.startswith("data:"):
+        # Data URL from browser file upload — decode directly, no HTTP fetch needed
+        image_bytes = decode_base64_image(image_url)
     else:
         image_bytes = await fetch_image_from_url(image_url)
 

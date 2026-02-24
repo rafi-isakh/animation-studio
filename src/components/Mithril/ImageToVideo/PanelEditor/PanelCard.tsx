@@ -130,7 +130,11 @@ export const PanelCard: React.FC<PanelCardProps> = ({
               <div className="w-full h-full flex flex-col relative items-center justify-center">
                 <InteractiveCanvas
                   ref={canvasRef}
-                  src={panel.resultUrl}
+                  src={
+                    panel.resultUrl.startsWith('http')
+                      ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+                      : panel.resultUrl
+                  }
                   targetRatio={targetRatio}
                   className="w-full"
                   maxHeight={400}

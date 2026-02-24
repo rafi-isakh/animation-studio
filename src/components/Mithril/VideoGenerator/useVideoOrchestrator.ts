@@ -9,9 +9,10 @@ interface SubmitJobParams {
   projectId: string;
   sceneIndex: number;
   clipIndex: number;
-  providerId: 'sora' | 'veo3';
+  providerId: 'sora' | 'veo3' | 'grok_i2v' | 'wan_i2v' | 'wan22_i2v';
   prompt: string;
   imageUrl?: string;
+  imageEndUrl?: string;
   duration: number;
   aspectRatio: '16:9' | '9:16';
   apiKey?: string;
@@ -101,7 +102,12 @@ export function useVideoOrchestrator({
       return;
     }
 
-    const unsubscribe = subscribeToProjectJobs(projectId, (jobs: JobQueueDocument[]) => {
+    const unsubscribe = subscribeToProjectJobs(projectId, (allJobs: JobQueueDocument[]) => {
+      // Only process video jobs — panel, image, bg, etc. jobs share the same
+      // project_id and can have the same scene/clip indices, causing false failures.
+      // Legacy video jobs may have no `type` field, so we allow those through too.
+      const jobs = allJobs.filter((job) => !job.type || job.type === 'video');
+
       const isInitial = initialSnapshotRef.current;
 
       if (isInitial) {

@@ -520,14 +520,13 @@ export default function VideoGeneratorOrchestrator() {
       );
 
       try {
-        // Parse duration from length
-        const durationMatch = clip.length.match(/(\d+)/);
-        const parsedDuration = durationMatch
-          ? parseInt(durationMatch[1], 10)
-          : 4;
-
+        // Use user-selected duration if set, otherwise parse from clip length
         const constraints = getProviderConstraints(selectedProvider);
         const validDurations = constraints?.durations || [4, 8, 12];
+        const parsedDuration = clip.customDuration ?? (() => {
+          const durationMatch = clip.length.match(/(\d+)/);
+          return durationMatch ? parseInt(durationMatch[1], 10) : 4;
+        })();
         const mappedDuration = validDurations.reduce((prev, curr) =>
           Math.abs(curr - parsedDuration) < Math.abs(prev - parsedDuration)
             ? curr

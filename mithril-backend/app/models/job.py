@@ -65,11 +65,11 @@ class JobSubmitRequest(BaseModel):
     project_id: str
     scene_index: int
     clip_index: int
-    provider_id: Literal["sora", "veo3", "grok_i2v"]
+    provider_id: Literal["sora", "veo3", "grok_i2v", "wan_i2v", "wan22_i2v"]
     prompt: str
     image_url: str | None = None
     image_end_url: str | None = None  # Optional end frame
-    duration: int = Field(ge=4, le=12)
+    duration: int = Field(ge=4, le=240)
     aspect_ratio: Literal["16:9", "9:16"]
     api_key: str | None = None  # Custom API key (optional)
 

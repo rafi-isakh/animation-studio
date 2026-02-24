@@ -115,10 +115,9 @@ class _WanI2VBase(VideoProvider):
         if request.image_end_url:
             payload["end_image"] = await self._resolve_end_image_url(request.image_end_url)
 
+        logger.info(f"[{self._log_tag}] Submitting to ModelsLab, duration={duration}s, frames={num_frames}")
+
         async with httpx.AsyncClient(timeout=60.0) as client:
-            logger.info(
-                f"[{self._log_tag}] Submitting to ModelsLab, duration={duration}s, frames={num_frames}"
-            )
             resp = await client.post(WAN_VIDEO_URL, json=payload)
             resp.raise_for_status()
             data = resp.json()
@@ -278,7 +277,7 @@ class Wan22I2VProvider(_WanI2VBase):
     _constraints = _WAN22_CONSTRAINTS
     _duration_frames = _WAN22_FRAMES
     _fps = 24
-    _resolution = 720
+    _resolution = 480
     _log_tag = "WAN22_I2V"
 
 

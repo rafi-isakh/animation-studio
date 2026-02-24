@@ -77,14 +77,15 @@ class GrokI2VProvider(VideoProvider):
             "init_image": init_image,
             "prompt": request.prompt,
             "duration": str(duration),
-            "resolution": "720P",
+            "resolution": "720p",
         }
 
         if request.image_end_url:
             payload["end_image"] = await self._resolve_end_image_url(request.image_end_url)
 
+        logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
+
         async with httpx.AsyncClient(timeout=60.0) as client:
-            logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
             resp = await client.post(MODELSLAB_VIDEO_URL, json=payload)
             resp.raise_for_status()
             data = resp.json()

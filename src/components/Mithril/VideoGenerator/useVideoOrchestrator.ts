@@ -102,7 +102,12 @@ export function useVideoOrchestrator({
       return;
     }
 
-    const unsubscribe = subscribeToProjectJobs(projectId, (jobs: JobQueueDocument[]) => {
+    const unsubscribe = subscribeToProjectJobs(projectId, (allJobs: JobQueueDocument[]) => {
+      // Only process video jobs — panel, image, bg, etc. jobs share the same
+      // project_id and can have the same scene/clip indices, causing false failures.
+      // Legacy video jobs may have no `type` field, so we allow those through too.
+      const jobs = allJobs.filter((job) => !job.type || job.type === 'video');
+
       const isInitial = initialSnapshotRef.current;
 
       if (isInitial) {

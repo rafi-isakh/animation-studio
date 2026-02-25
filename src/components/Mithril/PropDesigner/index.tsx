@@ -138,24 +138,19 @@ export default function PropDesigner() {
   const handleCSVImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      console.log("[CSV Import] No file selected");
       return;
     }
 
-    console.log("[CSV Import] File selected:", file.name, file.size, "bytes");
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
       if (!text) {
-        console.log("[CSV Import] File read but text is empty");
         return;
       }
 
-      console.log("[CSV Import] File read, length:", text.length);
 
       const rows = parseCSV(text);
-      console.log("[CSV Import] Parsed rows:", rows.length);
 
       if (rows.length < 2) {
         setError("CSV file is empty or has no data rows");
@@ -163,7 +158,6 @@ export default function PropDesigner() {
       }
 
       const header = rows[0].map((h) => h.trim());
-      console.log("[CSV Import] Headers found:", header);
 
       const getIdx = (labels: string[]) =>
         header.findIndex((h) =>
@@ -194,7 +188,6 @@ export default function PropDesigner() {
         refFileName: getIdx(["Reference Image", "Ref Image", "참조 이미지"]),
       };
 
-      console.log("[CSV Import] Column mapping:", map);
 
       const clips: CsvClip[] = [];
       for (let i = 1; i < rows.length; i++) {
@@ -221,9 +214,7 @@ export default function PropDesigner() {
         });
       }
 
-      console.log("[CSV Import] Clips created:", clips.length);
       if (clips.length > 0) {
-        console.log("[CSV Import] First clip sample:", clips[0]);
       }
 
       if (clips.length === 0) {
@@ -231,7 +222,6 @@ export default function PropDesigner() {
         return;
       }
 
-      console.log("[CSV Import] Setting importedScenes with", clips.length, "clips");
 
       // Parse Character ID Summary and Genre from remaining rows
       const characterDescMap = new Map<string, string>();
@@ -252,7 +242,6 @@ export default function PropDesigner() {
               row[1].toLowerCase().includes("description") || 
               row[1].toLowerCase().includes("설명")) {
             inCharacterSection = true;
-            console.log("[CSV Import] Found Character ID section at row", i);
             continue;
           }
         }
@@ -263,7 +252,6 @@ export default function PropDesigner() {
           // Genre value might be in same row or next column
           if (row.length > 1 && row[1]?.trim()) {
             parsedGenre = row[1].trim();
-            console.log("[CSV Import] Found Genre:", parsedGenre);
           }
           continue;
         }
@@ -274,12 +262,10 @@ export default function PropDesigner() {
           const description = row[1]?.trim();
           if (characterId && description && characterId.match(/^[A-Z][A-Z0-9_]+$/)) {
             characterDescMap.set(characterId, description);
-            console.log("[CSV Import] Character:", characterId, "=", description.substring(0, 50));
           }
         }
       }
 
-      console.log("[CSV Import] Parsed", characterDescMap.size, "character descriptions");
       
       // Clear existing sessions and detected IDs to start fresh with imported data
       setSessions([]);
@@ -297,7 +283,6 @@ export default function PropDesigner() {
       if (parsedGenre) {
         setCsvGenre(parsedGenre);
         setGenre(parsedGenre);
-        console.log("[CSV Import] Set genre from CSV:", parsedGenre);
       } else {
         // Auto-detect genre from content if not found in CSV
         const sampleText = clips.slice(0, 10).map((c) => `${c.story} ${c.imagePrompt}`).join(" ");
@@ -312,7 +297,6 @@ export default function PropDesigner() {
         }
       }
 
-      console.log("[CSV Import] State updates dispatched - props and detectedIds cleared");
       setError(null);
     };
 
@@ -321,10 +305,8 @@ export default function PropDesigner() {
     if (e.target) e.target.value = "";
   }, []);
 
-  // Debug: log when importedScenes changes
   useEffect(() => {
     if (importedScenes.length > 0) {
-      console.log("[PropDesigner] First scene has", importedScenes[0].clips.length, "clips");
     }
   }, [importedScenes]);
 
@@ -483,7 +465,6 @@ export default function PropDesigner() {
   // Use useEffect for the side effect (setDetectedIds) instead of useMemo
   // Include importVersion to force re-run when CSV is imported
   useEffect(() => {
-    console.log("[PropDesigner] Extracting IDs from", activeScenes.length, "scenes (importVersion:", importVersion, ")");
 
     if (!activeScenes || activeScenes.length === 0) {
       setDetectedIds([]);
@@ -560,7 +541,6 @@ export default function PropDesigner() {
     });
 
     setDetectedIds(allDetected);
-    console.log("[PropDesigner] Extracted", allDetected.length, "IDs:", allDetected.map(d => d.id).join(", "));
   }, [activeScenes, importVersion]);
 
   // Toggle ID category
@@ -789,7 +769,6 @@ export default function PropDesigner() {
           }
         }
         if (csvDescription) {
-          console.log(`[CSV Match] Found CSV description for ${char.name}: ${csvDescription.substring(0, 80)}...`);
         }
 
         // Extract accurate role from CSV description if available
@@ -805,7 +784,6 @@ export default function PropDesigner() {
             if (relMatch) {
               // Capitalize the first letter of the extracted role
               resolvedRole = relMatch[1].charAt(0).toUpperCase() + relMatch[1].slice(1).toLowerCase();
-              console.log(`[Role Override] ${char.name}: AI role="${char.role}" → CSV role="${resolvedRole}"`);
             }
           }
         }
@@ -979,7 +957,6 @@ export default function PropDesigner() {
         if (currentProjectId) {
           try {
             await deletePropDesignSheetImage(currentProjectId, propId);
-            console.log(`[PropDesigner] Deleted old design sheet for prop: ${propId}`);
           } catch (error) {
             console.warn(`[PropDesigner] Failed to delete old design sheet (may not exist):`, error);
           }

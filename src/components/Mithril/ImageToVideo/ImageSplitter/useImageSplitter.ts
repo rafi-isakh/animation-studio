@@ -230,7 +230,6 @@ export function useImageSplitter() {
       // Update page panel count
       await updateMangaPagePanelCount(currentProjectId, pageIndex, panels.length);
 
-      console.log(`[ImageSplitter] Persisted page ${pageIndex} with ${panels.length} panels`);
     } catch (error) {
       console.error(`[ImageSplitter] Failed to persist page ${pageIndex}:`, error);
     }
@@ -426,7 +425,6 @@ export function useImageSplitter() {
         // Process completed jobs that weren't persisted (job completed while user was away)
         for (const job of jobsCompletedWhileAway) {
           if (!job.page_id) continue;
-          console.log(`[ImageSplitter] Found completed job for page ${job.page_id}, applying results`);
           const update = mapPanelSplitterJobToUpdate(job);
 
           if (update.panels && update.panels.length > 0) {
@@ -463,7 +461,6 @@ export function useImageSplitter() {
               }
 
               await updateMangaPagePanelCount(currentProjectId, update.pageIndex, update.panels.length);
-              console.log(`[ImageSplitter] Persisted completed job results for page ${job.page_id}`);
             } catch (error) {
               console.error(`[ImageSplitter] Failed to persist completed job for page ${job.page_id}:`, error);
             }
@@ -475,7 +472,6 @@ export function useImageSplitter() {
 
         if (processingPages.length > 0) {
           // There are pages still processing - enter processing mode
-          console.log(`[ImageSplitter] Found ${processingPages.length} pages still processing, entering processing mode`);
           dispatch({ type: 'START_PROCESSING', total: processingPages.length });
           processingStartTimeRef.current = Date.now();
           // The Firestore subscription will handle updates
@@ -711,7 +707,6 @@ export function useImageSplitter() {
           // Also store pageIndex in local state for later reference
           dispatch({ type: 'SET_PAGE_INDEX', id: page.pageId, pageIndex: page.pageIndex });
         }
-        console.log(`[ImageSplitter] Saved ${pagesToSubmit.length} pages to Firestore with status=processing`);
       } catch (error) {
         console.error('[ImageSplitter] Failed to save pages to Firestore:', error);
       }
@@ -1326,16 +1321,12 @@ export function useImageSplitter() {
             storyboardMap[p.label] = p.script;
           });
 
-          console.log('[Transcription] Received storyboard for page:', page.id);
-          console.log('[Transcription] Storyboard map:', storyboardMap);
-          console.log('[Transcription] Page panels count:', page.panels.length);
 
           // Create updated panels with storyboard - match by index position
           const updatedPanels = page.panels.map((panel, idx) => {
             const numericLabel = String(idx + 1); // 1, 2, 3...
             const script = storyboardMap[numericLabel];
             const hasStoryboard = !!script;
-            console.log(`[Transcription] Panel ${idx + 1} (${panel.label}): hasStoryboard=${hasStoryboard}`);
             return {
               ...panel,
               storyboard: script ? { text: script } : panel.storyboard,

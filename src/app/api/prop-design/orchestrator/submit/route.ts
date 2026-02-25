@@ -93,21 +93,11 @@ export async function POST(request: NextRequest) {
 
     const body: PropDesignSubmitRequest = await request.json();
 
-    console.log(`[PropDesignOrchestrator] Received request:`, {
-      propId: body.propId,
-      propName: body.propName,
-      promptLength: body.prompt?.length,
-      referenceImages: body.referenceImages?.length || 0,
-      referenceUrls: body.referenceUrls?.length || 0,
-      genre: body.genre,
-      styleKeyword: body.styleKeyword,
-    });
 
     // Upload base64 reference images to S3 if provided
     let referenceUrls: string[] = body.referenceUrls || [];
 
     if (body.referenceImages && body.referenceImages.length > 0) {
-      console.log(`[PropDesignOrchestrator] Uploading ${body.referenceImages.length} reference images to S3...`);
       
       if (!s3Client) {
         console.warn("[PropDesignOrchestrator] AWS credentials not configured, skipping reference image upload");
@@ -121,7 +111,6 @@ export async function POST(request: NextRequest) {
         try {
           const uploadedUrls = await Promise.all(uploadPromises);
           referenceUrls = [...referenceUrls, ...uploadedUrls];
-          console.log(`[PropDesignOrchestrator] Uploaded ${uploadedUrls.length} reference images`);
         } catch (uploadError) {
           console.error("[PropDesignOrchestrator] Failed to upload reference images:", uploadError);
           // Continue without reference images rather than failing
@@ -140,7 +129,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to orchestrator backend
-    console.log("[PropDesignOrchestrator] Submitting to:", `${ORCHESTRATOR_URL}/api/v1/prop-design-jobs/submit`);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/prop-design-jobs/submit`, {
       method: "POST",
@@ -163,7 +151,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[PropDesignOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

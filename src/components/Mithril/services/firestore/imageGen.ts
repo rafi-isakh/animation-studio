@@ -245,13 +245,11 @@ export async function updateImageGenFrameEdited(
 export async function clearImageGen(projectId: string): Promise<void> {
   // Step 1: Delete all frame images from S3 first
   const frames = await getImageGenFrames(projectId);
-  console.log(`[clearImageGen] Deleting ${frames.length} frames from S3`);
   
   for (const frame of frames) {
     try {
       // Delete main frame image
       await deleteImageGenFrameImage(projectId, frame.id);
-      console.log(`[clearImageGen] Deleted frame image: ${frame.id}`);
     } catch (error) {
       console.warn(`[clearImageGen] Failed to delete frame image ${frame.id}:`, error);
     }
@@ -260,7 +258,6 @@ export async function clearImageGen(projectId: string): Promise<void> {
     if (frame.remixImageRef) {
       try {
         await deleteImageGenRemixImage(projectId, frame.id);
-        console.log(`[clearImageGen] Deleted remix image: ${frame.id}`);
       } catch (error) {
         console.warn(`[clearImageGen] Failed to delete remix image ${frame.id}:`, error);
       }
@@ -270,7 +267,6 @@ export async function clearImageGen(projectId: string): Promise<void> {
     if (frame.editedImageRef) {
       try {
         await deleteImageGenEditedImage(projectId, frame.id);
-        console.log(`[clearImageGen] Deleted edited image: ${frame.id}`);
       } catch (error) {
         console.warn(`[clearImageGen] Failed to delete edited image ${frame.id}:`, error);
       }

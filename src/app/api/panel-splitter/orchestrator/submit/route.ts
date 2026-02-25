@@ -65,7 +65,6 @@ async function handleSingleSubmit(
   body: PanelSplitterSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[PanelSplitterOrchestrator] Submitting single job to:", `${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit`);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit`, {
     method: "POST",
@@ -87,7 +86,6 @@ async function handleSingleSubmit(
   });
 
   const responseText = await response.text();
-  console.log("[PanelSplitterOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
   let data;
   try {
@@ -118,7 +116,6 @@ async function handleBatchSubmit(
   body: PanelSplitterBatchSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[PanelSplitterOrchestrator] Submitting batch of", body.pages.length, "jobs to:", `${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit-batch`);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit-batch`, {
     method: "POST",
@@ -142,7 +139,6 @@ async function handleBatchSubmit(
   });
 
   const responseText = await response.text();
-  console.log("[PanelSplitterOrchestrator] Batch response status:", response.status, "body:", responseText.substring(0, 500));
 
   let data;
   try {

@@ -121,17 +121,10 @@ export default function IdConverter() {
     try {
       const doc = await getIdConverter(currentProjectId);
       if (doc) {
-        console.log("[IdConverter] Loaded data:", {
-          currentStep: doc.currentStep,
-          glossaryCount: doc.glossary?.length,
-          chunksCount: doc.chunks?.length,
-          hasTextFileUrl: !!doc.textFileUrl,
-        });
 
         // If we expect glossary data but it's not there yet, retry
         if (expectGlossary && retryCount < 5 && (!doc.glossary || doc.glossary.length === 0 || doc.currentStep !== "analysis")) {
           const delay = Math.min(500 * Math.pow(2, retryCount), 3000);
-          console.log(`[IdConverter] Glossary not ready (attempt ${retryCount + 1}/5), retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
           return;
@@ -141,7 +134,6 @@ export default function IdConverter() {
         let originalFullText = doc.originalFullText || "";
         if (doc.textFileUrl) {
           try {
-            console.log("[IdConverter] reloadData - Fetching text from S3:", doc.textFileUrl);
             // Use proxy to avoid CORS issues on Vercel deployment
             const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
             const textResponse = await fetch(proxyUrl);
@@ -176,7 +168,6 @@ export default function IdConverter() {
         }
       } else if (retryCount < 3) {
         // Document not found, retry after a short delay
-        console.log("[IdConverter] Document not found, retrying...");
         await new Promise(resolve => setTimeout(resolve, 1000));
         await reloadData(retryCount + 1, clearLoadingOnComplete, expectGlossary);
       } else if (clearLoadingOnComplete) {
@@ -198,13 +189,11 @@ export default function IdConverter() {
 
   // Handle job updates from orchestrator
   const handleJobUpdate = useCallback((update: IdConverterJobUpdate) => {
-    console.log("[IdConverter] Job update:", update);
 
     if (update.jobType === "id_converter_glossary") {
       // Only process updates for the current glossary job
       const currentJobId = glossaryJobIdRef.current;
       if (!currentJobId || update.jobId !== currentJobId) {
-        console.log("[IdConverter] Ignoring update for different job:", update.jobId, "current:", currentJobId);
         return;
       }
 
@@ -243,7 +232,6 @@ export default function IdConverter() {
   // Load from Firestore on mount and check for active jobs
   useEffect(() => {
     const loadData = async () => {
-      console.log("[IdConverter] loadData called, projectId:", currentProjectId);
       if (!currentProjectId) {
         setIsInitialLoading(false);
         return;
@@ -251,27 +239,17 @@ export default function IdConverter() {
 
       try {
         const doc = await getIdConverter(currentProjectId);
-        console.log("[IdConverter] Loaded doc from Firestore:", {
-          hasDoc: !!doc,
-          glossaryJobId: doc?.glossaryJobId,
-          currentStep: doc?.currentStep,
-          hasOriginalFullText: !!doc?.originalFullText,
-          hasTextFileUrl: !!doc?.textFileUrl,
-          glossaryLength: doc?.glossary?.length,
-        });
 
         if (doc) {
           // Fetch text from S3 if textFileUrl exists, otherwise use legacy originalFullText
           let originalFullText = doc.originalFullText || "";
           if (doc.textFileUrl) {
             try {
-              console.log("[IdConverter] Fetching text from S3:", doc.textFileUrl);
               // Use proxy to avoid CORS issues on Vercel deployment
               const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(doc.textFileUrl)}`;
               const textResponse = await fetch(proxyUrl);
               if (textResponse.ok) {
                 originalFullText = await textResponse.text();
-                console.log("[IdConverter] Text fetched from S3, length:", originalFullText.length);
               } else {
                 console.error("[IdConverter] Failed to fetch text from S3:", textResponse.status);
               }
@@ -299,16 +277,10 @@ export default function IdConverter() {
           // Check if there's an active glossary job
           const hasText = !!originalFullText || !!doc.textFileUrl;
           const shouldRestoreJob = doc.glossaryJobId && doc.currentStep === "upload" && hasText;
-          console.log("[IdConverter] Should restore job?", shouldRestoreJob, {
-            hasGlossaryJobId: !!doc.glossaryJobId,
-            isUploadStep: doc.currentStep === "upload",
-            hasText,
-          });
 
           if (shouldRestoreJob && doc.glossaryJobId) {
             // There might be a glossary job in progress - restore tracking
             const jobId = doc.glossaryJobId;
-            console.log("[IdConverter] Found glossaryJobId on mount:", jobId);
 
             // Set the ref first so subscription can handle updates
             glossaryJobIdRef.current = jobId;
@@ -320,7 +292,6 @@ export default function IdConverter() {
             // the Firestore subscription fired before we restored the jobId
             try {
               const jobStatus = await getJobStatus(jobId);
-              console.log("[IdConverter] Fetched job status on mount:", jobStatus);
 
               if (jobStatus.status === "completed") {
                 // Job completed while we were away - reload data
@@ -407,7 +378,6 @@ export default function IdConverter() {
               throw new Error(s3Data.error || "Failed to upload text to S3");
             }
             const textFileUrl = s3Data.url;
-            console.log("[IdConverter] JSON project text uploaded to S3:", textFileUrl);
 
             // Save to Firestore (with S3 URL, not the actual text)
             await saveIdConverter(currentProjectId, {
@@ -454,7 +424,6 @@ export default function IdConverter() {
           throw new Error(s3Data.error || "Failed to upload text to S3");
         }
         const textFileUrl = s3Data.url;
-        console.log("[IdConverter] Text uploaded to S3:", textFileUrl);
 
         // Save initial state to Firestore (with S3 URL, not the actual text)
         setLoadingStatus("Submitting for analysis...");
@@ -478,13 +447,10 @@ export default function IdConverter() {
         // Store job ID for tracking (both ref and state)
         glossaryJobIdRef.current = result.jobId || null;
         setGlossaryJobId(result.jobId || null);
-        console.log("[IdConverter] Glossary job submitted:", result.jobId);
 
         // Save jobId to Firestore so it persists across page navigations
         if (result.jobId) {
-          console.log("[IdConverter] Saving glossaryJobId to Firestore:", result.jobId);
           await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
-          console.log("[IdConverter] glossaryJobId saved successfully");
         }
 
         // Job is now running in background - UI will update via Firestore subscription
@@ -547,7 +513,6 @@ export default function IdConverter() {
           throw new Error(s3Data.error || "Failed to upload text to S3");
         }
         const textFileUrl = s3Data.url;
-        console.log("[IdConverter] Sample text uploaded to S3:", textFileUrl);
 
         // Save initial state to Firestore (with S3 URL, not the actual text)
         setLoadingStatus("Submitting for analysis...");
@@ -571,13 +536,10 @@ export default function IdConverter() {
         // Store job ID for tracking (both ref and state)
         glossaryJobIdRef.current = result.jobId || null;
         setGlossaryJobId(result.jobId || null);
-        console.log("[IdConverter] Glossary job submitted for sample:", result.jobId);
 
         // Save jobId to Firestore so it persists across page navigations
         if (result.jobId) {
-          console.log("[IdConverter] Saving glossaryJobId to Firestore (sample):", result.jobId);
           await updateIdConverter(currentProjectId, { glossaryJobId: result.jobId });
-          console.log("[IdConverter] glossaryJobId saved successfully (sample)");
         }
 
         // Job is now running in background - UI will update via Firestore subscription
@@ -682,7 +644,6 @@ export default function IdConverter() {
           filename: state.fileName,
           uploadType: uploadType || 'novel',
         });
-        console.log("[IdConverter] Chapter document created for downstream stages");
 
         // If chapter type, auto-create single-part storySplits to skip Stage 2
         if (uploadType === 'chapter') {
@@ -691,7 +652,6 @@ export default function IdConverter() {
             guidelines: '',
             parts: [{ text: convertedText, cliffhangers: [] }],
           });
-          console.log("[IdConverter] Single-part storySplits created (chapter mode)");
         } else {
           // Clear any existing story splits if novel type
           const { deleteStorySplits } = await import("./services/firestore/storySplitter");
@@ -709,7 +669,6 @@ export default function IdConverter() {
     async (jobId: string) => {
       if (!currentProjectId) return;
 
-      console.log("[IdConverter] Saving batchJobId to Firestore:", jobId);
       setState((prev) => ({ ...prev, batchJobId: jobId }));
       await updateIdConverter(currentProjectId, { batchJobId: jobId });
     },

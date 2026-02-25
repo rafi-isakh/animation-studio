@@ -9,7 +9,6 @@ import { ToastProvider } from '@/hooks/use-toast';
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { MithrilAuthProvider } from "@/components/Mithril/auth";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import MithrilSidebar from "@/components/Mithril/MithrilSidebar";
 
 interface RootLayoutProps {
     children: ReactNode;
@@ -65,14 +64,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <MithrilAuthProvider>
                             <ProjectProvider>
                                 <div className="relative font-pretendard pretendard-jp pretendard-std">
-                                    {/* Sidebar - hidden on mobile */}
-                                    <div className="hidden md:block">
-                                        <MithrilSidebar />
-                                    </div>
-                                    {/* Main content with left padding for sidebar on desktop */}
-                                    <div className="md:pl-[72px]">
-                                        {children}
-                                    </div>
+                                    {children}
                                     <Analytics />
                                 </div>
                             </ProjectProvider>

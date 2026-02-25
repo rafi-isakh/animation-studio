@@ -174,7 +174,6 @@ export default function ImageGeneratorOrchestrator() {
           remixImageRef: frame.remixImageUrl || null,
           editedImageRef: frame.editedImageUrl || null,
         });
-        console.log(`[ImageGenOrchestrator] Saved frame ${frame.frameLabel} to Firestore (imageRef: ${imageUrl.substring(0, 60)}...)`);
 
         // Update stage result with latest frames
         const latestFrames = framesRef.current;
@@ -786,7 +785,6 @@ export default function ImageGeneratorOrchestrator() {
       if (oldJobId) {
         activeJobsRef.current.delete(oldJobId);
         frameToJobMap.current.delete(frameId);
-        console.log(`[ImageGenOrchestrator] Cleaned up old job ${oldJobId} for frame ${frameId}`);
       }
 
       // Update status to generating
@@ -1362,7 +1360,6 @@ export default function ImageGeneratorOrchestrator() {
           createdAt: Date.now(),
         });
 
-        console.log(`[ImageGen] Persisted ${newFrames.length} CSV-imported frames to Firestore`);
       } catch (err) {
         console.error("[ImageGen] Failed to persist CSV frames to Firestore:", err);
       }
@@ -1403,7 +1400,6 @@ export default function ImageGeneratorOrchestrator() {
                 currentProjectId, id, category, base64, file.type || "image/png"
               );
               asset.imageUrl = imageUrl;
-              console.log(`[ImageGen] Uploaded asset ${id} to S3: ${imageUrl.substring(0, 60)}...`);
             } catch (uploadErr) {
               console.warn(`[ImageGen] Failed to upload asset ${id} to S3, keeping base64 only:`, uploadErr);
             }
@@ -1498,7 +1494,6 @@ export default function ImageGeneratorOrchestrator() {
               currentProjectId, assetId, category, base64, file.type || "image/png"
             );
             asset.imageUrl = imageUrl;
-            console.log(`[ImageGen] Uploaded replacement ${assetId} to S3: ${imageUrl.substring(0, 60)}...`);
           } catch (uploadErr) {
             console.warn(`[ImageGen] Failed to upload replacement ${assetId} to S3:`, uploadErr);
           }

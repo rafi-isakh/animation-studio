@@ -284,7 +284,6 @@ export default function ImageGenerator() {
           });
           // Load local assets metadata (lazy loading - base64 loaded on-demand during generation)
           if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
-            console.log(`[ImageGen] Found ${savedMeta.localAssets.length} replacement assets (lazy loading enabled)`);
             // Deduplicate by id (keep last entry) to prevent stale duplicates
             const seen = new Map<string, LocalAssetRef>();
             savedMeta.localAssets.forEach((asset) => {
@@ -548,7 +547,6 @@ export default function ImageGenerator() {
         if (currentProjectId) {
           try {
             await deleteImageGenFrameImage(currentProjectId, frameId);
-            console.log(`[ImageGen] Deleted old frame image for: ${frameId}`);
           } catch (error) {
             console.warn(`[ImageGen] Failed to delete old frame image (may not exist):`, error);
           }
@@ -572,7 +570,6 @@ export default function ImageGenerator() {
             // Lazy load base64 if not already loaded
             let bgBase64 = localBg.base64;
             if (!bgBase64 && localBg.imageUrl) {
-              console.log(`[ImageGen] Lazy loading background asset: ${localBg.id} from ${localBg.imageUrl}`);
               try {
                 const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(localBg.imageUrl)}`;
                 const response = await fetch(proxyUrl);
@@ -585,7 +582,6 @@ export default function ImageGenerator() {
                       a.id === localBg.id ? { ...a, base64: data.base64, mimeType: data.contentType || 'image/webp' } : a
                     )
                   );
-                  console.log(`[ImageGen] ✓ Lazy loaded background ${localBg.id}, base64 length: ${bgBase64?.length}`);
                 }
               } catch (err) {
                 console.error(`[ImageGen] ✗ Failed to lazy load background ${localBg.id}:`, err);
@@ -648,7 +644,6 @@ export default function ImageGenerator() {
 
         // Check local uploaded/replacement character assets FIRST (priority over Prop Designer)
         const localCharacters = localAssets.filter((a) => a.category === "character");
-        console.log(`[ImageGen] Checking ${localCharacters.length} local/replacement character assets against prompt: "${promptText.substring(0, 100)}..."`);
         
         for (const asset of localCharacters) {
           const escapedId = asset.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -660,12 +655,10 @@ export default function ImageGenerator() {
           const nameMatch = regexName.test(promptText);
           
           if (idMatch || nameMatch) {
-            console.log(`[ImageGen] ✓ Matched replacement asset: id="${asset.id}", name="${asset.name}" (idMatch=${idMatch}, nameMatch=${nameMatch}), hasBase64=${!!asset.base64}, base64Length=${asset.base64?.length || 0}`);
             
             // Lazy load base64 if not already loaded
             let assetBase64 = asset.base64;
             if (!assetBase64 && asset.imageUrl) {
-              console.log(`[ImageGen] Lazy loading base64 for asset: ${asset.id} from ${asset.imageUrl}`);
               try {
                 const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(asset.imageUrl)}`;
                 const response = await fetch(proxyUrl);
@@ -678,7 +671,6 @@ export default function ImageGenerator() {
                       a.id === asset.id ? { ...a, base64: data.base64, mimeType: data.contentType || 'image/webp' } : a
                     )
                   );
-                  console.log(`[ImageGen] ✓ Lazy loaded asset ${asset.id}, base64 length: ${assetBase64?.length}`);
                 }
               } catch (err) {
                 console.error(`[ImageGen] ✗ Failed to lazy load asset ${asset.id}:`, err);
@@ -698,7 +690,6 @@ export default function ImageGenerator() {
                 base64: compressed.base64,
                 mimeType: compressed.mimeType,
               });
-              console.log(`[ImageGen] Added compressed replacement image for: ${asset.id}, compressed length: ${compressed.base64.length}`);
             } catch (err) {
               console.warn(`[ImageGen] Compression failed for ${asset.id}, using original:`, err);
               // Fall back to original if compression fails
@@ -710,17 +701,14 @@ export default function ImageGenerator() {
             // Mark this ID as matched so Prop Designer won't add it again
             matchedCharacterIds.add(asset.id);
           } else {
-            console.log(`[ImageGen] ✗ No match for replacement asset: id="${asset.id}", name="${asset.name}"`);
           }
         }
 
         // Check Prop Designer character & object assets (skip if already matched from local assets)
-        console.log(`[ImageGen] Checking ${characterAssets.length} PropDesigner character/object assets (already matched: ${matchedCharacterIds.size})`);
         
         for (const char of characterAssets) {
           // Skip if this character was already matched from local assets (replacement)
           if (matchedCharacterIds.has(char.id)) {
-            console.log(`[ImageGen] ⏭ Skipping PropDesigner asset "${char.id}" - using replacement instead`);
             continue;
           }
 
@@ -732,7 +720,6 @@ export default function ImageGenerator() {
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
           if (regexId.test(promptText) || regexName.test(promptText)) {
-            console.log(`[ImageGen] ✓ Matched PropDesigner asset: id="${char.id}", name="${char.name}"`);
             // Character found in prompt, fetch and compress their image
             if (char.imageUrl) {
               try {
@@ -1447,7 +1434,6 @@ export default function ImageGenerator() {
           .filter((a) => a.imageUrl); // Only include assets that have been saved to S3
         
         await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, remainingAssets);
-        console.log(`[ImageGen] Updated Firestore after removing asset ${assetId}`);
       } catch (err) {
         console.warn(`Failed to update Firestore after removing asset:`, err);
       }

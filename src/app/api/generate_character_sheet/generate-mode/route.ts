@@ -122,9 +122,6 @@ This is a variation of the character, NOT a different character. The face must b
 
     parts.push({ text: modePrompt });
 
-    console.log("[generate-mode] Model: gemini-3-pro-image-preview");
-    console.log("[generate-mode] Mode:", modeName);
-    console.log("[generate-mode] Has style reference:", !!styleReferenceBase64);
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

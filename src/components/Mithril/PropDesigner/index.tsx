@@ -1477,7 +1477,7 @@ export default function PropDesigner() {
             </svg>
             <p className="text-lg font-bold text-gray-300 mb-2">No Storyboard Data</p>
             <p className="text-sm text-gray-500 mb-4">
-              Generate a storyboard in Stage 4 or import a CSV file with storyboard data.
+              Generate a storyboard or import a CSV file with storyboard data.
             </p>
           </div>
           <button

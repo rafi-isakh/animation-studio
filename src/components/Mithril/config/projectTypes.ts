@@ -60,13 +60,22 @@ const IMAGE_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 5, key: 'video-gen', labelKey: 'mithril_i2v_stage5', component: 'I2VVideoGenerator' },
 ];
 
+// Stage configurations for manga/webtoon NSFW — PropDesigner at Stage 4, I2VVideoGenerator at Stage 5
+const IMAGE_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
+  { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
+  { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',  component: 'PanelEditor' },
+  { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
+  { id: 4, key: 'prop-designer',   labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
+  { id: 5, key: 'video-gen',       labelKey: 'mithril_i2v_stage5',  component: 'I2VVideoGenerator' },
+];
+
 // Stage configurations for manga/webtoon (non-NSFW) — uses CSV-based video generator
 const IMAGE_TO_VIDEO_CSV_STAGES: StageDefinition[] = [
-  { id: 1, key: 'image-splitter',    labelKey: 'mithril_i2v_stage1', component: 'ImageSplitter' },
-  { id: 2, key: 'panel-editor',      labelKey: 'mithril_i2v_stage2', component: 'PanelEditor' },
-  { id: 3, key: 'image-to-script',   labelKey: 'mithril_i2v_stage3', component: 'ImageToScriptWriter' },
-  { id: 4, key: 'storyboard-editor', labelKey: 'mithril_i2v_stage4', component: 'StoryboardEditor' },
-  { id: 5, key: 'csv-video-gen',     labelKey: 'mithril_i2v_stage5', component: 'CsvVideoGenerator' },
+  { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
+  { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',  component: 'PanelEditor' },
+  { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
+  { id: 4, key: 'prop-designer',   labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
+  { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
 // Project type configurations
@@ -103,7 +112,7 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     labelKey: 'project_type_manga_to_video_nsfw',
     descriptionKey: 'project_type_manga_to_video_nsfw_desc',
     icon: 'BookOpen',
-    stages: IMAGE_TO_VIDEO_STAGES,
+    stages: IMAGE_TO_VIDEO_NSFW_STAGES,
     pipeline: 'image-to-video',
     isNsfw: true,
   },
@@ -121,7 +130,7 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     labelKey: 'project_type_webtoon_to_video_nsfw',
     descriptionKey: 'project_type_webtoon_to_video_nsfw_desc',
     icon: 'Palette',
-    stages: IMAGE_TO_VIDEO_STAGES,
+    stages: IMAGE_TO_VIDEO_NSFW_STAGES,
     pipeline: 'image-to-video',
     isNsfw: true,
   },

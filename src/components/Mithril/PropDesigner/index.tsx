@@ -99,6 +99,8 @@ export default function PropDesigner() {
 
   // File input ref for CSV import
   const csvInputRef = useRef<HTMLInputElement>(null);
+  // Guard: prevent context-restore useEffect from re-running after our own syncToContext writes
+  const hasRestoredFromContext = useRef(false);
 
   // Local state
   const [sessions, setSessions] = useState<DetectionSession[]>([]);
@@ -335,6 +337,11 @@ export default function PropDesigner() {
     if (hasImportedScenes) {
       return;
     }
+    // Skip if we already restored — prevents feedback loop where our own
+    // syncToContext updates propDesignerGenerator.result and re-triggers this effect
+    if (hasRestoredFromContext.current) {
+      return;
+    }
 
     if (propDesignerGenerator.result) {
       const result = propDesignerGenerator.result;
@@ -441,6 +448,7 @@ export default function PropDesigner() {
         setCharacterSessionCount(charCount);
         setObjectSessionCount(objCount);
       }
+      hasRestoredFromContext.current = true;
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
 

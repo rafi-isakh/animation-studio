@@ -90,9 +90,6 @@ export async function POST(request: NextRequest) {
     // Add the main prompt
     parts.push({ text: prompt });
 
-    console.log("[generate-profile] Model: gemini-3-pro-image-preview");
-    console.log("[generate-profile] Has style reference:", !!styleReferenceBase64);
-    console.log("[generate-profile] Has protagonist reference:", !!protagonistReferenceBase64);
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

@@ -456,7 +456,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setStageResults(prev => ({ ...prev, 2: splitResult }));
       } else if (storySplitsData?.jobId) {
         // No results yet but there's an active job - restore tracking state
-        console.log("[MithrilContext] Restoring story splitter job tracking:", storySplitsData.jobId);
         storySplitterJobIdRef.current = storySplitsData.jobId;
         setStorySplitterJobId(storySplitsData.jobId);
         setStorySplitter(prev => ({
@@ -470,7 +469,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         try {
           const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${storySplitsData.jobId}`);
           const jobStatus = await response.json();
-          console.log("[MithrilContext] Fetched story splitter job status on mount:", jobStatus);
 
           if (jobStatus.status === "completed" && jobStatus.parts) {
             // Job completed while we were away - update state with results
@@ -570,25 +568,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       // Load storyboard data
-      console.log("[MithrilContext:loadFromFirestore] Loading storyboard data for project:", currentProjectId);
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
-      console.log("[MithrilContext:loadFromFirestore] Storyboard meta:", {
-        hasMeta: !!storyboardMeta,
-        jobId: storyboardMeta?.jobId,
-        generatedAt: storyboardMeta?.generatedAt,
-      });
 
       if (storyboardMeta) {
         const scenes = await getScenes(currentProjectId);
         const voicePrompts = await getVoicePrompts(currentProjectId);
-        console.log("[MithrilContext:loadFromFirestore] Loaded scenes and voicePrompts:", {
-          sceneCount: scenes.length,
-          voicePromptCount: voicePrompts.length,
-        });
 
         // Check if there are existing results or an active job
         if (scenes.length > 0) {
-          console.log("[MithrilContext:loadFromFirestore] Has existing scenes - loading clips...");
           // Load clips for each scene
           const scenesWithClips: Scene[] = await Promise.all(
             scenes.map(async (scene) => {
@@ -642,17 +629,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           // Store original for reset functionality
           setOriginalStoryboard(storyboardData);
-          console.log("[MithrilContext:loadFromFirestore] Scenes loaded successfully:", {
-            totalScenes: scenesWithClips.length,
-            totalClips: scenesWithClips.reduce((acc, s) => acc + s.clips.length, 0),
-          });
         } else if (storyboardMeta.jobId) {
           // No results yet but there's an active job - restore tracking state
-          console.log("[MithrilContext:loadFromFirestore] No scenes but has jobId - restoring job tracking:", storyboardMeta.jobId);
-          console.log("[MithrilContext:loadFromFirestore] Setting storyboardJobIdRef and state...");
           storyboardJobIdRef.current = storyboardMeta.jobId;
           setStoryboardJobId(storyboardMeta.jobId);
-          console.log("[MithrilContext:loadFromFirestore] storyboardJobIdRef.current is now:", storyboardJobIdRef.current);
 
           setStoryboardGenerator(prev => ({
             ...prev,
@@ -662,19 +642,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           // Manually fetch job status to handle the race condition where
           // the Firestore subscription fired before we restored the jobId
-          console.log("[MithrilContext:loadFromFirestore] Fetching job status from API...");
           try {
             const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${storyboardMeta.jobId}`);
             const jobStatus = await response.json();
-            console.log("[MithrilContext:loadFromFirestore] API job status response:", {
-              status: jobStatus.status,
-              hasScenes: !!jobStatus.scenes,
-              sceneCount: jobStatus.scenes?.length,
-              error: jobStatus.error,
-            });
 
             if (jobStatus.status === "completed" && jobStatus.scenes) {
-              console.log("[MithrilContext:loadFromFirestore] Job was completed - applying results");
               // Job completed while we were away - update state with results
               storyboardJobIdRef.current = null;
               setStoryboardJobId(null);
@@ -917,7 +889,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           return;
         }
 
-        console.log("[MithrilContext] Story splitter job update:", update);
 
         if (update.status === "completed" && update.parts) {
           // Job completed - update state with results
@@ -959,17 +930,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     storyboardInitialSnapshotRef.current = true;
     storyboardProcessedJobIdsRef.current = new Set();
 
-    console.log("[MithrilContext:StoryboardSubscription] Setting up subscription for project:", currentProjectId);
 
     const processStoryboardUpdate = (update: ReturnType<typeof mapStoryboardJobToUpdate>, isInitialSnapshot: boolean = false) => {
       // Skip already-processed jobs
       if (storyboardProcessedJobIdsRef.current.has(update.jobId)) return;
 
       if (update.status === "completed" && update.scenes) {
-        console.log("[MithrilContext:StoryboardSubscription] JOB COMPLETED - processing results:", {
-          sceneCount: update.scenes.length,
-          voicePromptCount: update.voicePrompts?.length || 0,
-        });
 
         storyboardProcessedJobIdsRef.current.add(update.jobId);
 
@@ -1034,7 +1000,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (!isInitialSnapshot) {
           (async () => {
             try {
-              console.log("[MithrilContext:StoryboardSave] Starting save — projectId=", currentProjectId, "sceneCount=", update.scenes!.length);
               await clearStoryboard(currentProjectId);
               await saveStoryboardMeta(currentProjectId, undefined, undefined, normalizedCharacterIdSummary, normalizedGenre);
               await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
@@ -1067,13 +1032,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   });
                 }
               }
-              console.log("[MithrilContext:StoryboardSave] COMPLETE — sceneCount=", update.scenes!.length);
             } catch (saveErr) {
               console.error("[MithrilContext:StoryboardSave] ERROR saving storyboard:", saveErr);
             }
           })();
         } else {
-          console.log("[MithrilContext:StoryboardSubscription] Skipping Firestore save for initial snapshot replay — data already persisted");
         }
       } else if (update.status === "failed") {
         storyboardProcessedJobIdsRef.current.add(update.jobId);
@@ -1102,11 +1065,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const isInitial = storyboardInitialSnapshotRef.current;
       storyboardInitialSnapshotRef.current = false;
 
-      console.log("[MithrilContext:StoryboardSubscription] Received jobs update:", {
-        jobCount: jobs.length,
-        currentTrackedJobId: currentJobId,
-        isInitialSnapshot: isInitial,
-      });
 
       if (isInitial && !currentJobId) {
         // Initial snapshot fired before loadFromFirestore restored the jobId.
@@ -1118,7 +1076,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           if (isInFlight) {
             // Re-track the in-flight job
-            console.log("[MithrilContext:StoryboardSubscription] Initial snapshot - re-tracking in-flight job:", update.jobId);
             storyboardJobIdRef.current = update.jobId;
             setStoryboardJobId(update.jobId);
             setStoryboardGenerator(prev => ({
@@ -1129,7 +1086,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           } else if (isTerminal) {
             // Queue terminal job for processing — loadFromFirestore will handle it
             // via the status API, but process it here too as a fallback
-            console.log("[MithrilContext:StoryboardSubscription] Initial snapshot - processing terminal job:", update.jobId, update.status);
             processStoryboardUpdate(update, true);
           }
         });
@@ -1149,7 +1105,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     return () => {
-      console.log("[MithrilContext:StoryboardSubscription] Cleaning up subscription for project:", currentProjectId);
       unsubscribe();
     };
   }, [currentProjectId]);
@@ -1228,7 +1183,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Store job ID for tracking (both ref and state)
       storySplitterJobIdRef.current = data.jobId || null;
       setStorySplitterJobId(data.jobId || null);
-      console.log("[MithrilContext] Story splitter job submitted:", data.jobId);
 
       // Save jobId to Firestore so it persists across page navigations
       if (data.jobId) {
@@ -1271,15 +1225,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Storyboard Generator methods
   const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
-    console.log("[MithrilContext:startStoryboardGeneration] Starting with params:", {
-      sourceTextLength: params.sourceText?.length,
-      targetTime: params.targetTime,
-      hasCustomInstruction: !!params.customInstruction,
-      projectId: currentProjectId,
-    });
 
     if (!params.sourceText) {
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No source text");
       setStoryboardGenerator(prev => ({
         ...prev,
         error: "No source text provided. Please select a part from Stage 2.",
@@ -1288,7 +1235,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     if (!currentProjectId) {
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No project ID");
       setStoryboardGenerator(prev => ({
         ...prev,
         error: "No project selected.",
@@ -1296,7 +1242,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    console.log("[MithrilContext:startStoryboardGeneration] Setting initial generating state");
     setStoryboardGenerator({
       isGenerating: true,
       error: null,
@@ -1307,7 +1252,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
-      console.log("[MithrilContext:startStoryboardGeneration] Submitting job to orchestrator...");
       // Submit job to orchestrator
       const response = await fetch("/api/storyboard/orchestrator/submit", {
         method: "POST",
@@ -1337,34 +1281,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "API request failed");
 
-      console.log("[MithrilContext:startStoryboardGeneration] Orchestrator response:", {
-        ok: response.ok,
-        status: response.status,
-        jobId: data.jobId,
-      });
 
       // Store job ID for tracking (both ref and state)
-      console.log("[MithrilContext:startStoryboardGeneration] Setting job ID refs:", {
-        jobId: data.jobId,
-        previousRefValue: storyboardJobIdRef.current,
-      });
       storyboardJobIdRef.current = data.jobId || null;
       setStoryboardJobId(data.jobId || null);
-      console.log("[MithrilContext:startStoryboardGeneration] Job ID set - ref now:", storyboardJobIdRef.current);
 
       // Save jobId to Firestore so it persists across page navigations
       if (data.jobId) {
-        console.log("[MithrilContext:startStoryboardGeneration] Saving jobId to Firestore meta...");
         await saveStoryboardMeta(currentProjectId, data.jobId);
-        console.log("[MithrilContext:startStoryboardGeneration] Firestore meta saved");
       }
 
       // Job is now running in background - UI will update via Firestore subscription
-      console.log("[MithrilContext:startStoryboardGeneration] Job submitted successfully, waiting for subscription updates");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR:", errorMessage);
       setStoryboardGenerator(prev => ({
         ...prev,
         isGenerating: false,
@@ -1502,10 +1432,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {
-    console.log("[MithrilContext:clearStoryboardGeneration] Clearing storyboard state:", {
-      previousJobIdRef: storyboardJobIdRef.current,
-      previousSceneCount: storyboardGenerator.scenes.length,
-    });
 
     // Clear job tracking
     storyboardJobIdRef.current = null;
@@ -1523,16 +1449,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (currentProjectId) {
       try {
-        console.log("[MithrilContext:clearStoryboardGeneration] Clearing Firestore storyboard...");
         await clearStoryboard(currentProjectId);
-        console.log("[MithrilContext:clearStoryboardGeneration] Firestore cleared");
       } catch (error) {
         console.error("Error clearing storyboard from Firestore:", error);
       }
     }
 
     clearStageResult(5);
-    console.log("[MithrilContext:clearStoryboardGeneration] Clear complete");
   }, [currentProjectId, clearStageResult, storyboardGenerator.scenes.length]);
 
   // Update a specific clip's prompt field

@@ -278,7 +278,6 @@ export async function checkSoraStatus(
       };
 
       await s3Client.send(new PutObjectCommand(uploadParams));
-      console.log("Sora video uploaded to S3:", s3FileName);
 
       // Return CloudFront URL for permanent access
       result.videoUrl = getVideoUrl(s3FileName);

@@ -237,15 +237,6 @@ export default function PropListView({
 
       const prompt = editablePrompts[propId] || prop.designSheetPrompt || "";
 
-      console.log('[PropListView] handleGenerate:', {
-        propId,
-        propName: prop.name,
-        hasReferenceImages: !!prop.referenceImages,
-        referenceImagesCount: prop.referenceImages?.length || 0,
-        referenceImages: prop.referenceImages,
-        existingJobId: jobIds[propId],
-        existingStatus: jobStatuses[propId],
-      });
 
       // Use async orchestrator if projectId is available
       if (projectId && orchestrator) {
@@ -314,7 +305,6 @@ export default function PropListView({
     const propsToGenerate = props.filter((p) => !p.designSheetImageUrl && !p.designSheetImageBase64);
     
     if (propsToGenerate.length === 0) {
-      console.log("All props already have images");
       return;
     }
 

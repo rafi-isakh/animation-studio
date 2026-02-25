@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, LogOut, Pencil, FileText, Images } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette } from 'lucide-react';
+import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
@@ -16,20 +17,13 @@ import { ProjectType, getProjectTypeConfig, getStageConfig } from './config/proj
 export default function ProjectListPage() {
   const router = useRouter();
   const { setCurrentProject } = useProject();
-  const { user, logout } = useMithrilAuth();
+  const { user } = useMithrilAuth();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [projectToRename, setProjectToRename] = useState<ProjectMetadata | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  async function handleLogout() {
-    setLoggingOut(true);
-    await logout();
-    router.push('/mithril/login');
-  }
 
   useEffect(() => {
     if (user) {
@@ -72,7 +66,6 @@ export default function ProjectListPage() {
       // 1. Delete all S3 files (images and videos)
       try {
         const deletedCount = await clearAllProjectFiles(projectId);
-        console.log(`Deleted ${deletedCount} S3 files for project ${projectId}`);
       } catch (s3Error) {
         console.error('Failed to delete S3 files:', s3Error);
         // Continue with Firestore deletion even if S3 cleanup fails
@@ -166,22 +159,34 @@ export default function ProjectListPage() {
 
   // Get project type display info
   function getProjectTypeDisplay(projectType: ProjectType) {
-    if (projectType === 'image-to-video') {
+    const nsfw = getProjectTypeConfig(projectType).isNsfw;
+    const nsfwSuffix = nsfw ? ' · 18+' : '';
+
+    if (projectType === 'manga-to-video' || projectType === 'manga-to-video-nsfw' || projectType === 'image-to-video') {
       return {
-        label: 'Manga to Anime',
-        icon: <Images className="w-3 h-3" />,
+        label: `Manga to Video${nsfwSuffix}`,
+        icon: <BookOpen className="w-3 h-3" />,
         color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
       };
     }
+    if (projectType === 'webtoon-to-video' || projectType === 'webtoon-to-video-nsfw') {
+      return {
+        label: `Webtoon to Video${nsfwSuffix}`,
+        icon: <Palette className="w-3 h-3" />,
+        color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+      };
+    }
     return {
-      label: 'Novel to Video',
+      label: `Novel to Video${nsfwSuffix}`,
       icon: <FileText className="w-3 h-3" />,
       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     };
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
+      <MithrilHeader />
+      <div className="container mx-auto p-6 max-w-6xl pt-20">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Mithril Projects</h1>
@@ -190,23 +195,9 @@ export default function ProjectListPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {user && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {user.email}
-            </span>
-          )}
           <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
             New Project
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            {loggingOut ? 'Logging out...' : 'Logout'}
           </Button>
         </div>
       </div>
@@ -320,6 +311,7 @@ export default function ProjectListPage() {
         project={projectToRename}
         onProjectRenamed={handleProjectRenamed}
       />
+      </div>
     </div>
   );
 }

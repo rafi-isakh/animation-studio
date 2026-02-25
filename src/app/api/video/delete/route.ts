@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
 
     const result = await s3Client.send(new DeleteObjectsCommand(deleteParams));
 
-    console.log("Deleted videos from S3:", validFileNames);
 
     return NextResponse.json({
       success: true,

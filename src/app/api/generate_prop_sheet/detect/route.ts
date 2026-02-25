@@ -220,7 +220,6 @@ async function detectObjects(
 ${JSON.stringify(allClips, null, 2)}
   `;
 
-  console.log("[detect-props] Analyzing", targetIds.length, "object IDs");
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
@@ -289,7 +288,6 @@ ${descriptionSection}
 ${JSON.stringify(allClips, null, 2)}
   `;
 
-  console.log("[detect-props] Analyzing", targetIds.length, "character IDs");
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
@@ -363,7 +361,6 @@ export async function POST(request: NextRequest) {
       promises.push(
         detectObjects(ai, allClips, finalObjectIds, genre).then((objs) => {
           results.objects = objs;
-          console.log("[detect-props] Detected", objs.length, "objects");
         })
       );
     }
@@ -372,7 +369,6 @@ export async function POST(request: NextRequest) {
       promises.push(
         detectCharacters(ai, allClips, finalCharacterIds, genre, characterDescriptions).then((chars) => {
           results.characters = chars;
-          console.log("[detect-props] Detected", chars.length, "characters");
         })
       );
     }

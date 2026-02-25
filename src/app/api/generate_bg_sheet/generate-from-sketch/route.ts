@@ -116,10 +116,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ imageBase64: part.inlineData.data });
         }
         if (part.text) {
-          console.log(
-            "Model returned text during image generation:",
-            part.text
-          );
         }
       }
     }

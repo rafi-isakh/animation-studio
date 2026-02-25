@@ -79,8 +79,6 @@ REMOVE all text, bubbles, and borders.
     // Add instruction
     parts.push({ text: systemMsg });
 
-    console.log("[storyboard-editor/remix-image] Model: gemini-2.5-flash-image");
-    console.log("[storyboard-editor/remix-image] Aspect ratio:", aspectRatio);
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",

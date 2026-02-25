@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to orchestrator backend
-    console.log("[PanelOrchestrator] Submitting to:", `${ORCHESTRATOR_URL}/api/v1/panel-jobs/submit`);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/panel-jobs/submit`, {
       method: "POST",
@@ -66,7 +65,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[PanelOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

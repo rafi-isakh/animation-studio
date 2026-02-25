@@ -95,7 +95,6 @@ export async function POST(request: NextRequest) {
 
     const body: PropDesignBatchSubmitRequest = await request.json();
 
-    console.log(`[PropDesignOrchestrator] Processing batch of ${body.jobs.length} jobs...`);
 
     // Upload reference images for each job and build full prompts
     const processedJobs = await Promise.all(
@@ -108,13 +107,11 @@ export async function POST(request: NextRequest) {
             console.warn(`[PropDesignOrchestrator] AWS credentials not configured, skipping reference image upload for prop ${job.propId}`);
           } else {
             try {
-              console.log(`[PropDesignOrchestrator] Uploading ${job.referenceImages.length} reference images to S3 for prop ${job.propId}...`);
               const uploadPromises = job.referenceImages.map((img, index) =>
                 uploadBase64ToS3(img, body.projectId, job.propId, index)
               );
               const uploadedUrls = await Promise.all(uploadPromises);
               referenceUrls = [...referenceUrls, ...uploadedUrls];
-              console.log(`[PropDesignOrchestrator] Successfully uploaded ${uploadedUrls.length} images for prop ${job.propId}`);
             } catch (uploadError) {
               console.error(`[PropDesignOrchestrator] Failed to upload references for prop ${job.propId}:`, uploadError);
               // Continue without reference images
@@ -145,7 +142,6 @@ export async function POST(request: NextRequest) {
     );
 
     // Forward to orchestrator backend
-    console.log("[PropDesignOrchestrator] Batch submitting to:", `${ORCHESTRATOR_URL}/api/v1/prop-design-jobs/submit-batch`);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/prop-design-jobs/submit-batch`, {
       method: "POST",
@@ -163,7 +159,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[PropDesignOrchestrator] Batch response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

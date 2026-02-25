@@ -590,8 +590,6 @@ Style: ${styleKeyword}`;
 
   // Handle edited profile image
   const handleEditProfile = async (characterId: string, editedImageBase64: string) => {
-    console.log("[handleEditProfile] Starting edit for character:", characterId);
-    console.log("[handleEditProfile] currentProjectId:", currentProjectId);
 
     // Update local state immediately
     setCharacters((prev) =>
@@ -605,16 +603,12 @@ Style: ${styleKeyword}`;
     // Auto-save to S3 and Firestore
     if (currentProjectId) {
       try {
-        console.log("[handleEditProfile] Uploading to S3...");
         const imageUrl = await uploadCharacterProfileImage(currentProjectId, characterId, editedImageBase64);
-        console.log("[handleEditProfile] S3 upload complete, URL:", imageUrl);
 
         const character = characters.find((c) => c.id === characterId);
         const prompt = character?.profilePrompt || "Edited profile image";
 
-        console.log("[handleEditProfile] Saving to Firestore with profileImageRef:", imageUrl);
         await updateCharacterProfileImage(currentProjectId, characterId, imageUrl, prompt);
-        console.log("[handleEditProfile] Firestore save complete");
 
         const urlWithCacheBust = `${imageUrl}?t=${Date.now()}`;
 

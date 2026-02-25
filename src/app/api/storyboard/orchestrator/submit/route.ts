@@ -71,9 +71,6 @@ export async function POST(request: NextRequest) {
       api_key: body.apiKey,
     };
 
-    console.log("[StoryboardOrchestrator] Submitting job to:", endpoint);
-    console.log("[StoryboardOrchestrator] Text length:", body.sourceText.length);
-    console.log("[StoryboardOrchestrator] Target time:", body.targetTime || "03:00");
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -87,7 +84,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[StoryboardOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

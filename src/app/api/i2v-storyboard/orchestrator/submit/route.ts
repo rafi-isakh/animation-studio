@@ -63,9 +63,6 @@ export async function POST(request: NextRequest) {
       api_key: body.apiKey,
     };
 
-    console.log("[I2VStoryboardOrchestrator] Submitting job to:", endpoint);
-    console.log("[I2VStoryboardOrchestrator] Panel count:", body.panelUrls.length);
-    console.log("[I2VStoryboardOrchestrator] Target duration:", body.targetDuration || "03:00");
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -79,7 +76,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[I2VStoryboardOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

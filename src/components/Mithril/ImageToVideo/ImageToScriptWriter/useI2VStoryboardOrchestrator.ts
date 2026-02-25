@@ -83,7 +83,6 @@ export function useI2VStoryboardOrchestrator({
     }
 
     const unsubscribe = subscribeToProjectI2VStoryboardJobs(projectId, (jobs: JobQueueDocument[]) => {
-      console.log('[I2VOrchestrator] Snapshot received, jobs:', jobs.map(j => ({ id: j.id, status: j.status })));
 
       // Find the most recent job (or the active one)
       let latestJob: JobQueueDocument | null = null;
@@ -100,7 +99,6 @@ export function useI2VStoryboardOrchestrator({
       });
 
       if (!latestJob) {
-        console.log('[I2VOrchestrator] No relevant job found in snapshot');
         return;
       }
 
@@ -109,7 +107,6 @@ export function useI2VStoryboardOrchestrator({
       const update = mapI2VStoryboardJobToUpdate(job);
       const isInitial = initialSnapshotRef.current;
 
-      console.log('[I2VOrchestrator] Processing job:', { jobId: job.id, status: update.status, isInitial, activeJobId: activeJobIdRef.current });
 
       if (isInitial) {
         initialSnapshotRef.current = false;
@@ -119,33 +116,27 @@ export function useI2VStoryboardOrchestrator({
         if (!isTerminal) {
           // Re-track in-flight job so subsequent snapshots pick it up
           activeJobIdRef.current = job.id;
-          console.log('[I2VOrchestrator] Initial snapshot: re-tracking in-flight job', job.id, 'status:', update.status);
           onJobUpdateRef.current?.(update);
         } else if (update.status === 'completed') {
           // Queue completed job — panel data may not be loaded yet
-          console.log('[I2VOrchestrator] Initial snapshot: queuing completed job as pendingUpdate', job.id);
           processedJobIdsRef.current.add(job.id);
           setPendingUpdate(update);
         } else {
-          console.log('[I2VOrchestrator] Initial snapshot: ignoring terminal job', job.id, 'status:', update.status);
         }
         return;
       }
 
       // Subsequent snapshots
       if (processedJobIdsRef.current.has(job.id)) {
-        console.log('[I2VOrchestrator] Skipping already-processed job', job.id);
         return;
       }
 
-      console.log('[I2VOrchestrator] Forwarding update to consumer:', { jobId: job.id, status: update.status });
       onJobUpdateRef.current?.(update);
 
       // Clear active job ID if job is in terminal state
       if (update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled') {
         activeJobIdRef.current = null;
         processedJobIdsRef.current.add(job.id);
-        console.log('[I2VOrchestrator] Job reached terminal state, cleared activeJobId');
       }
     });
 

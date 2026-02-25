@@ -14,12 +14,10 @@ import { Input } from '@/components/shadcnUI/Input';
 import { Label } from '@/components/shadcnUI/Label';
 import { createProject, getProject, ProjectMetadata } from './services/firestore';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
-import { Loader2, FileText, Images } from 'lucide-react';
+import { Loader2, FileText, BookOpen, Palette } from 'lucide-react';
 import {
   ProjectType,
-  getAvailableProjectTypes,
-  getProjectTypeConfig,
-  getDefaultProjectType
+  getDefaultProjectType,
 } from './config/projectTypes';
 
 interface CreateProjectModalProps {
@@ -28,11 +26,79 @@ interface CreateProjectModalProps {
   onProjectCreated: (project: ProjectMetadata) => void;
 }
 
-// Icon mapping for project types
-const PROJECT_TYPE_ICONS: Record<ProjectType, React.ReactNode> = {
-  'text-to-video': <FileText className="w-8 h-8" />,
-  'image-to-video': <Images className="w-8 h-8" />,
-};
+// Groups define the creation UI structure
+interface ProjectTypeOption {
+  type: ProjectType;
+  label: string;
+  description: string;
+  isNsfw: boolean;
+  icon: React.ReactNode;
+}
+
+interface ProjectTypeGroup {
+  groupLabel: string;
+  options: ProjectTypeOption[];
+}
+
+const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
+  {
+    groupLabel: 'Novel to Video',
+    options: [
+      {
+        type: 'text-to-video',
+        label: 'General',
+        description: 'Convert stories to animated videos',
+        isNsfw: false,
+        icon: <FileText className="w-6 h-6" />,
+      },
+      {
+        type: 'text-to-video-nsfw',
+        label: 'NSFW',
+        description: 'Adult content — age-restricted',
+        isNsfw: true,
+        icon: <FileText className="w-6 h-6" />,
+      },
+    ],
+  },
+  {
+    groupLabel: 'Manga to Video',
+    options: [
+      {
+        type: 'manga-to-video',
+        label: 'General',
+        description: 'Convert B&W manga panels to videos',
+        isNsfw: false,
+        icon: <BookOpen className="w-6 h-6" />,
+      },
+      {
+        type: 'manga-to-video-nsfw',
+        label: 'NSFW',
+        description: 'Adult content — age-restricted',
+        isNsfw: true,
+        icon: <BookOpen className="w-6 h-6" />,
+      },
+    ],
+  },
+  {
+    groupLabel: 'Webtoon to Video',
+    options: [
+      {
+        type: 'webtoon-to-video',
+        label: 'General',
+        description: 'Convert colored webtoon panels to videos',
+        isNsfw: false,
+        icon: <Palette className="w-6 h-6" />,
+      },
+      {
+        type: 'webtoon-to-video-nsfw',
+        label: 'NSFW',
+        description: 'Adult content — age-restricted',
+        isNsfw: true,
+        icon: <Palette className="w-6 h-6" />,
+      },
+    ],
+  },
+];
 
 export default function CreateProjectModal({
   open,
@@ -44,8 +110,6 @@ export default function CreateProjectModal({
   const [projectType, setProjectType] = useState<ProjectType>(getDefaultProjectType());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const availableTypes = getAvailableProjectTypes();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -91,7 +155,7 @@ export default function CreateProjectModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
@@ -102,45 +166,55 @@ export default function CreateProjectModal({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 py-4">
             {/* Project Type Selection */}
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               <Label>Project Type</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {availableTypes.map((type) => {
-                  const config = getProjectTypeConfig(type);
-                  const isSelected = projectType === type;
-
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setProjectType(type)}
-                      disabled={loading}
-                      className={`
-                        flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all
-                        ${isSelected
-                          ? 'border-[#DB2777] bg-[#DB2777]/10 text-[#DB2777]'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                        }
-                        ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                      `}
-                    >
-                      <div className={isSelected ? 'text-[#DB2777]' : 'text-gray-500 dark:text-gray-400'}>
-                        {PROJECT_TYPE_ICONS[type]}
-                      </div>
-                      <div className="text-center">
-                        <div className={`font-medium text-sm ${isSelected ? 'text-[#DB2777]' : ''}`}>
-                          {type === 'text-to-video' ? 'Novel to Video' : 'Manga to Anime'}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {type === 'text-to-video'
-                            ? 'Convert stories to animated videos'
-                            : 'Convert manga panels to videos'}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              {PROJECT_TYPE_GROUPS.map((group) => (
+                <div key={group.groupLabel} className="grid gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    {group.groupLabel}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {group.options.map((option) => {
+                      const isSelected = projectType === option.type;
+                      return (
+                        <button
+                          key={option.type}
+                          type="button"
+                          onClick={() => setProjectType(option.type)}
+                          disabled={loading}
+                          className={`
+                            flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left
+                            ${isSelected
+                              ? 'border-[#DB2777] bg-[#DB2777]/10'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            }
+                            ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                          `}
+                        >
+                          <div className={isSelected ? 'text-[#DB2777]' : 'text-gray-500 dark:text-gray-400'}>
+                            {option.icon}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium text-sm ${isSelected ? 'text-[#DB2777]' : ''}`}>
+                                {option.label}
+                              </span>
+                              {option.isNsfw && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 leading-none">
+                                  18+
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                              {option.description}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Project Name Input */}

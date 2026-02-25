@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
     const body: OrchestratorImageSubmitRequest = await request.json();
 
     // Forward to orchestrator backend
-    console.log("[ImageOrchestrator] Submitting to:", `${ORCHESTRATOR_URL}/api/v1/image-jobs/submit`);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/image-jobs/submit`, {
       method: "POST",
@@ -58,7 +57,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[ImageOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

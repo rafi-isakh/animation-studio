@@ -19,6 +19,7 @@ import PanelEditor from "./ImageToVideo/PanelEditor";
 import StoryboardEditor from "./ImageToVideo/StoryboardEditor";
 import I2VVideoGenerator from "./ImageToVideo/VideoGenerator";
 import CsvVideoGenerator from "./ImageToVideo/CsvVideoGenerator";
+import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -42,6 +43,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'StoryboardEditor': StoryboardEditor,
   'I2VVideoGenerator': I2VVideoGenerator,
   'CsvVideoGenerator': CsvVideoGenerator,
+  'NsfwVideoGenerator': NsfwVideoGenerator,
 };
 
 // Cost Tracker Dashboard Component
@@ -255,7 +257,8 @@ function MithrilContent() {
   );
   const needsVideoApiKey =
     (isTextToVideo && currentStage === 8) ||
-    (currentStageConfig?.component === 'CsvVideoGenerator');
+    (currentStageConfig?.component === 'CsvVideoGenerator') ||
+    (currentStageConfig?.component === 'NsfwVideoGenerator');
   const showCostTracker = isTextToVideo && currentStage === 7;
 
   const prevLabel = phrase(dictionary, "mithril_previous", language);

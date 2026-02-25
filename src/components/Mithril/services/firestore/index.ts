@@ -68,3 +68,6 @@ export * from './i2vVideo';
 
 // Image-to-Video: Stage 5 - CSV Video Generator (manga/webtoon non-NSFW)
 export * from './csvVideo';
+
+// Image-to-Video: Stage 5 - NSFW Video Generator (manga/webtoon NSFW)
+export * from './nsfwVideo';

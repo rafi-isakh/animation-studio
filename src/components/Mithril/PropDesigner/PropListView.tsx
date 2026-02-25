@@ -49,9 +49,12 @@ interface PropListViewProps {
   onUpdateProp: (propId: string, updates: Partial<Prop>) => void;
   onClose: () => void;
   onClearAll: () => void;
+  onToggleMinimize?: () => void; // Toggle minimize from parent
   title?: string;
   accentColor?: "purple" | "cyan";
   initialMinimized?: boolean; // Start minimized (as floating button)
+  sessionId?: string; // Session identifier
+  minimizedIndex?: number; // Position offset for stacking minimized buttons
 }
 
 export default function PropListView({
@@ -65,9 +68,12 @@ export default function PropListView({
   onUpdateProp,
   onClose,
   onClearAll,
+  onToggleMinimize,
   title = "Design Sheet Generator",
   accentColor = "cyan",
   initialMinimized = false,
+  sessionId,
+  minimizedIndex = 0,
 }: PropListViewProps) {
   // Sort props: Default characters first, then Variants
   const sortedProps = useMemo(() => {
@@ -82,8 +88,16 @@ export default function PropListView({
     });
   }, [props]);
 
-  // Minimized state - use initialMinimized prop
-  const [isMinimized, setIsMinimized] = useState(initialMinimized);
+  // Minimized state - controlled by parent via onToggleMinimize if provided
+  const [isMinimizedLocal, setIsMinimizedLocal] = useState(initialMinimized);
+  const isMinimized = onToggleMinimize ? initialMinimized : isMinimizedLocal;
+  const toggleMinimize = useCallback(() => {
+    if (onToggleMinimize) {
+      onToggleMinimize();
+    } else {
+      setIsMinimizedLocal(prev => !prev);
+    }
+  }, [onToggleMinimize]);
   // Easy Mode state
   const [isEasyMode, setIsEasyMode] = useState(false);
 
@@ -466,9 +480,9 @@ export default function PropListView({
   // Minimized view - just a small floating button
   if (isMinimized) {
     return (
-      <div className={`fixed bottom-4 ${accentColor === "purple" ? "right-36" : "right-4"} z-[100]`}>
+      <div className="fixed z-[100] right-4" style={{ bottom: `${16 + minimizedIndex * 48}px` }}>
         <button
-          onClick={() => setIsMinimized(false)}
+          onClick={() => toggleMinimize()}
           className={`px-4 py-2 ${accentColor === "purple" ? "bg-purple-700 hover:bg-purple-600" : "bg-cyan-700 hover:bg-cyan-600"} text-white rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold transition-colors`}
         >
           {accentColor === "purple" ? (
@@ -502,7 +516,7 @@ export default function PropListView({
               />
             </svg>
           )}
-          {accentColor === "purple" ? "Characters" : "Objects"} ({props.length})
+          {title} ({props.length})
         </button>
       </div>
     );
@@ -610,7 +624,7 @@ export default function PropListView({
             {/* Window Controls */}
             <div className="flex items-center gap-2 border-l border-gray-700 pl-4">
               <button
-                onClick={() => setIsMinimized(true)}
+                onClick={() => toggleMinimize()}
                 className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-cyan-400 transition-colors"
                 title="Minimize (Fold)"
               >
@@ -1129,7 +1143,7 @@ export default function PropListView({
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setIsMinimized(true)}
+              onClick={() => toggleMinimize()}
               className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold transition-colors"
             >
               Fold Window

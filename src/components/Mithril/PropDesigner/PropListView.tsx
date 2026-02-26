@@ -473,7 +473,7 @@ export default function PropListView({
       <div className="fixed z-[100] right-4" style={{ bottom: `${16 + minimizedIndex * 48}px` }}>
         <button
           onClick={() => toggleMinimize()}
-          className={`px-4 py-2 ${accentColor === "purple" ? "bg-purple-700 hover:bg-purple-600" : "bg-cyan-700 hover:bg-cyan-600"} text-white rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold transition-colors`}
+          className={`px-4 py-2 ${accentColor === "purple" ? "bg-[#DB2777] hover:bg-[#BE185D]" : "bg-cyan-700 hover:bg-cyan-600"} text-white rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold transition-colors`}
         >
           {accentColor === "purple" ? (
             <svg
@@ -518,7 +518,7 @@ export default function PropListView({
         {/* Modal Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
           <div>
-            <h2 className={`text-xl font-bold ${accentColor === "purple" ? "text-purple-400" : "text-cyan-400"}`}>
+            <h2 className={`text-xl font-bold ${accentColor === "purple" ? "text-[#DB2777]" : "text-cyan-400"}`}>
               {title}
             </h2>
             <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wider">
@@ -556,7 +556,7 @@ export default function PropListView({
                 disabled={isBatchGenerating || props.every((p) => p.designSheetImageUrl || p.designSheetImageBase64)}
                 className={`px-3 py-1.5 ${
                   accentColor === "purple"
-                    ? "bg-purple-700 hover:bg-purple-600 disabled:bg-purple-900/50"
+                    ? "bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-[#DB2777]/30"
                     : "bg-cyan-700 hover:bg-cyan-600 disabled:bg-cyan-900/50"
                 } text-white text-[10px] font-bold rounded transition-colors flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50`}
                 title="Generate all missing design sheets"
@@ -675,19 +675,19 @@ export default function PropListView({
                   <h3 className="text-base font-bold text-gray-100 flex items-center gap-2 truncate">
                     <span
                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        isCharacter ? "bg-purple-500" : "bg-cyan-500"
+                        isCharacter ? "bg-[#DB2777]" : "bg-cyan-500"
                       }`}
                     />
                     {prop.name}
                     {prop.isVariant && (
-                      <span className="text-[8px] bg-purple-900/50 text-purple-300 px-1 rounded border border-purple-800">
+                      <span className="text-[8px] bg-[#DB2777]/10 text-[#DB2777]/80 px-1 rounded border border-[#DB2777]/40">
                         VARIANT
                       </span>
                     )}
                     <span
                       className={`text-[8px] px-1 rounded border uppercase ${
                         isCharacter
-                          ? "bg-purple-900/30 text-purple-400 border-purple-800"
+                          ? "bg-[#DB2777]/10 text-[#DB2777] border-[#DB2777]/50"
                           : "bg-teal-900/30 text-teal-400 border-teal-800"
                       }`}
                     >
@@ -753,17 +753,17 @@ export default function PropListView({
 
                 {/* Variant Details Display */}
                 {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals) && (
-                  <div className="bg-purple-950/30 border border-purple-800/50 rounded p-2 text-[9px] space-y-1">
-                    <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest">
+                  <div className="bg-[#DB2777]/5 border border-[#DB2777]/30 rounded p-2 text-[9px] space-y-1">
+                    <span className="text-[8px] font-black text-[#DB2777] uppercase tracking-widest">
                       Variant Information
                     </span>
                     {prop.variantDetails && (
-                      <p className="text-purple-300">
+                      <p className="text-[#DB2777]/70">
                         <b>Type:</b> {prop.variantDetails}
                       </p>
                     )}
                     {prop.variantVisuals && (
-                      <p className="text-purple-200 italic">
+                      <p className="text-[#DB2777]/50 italic">
                         <b>Visual Changes:</b> {prop.variantVisuals}
                       </p>
                     )}
@@ -890,7 +890,7 @@ export default function PropListView({
                         isEasyMode && isCharacter
                           ? "bg-green-700 hover:bg-green-600"
                           : isCharacter
-                          ? "bg-purple-600 hover:bg-purple-500"
+                          ? "bg-[#DB2777] hover:bg-[#BE185D]"
                           : "bg-cyan-600 hover:bg-cyan-500"
                       }`}
                     >

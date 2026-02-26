@@ -205,7 +205,7 @@ export default function StoryboardTable({ scenes, totalClips, onRequestImageSamp
                     )}
                     {/* 4: 배경 ID (Background ID) */}
                     {!collapsedCols.has(4) && (
-                      <td className="px-3 py-2 text-[10px] text-purple-400 font-mono border-r border-gray-800/50">
+                      <td className="px-3 py-2 text-[10px] text-[#DB2777] font-mono border-r border-gray-800/50">
                         {getVal(clip, "backgroundId")}
                       </td>
                     )}
@@ -265,7 +265,7 @@ export default function StoryboardTable({ scenes, totalClips, onRequestImageSamp
                     )}
                     {/* 14: 효과음 (Ko) (SFX Ko) */}
                     {!collapsedCols.has(14) && (
-                      <td className="px-3 py-2 text-[10px] text-purple-400 border-r border-gray-800/50">
+                      <td className="px-3 py-2 text-[10px] text-[#DB2777] border-r border-gray-800/50">
                         {getVal(clip, "sfx")}
                       </td>
                     )}

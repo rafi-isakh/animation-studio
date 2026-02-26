@@ -1335,7 +1335,7 @@ export default function PropDesigner() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-teal-400 to-cyan-500">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#DB2777] via-teal-400 to-cyan-500">
             Character & Prop Designer
           </h2>
           <p className="text-sm text-gray-400 mt-1">

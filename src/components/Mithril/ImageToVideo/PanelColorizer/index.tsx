@@ -237,7 +237,7 @@ export default function PanelColorizer() {
             ))}
             <button
               onClick={() => referenceInputRef.current?.click()}
-              className="w-16 h-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-gray-400 hover:border-indigo-400 hover:text-indigo-400 transition-colors"
+              className="w-16 h-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-gray-400 hover:border-[#DB2777] hover:text-[#DB2777] transition-colors"
               disabled={isProcessing}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,7 +264,7 @@ export default function PanelColorizer() {
             value={globalPrompt}
             onChange={(e) => setGlobalPrompt(e.target.value)}
             placeholder="Describe lighting, atmosphere, time of day, color palette... (e.g., 'warm sunset lighting, golden hour, soft shadows')"
-            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DB2777]"
             rows={2}
             disabled={isProcessing}
           />
@@ -303,7 +303,7 @@ export default function PanelColorizer() {
             <button
               onClick={processAllPanels}
               disabled={panels.length === 0}
-              className="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 text-xs font-medium text-white bg-[#DB2777] hover:bg-[#BE185D] rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Colorize All
             </button>
@@ -319,7 +319,7 @@ export default function PanelColorizer() {
             {Object.keys(fileLibrary).length} files
           </span>
           {isLoadingSplitterPanels && (
-            <span className="text-xs text-indigo-500">Loading from ImageSplitter...</span>
+            <span className="text-xs text-[#DB2777]">Loading from ImageSplitter...</span>
           )}
         </div>
 
@@ -327,7 +327,7 @@ export default function PanelColorizer() {
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handlePanelDrop}
-          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors"
+          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-[#DB2777] dark:hover:border-[#DB2777] transition-colors"
           onClick={() => {
             const input = document.createElement('input');
             input.type = 'file';
@@ -360,7 +360,7 @@ export default function PanelColorizer() {
             </div>
             <button
               onClick={importAllFromLibrary}
-              className="px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/40 whitespace-nowrap ml-2"
+              className="px-3 py-1.5 text-xs font-medium text-[#DB2777] dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-md hover:bg-pink-100 dark:hover:bg-pink-900/40 whitespace-nowrap ml-2"
             >
               Import All
             </button>
@@ -453,7 +453,7 @@ function PanelCard({
           {(panel.status === ProcessingStatus.Error || panel.status === ProcessingStatus.Success) && (
             <button
               onClick={() => onRetry(panel.id)}
-              className="px-2 py-1 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded"
+              className="px-2 py-1 text-xs text-[#DB2777] dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 rounded"
               title="Retry colorization"
             >
               Retry
@@ -493,7 +493,7 @@ function PanelCard({
           <div className="aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
             {panel.status === ProcessingStatus.Pending ? (
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-[#DB2777] border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs text-gray-400">Processing...</span>
               </div>
             ) : panel.status === ProcessingStatus.Success && resultSrc ? (

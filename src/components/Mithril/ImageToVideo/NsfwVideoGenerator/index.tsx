@@ -81,8 +81,8 @@ function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProp
         className={`
           relative h-48 w-full rounded-xl border-2 border-dashed transition-all cursor-pointer overflow-hidden group
           ${imagePreview
-            ? 'border-purple-500/50 bg-slate-800'
-            : 'border-slate-700 bg-slate-800/50 hover:border-purple-500/50 hover:bg-slate-800'
+            ? 'border-[#DB2777]/50 bg-slate-800'
+            : 'border-slate-700 bg-slate-800/50 hover:border-[#DB2777]/50 hover:bg-slate-800'
           }
         `}
       >
@@ -110,7 +110,7 @@ function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProp
             </button>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500 group-hover:text-purple-400 transition-colors">
+          <div className="flex flex-col items-center justify-center h-full text-slate-500 group-hover:text-[#DB2777] transition-colors">
             <ImageIcon size={32} className="mb-2" />
             <span className="text-sm font-medium">Click to upload</span>
             <span className="text-xs opacity-60 mt-1">PNG, JPG, WebP</span>
@@ -378,7 +378,7 @@ export default function NsfwVideoGenerator() {
   if (isLoadingData) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="animate-spin h-8 w-8 text-purple-400" />
+        <Loader2 className="animate-spin h-8 w-8 text-[#DB2777]" />
       </div>
     );
   }
@@ -410,7 +410,7 @@ export default function NsfwVideoGenerator() {
           {/* Keyframes */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Video className="w-5 h-5 text-purple-400" /> Keyframes
+              <Video className="w-5 h-5 text-[#DB2777]" /> Keyframes
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <ImageUpload
@@ -446,7 +446,7 @@ export default function NsfwVideoGenerator() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="E.g., The camera pans smoothly, lighting changes to sunset..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none h-32 transition-all placeholder:text-slate-600"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-slate-200 focus:ring-2 focus:ring-[#DB2777] focus:border-transparent outline-none resize-none h-32 transition-all placeholder:text-slate-600"
               />
             </div>
 
@@ -461,7 +461,7 @@ export default function NsfwVideoGenerator() {
                     className={`
                       w-10 h-10 rounded-md font-bold transition-all
                       ${batchSize === num
-                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/50'
+                        ? 'bg-[#DB2777] text-white shadow-lg shadow-pink-900/50'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800'
                       }
                     `}
@@ -507,7 +507,7 @@ export default function NsfwVideoGenerator() {
               w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all
               ${!canGenerate
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-900/40 text-white transform active:scale-[0.98]'
+                : 'bg-[#DB2777] hover:bg-[#BE185D] hover:shadow-lg hover:shadow-pink-900/40 text-white transform active:scale-[0.98]'
               }
             `}
           >
@@ -546,9 +546,9 @@ export default function NsfwVideoGenerator() {
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
               <div className="relative mb-8">
                 <div className="w-24 h-24 border-4 border-slate-800 rounded-full"></div>
-                <div className="w-24 h-24 border-4 border-purple-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                <div className="w-24 h-24 border-4 border-[#DB2777] border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Film className="w-8 h-8 text-purple-400 animate-pulse" />
+                  <Film className="w-8 h-8 text-[#DB2777] animate-pulse" />
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Generating...</h2>
@@ -611,7 +611,7 @@ export default function NsfwVideoGenerator() {
                         />
                       </div>
                       <div className="p-3 bg-slate-800/50 border-t border-slate-700/50 flex items-center justify-between gap-2">
-                        <p className="text-xs font-bold text-purple-400 uppercase">
+                        <p className="text-xs font-bold text-[#DB2777] uppercase">
                           Variation {idx + 1}
                         </p>
                         <a

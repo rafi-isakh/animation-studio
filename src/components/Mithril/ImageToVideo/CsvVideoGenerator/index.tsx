@@ -46,7 +46,7 @@ const DEFAULT_MAPPING: CsvColumnMapping = {
 function Loader({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 py-8">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-500"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
       <p className="text-sm text-gray-400">{message}</p>
     </div>
   );
@@ -103,7 +103,7 @@ function StoryboardItemCard({
       {/* Header */}
       <div className="bg-gray-950 px-4 py-2 border-b border-gray-800 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <span className="font-mono text-sm text-indigo-400 font-bold">#{frame.frameNumber}</span>
+          <span className="font-mono text-sm text-[#DB2777] font-bold">#{frame.frameNumber}</span>
           <span
             className="text-xs text-gray-500 truncate max-w-[150px]"
             title={frame.referenceFilename}
@@ -116,7 +116,7 @@ function StoryboardItemCard({
         <div className="flex items-center gap-1">
           <span className="text-[10px] text-gray-500 uppercase font-bold">Dur:</span>
           <select
-            className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-indigo-500"
+            className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-[#DB2777]"
             value={currentDuration}
             onChange={(e) => onUpdateDuration(frame.id, e.target.value)}
             onClick={(e) => e.stopPropagation()}
@@ -212,7 +212,7 @@ function StoryboardItemCard({
               {phrase(dictionary, 'prompt', language) || 'Veo Prompt'}
             </label>
             <textarea
-              className="w-full h-full min-h-[80px] bg-gray-950 border border-gray-700 rounded p-2 text-sm text-gray-300 focus:outline-none focus:border-indigo-500 resize-none"
+              className="w-full h-full min-h-[80px] bg-gray-950 border border-gray-700 rounded p-2 text-sm text-gray-300 focus:outline-none focus:border-[#DB2777] resize-none"
               value={frame.veoPrompt}
               onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
               placeholder="Enter video prompt..."
@@ -234,7 +234,7 @@ function StoryboardItemCard({
                 <a
                   href={frame.videoUrl!}
                   download={`video_${frame.frameNumber}.mp4`}
-                  className="bg-gray-900/80 p-2 rounded-full text-white hover:bg-indigo-600 block"
+                  className="bg-gray-900/80 p-2 rounded-full text-white hover:bg-[#DB2777] block"
                   title="Download"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -247,8 +247,8 @@ function StoryboardItemCard({
             <div className="flex flex-col items-center justify-center h-full w-full">
               {isProcessing ? (
                 <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mb-2"></div>
-                  <span className="text-xs text-indigo-400 animate-pulse">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DB2777] mb-2"></div>
+                  <span className="text-xs text-[#DB2777] animate-pulse">
                     {frame.status === 'retrying' ? 'Retrying...' : 'Generating...'}
                   </span>
                 </div>
@@ -307,7 +307,7 @@ function StoryboardItemCard({
             disabled={!canGenerate}
             className={`text-xs font-bold py-1.5 px-4 rounded transition-colors ${
               canGenerate
-                ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                ? 'bg-[#DB2777] hover:bg-[#BE185D] text-white'
                 : 'bg-gray-800 text-gray-500 cursor-not-allowed'
             }`}
           >
@@ -767,12 +767,12 @@ export default function CsvVideoGenerator() {
       {frames.length === 0 && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
           <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
-            <span className="bg-indigo-600 text-xs px-2 py-1 rounded-full">Step 1</span>
+            <span className="bg-[#DB2777] text-xs px-2 py-1 rounded-full">Step 1</span>
             {phrase(dictionary, 'csv_step1_title', language) || 'Import Script (CSV)'}
           </h2>
 
           {csvStep === 1 && (
-            <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-indigo-500 transition-colors bg-gray-950/50">
+            <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-[#DB2777] transition-colors bg-gray-950/50">
               <input
                 type="file"
                 accept=".csv"
@@ -803,11 +803,11 @@ export default function CsvVideoGenerator() {
               {/* Required fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-[#DB2777] uppercase tracking-wider mb-2">
                     {phrase(dictionary, 'csv_column_frame_number', language) || 'Frame Number'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.frameNumber}
                     onChange={(e) => setMapping({ ...mapping, frameNumber: e.target.value })}
                   >
@@ -818,11 +818,11 @@ export default function CsvVideoGenerator() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-[#DB2777] uppercase tracking-wider mb-2">
                     {phrase(dictionary, 'csv_column_prompt', language) || 'Veo Video Prompt'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.veoPrompt}
                     onChange={(e) => setMapping({ ...mapping, veoPrompt: e.target.value })}
                   >
@@ -833,11 +833,11 @@ export default function CsvVideoGenerator() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-[#DB2777] uppercase tracking-wider mb-2">
                     {phrase(dictionary, 'csv_column_reference', language) || 'Ref. Filename'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.referenceFilename}
                     onChange={(e) => setMapping({ ...mapping, referenceFilename: e.target.value })}
                   >
@@ -857,7 +857,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_dialogue', language) || 'Dialogue (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.dialogue}
                     onChange={(e) => setMapping({ ...mapping, dialogue: e.target.value })}
                   >
@@ -872,7 +872,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_sfx', language) || 'Sound Effect (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.sfx}
                     onChange={(e) => setMapping({ ...mapping, sfx: e.target.value })}
                   >
@@ -887,7 +887,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_length', language) || 'Clip Length (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
                     value={mapping.clipLength}
                     onChange={(e) => setMapping({ ...mapping, clipLength: e.target.value })}
                   >
@@ -907,7 +907,7 @@ export default function CsvVideoGenerator() {
                 </button>
                 <button
                   onClick={handleConfirmMapping}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform transition hover:-translate-y-0.5"
+                  className="bg-[#DB2777] hover:bg-[#BE185D] text-white font-bold py-2 px-6 rounded-lg shadow-lg transform transition hover:-translate-y-0.5"
                 >
                   {phrase(dictionary, 'csv_import_confirm', language) || 'Create Storyboard'}
                 </button>
@@ -922,7 +922,7 @@ export default function CsvVideoGenerator() {
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className="bg-indigo-600 text-xs px-2 py-1 rounded-full">Step 2</span>
+              <span className="bg-[#DB2777] text-xs px-2 py-1 rounded-full">Step 2</span>
               {phrase(dictionary, 'csv_step2_title', language) || 'Upload Reference Images'}
             </h2>
             <span
@@ -976,7 +976,7 @@ export default function CsvVideoGenerator() {
                 </p>
                 <button
                   onClick={() => setShowImageUploader((v) => !v)}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 underline ml-2"
+                  className="text-xs text-[#DB2777] hover:text-[#BE185D] underline ml-2"
                 >
                   {showImageUploader ? 'Hide Upload' : 'Replace / Add Images'}
                 </button>
@@ -1039,7 +1039,7 @@ export default function CsvVideoGenerator() {
                 matchedImagesCount > 0 && (
                   <button
                     onClick={handleGenerateAll}
-                    className="flex items-center gap-2 py-2 px-5 rounded-lg font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-xl transform transition hover:-translate-y-0.5"
+                    className="flex items-center gap-2 py-2 px-5 rounded-lg font-bold bg-[#DB2777] hover:bg-[#BE185D] text-white shadow-xl transform transition hover:-translate-y-0.5"
                   >
                     <Sparkles className="h-5 w-5" />
                     {phrase(dictionary, 'sora_generate_all', language) || 'Generate All'}

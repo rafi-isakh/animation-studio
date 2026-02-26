@@ -63,7 +63,7 @@ const IMAGE_TO_VIDEO_STAGES: StageDefinition[] = [
 // Stage configurations for manga/webtoon NSFW — PropDesigner at Stage 4, NsfwVideoGenerator at Stage 5
 const IMAGE_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
-  { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',  component: 'PanelEditor' },
+  { id: 2, key: 'panel-colorizer', labelKey: 'mithril_i2v_stage2_colorizer', component: 'PanelColorizer' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
   { id: 4, key: 'prop-designer',   labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 5, key: 'nsfw-video-gen',  labelKey: 'mithril_i2v_stage5',  component: 'NsfwVideoGenerator' },
@@ -72,7 +72,7 @@ const IMAGE_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
 // Stage configurations for manga/webtoon (non-NSFW) — uses CSV-based video generator
 const IMAGE_TO_VIDEO_CSV_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
-  { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',  component: 'PanelEditor' },
+  { id: 2, key: 'panel-colorizer', labelKey: 'mithril_i2v_stage2_colorizer', component: 'PanelColorizer' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
   { id: 4, key: 'prop-designer',   labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },

@@ -141,6 +141,7 @@ export default function ProjectListPage() {
       'mithril_stage7': 'Videos',
       'mithril_i2v_stage1': 'Panel Splitter',
       'mithril_i2v_stage2': 'Panel Editor',
+      'mithril_i2v_stage2_colorizer': 'Panel Colorizer',
       'mithril_i2v_stage3': 'Script Writer',
       'mithril_i2v_stage4': 'Storyboard Editor',
       'mithril_i2v_stage5': 'Video Generation',

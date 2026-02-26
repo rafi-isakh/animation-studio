@@ -783,6 +783,7 @@ mithril_stage6,이미지 생성기,,Image Generator
 mithril_stage7,비디오 생성기,,Video Generator
 mithril_i2v_stage1,패널 스플리터,,Panel Splitter
 mithril_i2v_stage2,패널 편집기,,Panel Editor
+mithril_i2v_stage2_colorizer,패널 컬러라이저,,Panel Colorizer
 mithril_i2v_stage3,스크립트 작성기,,Script Writer
 mithril_i2v_stage4,스토리보드 편집기,,Storyboard Editor
 mithril_i2v_stage5,비디오 생성기,,Video Generator

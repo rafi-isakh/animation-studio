@@ -12,7 +12,7 @@ import { db } from '@/lib/firestore';
 /**
  * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'panel_colorizer' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor';
 
 /**
  * Job status from the orchestrator
@@ -871,6 +871,133 @@ function mapJobStatusToPanelStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): PanelJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Panel Colorizer Job Functions
+// ============================================================================
+
+/**
+ * Panel colorizer job status
+ */
+export type PanelColorizerJobStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Panel colorizer update object
+ */
+export interface PanelColorizerUpdate {
+  panelId: string;
+  sessionId: string;
+  fileName: string;
+  jobId: string;
+  status: PanelColorizerJobStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Subscribe to panel colorizer jobs for a session
+ *
+ * @param sessionId - The session ID
+ * @param callback - Called whenever any panel colorizer job in the session changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToSessionPanelColorizerJobs(
+  sessionId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'panel_colorizer')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) panel colorizer jobs for a session (one-time fetch)
+ */
+export async function getActiveSessionPanelColorizerJobs(
+  sessionId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'panel_colorizer')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to PanelColorizerUpdate
+ */
+export function mapPanelColorizerJobToUpdate(job: JobQueueDocument): PanelColorizerUpdate {
+  return {
+    panelId: job.panel_id || '',
+    sessionId: job.session_id || '',
+    fileName: job.file_name || '',
+    jobId: job.id,
+    status: mapJobStatusToPanelColorizerStatus(job.status, job.retry_count),
+    imageUrl: job.image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to panel colorizer status
+ */
+function mapJobStatusToPanelColorizerStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): PanelColorizerJobStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

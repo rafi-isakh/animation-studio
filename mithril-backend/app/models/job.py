@@ -22,6 +22,7 @@ class JobType(str, Enum):
     STORYBOARD = "storyboard"
     I2V_STORYBOARD = "i2v_storyboard"
     STORYBOARD_EDITOR = "storyboard_editor"
+    PANEL_COLORIZER = "panel_colorizer"
 
 
 class JobStatus(str, Enum):
@@ -138,6 +139,10 @@ class JobDocument(BaseModel):
     source_image_base64: str | None = None  # Base64 encoded source image
     source_mime_type: str | None = None  # MIME type of source image
     refinement_mode: str | None = None  # "default", "zoom", or "expand"
+
+    # Panel colorizer-specific fields (for type=PANEL_COLORIZER)
+    global_prompt: str | None = None  # Scene description (lighting, atmosphere)
+    reference_image_count: int | None = None  # Number of reference images provided
 
     # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
     original_text: str | None = None  # Full text for glossary analysis
@@ -419,6 +424,50 @@ class PanelJobSubmitRequest(BaseModel):
 
 class PanelJobStatusResponse(BaseModel):
     """Response model for panel job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Panel Colorizer Job Models
+# ============================================================================
+
+
+class PanelColorizerReferenceImage(BaseModel):
+    """A single reference image for colorization (character sheet)."""
+
+    base64: str  # Base64 encoded image data
+    mime_type: str = "image/png"  # MIME type
+
+
+class PanelColorizerJobSubmitRequest(BaseModel):
+    """Request model for submitting a panel colorizer job."""
+
+    project_id: str  # Project ID for S3 storage
+    session_id: str  # Session ID for real-time tracking
+    panel_id: str  # Panel ID within session
+    file_name: str  # Original filename
+    image_base64: str  # Base64 encoded source manga panel
+    mime_type: str = "image/png"  # MIME type of source image
+    reference_images: list[PanelColorizerReferenceImage] = []  # Character sheets for color extraction
+    global_prompt: str = ""  # Scene description (lighting, atmosphere)
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
+    api_key: str | None = None  # Custom API key (optional)
+    provider: Literal["gemini", "grok", "z_image_turbo"] = "gemini"  # Image generation provider
+
+
+class PanelColorizerJobStatusResponse(BaseModel):
+    """Response model for panel colorizer job status queries."""
 
     job_id: str
     panel_id: str

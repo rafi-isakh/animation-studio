@@ -22,6 +22,7 @@ from app.models.job import (
     JobStatus,
     JobSubmitRequest,
     JobType,
+    PanelColorizerJobSubmitRequest,
     PanelJobSubmitRequest,
     PanelSplitterJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
@@ -348,6 +349,53 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created panel job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_panel_colorizer_job(
+        self,
+        request: "PanelColorizerJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new panel colorizer job in the queue.
+
+        Args:
+            request: Panel colorizer job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PANEL_COLORIZER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id=request.provider,
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Panel colorizer-specific fields (reuses panel fields)
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            global_prompt=request.global_prompt,
+            reference_image_count=len(request.reference_images),
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created panel colorizer job {job_id} for session {request.session_id}, panel {request.panel_id}")
         return job
 
     async def create_id_converter_glossary_job(

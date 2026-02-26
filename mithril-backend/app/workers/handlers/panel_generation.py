@@ -140,29 +140,16 @@ async def _generate_panel_image_grok(
     aspect_ratio: str,
     api_key: str,
 ) -> bytes:
-    """Generate panel image using ModelsLab grok-imagine-image-i2i.
+    """Generate panel image using xAI grok-imagine-image-pro.
 
-    ModelsLab requires a publicly accessible URL for the source image,
-    so we upload the source panel to S3 first to obtain a CloudFront URL.
+    xAI SDK accepts the source image as a base64 data URI directly —
+    no S3 upload required.
     """
-    import time
     from app.providers.image.grok import generate_grok_panel
-    from app.services.s3 import upload_image
-
-    source_bytes = base64.b64decode(image_base64)
-
-    # Derive file extension from MIME type
-    ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
-    ext = ext_map.get(mime_type, "png")
-
-    # Upload source image to S3 so ModelsLab can fetch it via URL
-    timestamp = int(time.time() * 1000)
-    source_s3_key = f"mithril/temp/grok-source/{timestamp}.{ext}"
-    source_url = await upload_image(source_bytes, source_s3_key, mime_type)
-    logger.info(f"[GROK] Uploaded source panel to S3: {source_url}")
 
     return await generate_grok_panel(
-        source_url=source_url,
+        image_base64=image_base64,
+        mime_type=mime_type,
         prompt=prompt,
         aspect_ratio=aspect_ratio,
         api_key=api_key,
@@ -325,9 +312,9 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         return custom_api_key
 
     if job.provider_id == "grok":
-        if not settings.modelslab_api_key:
-            raise VideoJobError.invalid_request("No ModelsLab API key configured for Grok provider")
-        return settings.modelslab_api_key
+        if not settings.xai_api_key:
+            raise VideoJobError.invalid_request("No xAI API key configured for Grok provider")
+        return settings.xai_api_key
 
     if job.provider_id == "z_image_turbo":
         if not settings.modelslab_api_key:

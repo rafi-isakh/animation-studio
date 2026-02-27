@@ -1,0 +1,419 @@
+BIDIRECTIONAL 2D ANIME BACKGROUND GENERATION FRAMEWORK v1.0
+For 360° World Builder Integration (Genie3 / WorldLabs Compatible)
+============================================================
+SECTION 1 — MASTER SCENIC LOCATION TAXONOMY
+
+Label all possible scenic locations before generation.
+Each generated pair must reference one of these categories.
+
+[ A ] EUROPEAN WESTERN FANTASY
+
+Royal Palace Exterior (Courtyard / Garden / Gate)
+
+Throne Room
+
+Castle Hallway
+
+Noble Bedroom
+
+Mage Tower Interior
+
+Mage Library
+
+Tavern Interior
+
+Medieval Market Square
+
+Stone Bridge over River
+
+Forest Path
+
+Deep Forest Clearing
+
+Mountain Pass
+
+Cliff Overlook
+
+Cathedral Interior
+
+Dungeon Corridor
+
+Underground Prison Cell
+
+Training Yard
+
+Stable Area
+
+Village Square
+
+Port Harbor
+
+[ B ] ROMANCE FANTASY (Court / Academy)
+
+Academy Courtyard
+
+Magic Classroom
+
+Student Dorm Room
+
+Ballroom
+
+Glass Greenhouse
+
+Rose Garden
+
+Tea Room
+
+Royal Balcony
+
+Carriage Interior
+
+Secret Garden
+
+Fountain Plaza
+
+[ C ] MODERN ACTION
+
+Rooftop
+
+Abandoned Warehouse
+
+Underground Parking Garage
+
+Neon Alley
+
+Train Station Platform
+
+Subway Interior
+
+Corporate Lobby
+
+Office Interior
+
+Police Interrogation Room
+
+Hospital Corridor
+
+Apartment Living Room
+
+Apartment Bedroom
+
+[ D ] COUNTRY / RURAL
+
+Farmhouse Yard
+
+Barn Interior
+
+Wheat Field
+
+Dirt Road
+
+Small Town Main Street
+
+Wooden Cabin
+
+Lake Dock
+
+Riverbank
+
+[ E ] ERA-SPECIFIC
+
+Victorian Street
+
+1920s Jazz Club
+
+1950s Diner
+
+1980s Arcade
+
+Ancient Temple Interior
+
+Samurai Dojo
+
+Desert Caravan Stop
+
+Each scene instance must specify:
+
+Era
+
+Architectural logic
+
+Climate
+
+Terrain type
+
+Cultural material style
+
+Lighting condition (time of day)
+
+============================================================
+SECTION 2 — SPATIAL ORIENTATION MODEL
+
+Every location is modeled as a 360° cylinder space.
+
+Define:
+FRONT VIEW = 0°
+BACK VIEW = 180°
+
+Left and right seam boundaries must match spatially.
+
+Define:
+LEFT EDGE of Front == RIGHT EDGE of Back
+RIGHT EDGE of Front == LEFT EDGE of Back
+
+Both images must share:
+
+Same horizon line height
+
+Same camera height
+
+Same perspective depth
+
+Same lens focal logic
+
+Same lighting direction
+
+============================================================
+SECTION 3 — CONSERVATION LAW (앞/뒷면 보존 법칙)
+
+Unique Dominant Object Rule
+If a dominant object appears in FRONT, it must NOT repeat in BACK.
+
+Example:
+If FRONT contains:
+
+Bed (center dominant)
+
+BACK must NOT contain:
+
+Another bed
+
+Mirrored bed
+
+Duplicate furniture
+
+Architectural Conservation
+If FRONT shows:
+
+Main palace entrance
+Then BACK must logically show:
+
+Inner garden depth
+
+Mountain beyond
+
+Exit gate
+
+Secondary corridor
+NOT another main entrance.
+
+Access Logic Rule
+Doors and windows must reflect plausible geometry.
+
+If FRONT:
+
+Door centered
+
+Then BACK:
+
+Must represent opposite interior wall
+
+Door cannot reappear unless circular structure is defined
+
+============================================================
+SECTION 4 — CONNECTION SEAM CONSISTENCY RULE
+(앞 뒷면 연결부분 일관성 해결)
+
+At both side edges of image:
+
+Define “Edge Anchors”
+
+Edge Anchors must match across views:
+
+Path continuation
+
+Bush row
+
+Fence alignment
+
+Floor tile direction
+
+Wall material
+
+Column spacing
+
+Lighting source direction
+
+Ceiling beam rhythm
+
+If FRONT left edge contains:
+
+Stone curb + iron fence
+
+Then BACK right edge MUST contain:
+
+Same stone curb + iron fence continuation
+
+No mismatch allowed:
+Example forbidden:
+FRONT edge: bush hedge
+BACK edge: concrete curb
+
+============================================================
+SECTION 5 — OBJECT DISTRIBUTION LAW
+
+Divide space into:
+Foreground (0–3m)
+Midground (3–15m)
+Background (15m+)
+
+If FRONT foreground contains major prop:
+BACK foreground must be spatially coherent,
+but must not duplicate that prop.
+
+Dominant object types rotate:
+
+Furniture
+
+Architectural focal point
+
+Natural focal point
+
+Light source focal point
+
+No mirroring symmetry unless location is symmetrical by design.
+
+============================================================
+SECTION 6 — DEPTH & HIERARCHY LOGIC
+
+FRONT:
+Primary narrative anchor.
+
+BACK:
+Context expansion anchor.
+
+Example:
+Palace Garden
+
+FRONT:
+
+Path leading toward palace entrance
+
+Fountain midground
+
+Palace in distance
+
+BACK:
+
+Same path continues
+
+Garden gate or mountain horizon
+
+Distant forest or town
+
+Never:
+Palace front in both directions.
+
+============================================================
+SECTION 7 — PROMPT GENERATION TEMPLATE
+
+Use identical structural parameters for both views.
+
+BASE STRUCTURE TEMPLATE
+
+STYLE: 2D anime background, high detail, cinematic, clean linework
+
+CAMERA:
+eye-level, 35mm lens equivalent, same horizon height
+
+LIGHTING:
+consistent direction (define compass direction)
+
+TIME:
+fixed
+
+ARCHITECTURE:
+fixed material description
+
+FRONT VIEW PROMPT TEMPLATE
+
+[Location name], 2D anime background, front view (0° orientation),
+camera eye-level, 35mm lens,
+foreground: [elements],
+midground: [elements],
+background: [dominant anchor],
+left edge anchor: [continuation element],
+right edge anchor: [continuation element],
+lighting from [direction],
+consistent perspective depth,
+no duplicated dominant object,
+clean horizon alignment
+
+BACK VIEW PROMPT TEMPLATE
+
+[Same Location name], 2D anime background, back view (180° orientation),
+camera eye-level, 35mm lens,
+foreground: [spatially opposite wall or ground],
+midground: [logical opposite space],
+background: [context expansion element],
+left edge anchor: [must match front right edge],
+right edge anchor: [must match front left edge],
+lighting same direction,
+preserve architectural continuity,
+do not repeat front dominant object,
+maintain seamless 360 connection
+
+============================================================
+SECTION 8 — EXAMPLE IMPLEMENTATION
+
+LOCATION: Royal Palace Garden (European Western Fantasy)
+
+FRONT PROMPT:
+
+Royal palace garden, 2D anime background, front view 0°, eye-level 35mm,
+foreground: stone pathway leading forward,
+midground: decorative fountain centered,
+background: grand palace entrance with stairs,
+left edge anchor: trimmed hedge row + marble column base,
+right edge anchor: continuation of hedge row + stone fence,
+lighting from upper right afternoon sun,
+no duplicated secondary entrance,
+consistent horizon and depth
+
+BACK PROMPT:
+
+Royal palace garden, 2D anime background, back view 180°, eye-level 35mm,
+foreground: same stone pathway continuing,
+midground: rose garden beds and bench,
+background: distant mountain and garden exit gate,
+left edge anchor: continuation of hedge row + stone fence,
+right edge anchor: trimmed hedge row + marble column base,
+lighting from upper right afternoon sun,
+do not include palace entrance,
+preserve seamless spatial continuity
+
+============================================================
+SECTION 9 — INTERIOR BEDROOM EXAMPLE (보완 규칙 적용)
+
+If FRONT:
+Foreground: large canopy bed (dominant prop)
+
+BACK:
+Must show:
+
+Wardrobe
+
+Window
+
+Fireplace
+
+Bookshelf
+
+Must NOT show:
+
+Another bed
+
+Mirrored canopy bed
+
+============================================================
+END OF FRAMEWORK

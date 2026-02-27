@@ -585,8 +585,8 @@ class JobQueueService:
             page_index=request.page_index,
             file_name=request.file_name,
             reading_direction=request.reading_direction,
-            # NOTE: image_base64 is passed through task queue, not stored in Firestore
-            # to avoid 1MB document size limit
+            # NOTE: image_url is passed through task queue (not stored here);
+            # the handler downloads the image from S3 directly
             max_retries=3,
         )
 

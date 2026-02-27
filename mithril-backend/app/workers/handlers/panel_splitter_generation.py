@@ -7,6 +7,7 @@ import json
 import logging
 import uuid
 
+import httpx
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -238,7 +239,7 @@ Exclude:
 
 async def process_panel_splitter(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     custom_api_key: str | None = None,
     worker_id: str = "worker-1",
 ) -> dict:
@@ -246,7 +247,7 @@ async def process_panel_splitter(
     Detect panels in a manga/comic page and crop them.
 
     Steps:
-    1. Decode base64 image
+    1. Download image from S3 URL
     2. Optimize image for AI (max 1600x1600)
     3. Call Gemini with panel detection prompt
     4. Crop panels from original image
@@ -255,7 +256,7 @@ async def process_panel_splitter(
 
     Args:
         job_id: The job ID to process
-        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        image_url: S3/CloudFront URL of the page image (uploaded by frontend)
         custom_api_key: Optional custom API key (passed through task queue)
         worker_id: ID of the worker processing this job
 
@@ -268,13 +269,13 @@ async def process_panel_splitter(
 
     async with semaphore:
         return await _process_panel_splitter_impl(
-            job_id, image_base64, custom_api_key, worker_id
+            job_id, image_url, custom_api_key, worker_id
         )
 
 
 async def _process_panel_splitter_impl(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     custom_api_key: str | None = None,
     worker_id: str = "worker-1",
 ) -> dict:
@@ -305,11 +306,16 @@ async def _process_panel_splitter_impl(
         # Check for cancellation before processing
         await check_cancellation(job_id)
 
-        # 1. Decode base64 image (passed through task queue, not from Firestore)
-        if not image_base64:
-            raise ValueError("No source image provided")
+        # 1. Download image from S3/CloudFront URL (frontend uploads to S3 first)
+        if not image_url:
+            raise ValueError("No source image URL provided")
 
-        image_data = base64.b64decode(image_base64)
+        logger.info(f"[PANEL-SPLITTER] {job_id} - Downloading image from {image_url[:80]}...")
+        async with httpx.AsyncClient(timeout=60.0) as http:
+            resp = await http.get(image_url)
+            resp.raise_for_status()
+            image_data = resp.content
+
         original_image = Image.open(io.BytesIO(image_data))
         logger.info(f"[PANEL-SPLITTER] {job_id} - Original image size: {original_image.size}")
 
@@ -351,29 +357,15 @@ async def _process_panel_splitter_impl(
                 "panel_count": 0,
             }
 
-        # 4. UPLOADING: Upload source page and crop panels to S3
+        # 4. UPLOADING: Crop panels and upload to S3
+        #    (Source page is already on S3 — uploaded by frontend before submission)
         state_machine.transition_to(JobStatus.UPLOADING)
         await job_queue_service.update_job_status(job_id, JobStatus.UPLOADING, progress=0.4)
         logger.info(f"[PANEL-SPLITTER] {job_id} - Status updated to UPLOADING")
 
-        # Upload source page image to S3.
-        # Include job_id prefix to guarantee a fresh CloudFront URL on every run,
-        # preventing the CDN from serving a cached version of a previously processed page.
-        page_s3_key = f"mithril/{job.project_id}/i2v/pages/{job.page_index}_{job_id[:8]}.webp"
-        page_buffer = io.BytesIO()
-        fit_for_webp(original_image).save(page_buffer, format="WEBP", quality=90)
-        page_buffer.seek(0)
-
-        try:
-            page_image_url = await upload_image(page_buffer.getvalue(), page_s3_key, "image/webp")
-            logger.info(f"[PANEL-SPLITTER] {job_id} - Uploaded source page to {page_image_url}")
-        except Exception as e:
-            logger.warning(f"[PANEL-SPLITTER] {job_id} - Failed to upload source page: {e}")
-            page_image_url = None
-
-        # Update job with page image URL
-        if page_image_url:
-            await job_queue_service.update_job(job_id, image_url=page_image_url)
+        # Store the page image URL on the job (already on S3, no re-upload needed)
+        page_image_url = image_url
+        await job_queue_service.update_job(job_id, image_url=page_image_url)
 
         await job_queue_service.update_job_status(job_id, JobStatus.UPLOADING, progress=0.5)
 

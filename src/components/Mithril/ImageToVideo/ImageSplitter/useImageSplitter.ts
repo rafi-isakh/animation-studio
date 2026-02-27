@@ -21,6 +21,7 @@ import {
   deleteI2VPageImage,
   deleteI2VPanelImage,
   clearAllI2VImages,
+  uploadI2VPageImage,
 } from '../../services/s3/images';
 import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
 import { usePanelSplitterOrchestrator, PanelSplitterJobUpdate } from './usePanelSplitterOrchestrator';
@@ -622,12 +623,12 @@ export function useImageSplitter() {
     processingStartTimeRef.current = Date.now();
     submittedPageCountRef.current = 0; // Will be set after successful submission
 
-    // Prepare batch submission - compress images and build payload
+    // Upload images to S3 first, then submit with URLs (avoids Vercel 4.5 MB body limit)
     const pagesToSubmit: Array<{
       pageId: string;
       pageIndex: number;
       fileName: string;
-      imageBase64: string;
+      imageUrl: string;
       readingDirection: ReadingDirection;
     }> = [];
 
@@ -639,19 +640,22 @@ export function useImageSplitter() {
       }
 
       try {
-        // Compress image for submission (1500px max, 80% quality)
+        // Compress image (1500px max width, 80% quality)
         const base64Image = await compressImage(page.file, 1500, 0.8);
         const pageIndex = stateRef.current.pages.findIndex((p) => p.id === page.id);
+
+        // Upload to S3 first — returns a CloudFront URL
+        const imageUrl = await uploadI2VPageImage(currentProjectId!, pageIndex, base64Image, 'image/jpeg');
 
         pagesToSubmit.push({
           pageId: page.id,
           pageIndex,
           fileName: page.fileName,
-          imageBase64: base64Image,
+          imageUrl,
           readingDirection: page.readingDirection,
         });
       } catch (error) {
-        console.error(`Failed to compress page ${page.id}:`, error);
+        console.error(`Failed to upload page ${page.id}:`, error);
         dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.id, status: 'error' });
       }
     }

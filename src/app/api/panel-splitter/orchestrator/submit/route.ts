@@ -11,7 +11,7 @@ interface PanelSplitterSubmitRequest {
   pageId: string;
   pageIndex: number;
   fileName: string;
-  imageBase64: string;
+  imageUrl: string;
   readingDirection: "rtl" | "ltr";
   apiKey?: string;
 }
@@ -22,7 +22,7 @@ interface PanelSplitterBatchSubmitRequest {
     pageId: string;
     pageIndex: number;
     fileName: string;
-    imageBase64: string;
+    imageUrl: string;
   }>;
   readingDirection: "rtl" | "ltr";
   apiKey?: string;
@@ -79,7 +79,7 @@ async function handleSingleSubmit(
       page_id: body.pageId,
       page_index: body.pageIndex,
       file_name: body.fileName,
-      image_base64: body.imageBase64,
+      image_url: body.imageUrl,
       reading_direction: body.readingDirection,
       api_key: body.apiKey,
     }),
@@ -131,7 +131,7 @@ async function handleBatchSubmit(
         page_id: page.pageId,
         page_index: page.pageIndex,
         file_name: page.fileName,
-        image_base64: page.imageBase64,
+        image_url: page.imageUrl,
       })),
       reading_direction: body.readingDirection,
       api_key: body.apiKey,

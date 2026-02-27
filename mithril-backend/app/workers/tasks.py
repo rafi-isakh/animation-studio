@@ -678,7 +678,7 @@ async def retry_failed_i2v_storyboard_job(
 @broker.task
 async def process_panel_splitter_job(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     api_key: str | None = None,
 ) -> dict:
     """
@@ -693,7 +693,7 @@ async def process_panel_splitter_job(
 
     Args:
         job_id: The job ID in Firestore job_queue collection
-        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        image_url: S3/CloudFront URL of the page image (uploaded by frontend)
         api_key: Optional custom API key (passed through task queue, not stored)
 
     Returns:
@@ -703,10 +703,10 @@ async def process_panel_splitter_job(
 
     logger.info(f"[PANEL-SPLITTER-TASK] ========== Starting panel splitter job {job_id} ==========")
     logger.info(f"[PANEL-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
-    logger.info(f"[PANEL-SPLITTER-TASK] Image base64 length: {len(image_base64) if image_base64 else 0}")
+    logger.info(f"[PANEL-SPLITTER-TASK] Image URL: {image_url[:80] if image_url else 'None'}...")
 
     try:
-        result = await process_panel_splitter(job_id, image_base64, api_key)
+        result = await process_panel_splitter(job_id, image_url, api_key)
         logger.info(f"[PANEL-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
         return result
     except Exception as e:
@@ -721,7 +721,7 @@ async def process_panel_splitter_job(
 @broker.task
 async def retry_failed_panel_splitter_job(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     delay_seconds: int = 0,
     api_key: str | None = None,
 ) -> dict:
@@ -737,7 +737,7 @@ async def retry_failed_panel_splitter_job(
         logger.info(f"Waiting {delay_seconds}s before retrying panel splitter job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_panel_splitter_job(job_id, image_base64, api_key)
+    return await process_panel_splitter_job(job_id, image_url, api_key)
 
 
 # ============================================================================

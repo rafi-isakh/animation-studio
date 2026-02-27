@@ -319,10 +319,26 @@ export function getI2VPagesFolderPrefix(projectId: string): string {
 }
 
 /**
+ * Get S3 key prefix for a specific I2V page (matches both legacy and job-suffixed keys).
+ * Legacy: `{pageIndex}.webp`  New: `{pageIndex}_{jobId}.webp`
+ */
+export function getI2VPagePrefix(projectId: string, pageIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/pages/${pageIndex}`;
+}
+
+/**
  * Get S3 folder prefix for I2V panels (for deleting all panels)
  */
 export function getI2VPanelsFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/panels/`;
+}
+
+/**
+ * Get S3 key prefix for a specific I2V panel (matches both legacy and job-suffixed keys).
+ * Legacy: `{pageIndex}_{panelIndex}.webp`  New: `{pageIndex}_{panelIndex}_{jobId}.webp`
+ */
+export function getI2VPanelPrefix(projectId: string, pageIndex: number, panelIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panels/${pageIndex}_${panelIndex}`;
 }
 
 /**

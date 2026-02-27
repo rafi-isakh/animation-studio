@@ -239,15 +239,33 @@ export function useImageSplitter() {
   const handlePageUpdate = useCallback((update: PanelSplitterJobUpdate) => {
     const { pageId, pageIndex, fileName, status, panels, pageImageUrl } = update;
 
+    console.log('[ImageSplitter] handlePageUpdate received:', {
+      pageId,
+      pageIndex,
+      status,
+      pageImageUrl,
+      panelCount: panels?.length,
+    });
+
     // Find page in state
     const page = stateRef.current.pages.find((p) => p.id === pageId);
-    if (!page) return;
+    if (!page) {
+      console.warn('[ImageSplitter] handlePageUpdate: page not found in state for id', pageId,
+        '| pages in state:', stateRef.current.pages.map(p => ({ id: p.id, status: p.status, previewUrl: p.previewUrl?.slice(0, 60) })));
+      return;
+    }
+
+    console.log('[ImageSplitter] handlePageUpdate: page found, current status:', page.status, '| previewUrl:', page.previewUrl?.slice(0, 60));
 
     // Only process updates for pages that are still processing
-    if (page.status !== 'processing') return;
+    if (page.status !== 'processing') {
+      console.warn('[ImageSplitter] handlePageUpdate: SKIPPED — page.status is', page.status, '(not "processing")');
+      return;
+    }
 
     // Map orchestrator status to local status
     const localStatus = mapOrchestratorStatus(status);
+    console.log('[ImageSplitter] handlePageUpdate: localStatus =', localStatus);
 
     if (localStatus === 'completed' && panels) {
       // Update page with detected panels from backend (already includes S3 URLs)
@@ -258,11 +276,25 @@ export function useImageSplitter() {
         imageUrl: p.imageUrl, // S3 URL from backend
       }));
 
+      // Keep the existing blob previewUrl during the current session — it already
+      // shows the correct image. Only fall back to the S3 URL when there is no
+      // blob URL (e.g. the page was loaded from Firestore without a local blob).
+      const keepBlobUrl = page.previewUrl?.startsWith('blob:');
+      const newPreviewUrl = keepBlobUrl ? undefined : pageImageUrl;
+
+      console.log('[ImageSplitter] SET_PAGE_PANELS dispatch:', {
+        id: pageId,
+        panelCount: mappedPanels.length,
+        pageImageUrl,
+        keepBlobUrl,
+        newPreviewUrl: newPreviewUrl ?? '(keeping blob)',
+      });
+
       dispatch({
         type: 'SET_PAGE_PANELS',
         id: pageId,
         panels: mappedPanels,
-        previewUrl: pageImageUrl, // S3 URL for the source page
+        previewUrl: newPreviewUrl,
       });
 
       // Persist results to Firestore (async, fire-and-forget)
@@ -388,7 +420,12 @@ export function useImageSplitter() {
             // Use originalPageId if available (for matching with job queue), otherwise fall back to Firestore id
             id: page.originalPageId || page.id,
             pageIndex: page.pageIndex, // Store original index for deletion
-            previewUrl: page.imageRef, // S3 URL for preview
+            // Append cache-busting param so CloudFront serves the latest version on load
+            previewUrl: (() => {
+              const url = page.imageRef ? `${page.imageRef}?t=${Date.now()}` : page.imageRef;
+              console.log('[ImageSplitter] Firestore load page:', { id: page.id, fileName: page.fileName, imageRef: page.imageRef?.slice(0, 60), previewUrl: url?.slice(0, 60) });
+              return url;
+            })(),
             fileName: page.fileName,
             panels,
             status: page.status as 'pending' | 'processing' | 'completed' | 'error',
@@ -590,6 +627,12 @@ export function useImageSplitter() {
       }
 
       if (newPages.length > 0) {
+        console.log('[ImageSplitter] upload: adding pages:', newPages.map(p => ({
+          id: p.id,
+          fileName: p.fileName,
+          previewUrl: p.previewUrl?.slice(0, 60),
+          status: p.status,
+        })));
         dispatch({ type: 'ADD_PAGES', pages: newPages });
       }
     },
@@ -677,6 +720,8 @@ export function useImageSplitter() {
     submittedPageCountRef.current = pagesToSubmit.length; // Track for completion stats
 
     // Mark all submitted pages as processing
+    console.log('[ImageSplitter] process: submitting pages:', pagesToSubmit.map(p => ({ pageId: p.pageId, fileName: p.fileName })));
+    console.log('[ImageSplitter] process: jobMap:', jobMap);
     pagesToSubmit.forEach((page) => {
       dispatch({ type: 'UPDATE_PAGE_STATUS', id: page.pageId, status: 'processing' });
     });

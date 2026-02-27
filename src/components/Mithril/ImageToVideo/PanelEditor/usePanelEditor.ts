@@ -28,7 +28,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   const { customApiKey } = useMithril();
 
   // Provider selection
-  const [provider, setProvider] = useState<'gemini' | 'grok' | 'z_image_turbo'>('gemini');
+  const [provider, setProvider] = useState<'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev'>('gemini');
 
   // Loading state for pre-populating file library from ImageSplitter results
   const [isLoadingSplitterPanels, setIsLoadingSplitterPanels] = useState(false);

@@ -17,7 +17,7 @@ interface PanelColorizerJobSubmitRequest {
   globalPrompt: string;
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   apiKey?: string;
-  provider?: "gemini" | "grok" | "z_image_turbo";
+  provider?: "gemini" | "grok" | "z_image_turbo" | "flux2_dev";
 }
 
 export async function POST(request: NextRequest) {

@@ -177,7 +177,7 @@ export default function PanelColorizer() {
           </label>
           <Select
             value={provider}
-            onValueChange={(v) => setProvider(v as 'gemini' | 'grok' | 'z_image_turbo')}
+            onValueChange={(v) => setProvider(v as 'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev')}
             disabled={isProcessing}
           >
             <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -202,9 +202,15 @@ export default function PanelColorizer() {
                   <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — fast image-to-image (no reference images)</span>
                 </div>
               </SelectItem>
+              <SelectItem value="flux2_dev" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Flux2 Dev <span className="text-gray-500 dark:text-gray-400 font-normal">(flux-2-dev)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — Flux2 image-to-image (no reference images)</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
-          {(provider === 'grok' || provider === 'z_image_turbo') && (
+          {(provider === 'grok' || provider === 'z_image_turbo' || provider === 'flux2_dev') && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
               Enter your {provider === 'grok' ? 'xAI' : 'ModelsLab'} API key in the field above. Reference images will not be used with this provider.
             </p>

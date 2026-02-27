@@ -192,6 +192,42 @@ async def _generate_panel_image_z_image_turbo(
     )
 
 
+async def _generate_panel_image_flux2_dev(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using ModelsLab Flux2 Dev (v6 img2img).
+
+    ModelsLab requires a publicly accessible URL for the source image,
+    so we upload the source panel to S3 first to obtain a CloudFront URL.
+    """
+    import time
+    from app.providers.image.flux2_dev import generate_flux2_dev_panel
+    from app.services.s3 import upload_image
+
+    source_bytes = base64.b64decode(image_base64)
+
+    # Derive file extension from MIME type
+    ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+    ext = ext_map.get(mime_type, "png")
+
+    # Upload source image to S3 so ModelsLab can fetch it via URL
+    timestamp = int(time.time() * 1000)
+    source_s3_key = f"mithril/temp/flux2-dev-source/{timestamp}.{ext}"
+    source_url = await upload_image(source_bytes, source_s3_key, mime_type)
+    logger.info(f"[FLUX2-DEV] Uploaded source panel to S3: {source_url}")
+
+    return await generate_flux2_dev_panel(
+        source_url=source_url,
+        prompt=prompt,
+        aspect_ratio=aspect_ratio,
+        api_key=api_key,
+    )
+
+
 async def generate_panel_image_for_provider(
     provider_id: str,
     image_base64: str,
@@ -205,6 +241,8 @@ async def generate_panel_image_for_provider(
         return await _generate_panel_image_grok(image_base64, mime_type, prompt, aspect_ratio, api_key)
     if provider_id == "z_image_turbo":
         return await _generate_panel_image_z_image_turbo(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    if provider_id == "flux2_dev":
+        return await _generate_panel_image_flux2_dev(image_base64, mime_type, prompt, aspect_ratio, api_key)
     return await _generate_panel_image_gemini(image_base64, mime_type, prompt, aspect_ratio, api_key)
 
 
@@ -319,6 +357,11 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
     if job.provider_id == "z_image_turbo":
         if not settings.modelslab_api_key:
             raise VideoJobError.invalid_request("No ModelsLab API key configured for Z-Image Turbo provider")
+        return settings.modelslab_api_key
+
+    if job.provider_id == "flux2_dev":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured for Flux2 Dev provider")
         return settings.modelslab_api_key
 
     if not settings.gemini_api_key:

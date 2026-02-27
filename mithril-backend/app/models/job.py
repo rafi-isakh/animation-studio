@@ -419,7 +419,7 @@ class PanelJobSubmitRequest(BaseModel):
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     refinement_mode: Literal["default", "zoom", "expand"] = "default"
     api_key: str | None = None  # Custom API key (optional)
-    provider: Literal["gemini", "grok", "z_image_turbo"] = "gemini"  # Image generation provider
+    provider: Literal["gemini", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
 
 
 class PanelJobStatusResponse(BaseModel):
@@ -463,7 +463,7 @@ class PanelColorizerJobSubmitRequest(BaseModel):
     global_prompt: str = ""  # Scene description (lighting, atmosphere)
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     api_key: str | None = None  # Custom API key (optional)
-    provider: Literal["gemini", "grok", "z_image_turbo"] = "gemini"  # Image generation provider
+    provider: Literal["gemini", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
 
 
 class PanelColorizerJobStatusResponse(BaseModel):

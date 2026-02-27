@@ -281,6 +281,11 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
             raise VideoJobError.invalid_request("No ModelsLab API key configured for Z-Image Turbo provider")
         return settings.modelslab_api_key
 
+    if job.provider_id == "flux2_dev":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured for Flux2 Dev provider")
+        return settings.modelslab_api_key
+
     if not settings.gemini_api_key:
         raise VideoJobError.invalid_request("No Gemini API key configured")
     return settings.gemini_api_key

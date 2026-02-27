@@ -16,7 +16,7 @@ interface PanelJobSubmitRequest {
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   refinementMode: "default" | "zoom" | "expand";
   apiKey?: string;
-  provider?: "gemini" | "grok";
+  provider?: "gemini" | "grok" | "z_image_turbo" | "flux2_dev";
 }
 
 export async function POST(request: NextRequest) {

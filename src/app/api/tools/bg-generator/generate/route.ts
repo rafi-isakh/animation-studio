@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
         ? "gemini-3.1-flash-image-preview"
         : "gemini-2.5-flash-image";
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parts: any[] = [];
 
     if (referenceImageBase64) {

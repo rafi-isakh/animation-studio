@@ -356,9 +356,10 @@ async def _process_panel_splitter_impl(
         await job_queue_service.update_job_status(job_id, JobStatus.UPLOADING, progress=0.4)
         logger.info(f"[PANEL-SPLITTER] {job_id} - Status updated to UPLOADING")
 
-        # Upload source page image to S3 (use same path structure as frontend expects)
-        # Frontend expects: mithril/{projectId}/i2v/pages/{pageIndex}.webp
-        page_s3_key = f"mithril/{job.project_id}/i2v/pages/{job.page_index}.webp"
+        # Upload source page image to S3.
+        # Include job_id prefix to guarantee a fresh CloudFront URL on every run,
+        # preventing the CDN from serving a cached version of a previously processed page.
+        page_s3_key = f"mithril/{job.project_id}/i2v/pages/{job.page_index}_{job_id[:8]}.webp"
         page_buffer = io.BytesIO()
         fit_for_webp(original_image).save(page_buffer, format="WEBP", quality=90)
         page_buffer.seek(0)
@@ -389,10 +390,9 @@ async def _process_panel_splitter_impl(
                 logger.warning(f"[PANEL-SPLITTER] {job_id} - Failed to crop panel {i}: {e}")
                 continue
 
-            # Upload to S3 (use same path structure as frontend expects)
-            # Frontend expects: mithril/{projectId}/i2v/panels/{pageIndex}_{panelIndex}.webp
+            # Upload to S3. Include job_id prefix for cache-busting (same reason as page key).
             panel_id = str(uuid.uuid4())
-            s3_key = f"mithril/{job.project_id}/i2v/panels/{job.page_index}_{i}.webp"
+            s3_key = f"mithril/{job.project_id}/i2v/panels/{job.page_index}_{i}_{job_id[:8]}.webp"
 
             buffer = io.BytesIO()
             fit_for_webp(cropped).save(buffer, format="WEBP", quality=90)

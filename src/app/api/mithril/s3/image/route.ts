@@ -23,7 +23,9 @@ import {
   getPropReferenceImageKey,
   getPropFolderPrefix,
   getI2VPageKey,
+  getI2VPagePrefix,
   getI2VPanelKey,
+  getI2VPanelPrefix,
   getI2VFolderPrefix,
   getI2VStoryboardFrameKey,
   getI2VStoryboardFrameEndKey,
@@ -449,12 +451,34 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
         switch (i2vSubtype) {
           case "panel":
             if (pageIndex !== undefined && panelIndex !== undefined) {
-              keysToDelete = [getI2VPanelKey(projectId, pageIndex, panelIndex)];
+              // Use prefix listing to catch both legacy keys ({pageIndex}_{panelIndex}.webp)
+              // and job-suffixed keys ({pageIndex}_{panelIndex}_{jobId}.webp).
+              const panelPrefix = getI2VPanelPrefix(projectId, pageIndex, panelIndex);
+              const panelList = await s3Client.send(
+                new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: panelPrefix })
+              );
+              if (panelList.Contents) {
+                const panelPattern = new RegExp(`/${pageIndex}_${panelIndex}(\\.webp|_[^/]+\\.webp)$`);
+                keysToDelete = panelList.Contents
+                  .map(obj => obj.Key!)
+                  .filter(key => key && panelPattern.test(key));
+              }
             }
             break;
           case "page":
             if (pageIndex !== undefined) {
-              keysToDelete = [getI2VPageKey(projectId, pageIndex)];
+              // Use prefix listing to catch both legacy keys ({pageIndex}.webp)
+              // and job-suffixed keys ({pageIndex}_{jobId}.webp).
+              const pagePrefix = getI2VPagePrefix(projectId, pageIndex);
+              const pageList = await s3Client.send(
+                new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: pagePrefix })
+              );
+              if (pageList.Contents) {
+                const pagePattern = new RegExp(`/${pageIndex}(\\.webp|_[^/]+\\.webp)$`);
+                keysToDelete = pageList.Contents
+                  .map(obj => obj.Key!)
+                  .filter(key => key && pagePattern.test(key));
+              }
             }
             break;
           case "storyboard-frame":

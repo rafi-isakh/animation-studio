@@ -241,10 +241,17 @@ export function useImageSplitter() {
 
     // Find page in state
     const page = stateRef.current.pages.find((p) => p.id === pageId);
-    if (!page) return;
+    if (!page) {
+      console.warn('[ImageSplitter] handlePageUpdate: page not found in state for id', pageId,
+        '| pages in state:', stateRef.current.pages.map(p => ({ id: p.id, status: p.status, previewUrl: p.previewUrl?.slice(0, 60) })));
+      return;
+    }
 
     // Only process updates for pages that are still processing
-    if (page.status !== 'processing') return;
+    if (page.status !== 'processing') {
+      console.warn('[ImageSplitter] handlePageUpdate: SKIPPED — page.status is', page.status, '(not "processing")');
+      return;
+    }
 
     // Map orchestrator status to local status
     const localStatus = mapOrchestratorStatus(status);
@@ -258,11 +265,17 @@ export function useImageSplitter() {
         imageUrl: p.imageUrl, // S3 URL from backend
       }));
 
+      // Keep the existing blob previewUrl during the current session — it already
+      // shows the correct image. Only fall back to the S3 URL when there is no
+      // blob URL (e.g. the page was loaded from Firestore without a local blob).
+      const keepBlobUrl = page.previewUrl?.startsWith('blob:');
+      const newPreviewUrl = keepBlobUrl ? undefined : pageImageUrl
+
       dispatch({
         type: 'SET_PAGE_PANELS',
         id: pageId,
         panels: mappedPanels,
-        previewUrl: pageImageUrl, // S3 URL for the source page
+        previewUrl: newPreviewUrl,
       });
 
       // Persist results to Firestore (async, fire-and-forget)
@@ -388,7 +401,11 @@ export function useImageSplitter() {
             // Use originalPageId if available (for matching with job queue), otherwise fall back to Firestore id
             id: page.originalPageId || page.id,
             pageIndex: page.pageIndex, // Store original index for deletion
-            previewUrl: page.imageRef, // S3 URL for preview
+            // Append cache-busting param so CloudFront serves the latest version on load
+            previewUrl: (() => {
+              const url = page.imageRef ? `${page.imageRef}?t=${Date.now()}` : page.imageRef;
+              return url;
+            })(),
             fileName: page.fileName,
             panels,
             status: page.status as 'pending' | 'processing' | 'completed' | 'error',

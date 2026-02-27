@@ -1,0 +1,120 @@
+import type { CsvColumnMapping, CsvFrame } from '../types';
+
+/**
+ * Parse CSV text into a 2D array of strings.
+ * Handles: quoted fields (with commas/newlines), BOM, CRLF.
+ */
+export function parseCSV(text: string): string[][] {
+  // Strip BOM
+  const cleaned = text.replace(/^\uFEFF/, '');
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    const next = cleaned[i + 1];
+
+    if (inQuotes) {
+      if (ch === '"' && next === '"') {
+        field += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        row.push(field);
+        field = '';
+      } else if (ch === '\r' && next === '\n') {
+        row.push(field);
+        field = '';
+        rows.push(row);
+        row = [];
+        i++;
+      } else if (ch === '\n' || ch === '\r') {
+        row.push(field);
+        field = '';
+        rows.push(row);
+        row = [];
+      } else {
+        field += ch;
+      }
+    }
+  }
+
+  // Last field/row
+  row.push(field);
+  if (row.some(f => f.trim() !== '')) {
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+/**
+ * Auto-detect column mapping from CSV headers using reference-app default indices.
+ * Default template layout:
+ *   B (1)  = Frame Number
+ *   C (2)  = Clip Length
+ *   J (9)  = Veo Prompt
+ *   L (11) = Dialogue
+ *   N (13) = SFX
+ *   Q (16) = Reference Filename
+ */
+export function autoDetectMapping(headers: string[]): CsvColumnMapping {
+  return {
+    frameNumber:      headers[1]  ?? '',
+    clipLength:       headers[2]  ?? '',
+    veoPrompt:        headers[9]  ?? '',
+    dialogue:         headers[11] ?? '',
+    sfx:              headers[13] ?? '',
+    referenceFilename: headers[16] ?? '',
+  };
+}
+
+/**
+ * Apply a column mapping to parsed CSV rows and produce CsvFrame[].
+ * Rows with an empty referenceFilename are filtered out.
+ */
+export function applyMapping(
+  headers: string[],
+  rows: string[][],
+  mapping: CsvColumnMapping,
+): CsvFrame[] {
+  const idx = (col: string) => (col ? headers.indexOf(col) : -1);
+
+  const frameIdx     = idx(mapping.frameNumber);
+  const promptIdx    = idx(mapping.veoPrompt);
+  const filenameIdx  = idx(mapping.referenceFilename);
+  const dialogueIdx  = idx(mapping.dialogue);
+  const sfxIdx       = idx(mapping.sfx);
+  const lengthIdx    = idx(mapping.clipLength);
+
+  const now = Date.now();
+
+  return rows
+    .map((row, i): CsvFrame => ({
+      id:                 `frame-${i}-${now}`,
+      rowIndex:           i,
+      frameNumber:        frameIdx  > -1 ? (row[frameIdx]  ?? '').trim() : String(i + 1),
+      veoPrompt:          promptIdx > -1 ? (row[promptIdx] ?? '').trim() : '',
+      referenceFilename:  filenameIdx > -1 ? (row[filenameIdx] ?? '').trim() : '',
+      dialogue:           dialogueIdx > -1 ? (row[dialogueIdx] ?? '').trim() : undefined,
+      sfx:                sfxIdx     > -1 ? (row[sfxIdx]     ?? '').trim() : undefined,
+      clipLength:         lengthIdx  > -1 ? (row[lengthIdx]  ?? '').trim() : undefined,
+      imageData:          null,
+      endFrameData:       null,
+      imageUrl:           null,
+      videoUrl:           null,
+      jobId:              null,
+      s3FileName:         null,
+      status:             'idle',
+    }))
+    .filter(f => f.referenceFilename !== '');
+}

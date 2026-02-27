@@ -16,8 +16,11 @@ import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
 import PanelEditor from "./ImageToVideo/PanelEditor";
+import PanelColorizer from "./ImageToVideo/PanelColorizer";
 import StoryboardEditor from "./ImageToVideo/StoryboardEditor";
 import I2VVideoGenerator from "./ImageToVideo/VideoGenerator";
+import CsvVideoGenerator from "./ImageToVideo/CsvVideoGenerator";
+import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -38,8 +41,11 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
   'PanelEditor': PanelEditor,
+  'PanelColorizer': PanelColorizer,
   'StoryboardEditor': StoryboardEditor,
   'I2VVideoGenerator': I2VVideoGenerator,
+  'CsvVideoGenerator': CsvVideoGenerator,
+  'NsfwVideoGenerator': NsfwVideoGenerator,
 };
 
 // Cost Tracker Dashboard Component
@@ -247,11 +253,16 @@ function MithrilContent() {
   const isTextToVideo = isTextToVideoType(projectType);
   const isImageToVideo = isImageToVideoType(projectType);
 
+  const isVideoStageComponent = currentStageConfig?.component === 'I2VVideoGenerator'
+    || currentStageConfig?.component === 'CsvVideoGenerator'
+    || currentStageConfig?.component === 'NsfwVideoGenerator';
   const needsImageApiKey = (
     (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7))) ||
-    isImageToVideo
+    (isImageToVideo && !isVideoStageComponent)
   );
-  const needsVideoApiKey = isTextToVideo && currentStage === 8;
+  const needsVideoApiKey =
+    (isTextToVideo && currentStage === 8) ||
+    isVideoStageComponent;
   const showCostTracker = isTextToVideo && currentStage === 7;
 
   const prevLabel = phrase(dictionary, "mithril_previous", language);

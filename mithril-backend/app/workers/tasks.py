@@ -741,6 +741,71 @@ async def retry_failed_panel_splitter_job(
 
 
 # ============================================================================
+# Panel Colorizer Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_panel_colorizer_job(
+    job_id: str,
+    image_base64: str,
+    reference_images: list[dict] | None = None,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main panel colorizer generation task.
+
+    Colorizes B&W manga panels into full-color anime-style images.
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue)
+        reference_images: List of {base64, mime_type} dicts for color references
+        api_key: Optional custom API key
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.panel_colorizer_generation import process_panel_colorizer_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing panel colorizer job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_panel_colorizer_generation(
+            job_id, image_base64, reference_images or [], worker_id, api_key
+        )
+        logger.info(f"[{worker_id}] Panel colorizer job {job_id} finished: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in panel colorizer job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_panel_colorizer_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    reference_images: list[dict] | None = None,
+    api_key: str | None = None,
+) -> dict:
+    """Retry a failed panel colorizer job after a delay."""
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying panel colorizer job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_panel_colorizer_job(job_id, image_base64, reference_images, api_key)
+
+
+# ============================================================================
 # Storyboard Editor Tasks
 # ============================================================================
 

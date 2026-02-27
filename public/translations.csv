@@ -783,6 +783,7 @@ mithril_stage6,이미지 생성기,,Image Generator
 mithril_stage7,비디오 생성기,,Video Generator
 mithril_i2v_stage1,패널 스플리터,,Panel Splitter
 mithril_i2v_stage2,패널 편집기,,Panel Editor
+mithril_i2v_stage2_colorizer,패널 컬러라이저,,Panel Colorizer
 mithril_i2v_stage3,스크립트 작성기,,Script Writer
 mithril_i2v_stage4,스토리보드 편집기,,Storyboard Editor
 mithril_i2v_stage5,비디오 생성기,,Video Generator
@@ -1024,4 +1025,18 @@ upload_type_novel_desc,여러 챕터로 분할이 필요한 소설,,Novel that n
 upload_type_chapter,단일 챕터,,Single Chapter
 upload_type_chapter_desc,분할 없이 바로 사용할 챕터,,Chapter ready to use without splitting
 storysplitter_skipped_notice,단일 챕터 모드가 선택되어 스토리 분할이 필요하지 않습니다.,,Story splitting is not needed for single chapter mode.
-storysplitter_go_to_next_stage,다음 단계로 이동,,Go to Next Stage
+storysplitter_go_to_next_stage,다음 단계로 이동,,Go to Next Stagecsv_step1_title,CSV 스크립트 가져오기,,Import Script (CSV)
+csv_step2_title,참조 이미지 업로드,,Upload Reference Images
+csv_step3_title,스토리보드,,Storyboard
+csv_import_upload_label,CSV 파일을 클릭하여 업로드,,Click to upload CSV Script
+csv_import_upload_hint,필요한 열: 프레임 번호, 프롬프트, 파일명 (선택: 대사, 효과음),,Expected columns: Frame Number, Prompt, Filename, (Optional) Dialogue, SFX
+csv_import_mapping_hint,CSV 열을 매핑해 주세요. 기본값은 템플릿 기준으로 자동 선택됩니다.,,Map your CSV columns. Defaults are auto-selected based on your template.
+csv_import_confirm,스토리보드 생성,,Create Storyboard
+csv_match_upload_label,이미지를 클릭하여 업로드 또는 교체,,Click to upload or replace images
+csv_match_upload_hint,파일명이 일치하는 이미지가 자동으로 매칭됩니다.,,Files with matching filenames will be updated automatically.
+csv_column_frame_number,프레임 번호,,Frame Number
+csv_column_prompt,Veo 프롬프트,,Veo Video Prompt
+csv_column_reference,참조 파일명,,Ref. Filename
+csv_column_dialogue,대사 (선택),,Dialogue (Optional)
+csv_column_sfx,효과음 (선택),,Sound Effect (Optional)
+csv_column_length,클립 길이 (선택),,Clip Length (Optional)

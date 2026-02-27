@@ -1,4 +1,4 @@
-"""Grok image-to-image generation via ModelsLab xAI API."""
+"""Grok image-to-image panel generation via xAI SDK."""
 
 import asyncio
 import logging
@@ -7,114 +7,50 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-MODELSLAB_I2I_URL = "https://modelslab.com/api/v7/images/image-to-image"
-MODEL_ID = "grok-imagine-image-i2i"
-POLL_INTERVAL = 5  # seconds between polls
-MAX_POLL_ATTEMPTS = 24  # 24 × 5s = 2 min max wait
+XAI_MODEL = "grok-imagine-image-pro"
 
 
 async def generate_grok_panel(
-    source_url: str,
+    image_base64: str,
+    mime_type: str,
     prompt: str,
     aspect_ratio: str,
     api_key: str,
 ) -> bytes:
     """
-    Generate a panel image using ModelsLab's grok-imagine-image-i2i model.
+    Generate a panel image using xAI's grok-imagine-image-pro model.
 
     Args:
-        source_url: Publicly accessible URL of the source panel image.
+        image_base64: Base64-encoded source panel image.
+        mime_type: MIME type of the source image (e.g. "image/jpeg").
         prompt: Transformation prompt describing the desired output.
         aspect_ratio: Target aspect ratio, e.g. "16:9", "9:16", "1:1".
-        api_key: ModelsLab API key (sent in request body as "key").
+        api_key: xAI API key.
 
     Returns:
         Generated image as raw bytes.
     """
-    payload = {
-        "key": api_key,
-        "model_id": MODEL_ID,
-        "prompt": prompt,
-        "init_image": source_url,
-        "aspect_ratio": aspect_ratio,
-        "resolution": "1k",
-    }
+    import xai_sdk
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        logger.info(f"[GROK] Calling ModelsLab img2img ({MODEL_ID}), source={source_url[:60]}...")
-        response = await client.post(MODELSLAB_I2I_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
+    client = xai_sdk.Client(api_key=api_key)
+    image_url = f"data:{mime_type};base64,{image_base64}"
 
-    status = data.get("status")
-    logger.info(f"[GROK] Initial response status: {status}")
+    logger.info(f"[GROK] Submitting to xAI ({XAI_MODEL}), aspect_ratio={aspect_ratio}")
 
-    if status == "error":
-        raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
-
-    if status == "success" and data.get("output"):
-        output = data["output"]
-        image_url = output[0] if isinstance(output, list) else output
-        return await _download_image(image_url)
-
-    if status == "processing":
-        fetch_url = data.get("fetch_result")
-        if not fetch_url:
-            raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
-        logger.info(f"[GROK] Processing async, polling: {fetch_url}")
-        return await _poll_for_result(fetch_url, api_key)
-
-    raise RuntimeError(f"Unexpected ModelsLab response: {data}")
-
-
-async def _poll_for_result(fetch_url: str, api_key: str) -> bytes:
-    """Poll ModelsLab fetch_result URL until the image is ready."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
-            await asyncio.sleep(POLL_INTERVAL)
-            logger.info(f"[GROK] Poll attempt {attempt}/{MAX_POLL_ATTEMPTS}")
-
-            resp = await client.post(fetch_url, json={"key": api_key})
-            resp.raise_for_status()
-            data = resp.json()
-
-            status = data.get("status")
-            logger.info(f"[GROK] Poll status: {status}")
-
-            if status == "success" and data.get("output"):
-                output = data["output"]
-                image_url = output[0] if isinstance(output, list) else output
-                return await _download_image(image_url)
-
-            if status == "error":
-                raise RuntimeError(f"ModelsLab generation failed: {data.get('message', data)}")
-
-            # status "processing" or "pending" → keep polling
-
-    raise RuntimeError(
-        f"ModelsLab timed out after {MAX_POLL_ATTEMPTS * POLL_INTERVAL}s"
+    # xAI SDK is synchronous — run in thread pool to avoid blocking the event loop
+    response = await asyncio.to_thread(
+        client.image.sample,
+        prompt=prompt,
+        model=XAI_MODEL,
+        image_url=image_url,
+        aspect_ratio=aspect_ratio,
     )
 
+    result_url = response.url
+    logger.info(f"[GROK] Generation complete, downloading result from {result_url[:80]}...")
 
-async def _download_image(url: str) -> bytes:
-    """Download a generated image from URL and return raw bytes.
-
-    Retries on 404 to handle ModelsLab R2 CDN propagation delay — the API
-    can report 'success' before the file is actually available on the CDN.
-    """
-    max_attempts = 5
-    retry_delay = 3.0  # seconds
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        for attempt in range(1, max_attempts + 1):
-            logger.info(f"[GROK] Downloading result from {url[:80]}... (attempt {attempt}/{max_attempts})")
-            resp = await client.get(url)
-            if resp.status_code == 404 and attempt < max_attempts:
-                logger.warning(f"[GROK] Got 404, CDN not ready yet — retrying in {retry_delay}s")
-                await asyncio.sleep(retry_delay)
-                continue
-            resp.raise_for_status()
-            logger.info(f"[GROK] Downloaded {len(resp.content)} bytes")
-            return resp.content
-
-    raise RuntimeError(f"Failed to download image after {max_attempts} attempts: {url}")
+    async with httpx.AsyncClient(timeout=60.0) as http:
+        resp = await http.get(result_url)
+        resp.raise_for_status()
+        logger.info(f"[GROK] Downloaded {len(resp.content)} bytes")
+        return resp.content

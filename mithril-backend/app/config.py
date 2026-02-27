@@ -31,7 +31,9 @@ class Settings(BaseSettings):
     # Provider API Keys (fallback)
     sora_api_key: str = ""
     gemini_api_key: str = ""
-    modelslab_api_key: str = ""  # ModelsLab API key (z-image-turbo fallback)
+    xai_api_key: str = ""       # xAI API key (grok panel image generation)
+    xai_video_api_key: str = ""  # xAI API key (grok video generation)
+    modelslab_api_key: str = ""  # ModelsLab API key (z-image-turbo)
 
     # Application
     debug: bool = False

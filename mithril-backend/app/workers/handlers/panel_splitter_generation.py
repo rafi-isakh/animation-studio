@@ -78,6 +78,26 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
     return settings.gemini_api_key
 
 
+WEBP_MAX_DIM = 16383  # WebP encoder hard limit per dimension
+
+
+def fit_for_webp(image: Image.Image) -> Image.Image:
+    """Scale image down proportionally if either dimension exceeds the WebP limit.
+
+    Only triggers for images larger than 16383px in any direction (e.g. very
+    long webtoon pages). Has no effect on normal-sized images.
+    """
+    w, h = image.size
+    if w <= WEBP_MAX_DIM and h <= WEBP_MAX_DIM:
+        return image
+    scale = min(WEBP_MAX_DIM / w, WEBP_MAX_DIM / h)
+    logger.warning(
+        f"[PANEL-SPLITTER] Image {w}×{h} exceeds WebP limit, "
+        f"scaling to {int(w * scale)}×{int(h * scale)}"
+    )
+    return image.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+
+
 def optimize_image_for_ai(image: Image.Image, max_size: int = 1600) -> Image.Image:
     """Resize image to max dimensions while maintaining aspect ratio."""
     width, height = image.size
@@ -340,7 +360,7 @@ async def _process_panel_splitter_impl(
         # Frontend expects: mithril/{projectId}/i2v/pages/{pageIndex}.webp
         page_s3_key = f"mithril/{job.project_id}/i2v/pages/{job.page_index}.webp"
         page_buffer = io.BytesIO()
-        original_image.save(page_buffer, format="WEBP", quality=90)
+        fit_for_webp(original_image).save(page_buffer, format="WEBP", quality=90)
         page_buffer.seek(0)
 
         try:
@@ -375,7 +395,7 @@ async def _process_panel_splitter_impl(
             s3_key = f"mithril/{job.project_id}/i2v/panels/{job.page_index}_{i}.webp"
 
             buffer = io.BytesIO()
-            cropped.save(buffer, format="WEBP", quality=90)
+            fit_for_webp(cropped).save(buffer, format="WEBP", quality=90)
             buffer.seek(0)
 
             try:

@@ -8,6 +8,7 @@ interface Clip {
   videoPrompt: string;
   dialogue: string;
   backgroundId: string;
+  refFileName?: string;
 }
 
 interface Scene {
@@ -60,6 +61,11 @@ const objectDetectionSchema = {
               type: Type.STRING,
               description:
                 "Verbatim text snippet from the clip where the object appears. Copy exactly as written.",
+            },
+            refFileName: {
+              type: Type.STRING,
+              nullable: true,
+              description: "Reference image filename from the clip's refFileName field. Copy exactly if present, null otherwise.",
             },
           },
           required: ["clipId", "text"],
@@ -118,6 +124,11 @@ const characterDetectionSchema = {
               type: Type.STRING,
               description:
                 "Verbatim text snippet from the clip where the character appears. Copy exactly as written.",
+            },
+            refFileName: {
+              type: Type.STRING,
+              nullable: true,
+              description: "Reference image filename from the clip's refFileName field. Copy exactly if present, null otherwise.",
             },
           },
           required: ["clipId", "text"],
@@ -195,7 +206,7 @@ const characterDetectionSchema = {
 
 async function detectObjects(
   ai: GoogleGenAI,
-  allClips: { clipId: string; story: string; imagePrompt: string }[],
+  allClips: { clipId: string; story: string; imagePrompt: string; refFileName?: string }[],
   targetIds: string[],
   genre: string
 ) {
@@ -209,8 +220,9 @@ async function detectObjects(
 1. **Target Object IDs 리스트에 포함된 모든 ID를 무조건 결과에 포함하십시오.**
 2. **출력 필드 'name'은 반드시 해당 ID와 토씨 하나 틀리지 않고 동일해야 합니다.**
 3. **문장 발췌 규칙:** 'contextPrompts'의 'text' 필드에는 해당 ID가 포함된 문장을 **원본 텍스트 그대로 토씨 하나 틀리지 않게(verbatim)** 발췌하십시오. 대문자로 표기된 ID와 문장 부호를 절대로 재해석하거나 요약하지 마십시오.
-4. **묘사 스타일:** 'description' (영문 시각적 묘사)은 핵심 키워드와 구(phrase) 중심의 짧은 리스트 스타일로 작성하십시오.
-5. **디자인 시트 형식:** "anime 2d style white background. 2d anime white product sheet of [OBJECT NAME] in ${genre || "Modern"} setting, [VISUAL DESCRIPTION], front view, side view, top view, high quality, character design sheet style, shading detail, no text"
+4. **참조 이미지 파일명:** 콘티 데이터의 각 클립에 'refFileName' 필드가 있으면, 해당 클립의 contextPrompts에 'refFileName'을 그대로 포함하십시오.
+5. **묘사 스타일:** 'description' (영문 시각적 묘사)은 핵심 키워드와 구(phrase) 중심의 짧은 리스트 스타일로 작성하십시오.
+6. **디자인 시트 형식:** "anime 2d style white background. 2d anime white product sheet of [OBJECT NAME] in ${genre || "Modern"} setting, [VISUAL DESCRIPTION], front view, side view, top view, high quality, character design sheet style, shading detail, no text"
 
 결과는 반드시 JSON 배열 형태여야 합니다.
 
@@ -241,7 +253,7 @@ ${JSON.stringify(allClips, null, 2)}
 
 async function detectCharacters(
   ai: GoogleGenAI,
-  allClips: { clipId: string; story: string; imagePrompt: string }[],
+  allClips: { clipId: string; story: string; imagePrompt: string; refFileName?: string }[],
   targetIds: string[],
   genre: string,
   characterDescriptions?: Record<string, string>
@@ -264,8 +276,9 @@ ${descriptionSection}
 1. **Target Character IDs 리스트에 포함된 모든 ID를 무조건 결과에 포함하십시오.**
 2. **출력 필드 'name'은 반드시 해당 ID와 동일해야 합니다.**
 3. **문장 발췌 규칙:** 'contextPrompts'의 'text' 필드에는 해당 ID가 포함된 문장을 **원본 텍스트 그대로 토씨 하나 틀리지 않게(verbatim)** 발췌하십시오.
-4. **묘사 스타일:** 'description' (영문 시각적 묘사)은 핵심 키워드와 구(phrase) 중심의 짧은 리스트 스타일로 작성하십시오.
-5. **캐릭터 디자인 시트 형식 (중요):**
+4. **참조 이미지 파일명:** 콘티 데이터의 각 클립에 'refFileName' 필드가 있으면, 해당 클립의 contextPrompts에 'refFileName'을 그대로 포함하십시오.
+5. **묘사 스타일:** 'description' (영문 시각적 묘사)은 핵심 키워드와 구(phrase) 중심의 짧은 리스트 스타일로 작성하십시오.
+6. **캐릭터 디자인 시트 형식 (중요):**
    "2d anime white background character sheet, [VISUAL DESCRIPTION] of [CHARACTER NAME] in ${genre || "Modern"} setting, 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text"
 
 **[Easy Mode 데이터 추출 - 필수]**
@@ -340,12 +353,13 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Prepare clip data for analysis (only story and imagePrompt, matching reference)
+    // Prepare clip data for analysis
     const allClips = scenes.flatMap((scene, sIdx) =>
       scene.clips.map((clip, cIdx) => ({
         clipId: `${sIdx + 1}-${cIdx + 1}`,
         story: clip.story,
         imagePrompt: clip.imagePrompt,
+        ...(clip.refFileName ? { refFileName: clip.refFileName } : {}),
       }))
     );
 

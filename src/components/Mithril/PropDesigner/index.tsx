@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
-import { Prop, DetectedId, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt } from "./types";
+import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt } from "./types";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -38,6 +38,7 @@ interface CsvClip {
   sfxEn: string;
   bgm: string;
   bgmEn: string;
+  refFileName: string;
 }
 
 interface CsvScene {
@@ -98,20 +99,23 @@ export default function PropDesigner() {
 
   // File input ref for CSV import
   const csvInputRef = useRef<HTMLInputElement>(null);
+  // Guard: prevent context-restore useEffect from re-running after our own syncToContext writes
+  const hasRestoredFromContext = useRef(false);
 
   // Local state
-  const [props, setProps] = useState<Prop[]>([]);
+  const [sessions, setSessions] = useState<DetectionSession[]>([]);
   const [detectedIds, setDetectedIds] = useState<DetectedId[]>([]);
   const [genre, setGenre] = useState<string>("Modern");
-  const [isCharacterSheetOpen, setIsCharacterSheetOpen] = useState(false);
-  const [isObjectSheetOpen, setIsObjectSheetOpen] = useState(false);
-  // Track if modals were opened from refresh (should start minimized) vs detection (should start expanded)
-  const [charactersLoadedFromContext, setCharactersLoadedFromContext] = useState(false);
-  const [objectsLoadedFromContext, setObjectsLoadedFromContext] = useState(false);
   const [styleKeyword, setStyleKeyword] = useState<string>("anime 2d style");
   const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
   const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Session counters for auto-naming
+  const [characterSessionCount, setCharacterSessionCount] = useState(0);
+  const [objectSessionCount, setObjectSessionCount] = useState(0);
+
+  // Derive flat props array from all sessions (for context persistence compatibility)
+  const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
 
   // CSV imported scenes (local storyboard data)
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
@@ -121,6 +125,16 @@ export default function PropDesigner() {
   const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
   // CSV Genre
   const [csvGenre, setCsvGenre] = useState<string | null>(null);
+
+  // Per-clip generated preview images (key: "sIdx-cIdx", value: base64 data URL)
+  const [generatedClipImages, setGeneratedClipImages] = useState<Record<string, string>>({});
+
+  // Helper: update props within a specific session
+  const updateSessionProps = useCallback((sessionId: string, updater: (props: Prop[]) => Prop[]) => {
+    setSessions(prev => prev.map(s =>
+      s.id === sessionId ? { ...s, props: updater(s.props) } : s
+    ));
+  }, []);
 
   // CSV Import handler
   const handleCSVImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,6 +187,7 @@ export default function PropDesigner() {
         sfxEn: getIdx(["SFX (En)"]),
         bgm: getIdx(["BGM (Ko)"]),
         bgmEn: getIdx(["BGM (En)"]),
+        refFileName: getIdx(["Reference Image", "Ref Image", "참조 이미지"]),
       };
 
 
@@ -197,6 +212,7 @@ export default function PropDesigner() {
           sfxEn: val(map.sfxEn),
           bgm: val(map.bgm),
           bgmEn: val(map.bgmEn),
+          refFileName: val(map.refFileName),
         });
       }
 
@@ -253,8 +269,10 @@ export default function PropDesigner() {
       }
 
       
-      // Clear existing props and detected IDs to start fresh with imported data
-      setProps([]);
+      // Clear existing sessions and detected IDs to start fresh with imported data
+      setSessions([]);
+      setCharacterSessionCount(0);
+      setObjectSessionCount(0);
       setDetectedIds([]);
 
       // Set the scenes and increment version to force re-computation
@@ -319,6 +337,11 @@ export default function PropDesigner() {
     if (hasImportedScenes) {
       return;
     }
+    // Skip if we already restored — prevents feedback loop where our own
+    // syncToContext updates propDesignerGenerator.result and re-triggers this effect
+    if (hasRestoredFromContext.current) {
+      return;
+    }
 
     if (propDesignerGenerator.result) {
       const result = propDesignerGenerator.result;
@@ -327,7 +350,7 @@ export default function PropDesigner() {
       setStyleKeyword(result.settings?.styleKeyword || "anime 2d style");
       setDetectedIds(result.detectedIds || []);
 
-      const loadedProps = result.props.map((p) => ({
+      const loadedProps: Prop[] = result.props.map((p) => ({
         id: p.id,
         name: p.name,
         category: p.category,
@@ -339,9 +362,7 @@ export default function PropDesigner() {
         designSheetPrompt: p.designSheetPrompt || "",
         designSheetImageUrl: p.designSheetImageRef,
         referenceImageUrl: p.referenceImageRef,
-        // Multiple reference images
         referenceImages: p.referenceImageRefs,
-        // Character metadata (Easy Mode)
         age: p.age,
         gender: p.gender,
         hairColor: p.hairColor,
@@ -349,26 +370,85 @@ export default function PropDesigner() {
         eyeColor: p.eyeColor,
         personality: p.personality,
         role: p.role,
-        // Variant detection
         isVariant: p.isVariant,
         variantDetails: p.variantDetails,
         variantVisuals: p.variantVisuals,
         isGenerating: false,
       }));
 
-      setProps(loadedProps);
-
-      // Auto-open modals if there are props of that category (start minimized since loaded from context)
-      const hasCharacters = loadedProps.some((p) => p.category === "character");
-      const hasObjects = loadedProps.some((p) => p.category === "object");
-      if (hasCharacters) {
-        setIsCharacterSheetOpen(true);
-        setCharactersLoadedFromContext(true); // Start minimized
+      // Restore sessions if available, otherwise create legacy sessions from flat props
+      if (result.sessions && result.sessions.length > 0) {
+        const restoredSessions: DetectionSession[] = result.sessions.map(sm => ({
+          id: sm.id,
+          name: sm.name,
+          type: sm.type,
+          timestamp: sm.timestamp,
+          isMinimized: true, // Start minimized since loaded from context
+          props: sm.props.map(p => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            description: p.description,
+            descriptionKo: p.descriptionKo,
+            csvDescription: p.csvDescription,
+            appearingClips: p.appearingClips || [],
+            contextPrompts: [],
+            designSheetPrompt: p.designSheetPrompt || "",
+            designSheetImageUrl: p.designSheetImageRef,
+            referenceImageUrl: p.referenceImageRef,
+            referenceImages: p.referenceImageRefs,
+            age: p.age,
+            gender: p.gender,
+            hairColor: p.hairColor,
+            hairStyle: p.hairStyle,
+            eyeColor: p.eyeColor,
+            personality: p.personality,
+            role: p.role,
+            isVariant: p.isVariant,
+            variantDetails: p.variantDetails,
+            variantVisuals: p.variantVisuals,
+            isGenerating: false,
+          })),
+        }));
+        setSessions(restoredSessions);
+        const charCount = restoredSessions.filter(s => s.type === "character").length;
+        const objCount = restoredSessions.filter(s => s.type === "object").length;
+        setCharacterSessionCount(charCount);
+        setObjectSessionCount(objCount);
+      } else {
+        // Legacy: create sessions from flat props array
+        const restoredSessions: DetectionSession[] = [];
+        const characterProps = loadedProps.filter(p => p.category === "character");
+        const objectProps = loadedProps.filter(p => p.category === "object");
+        let charCount = 0;
+        let objCount = 0;
+        if (characterProps.length > 0) {
+          charCount = 1;
+          restoredSessions.push({
+            id: crypto.randomUUID(),
+            name: "Character Sheet #1",
+            type: "character",
+            props: characterProps,
+            timestamp: Date.now(),
+            isMinimized: true,
+          });
+        }
+        if (objectProps.length > 0) {
+          objCount = 1;
+          restoredSessions.push({
+            id: crypto.randomUUID(),
+            name: "Object Sheet #1",
+            type: "object",
+            props: objectProps,
+            timestamp: Date.now(),
+            isMinimized: true,
+          });
+        }
+        setSessions(restoredSessions);
+        setCharacterSessionCount(charCount);
+        setObjectSessionCount(objCount);
       }
-      if (hasObjects) {
-        setIsObjectSheetOpen(true);
-        setObjectsLoadedFromContext(true); // Start minimized
-      }
+      hasRestoredFromContext.current = true;
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
 
@@ -401,7 +481,7 @@ export default function PropDesigner() {
 
     const characterIds = new Set<string>();
     const objectIds = new Set<string>();
-    const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string }[] }>();
+    const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string; refFileName?: string }[] }>();
 
     activeScenes.forEach((scene, sIdx) => {
       scene.clips.forEach((clip, cIdx) => {
@@ -436,7 +516,8 @@ export default function PropDesigner() {
               // Extract context - take the sentence containing the ID
               const contextText = clip.imagePrompt || clip.story || "";
               if (contextText.includes(id)) {
-                occ.contexts.push({ clipId, text: contextText.substring(0, 200) });
+                const refFileName = (clip as CsvClip).refFileName || undefined;
+                occ.contexts.push({ clipId, text: contextText.substring(0, 200), ...(refFileName ? { refFileName } : {}) });
               }
             }
 
@@ -486,13 +567,77 @@ export default function PropDesigner() {
     setDetectedIds((prev) => prev.filter((d) => d.id !== id));
   }, []);
 
-  // Helper to save props to Firestore and update context
-  const saveAndUpdateProps = useCallback(
+  // Helper to convert Prop to metadata for context persistence
+  const propToMetadata = useCallback((p: Prop) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    description: p.description,
+    descriptionKo: p.descriptionKo,
+    csvDescription: p.csvDescription,
+    appearingClips: p.appearingClips,
+    designSheetPrompt: p.designSheetPrompt,
+    designSheetImageRef: p.designSheetImageUrl || "",
+    referenceImageRef: p.referenceImageUrl,
+    referenceImageRefs: p.referenceImages,
+    age: p.age,
+    gender: p.gender,
+    hairColor: p.hairColor,
+    hairStyle: p.hairStyle,
+    eyeColor: p.eyeColor,
+    personality: p.personality,
+    role: p.role,
+    isVariant: p.isVariant,
+    variantDetails: p.variantDetails,
+    variantVisuals: p.variantVisuals,
+  }), []);
+
+  // Helper to sync all sessions to context
+  const syncToContext = useCallback((updatedSessions: DetectionSession[]) => {
+    const flatProps = updatedSessions.flatMap(s => s.props);
+    setPropDesignerResult({
+      settings: { styleKeyword, propBasePrompt: "", genre },
+      props: flatProps.map(propToMetadata),
+      detectedIds,
+      sessions: updatedSessions.map(s => ({
+        id: s.id,
+        name: s.name,
+        type: s.type,
+        timestamp: s.timestamp,
+        props: s.props.map(propToMetadata),
+      })),
+    });
+  }, [styleKeyword, genre, detectedIds, setPropDesignerResult, propToMetadata]);
+
+  // Helper to create a new session from detection results and save to Firestore
+  const createSessionFromDetection = useCallback(
     async (newProps: Prop[], category: "character" | "object") => {
-      // Merge with existing props of the other category
-      const otherCategoryProps = props.filter((p) => p.category !== category);
-      const allProps = [...otherCategoryProps, ...newProps];
-      setProps(allProps);
+      // Create new session
+      const sessionNumber = category === "character"
+        ? characterSessionCount + 1
+        : objectSessionCount + 1;
+      const sessionName = category === "character"
+        ? `Character Sheet #${sessionNumber}`
+        : `Object Sheet #${sessionNumber}`;
+
+      const newSession: DetectionSession = {
+        id: crypto.randomUUID(),
+        name: sessionName,
+        type: category,
+        props: newProps,
+        timestamp: Date.now(),
+        isMinimized: false, // Open expanded for new detections
+      };
+
+      // Update session counter
+      if (category === "character") {
+        setCharacterSessionCount(prev => prev + 1);
+      } else {
+        setObjectSessionCount(prev => prev + 1);
+      }
+
+      const updatedSessions = [...sessions, newSession];
+      setSessions(updatedSessions);
 
       // Save to Firestore
       if (currentProjectId) {
@@ -513,20 +658,6 @@ export default function PropDesigner() {
           }))
         );
 
-        // Delete old props of the same category to avoid stale data on refresh
-        try {
-          const existingProps = await getProps(currentProjectId);
-          const oldSameCategoryProps = existingProps.filter(p => p.category === category);
-          const newPropIds = new Set(newProps.map(p => p.id));
-          for (const oldProp of oldSameCategoryProps) {
-            if (!newPropIds.has(oldProp.id)) {
-              await deleteProp(currentProjectId, oldProp.id);
-            }
-          }
-        } catch (err) {
-          console.error("[PropDesigner] Error cleaning old props:", err);
-        }
-
         for (const prop of newProps) {
           await saveProp(currentProjectId, {
             id: prop.id,
@@ -540,9 +671,7 @@ export default function PropDesigner() {
             designSheetPrompt: prop.designSheetPrompt,
             designSheetImageRef: prop.designSheetImageUrl,
             referenceImageRef: prop.referenceImageUrl,
-            // Multiple reference images
             referenceImageRefs: prop.referenceImages,
-            // Character metadata (Easy Mode)
             age: prop.age,
             gender: prop.gender,
             hairColor: prop.hairColor,
@@ -550,7 +679,6 @@ export default function PropDesigner() {
             eyeColor: prop.eyeColor,
             personality: prop.personality,
             role: prop.role,
-            // Variant detection
             isVariant: prop.isVariant,
             variantDetails: prop.variantDetails,
             variantVisuals: prop.variantVisuals,
@@ -559,38 +687,11 @@ export default function PropDesigner() {
       }
 
       // Update context
-      setPropDesignerResult({
-        settings: { styleKeyword, propBasePrompt: "", genre },
-        props: allProps.map((p) => ({
-          id: p.id,
-          name: p.name,
-          category: p.category,
-          description: p.description,
-          descriptionKo: p.descriptionKo,
-          csvDescription: p.csvDescription,
-          appearingClips: p.appearingClips,
-          designSheetPrompt: p.designSheetPrompt,
-          designSheetImageRef: p.designSheetImageUrl || "",
-          referenceImageRef: p.referenceImageUrl,
-          // Multiple reference images
-          referenceImageRefs: p.referenceImages,
-          // Character metadata (Easy Mode)
-          age: p.age,
-          gender: p.gender,
-          hairColor: p.hairColor,
-          hairStyle: p.hairStyle,
-          eyeColor: p.eyeColor,
-          personality: p.personality,
-          role: p.role,
-          // Variant detection
-          isVariant: p.isVariant,
-          variantDetails: p.variantDetails,
-          variantVisuals: p.variantVisuals,
-        })),
-        detectedIds,
-      });
+      syncToContext(updatedSessions);
+
+      return newSession.id;
     },
-    [currentProjectId, detectedIds, genre, props, setPropDesignerResult, styleKeyword]
+    [currentProjectId, detectedIds, genre, sessions, styleKeyword, characterSessionCount, objectSessionCount, syncToContext]
   );
 
   // Detect characters using AI
@@ -630,7 +731,7 @@ export default function PropDesigner() {
 
       // Create a map of existing props by name to preserve images
       const existingPropsByName = new Map<string, Prop>();
-      props.forEach((p) => {
+      allProps.forEach((p) => {
         if (p.name) {
           existingPropsByName.set(p.name.toLowerCase(), p);
         }
@@ -746,11 +847,7 @@ export default function PropDesigner() {
         };
       });
 
-      await saveAndUpdateProps(newCharacters, "character");
-
-      // Auto-open the character sheet modal (expanded, not minimized)
-      setCharactersLoadedFromContext(false);
-      setIsCharacterSheetOpen(true);
+      await createSessionFromDetection(newCharacters, "character");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to detect characters");
     } finally {
@@ -761,8 +858,8 @@ export default function PropDesigner() {
     activeScenes,
     genre,
     customApiKey,
-    props,
-    saveAndUpdateProps,
+    allProps,
+    createSessionFromDetection,
     csvCharacterDescriptions,
   ]);
 
@@ -796,7 +893,7 @@ export default function PropDesigner() {
 
       // Create a map of existing props by name to preserve images
       const existingPropsByName = new Map<string, Prop>();
-      props.forEach((p) => {
+      allProps.forEach((p) => {
         if (p.name) {
           existingPropsByName.set(p.name.toLowerCase(), p);
         }
@@ -840,11 +937,7 @@ export default function PropDesigner() {
         };
       });
 
-      await saveAndUpdateProps(newObjects, "object");
-
-      // Auto-open the object sheet modal (expanded, not minimized)
-      setObjectsLoadedFromContext(false);
-      setIsObjectSheetOpen(true);
+      await createSessionFromDetection(newObjects, "object");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to detect objects");
     } finally {
@@ -855,15 +948,16 @@ export default function PropDesigner() {
     activeScenes,
     genre,
     customApiKey,
-    props,
-    saveAndUpdateProps,
+    allProps,
+    createSessionFromDetection,
   ]);
 
   // Generate design sheet image for a prop (supports multiple reference images)
+  // sessionId is curried when creating session-specific callbacks
   const handleGenerateImage = useCallback(
-    async (propId: string, prompt: string, referenceImages?: string[]) => {
-      setProps((prev) =>
-        prev.map((p) => (p.id === propId ? { ...p, isGenerating: true } : p))
+    async (sessionId: string, propId: string, prompt: string, referenceImages?: string[]) => {
+      updateSessionProps(sessionId, props =>
+        props.map((p) => (p.id === propId ? { ...p, isGenerating: true } : p))
       );
 
       try {
@@ -922,337 +1016,218 @@ export default function PropDesigner() {
             );
 
             // Update local state with S3 URL
-            setProps((prev) => {
-              const generatedProp = prev.find((p) => p.id === propId);
-              
-              // Check if this is a Default character - if so, auto-link to variants
-              const isDefaultCharacter = generatedProp && 
-                                        generatedProp.category === "character" && 
-                                        !generatedProp.isVariant;
-              
-              const newProps = prev.map((p) => {
-                if (p.id === propId) {
-                  // Update the generated prop with the design sheet
-                  return {
-                    ...p,
-                    designSheetImageUrl: uploadData.url,
-                    designSheetPrompt: prompt,
-                    isGenerating: false,
-                  };
-                }
-                
-                // If this was a Default character, add its design sheet as reference to related Variants
-                if (isDefaultCharacter && 
-                    p.isVariant && 
-                    p.category === "character" && 
-                    generatedProp) {
-                  // Check if this variant references the generated default character
-                  // Look for the character name or ID in variantDetails
-                  const variantDetails = p.variantDetails?.toLowerCase() || "";
-                  const characterName = generatedProp.name.toLowerCase();
-                  const characterId = generatedProp.name.toUpperCase();
-                  
-                  // Check if variant details mention this character
-                  if (variantDetails.includes(characterName) || 
-                      variantDetails.includes(characterId) ||
-                      p.name.includes(characterId.split("_")[0])) {
-                    // Add design sheet URL to this variant's reference images
-                    const currentRefs = p.referenceImages || [];
-                    // Don't add duplicate if already exists
-                    if (!currentRefs.includes(uploadData.url)) {
-                      return {
-                        ...p,
-                        referenceImages: [uploadData.url, ...currentRefs],
-                      };
+            setSessions(prev => {
+              const updatedSessions = prev.map(s => {
+                if (s.id !== sessionId) return s;
+                const generatedProp = s.props.find(p => p.id === propId);
+                const isDefaultCharacter = generatedProp && generatedProp.category === "character" && !generatedProp.isVariant;
+
+                const updatedProps = s.props.map(p => {
+                  if (p.id === propId) {
+                    return { ...p, designSheetImageUrl: uploadData.url, designSheetPrompt: prompt, isGenerating: false };
+                  }
+                  // Auto-link default character's design sheet to related variants
+                  if (isDefaultCharacter && p.isVariant && p.category === "character" && generatedProp) {
+                    const variantDetails = p.variantDetails?.toLowerCase() || "";
+                    const characterName = generatedProp.name.toLowerCase();
+                    const characterId = generatedProp.name.toUpperCase();
+                    if (variantDetails.includes(characterName) || variantDetails.includes(characterId) || p.name.includes(characterId.split("_")[0])) {
+                      const currentRefs = p.referenceImages || [];
+                      if (!currentRefs.includes(uploadData.url)) {
+                        console.log(`[Auto-link] Adding ${generatedProp.name} design sheet to variant ${p.name}`);
+                        return { ...p, referenceImages: [uploadData.url, ...currentRefs] };
+                      }
                     }
                   }
-                }
-                
-                return p;
+                  return p;
+                });
+                return { ...s, props: updatedProps };
               });
 
-              // Also update context so it persists across re-renders
-              // Note: We do this inside setProps to ensure we have the calculated newProps
-              // But we should wrap it in a setTimeout or useEffect ideally. 
-              // unique hack: call the context setter asynchronously to avoid bad set state patterns if strictly checked
-              setTimeout(() => {
-                setPropDesignerResult({
-                  settings: { styleKeyword, propBasePrompt: "", genre },
-                  props: newProps.map((p) => ({
-                    id: p.id,
-                    name: p.name,
-                    category: p.category,
-                    description: p.description,
-                    descriptionKo: p.descriptionKo,
-                    csvDescription: p.csvDescription,
-                    appearingClips: p.appearingClips,
-                    designSheetPrompt: p.designSheetPrompt,
-                    designSheetImageRef: p.designSheetImageUrl || "",
-                    referenceImageRef: p.referenceImageUrl,
-                    referenceImageRefs: p.referenceImages,
-                    age: p.age,
-                    gender: p.gender,
-                    hairColor: p.hairColor,
-                    hairStyle: p.hairStyle,
-                    eyeColor: p.eyeColor,
-                    personality: p.personality,
-                    role: p.role,
-                    // Variant detection
-                    isVariant: p.isVariant,
-                    variantDetails: p.variantDetails,
-                    variantVisuals: p.variantVisuals,
-                  })),
-                  detectedIds,
-                });
-              }, 0);
-
-              return newProps;
+              setTimeout(() => syncToContext(updatedSessions), 0);
+              return updatedSessions;
             });
 
-            // Perform async Firestore operations OUTSIDE of setProps
-            // We need to re-derive which variants to update based on the current props
-            // This is safe because we just used these props to generate the image
-            const targetProp = props.find(p => p.id === propId);
+            // Auto-link: save variants to Firestore
+            const targetSession = sessions.find(s => s.id === sessionId);
+            const targetProp = targetSession?.props.find(p => p.id === propId);
             const isDefaultChar = targetProp && targetProp.category === "character" && !targetProp.isVariant;
 
-            if (currentProjectId && isDefaultChar && targetProp) {
-                // Find variants that need updating
-                const variantsToUpdate = props.filter((p) => {
-                  if (!p.isVariant || p.category !== "character") return false;
-                  
-                  const variantDetails = p.variantDetails?.toLowerCase() || "";
-                  const characterName = targetProp.name.toLowerCase();
-                  const characterId = targetProp.name.toUpperCase();
-                  
-                  // Same matching logic
-                  return (
-                    variantDetails.includes(characterName) || 
-                    variantDetails.includes(characterId) ||
-                    p.name.includes(characterId.split("_")[0])
-                  );
-                });
+            if (currentProjectId && isDefaultChar && targetProp && targetSession) {
+              const variantsToUpdate = targetSession.props.filter(p => {
+                if (!p.isVariant || p.category !== "character") return false;
+                const variantDetails = p.variantDetails?.toLowerCase() || "";
+                const characterName = targetProp.name.toLowerCase();
+                const characterId = targetProp.name.toUpperCase();
+                return variantDetails.includes(characterName) || variantDetails.includes(characterId) || p.name.includes(characterId.split("_")[0]);
+              });
 
-                // Iterate and save
-                for (const variant of variantsToUpdate) {
-                   // Calculate the new reference images list
-                   const currentRefs = variant.referenceImages || [];
-                   
-                   // Only save if it doesn't already have it
-                   if (!currentRefs.includes(uploadData.url)) {
-                       const newRefs = [uploadData.url, ...currentRefs];
-                       
-                       try {
-                        await saveProp(currentProjectId, {
-                          id: variant.id,
-                          name: variant.name,
-                          category: variant.category,
-                          description: variant.description,
-                          descriptionKo: variant.descriptionKo,
-                          csvDescription: variant.csvDescription,
-                          appearingClips: variant.appearingClips,
-                          designSheetPrompt: variant.designSheetPrompt,
-                          designSheetImageRef: variant.designSheetImageUrl,
-                          referenceImageRef: variant.referenceImageUrl,
-                          referenceImageRefs: newRefs, // The important update
-                          age: variant.age,
-                          gender: variant.gender,
-                          hairColor: variant.hairColor,
-                          hairStyle: variant.hairStyle,
-                          eyeColor: variant.eyeColor,
-                          personality: variant.personality,
-                          role: variant.role,
-                          isVariant: variant.isVariant,
-                          variantDetails: variant.variantDetails,
-                          variantVisuals: variant.variantVisuals,
-                        });
-                      } catch (error) {
-                        console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
-                      }
-                   }
+              for (const variant of variantsToUpdate) {
+                const currentRefs = variant.referenceImages || [];
+                if (!currentRefs.includes(uploadData.url)) {
+                  const newRefs = [uploadData.url, ...currentRefs];
+                  try {
+                    await saveProp(currentProjectId, {
+                      ...propToMetadata(variant),
+                      referenceImageRefs: newRefs,
+                      contextPrompts: variant.contextPrompts,
+                    });
+                    console.log(`[Auto-link] Saved ${variant.name} to Firestore with auto-linked reference`);
+                  } catch (error) {
+                    console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
+                  }
                 }
+              }
             }
-            
-            return; // End of success block
+
+            return;
           }
         }
 
         // Fallback to base64 if upload fails
-        setProps((prev) =>
-          prev.map((p) =>
-            p.id === propId
-              ? {
-                  ...p,
-                  designSheetImageBase64: data.imageBase64,
-                  designSheetPrompt: prompt,
-                  isGenerating: false,
-                }
-              : p
-          )
+        updateSessionProps(sessionId, props =>
+          props.map(p => p.id === propId ? { ...p, designSheetImageBase64: data.imageBase64, designSheetPrompt: prompt, isGenerating: false } : p)
         );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Image generation failed");
-        setProps((prev) =>
-          prev.map((p) => (p.id === propId ? { ...p, isGenerating: false } : p))
+        updateSessionProps(sessionId, props =>
+          props.map(p => p.id === propId ? { ...p, isGenerating: false } : p)
         );
       }
     },
-    [currentProjectId, customApiKey, styleKeyword, genre, detectedIds, setPropDesignerResult]
+    [currentProjectId, customApiKey, sessions, syncToContext, updateSessionProps, propToMetadata]
   );
 
   // Set reference images for a prop (supports multiple images)
   const handleSetReferenceImages = useCallback(
-    async (propId: string, images: string[]) => {
-      // Update local state immediately with base64 images
-      setProps((prev) => {
-        const newProps = prev.map((p) =>
-          p.id === propId ? { ...p, referenceImages: images } : p
+    (sessionId: string, propId: string, images: string[]) => {
+      setSessions(prev => {
+        const updated = prev.map(s =>
+          s.id === sessionId
+            ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, referenceImages: images } : p) }
+            : s
         );
-
-        // Also update context so reference images persist
-        setPropDesignerResult({
-          settings: { styleKeyword, propBasePrompt: "", genre },
-          props: newProps.map((p) => ({
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            description: p.description,
-            descriptionKo: p.descriptionKo,
-            csvDescription: p.csvDescription,
-            appearingClips: p.appearingClips,
-            designSheetPrompt: p.designSheetPrompt,
-            designSheetImageRef: p.designSheetImageUrl || "",
-            referenceImageRef: p.referenceImageUrl,
-            referenceImageRefs: p.referenceImages,
-            age: p.age,
-            gender: p.gender,
-            hairColor: p.hairColor,
-            hairStyle: p.hairStyle,
-            eyeColor: p.eyeColor,
-            personality: p.personality,
-            role: p.role,
-            isVariant: p.isVariant,
-            variantDetails: p.variantDetails,
-            variantVisuals: p.variantVisuals,
-          })),
-          detectedIds,
-        });
-
-        return newProps;
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
       });
-
-      // TODO: In the future, upload all images to S3 and store URLs
-      // For now, just keep them as base64 in local state
     },
-    [styleKeyword, genre, detectedIds, setPropDesignerResult]
+    [syncToContext]
   );
 
   // Update prop fields and sync to context
   const handleUpdateProp = useCallback(
-    (propId: string, updates: Partial<Prop>) => {
-      setProps((prev) => {
-        const newProps = prev.map((p) => (p.id === propId ? { ...p, ...updates } : p));
-        
-        // Also update context so ImageGenerator can see the changes
-        setPropDesignerResult({
-          settings: { styleKeyword, propBasePrompt: "", genre },
-          props: newProps.map((p) => ({
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            description: p.description,
-            descriptionKo: p.descriptionKo,
-            csvDescription: p.csvDescription,
-            appearingClips: p.appearingClips,
-            designSheetPrompt: p.designSheetPrompt,
-            designSheetImageRef: p.designSheetImageUrl || "",
-            referenceImageRef: p.referenceImageUrl,
-            referenceImageRefs: p.referenceImages,
-            age: p.age,
-            gender: p.gender,
-            hairColor: p.hairColor,
-            hairStyle: p.hairStyle,
-            eyeColor: p.eyeColor,
-            personality: p.personality,
-            role: p.role,
-            isVariant: p.isVariant,
-            variantDetails: p.variantDetails,
-            variantVisuals: p.variantVisuals,
-          })),
-          detectedIds: detectedIds.map((d) => ({
-            id: d.id,
-            category: d.category,
-            clipIds: d.clipIds,
-            contexts: d.contexts,
-            occurrences: d.occurrences,
-          })),
-        });
-        
-        return newProps;
+    (sessionId: string, propId: string, updates: Partial<Prop>) => {
+      setSessions(prev => {
+        const updated = prev.map(s =>
+          s.id === sessionId
+            ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, ...updates } : p) }
+            : s
+        );
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
       });
     },
-    [styleKeyword, genre, detectedIds, setPropDesignerResult]
+    [syncToContext]
   );
 
-  // Clear all props (local state + context + Firestore)
-  const handleClearAll = useCallback(async () => {
-    // Clear local state
-    setProps([]);
-    // Clear context and Firestore
-    await clearPropDesignerData();
-  }, [clearPropDesignerData]);
+  // Close a session (remove it)
+  const handleCloseSession = useCallback((sessionId: string) => {
+    setSessions(prev => {
+      const updated = prev.filter(s => s.id !== sessionId);
+      setTimeout(() => syncToContext(updated), 0);
+      return updated;
+    });
+  }, [syncToContext]);
+
+  // Toggle session minimize/restore
+  const handleToggleMinimize = useCallback((sessionId: string) => {
+    setSessions(prev => prev.map(s =>
+      s.id === sessionId ? { ...s, isMinimized: !s.isMinimized } : s
+    ));
+  }, []);
+
+  // Clear all sessions (local state + context + Firestore)
+  const handleClearAll = useCallback(async (sessionId?: string) => {
+    if (sessionId) {
+      // Clear a specific session
+      setSessions(prev => {
+        const updated = prev.filter(s => s.id !== sessionId);
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
+      });
+    } else {
+      // Clear all
+      setSessions([]);
+      setCharacterSessionCount(0);
+      setObjectSessionCount(0);
+      await clearPropDesignerData();
+    }
+  }, [clearPropDesignerData, syncToContext]);
+
+  // Generate a preview image for a specific clip using its imagePrompt
+  const handleRequestImageSample = useCallback(async (sceneIndex: number, clipIndex: number) => {
+    const scene = activeScenes[sceneIndex];
+    if (!scene) return;
+    const clip = scene.clips[clipIndex];
+    if (!clip) return;
+
+    const prompt = clip.imagePrompt;
+    if (!prompt) return;
+
+    const response = await fetch("/api/generate_prop_sheet/generate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt,
+        aspectRatio: "16:9",
+        customApiKey: customApiKey || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[PropDesigner] Image sample generation failed:", errorData);
+      return;
+    }
+
+    const data = await response.json();
+    if (data.imageBase64) {
+      const key = `${sceneIndex}-${clipIndex}`;
+      setGeneratedClipImages(prev => ({ ...prev, [key]: `data:image/png;base64,${data.imageBase64}` }));
+    }
+  }, [activeScenes, customApiKey]);
 
   // JSON file input ref for session import
   const jsonInputRef = useRef<HTMLInputElement>(null);
 
   // Export session as JSON
   const handleExportSession = useCallback(() => {
-    const session = {
-      version: "1.0",
+    const exportData = {
+      version: "2.0",
       exportedAt: new Date().toISOString(),
-      settings: {
-        styleKeyword,
-        genre,
-      },
-      detectedIds: detectedIds.map((d) => ({
-        id: d.id,
-        category: d.category,
-        clipIds: d.clipIds,
-        contexts: d.contexts,
-        occurrences: d.occurrences,
+      settings: { styleKeyword, genre },
+      detectedIds: detectedIds.map(d => ({ id: d.id, category: d.category, clipIds: d.clipIds, contexts: d.contexts, occurrences: d.occurrences })),
+      props: allProps.map(p => ({
+        id: p.id, name: p.name, category: p.category, description: p.description, descriptionKo: p.descriptionKo,
+        csvDescription: p.csvDescription, appearingClips: p.appearingClips, contextPrompts: p.contextPrompts,
+        designSheetPrompt: p.designSheetPrompt, designSheetImageUrl: p.designSheetImageUrl, referenceImages: p.referenceImages,
+        age: p.age, gender: p.gender, hairColor: p.hairColor, hairStyle: p.hairStyle, eyeColor: p.eyeColor,
+        personality: p.personality, role: p.role, isVariant: p.isVariant, variantDetails: p.variantDetails, variantVisuals: p.variantVisuals,
       })),
-      props: props.map((p) => ({
-        id: p.id,
-        name: p.name,
-        category: p.category,
-        description: p.description,
-        descriptionKo: p.descriptionKo,
-        csvDescription: p.csvDescription,
-        appearingClips: p.appearingClips,
-        contextPrompts: p.contextPrompts,
-        designSheetPrompt: p.designSheetPrompt,
-        designSheetImageUrl: p.designSheetImageUrl,
-        referenceImages: p.referenceImages,
-        age: p.age,
-        gender: p.gender,
-        hairColor: p.hairColor,
-        hairStyle: p.hairStyle,
-        eyeColor: p.eyeColor,
-        personality: p.personality,
-        role: p.role,
-        isVariant: p.isVariant,
-        variantDetails: p.variantDetails,
-        variantVisuals: p.variantVisuals,
+      sessions: sessions.map(s => ({
+        id: s.id, name: s.name, type: s.type, timestamp: s.timestamp,
+        propIds: s.props.map(p => p.id),
       })),
     };
 
-    const blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = `propdesigner_session_${new Date().toISOString().split("T")[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [styleKeyword, genre, detectedIds, props]);
+  }, [styleKeyword, genre, detectedIds, allProps, sessions]);
 
   // Import session from JSON
   const handleImportSession = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1308,18 +1283,34 @@ export default function PropDesigner() {
           isGenerating: false,
         }));
 
-        setProps(loadedProps);
-
-        // Auto-open modals if there are props (start minimized)
-        const hasCharacters = loadedProps.some((p) => p.category === "character");
-        const hasObjects = loadedProps.some((p) => p.category === "object");
-        if (hasCharacters) {
-          setCharactersLoadedFromContext(true);
-          setIsCharacterSheetOpen(true);
-        }
-        if (hasObjects) {
-          setObjectsLoadedFromContext(true);
-          setIsObjectSheetOpen(true);
+        // Restore sessions from export or create legacy sessions from flat props
+        if (session.sessions && Array.isArray(session.sessions)) {
+          const propsMap = new Map(loadedProps.map(p => [p.id, p]));
+          const importedSessions: DetectionSession[] = session.sessions.map((s: { id: string; name: string; type: "character" | "object"; timestamp: number; propIds: string[] }) => ({
+            id: s.id,
+            name: s.name,
+            type: s.type,
+            timestamp: s.timestamp,
+            isMinimized: true,
+            props: (s.propIds || []).map((id: string) => propsMap.get(id)).filter(Boolean) as Prop[],
+          }));
+          setSessions(importedSessions);
+          setCharacterSessionCount(importedSessions.filter(s => s.type === "character").length);
+          setObjectSessionCount(importedSessions.filter(s => s.type === "object").length);
+        } else {
+          // Legacy v1.0 format: create sessions from flat props
+          const importedSessions: DetectionSession[] = [];
+          const characterProps = loadedProps.filter(p => p.category === "character");
+          const objectProps = loadedProps.filter(p => p.category === "object");
+          if (characterProps.length > 0) {
+            importedSessions.push({ id: crypto.randomUUID(), name: "Character Sheet #1", type: "character", props: characterProps, timestamp: Date.now(), isMinimized: true });
+          }
+          if (objectProps.length > 0) {
+            importedSessions.push({ id: crypto.randomUUID(), name: "Object Sheet #1", type: "object", props: objectProps, timestamp: Date.now(), isMinimized: true });
+          }
+          setSessions(importedSessions);
+          setCharacterSessionCount(characterProps.length > 0 ? 1 : 0);
+          setObjectSessionCount(objectProps.length > 0 ? 1 : 0);
         }
 
         setError(null);
@@ -1344,7 +1335,7 @@ export default function PropDesigner() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-teal-400 to-cyan-500">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#DB2777] via-teal-400 to-cyan-500">
             Character & Prop Designer
           </h2>
           <p className="text-sm text-gray-400 mt-1">
@@ -1389,7 +1380,7 @@ export default function PropDesigner() {
           <div className="flex items-center gap-1 border-l border-gray-700 pl-4">
             <button
               onClick={handleExportSession}
-              disabled={props.length === 0}
+              disabled={sessions.length === 0}
               className="px-2 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-gray-300 border border-gray-600 rounded text-xs font-bold transition-colors flex items-center gap-1"
               title="Export session as JSON"
             >
@@ -1486,7 +1477,7 @@ export default function PropDesigner() {
             </svg>
             <p className="text-lg font-bold text-gray-300 mb-2">No Storyboard Data</p>
             <p className="text-sm text-gray-500 mb-4">
-              Generate a storyboard in Stage 4 or import a CSV file with storyboard data.
+              Generate a storyboard or import a CSV file with storyboard data.
             </p>
           </div>
           <button
@@ -1558,45 +1549,35 @@ export default function PropDesigner() {
           />
 
           {/* Storyboard Table */}
-          <StoryboardTable scenes={activeScenes} totalClips={totalClips} />
+          <StoryboardTable
+            scenes={activeScenes}
+            totalClips={totalClips}
+            onRequestImageSample={handleRequestImageSample}
+            generatedImages={generatedClipImages}
+          />
 
-          {/* Character Sheet Modal */}
-          {isCharacterSheetOpen && (
+          {/* Session Modals */}
+          {sessions.map((session, idx) => (
             <PropListView
-              props={props.filter((p) => p.category === "character")}
+              key={session.id}
+              props={session.props}
               genre={genre}
               styleKeyword={styleKeyword}
               projectId={currentProjectId || undefined}
               customApiKey={customApiKey || undefined}
-              onGenerateImage={handleGenerateImage}
-              onSetReferenceImages={handleSetReferenceImages}
-              onUpdateProp={handleUpdateProp}
-              onClose={() => setIsCharacterSheetOpen(false)}
-              onClearAll={handleClearAll}
-              title="Character Sheet Generator"
-              accentColor="purple"
-              initialMinimized={charactersLoadedFromContext}
+              onGenerateImage={(propId, prompt, refs) => handleGenerateImage(session.id, propId, prompt, refs)}
+              onSetReferenceImages={(propId, images) => handleSetReferenceImages(session.id, propId, images)}
+              onUpdateProp={(propId, updates) => handleUpdateProp(session.id, propId, updates)}
+              onClose={() => handleCloseSession(session.id)}
+              onClearAll={() => handleClearAll(session.id)}
+              onToggleMinimize={() => handleToggleMinimize(session.id)}
+              title={session.name}
+              accentColor={session.type === "character" ? "purple" : "cyan"}
+              initialMinimized={session.isMinimized}
+              sessionId={session.id}
+              minimizedIndex={idx}
             />
-          )}
-
-          {/* Object Sheet Modal */}
-          {isObjectSheetOpen && (
-            <PropListView
-              props={props.filter((p) => p.category === "object")}
-              genre={genre}
-              styleKeyword={styleKeyword}
-              projectId={currentProjectId || undefined}
-              customApiKey={customApiKey || undefined}
-              onGenerateImage={handleGenerateImage}
-              onSetReferenceImages={handleSetReferenceImages}
-              onUpdateProp={handleUpdateProp}
-              onClose={() => setIsObjectSheetOpen(false)}
-              onClearAll={handleClearAll}
-              title="Object/Prop Sheet Generator"
-              accentColor="cyan"
-              initialMinimized={objectsLoadedFromContext}
-            />
-          )}
+          ))}
         </>
       )}
     </div>

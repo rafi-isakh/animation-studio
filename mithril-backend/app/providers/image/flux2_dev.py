@@ -8,7 +8,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 MODELSLAB_V6_I2I_URL = "https://modelslab.com/api/v6/images/img2img"
-MODEL_ID = "flux2-dev-image-to-image"
+MODEL_ID = "flux-2-dev"
 POLL_INTERVAL = 5  # seconds between polls
 MAX_POLL_ATTEMPTS = 24  # 24 × 5s = 2 min max wait
 

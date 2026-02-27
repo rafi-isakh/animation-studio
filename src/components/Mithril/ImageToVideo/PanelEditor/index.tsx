@@ -269,7 +269,7 @@ export default function PanelEditor() {
               </SelectItem>
               <SelectItem value="flux2_dev" className="cursor-pointer">
                 <div className="flex flex-col">
-                  <span className="font-medium">Flux2 Dev <span className="text-gray-500 dark:text-gray-400 font-normal">(flux2-dev-image-to-image)</span></span>
+                  <span className="font-medium">Flux2 Dev <span className="text-gray-500 dark:text-gray-400 font-normal">(flux-2-dev)</span></span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — Flux2 image-to-image</span>
                 </div>
               </SelectItem>

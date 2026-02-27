@@ -52,9 +52,9 @@ async def submit_panel_splitter_job(
     job = await job_queue_service.create_panel_splitter_job(request, user.uid)
     logger.info(f"[PANEL-SPLITTER-API] Job created: {job.id}")
 
-    # Queue for processing (pass image_base64 and API key through task queue, not stored in DB)
+    # Queue for processing (pass image_url and API key through task queue, not stored in DB)
     logger.debug(f"[PANEL-SPLITTER-API] Queuing job {job.id} for processing...")
-    await process_panel_splitter_job.kiq(job.id, request.image_base64, request.api_key)
+    await process_panel_splitter_job.kiq(job.id, request.image_url, request.api_key)
     logger.info(f"[PANEL-SPLITTER-API] Job {job.id} queued successfully")
 
     return JobSubmitResponse(
@@ -90,7 +90,7 @@ async def submit_panel_splitter_batch(
             page_id=page.page_id,
             page_index=page.page_index,
             file_name=page.file_name,
-            image_base64=page.image_base64,
+            image_url=page.image_url,
             reading_direction=page.reading_direction or request.reading_direction,
             api_key=page.api_key or request.api_key,
         )
@@ -101,8 +101,8 @@ async def submit_panel_splitter_batch(
         )
         logger.info(f"[PANEL-SPLITTER-API] Created job {job.id} for page {page.page_id}")
 
-        # Queue for processing (pass image_base64 through task queue)
-        await process_panel_splitter_job.kiq(job.id, page.image_base64, page_request.api_key)
+        # Queue for processing (pass image_url through task queue)
+        await process_panel_splitter_job.kiq(job.id, page_request.image_url, page_request.api_key)
 
         job_responses.append(
             JobSubmitResponse(

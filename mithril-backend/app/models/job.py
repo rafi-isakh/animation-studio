@@ -592,7 +592,7 @@ class PanelSplitterJobSubmitRequest(BaseModel):
     page_id: str  # Page ID for tracking
     page_index: int  # Page index in sequence
     file_name: str  # Original filename
-    image_base64: str  # Base64 encoded image
+    image_url: str  # S3/CloudFront URL of the uploaded page image
     reading_direction: Literal["rtl", "ltr"] = "rtl"
     api_key: str | None = None  # Custom API key (optional)
 
@@ -630,7 +630,7 @@ class PanelSplitterPageItem(BaseModel):
     page_id: str
     page_index: int
     file_name: str
-    image_base64: str
+    image_url: str
     reading_direction: Literal["rtl", "ltr"] | None = None  # Override batch-level
     api_key: str | None = None  # Override batch-level
 

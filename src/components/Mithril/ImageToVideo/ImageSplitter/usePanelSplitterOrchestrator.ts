@@ -15,7 +15,7 @@ interface SubmitPageJobParams {
   pageId: string;
   pageIndex: number;
   fileName: string;
-  imageBase64: string;
+  imageUrl: string;
   readingDirection: 'rtl' | 'ltr';
 }
 
@@ -122,7 +122,7 @@ export function usePanelSplitterOrchestrator({
           pageId: params.pageId,
           pageIndex: params.pageIndex,
           fileName: params.fileName,
-          imageBase64: params.imageBase64,
+          imageUrl: params.imageUrl,
           readingDirection: params.readingDirection,
           apiKey: customApiKey,
         }),
@@ -166,7 +166,7 @@ export function usePanelSplitterOrchestrator({
             pageId: page.pageId,
             pageIndex: page.pageIndex,
             fileName: page.fileName,
-            imageBase64: page.imageBase64,
+            imageUrl: page.imageUrl,
           })),
           readingDirection: params.readingDirection,
           apiKey: customApiKey,

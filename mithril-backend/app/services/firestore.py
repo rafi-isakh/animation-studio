@@ -390,6 +390,8 @@ class JobQueueService:
             source_mime_type=request.mime_type,
             global_prompt=request.global_prompt,
             reference_image_count=len(request.reference_images),
+            time_of_day=request.time_of_day,
+            colorizer_mode=request.colorizer_mode,
             max_retries=2,
         )
 

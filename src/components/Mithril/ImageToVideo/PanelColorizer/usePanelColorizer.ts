@@ -398,6 +398,122 @@ export function usePanelColorizer({ projectId }: UsePanelColorizerOptions) {
     [processSinglePanel]
   );
 
+  // Helper: fetch an image URL and return compressed base64
+  const fetchImageAsBase64 = useCallback(async (url: string): Promise<string> => {
+    const fetchUrl = url.startsWith('http')
+      ? `/api/mithril/s3/proxy?url=${encodeURIComponent(url)}`
+      : url;
+    const response = await fetch(fetchUrl);
+    if (!response.ok) throw new Error('Failed to fetch image');
+    const blob = await response.blob();
+    const file = new File([blob], 'image.jpg', { type: blob.type || 'image/jpeg' });
+    return compressImage(file, 1500, 0.8);
+  }, []);
+
+  // Remix: re-process the generated result with a custom user prompt
+  const remixPanel = useCallback(
+    async (id: string, remixPrompt: string) => {
+      const panel = state.panels.find((p) => p.id === id);
+      if (!panel?.resultUrl) return;
+
+      const existingJobId = activeJobsRef.current.get(id);
+      if (existingJobId) {
+        try { await cancelJob({ jobId: existingJobId }); } catch { /* ignore */ }
+        activeJobsRef.current.delete(id);
+      }
+
+      dispatch({ type: 'UPDATE_PANEL', id, updates: { status: ProcessingStatus.Pending, error: undefined } });
+
+      try {
+        const imageBase64 = await fetchImageAsBase64(panel.resultUrl);
+
+        const response = await submitJob({
+          projectId,
+          sessionId,
+          panelId: id,
+          fileName: panel.fileName,
+          imageBase64,
+          mimeType: 'image/jpeg',
+          referenceImages: [],
+          globalPrompt: remixPrompt,
+          targetAspectRatio: state.config.targetAspectRatio,
+          apiKey: customApiKey || undefined,
+          provider,
+          mode: 'remix',
+        });
+
+        activeJobsRef.current.set(id, response.jobId);
+      } catch (error: unknown) {
+        if (!isMountedRef.current) return;
+        dispatch({
+          type: 'UPDATE_PANEL',
+          id,
+          updates: {
+            status: ProcessingStatus.Error,
+            error: error instanceof Error ? error.message : 'Remix failed',
+          },
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.panels, state.config.targetAspectRatio, projectId, sessionId, customApiKey, provider, submitJob, cancelJob, fetchImageAsBase64]
+  );
+
+  // Time of Day: re-colorize the original panel with the generated result as color reference
+  const convertTimeOfDay = useCallback(
+    async (id: string, time: string) => {
+      const panel = state.panels.find((p) => p.id === id);
+      if (!panel?.resultUrl) return;
+
+      const existingJobId = activeJobsRef.current.get(id);
+      if (existingJobId) {
+        try { await cancelJob({ jobId: existingJobId }); } catch { /* ignore */ }
+        activeJobsRef.current.delete(id);
+      }
+
+      dispatch({
+        type: 'UPDATE_PANEL',
+        id,
+        updates: { status: ProcessingStatus.Pending, error: undefined, timeOfDay: time },
+      });
+
+      try {
+        const originalBase64 = await compressImage(panel.file, 1500, 0.8);
+        const resultBase64 = await fetchImageAsBase64(panel.resultUrl);
+
+        const response = await submitJob({
+          projectId,
+          sessionId,
+          panelId: id,
+          fileName: panel.fileName,
+          imageBase64: originalBase64,
+          mimeType: 'image/jpeg',
+          referenceImages: [{ base64: resultBase64, mimeType: 'image/jpeg' }],
+          globalPrompt: `Change the time of day to ${time}. Maintain the character colors from the reference image exactly.`,
+          targetAspectRatio: state.config.targetAspectRatio,
+          apiKey: customApiKey || undefined,
+          provider,
+          timeOfDay: time,
+        });
+
+        activeJobsRef.current.set(id, response.jobId);
+      } catch (error: unknown) {
+        if (!isMountedRef.current) return;
+        dispatch({
+          type: 'UPDATE_PANEL',
+          id,
+          updates: {
+            status: ProcessingStatus.Error,
+            error: error instanceof Error ? error.message : 'Time conversion failed',
+            timeOfDay: undefined,
+          },
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.panels, state.config.targetAspectRatio, projectId, sessionId, customApiKey, provider, submitJob, cancelJob, fetchImageAsBase64]
+  );
+
   // Clear all panels
   const clearPanels = useCallback(async () => {
     const cancelPromises: Promise<void>[] = [];
@@ -433,6 +549,8 @@ export function usePanelColorizer({ projectId }: UsePanelColorizerOptions) {
     processAllPanels,
     cancelProcessing,
     retryPanel,
+    remixPanel,
+    convertTimeOfDay,
     clearPanels,
     provider,
     setProvider,

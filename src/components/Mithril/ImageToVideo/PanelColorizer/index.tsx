@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
 import { usePanelColorizer } from './usePanelColorizer';
@@ -24,9 +24,12 @@ const fileToBase64Full = (file: File): Promise<string> => {
   });
 };
 
+type ViewMode = 'upload' | 'editor';
+
 export default function PanelColorizer() {
   const { currentProjectId } = useMithril();
   const referenceInputRef = useRef<HTMLInputElement>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('upload');
 
   const {
     state,
@@ -42,6 +45,8 @@ export default function PanelColorizer() {
     processAllPanels,
     cancelProcessing,
     retryPanel,
+    remixPanel,
+    convertTimeOfDay,
     provider,
     setProvider,
     successCount,
@@ -135,6 +140,19 @@ export default function PanelColorizer() {
     }
   }, [panels]);
 
+  if (viewMode === 'editor') {
+    return (
+      <PanelEditor
+        panels={panels}
+        onBack={() => setViewMode('upload')}
+        onDownloadAll={handleDownloadAll}
+        onRegenerate={retryPanel}
+        onRemix={remixPanel}
+        onConvertTimeOfDay={convertTimeOfDay}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -186,7 +204,7 @@ export default function PanelColorizer() {
             <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
               <SelectItem value="gemini" className="cursor-pointer">
                 <div className="flex flex-col">
-                  <span className="font-medium">Gemini <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-2.0-flash-exp)</span></span>
+                  <span className="font-medium">Gemini <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3-pro-image-preview)</span></span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">Google — supports reference images for color extraction</span>
                 </div>
               </SelectItem>
@@ -296,6 +314,14 @@ export default function PanelColorizer() {
               className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Download ZIP
+            </button>
+          )}
+          {successCount > 0 && (
+            <button
+              onClick={() => setViewMode('editor')}
+              className="px-3 py-1.5 text-xs font-medium text-[#DB2777] dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-md hover:bg-pink-100 dark:hover:bg-pink-900/40"
+            >
+              Go to Editor →
             </button>
           )}
           {isProcessing ? (
@@ -545,6 +571,217 @@ function PanelCard({
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Panel Editor View ────────────────────────────────────────────────────────
+
+const TIME_OF_DAY_OPTIONS = ['Morning', 'Daylight', 'Evening', 'Night'] as const;
+
+function PanelEditor({
+  panels,
+  onBack,
+  onDownloadAll,
+  onRegenerate,
+  onRemix,
+  onConvertTimeOfDay,
+}: {
+  panels: PanelData[];
+  onBack: () => void;
+  onDownloadAll: () => void;
+  onRegenerate: (id: string) => void;
+  onRemix: (id: string, prompt: string) => void;
+  onConvertTimeOfDay: (id: string, time: string) => void;
+}) {
+  const completedPanels = panels.filter((p) => p.status === ProcessingStatus.Success && p.resultUrl);
+
+  return (
+    <div className="space-y-4">
+      {/* Editor Header */}
+      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg sticky top-0 z-10">
+        <div>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Panel Editor</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Review, refine, and remix your results</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+          >
+            ← Back to Upload
+          </button>
+          {completedPanels.length > 0 && (
+            <button
+              onClick={onDownloadAll}
+              className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
+            >
+              Download All (ZIP)
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Panel Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {panels.map((panel, index) => (
+          <EditorPanelCard
+            key={panel.id}
+            panel={panel}
+            index={index}
+            onRegenerate={onRegenerate}
+            onRemix={onRemix}
+            onConvertTimeOfDay={onConvertTimeOfDay}
+          />
+        ))}
+      </div>
+
+      {panels.length === 0 && (
+        <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+          <p>No panels in workspace. Go back to upload panels first.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorPanelCard({
+  panel,
+  index,
+  onRegenerate,
+  onRemix,
+  onConvertTimeOfDay,
+}: {
+  panel: PanelData;
+  index: number;
+  onRegenerate: (id: string) => void;
+  onRemix: (id: string, prompt: string) => void;
+  onConvertTimeOfDay: (id: string, time: string) => void;
+}) {
+  const [remixOpen, setRemixOpen] = useState(false);
+  const [remixPrompt, setRemixPrompt] = useState('');
+
+  const resultSrc = panel.resultUrl?.startsWith('http')
+    ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+    : panel.resultUrl;
+
+  const isProcessing = panel.status === ProcessingStatus.Pending;
+  const hasResult = panel.status === ProcessingStatus.Success && resultSrc;
+
+  const handleRemixSubmit = () => {
+    if (!remixPrompt.trim()) return;
+    onRemix(panel.id, remixPrompt);
+    setRemixOpen(false);
+    setRemixPrompt('');
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
+      {/* Image Preview */}
+      <div className="relative aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center flex-shrink-0">
+        {hasResult ? (
+          <img src={resultSrc!} alt={`Panel ${index + 1}`} className="w-full h-full object-contain" />
+        ) : (
+          <span className="text-sm text-gray-400 dark:text-gray-500">
+            {isProcessing ? 'Processing...' : 'No result yet'}
+          </span>
+        )}
+        {isProcessing && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-[#DB2777] border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {/* Action Bar */}
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        {/* Panel label + status */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono text-gray-500 dark:text-gray-400">Panel {index + 1}</span>
+          {panel.status === ProcessingStatus.Success && (
+            <span className="text-xs text-green-500">Colorized</span>
+          )}
+          {panel.status === ProcessingStatus.Error && (
+            <span className="text-xs text-red-400 truncate max-w-[140px]" title={panel.error}>Error</span>
+          )}
+          {isProcessing && (
+            <span className="text-xs text-yellow-500 animate-pulse">Processing...</span>
+          )}
+        </div>
+
+        {/* Regenerate / Remix buttons */}
+        {hasResult && !remixOpen && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => onRegenerate(panel.id)}
+              disabled={isProcessing}
+              className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
+            >
+              🔄 Regenerate
+            </button>
+            <button
+              onClick={() => { setRemixOpen(true); setRemixPrompt(''); }}
+              disabled={isProcessing}
+              className="flex-1 px-2 py-1.5 text-xs font-medium text-[#DB2777] dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded hover:bg-pink-100 dark:hover:bg-pink-900/40 disabled:opacity-50"
+            >
+              🎨 Remix
+            </button>
+          </div>
+        )}
+
+        {/* Remix prompt input */}
+        {remixOpen && (
+          <div className="space-y-2">
+            <textarea
+              className="w-full px-2 py-1.5 text-xs bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-800 dark:text-gray-200 placeholder-gray-400 resize-none focus:outline-none focus:ring-1 focus:ring-[#DB2777]"
+              placeholder="e.g. make it rainy, add dramatic lighting..."
+              rows={2}
+              value={remixPrompt}
+              onChange={(e) => setRemixPrompt(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleRemixSubmit}
+                disabled={!remixPrompt.trim()}
+                className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-[#DB2777] hover:bg-[#BE185D] rounded disabled:opacity-50"
+              >
+                Generate Remix
+              </button>
+              <button
+                onClick={() => setRemixOpen(false)}
+                className="px-2 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Time of Day */}
+        {hasResult && !remixOpen && (
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">
+              Time of Day
+            </p>
+            <div className="grid grid-cols-4 gap-1">
+              {TIME_OF_DAY_OPTIONS.map((time) => (
+                <button
+                  key={time}
+                  onClick={() => onConvertTimeOfDay(panel.id, time)}
+                  disabled={isProcessing}
+                  className={`py-1 text-[10px] rounded border transition-colors disabled:opacity-50 ${
+                    panel.timeOfDay === time
+                      ? 'bg-indigo-900/50 border-indigo-500 text-indigo-200 dark:bg-indigo-900/60'
+                      : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

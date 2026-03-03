@@ -27,7 +27,7 @@ settings = get_settings()
 
 # Concurrency control: limit to 3 concurrent panel splitter jobs per worker
 # This prevents API rate limit issues and reduces memory pressure
-PANEL_SPLITTER_CONCURRENCY = 3
+PANEL_SPLITTER_CONCURRENCY = 1
 _panel_splitter_semaphore: asyncio.Semaphore | None = None
 
 
@@ -39,7 +39,7 @@ def get_panel_splitter_semaphore() -> asyncio.Semaphore:
         logger.info(f"[PANEL-SPLITTER] Initialized concurrency semaphore (max {PANEL_SPLITTER_CONCURRENCY})")
     return _panel_splitter_semaphore
 
-MODEL_NAME = "gemini-3.1-pro-preview"
+MODEL_NAME = "gemini-3-pro-preview"
 
 
 class CancellationRequested(Exception):

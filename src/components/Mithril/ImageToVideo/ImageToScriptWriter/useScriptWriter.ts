@@ -32,6 +32,7 @@ import {
   getMangaPages,
   getMangaPanels,
 } from '../../services/firestore';
+import { uploadI2VPanelImage } from '../../services/s3/images';
 
 export function useScriptWriter() {
   const { getStageResult, setStageResult, currentProjectId, customApiKey } = useMithril();
@@ -555,6 +556,10 @@ export function useScriptWriter() {
       throw new Error('No panel images available. Please upload panels or complete Stage 1.');
     }
 
+    if (!currentProjectId) {
+      throw new Error('No project selected.');
+    }
+
     dispatch({ type: 'START_GENERATING' });
 
     try {
@@ -575,22 +580,14 @@ export function useScriptWriter() {
             imageData = await compressBase64Image(imageData, 800, 0.7);
           }
 
-          const uploadResponse = await fetch('/api/mithril/s3/image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              projectId: currentProjectId,
-              imageBase64: imageData,
-              folder: 'i2v/imported-panels',
-            }),
-          });
-
-          if (!uploadResponse.ok) {
-            throw new Error(`Failed to upload panel ${panel.id} to S3`);
-          }
-
-          const uploadData = await uploadResponse.json();
-          panelUrls.push(uploadData.url);
+          const idx = allPanels.indexOf(panel);
+          const url = await uploadI2VPanelImage(
+            currentProjectId,
+            0, // pageIndex — imported panels don't have pages
+            idx,
+            imageData,
+          );
+          panelUrls.push(url);
         }
         panelLabels.push(panel.label);
       }
@@ -632,20 +629,49 @@ export function useScriptWriter() {
     dispatch({ type: 'START_SPLITTING' });
 
     try {
+      // Strip heavy fields (referenceImage, etc.) to avoid exceeding body size limit
+      const lightScenes = currentState.result.scenes.map((scene) => ({
+        sceneTitle: scene.sceneTitle,
+        clips: scene.clips.map((clip) => ({
+          imagePrompt: clip.imagePrompt,
+        })),
+      }));
+
       const response = await fetch('/api/manga/split-start-end', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenes: currentState.result.scenes }),
+        body: JSON.stringify({ scenes: lightScenes, apiKey: customApiKey }),
         signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to split frames');
+        let errorMessage = `Failed to split frames (${response.status})`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      const updatedScenes: Scene[] = data.scenes || [];
+      const returnedScenes = data.scenes || [];
+
+      // Apply split results back to the full scenes (preserving all original fields)
+      const updatedScenes: Scene[] = currentState.result.scenes.map((scene, sIdx) => ({
+        ...scene,
+        clips: scene.clips.map((clip, cIdx) => {
+          const returned = returnedScenes[sIdx]?.clips?.[cIdx];
+          if (!returned) return clip;
+          return {
+            ...clip,
+            imagePrompt: returned.imagePrompt ?? clip.imagePrompt,
+            imagePromptEnd: returned.imagePromptEnd,
+          };
+        }),
+      }));
 
       dispatch({ type: 'FINISH_SPLITTING', scenes: updatedScenes });
       setStageResult(2, { scenes: updatedScenes, voicePrompts: currentState.result.voicePrompts });

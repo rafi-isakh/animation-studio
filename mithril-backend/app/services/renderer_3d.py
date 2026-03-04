@@ -87,23 +87,34 @@ def _interior_camera_pose(
     azimuth_deg: float,
     elevation_deg: float,
     center: np.ndarray,
-    max_extent: float,
+    extents: np.ndarray,
     tilt_deg: float = 0.0,
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    offset_z: float = 0.0,
 ) -> np.ndarray:
     """
-    Camera at the center of the model, looking outward.
+    Camera inside the model, looking outward.
 
     azimuth/elevation control the look direction (not position).
+    offset_x/y/z move the camera position as a fraction of half the bounding box extents.
+      0,0,0 = bounding box center; ±1 reaches the edge along each axis.
     """
-    eye = center.copy()
+    half = extents / 2.0
+    eye = center + np.array([
+        offset_x * half[0],
+        offset_y * half[1],
+        offset_z * half[2],
+    ])
 
     az = math.radians(azimuth_deg)
     el = math.radians(elevation_deg)
 
-    # Look direction — outward from center
+    # Look direction — outward from camera position
     look_x = math.cos(el) * math.cos(az)
     look_y = math.sin(el)
     look_z = math.cos(el) * math.sin(az)
+    max_extent = float(np.max(extents))
     look_target = eye + np.array([look_x, look_y, look_z]) * max_extent
 
     return _look_at_pose(eye, look_target, tilt_deg)
@@ -254,6 +265,9 @@ async def render_single_view(
     resolution: tuple[int, int] = (1920, 1080),
     camera_mode: str = "exterior",
     tilt: float = 0.0,
+    interior_offset_x: float = 0.0,
+    interior_offset_y: float = 0.0,
+    interior_offset_z: float = 0.0,
 ) -> bytes:
     """
     Render a single view of a .glb model.
@@ -262,11 +276,14 @@ async def render_single_view(
         model_data: Raw bytes of the .glb file.
         azimuth: Horizontal angle in degrees (0-360).
         elevation: Vertical angle in degrees (-90 to 90).
-        distance_multiplier: Camera distance multiplier (exterior) or ignored (interior).
+        distance_multiplier: Camera distance multiplier (exterior mode only).
         fov: Field of view in degrees.
         resolution: (width, height) of the rendered image.
-        camera_mode: "exterior" (orbit outside looking in) or "interior" (at center looking out).
+        camera_mode: "exterior" (orbit outside looking in) or "interior" (inside looking out).
         tilt: Camera roll in degrees (-180 to 180). Creates Dutch angle effect.
+        interior_offset_x: Horizontal offset from center (-1 to 1, fraction of half-extent). Interior only.
+        interior_offset_y: Vertical offset from center (-1 to 1, fraction of half-extent). Interior only.
+        interior_offset_z: Depth offset from center (-1 to 1, fraction of half-extent). Interior only.
 
     Returns:
         PNG image bytes.
@@ -313,8 +330,14 @@ async def render_single_view(
         )
 
         if camera_mode == "interior":
-            pose = _interior_camera_pose(azimuth, elevation, center, max_extent, tilt)
-            logger.info(f"Interior camera at center, looking az={azimuth} el={elevation} tilt={tilt}")
+            pose = _interior_camera_pose(
+                azimuth, elevation, center, extents, tilt,
+                interior_offset_x, interior_offset_y, interior_offset_z,
+            )
+            logger.info(
+                f"Interior camera offset=({interior_offset_x},{interior_offset_y},{interior_offset_z}) "
+                f"az={azimuth} el={elevation} tilt={tilt}"
+            )
         else:
             orbit_radius = max_extent * distance_multiplier
             pose = _exterior_camera_pose(azimuth, elevation, orbit_radius, center, tilt)

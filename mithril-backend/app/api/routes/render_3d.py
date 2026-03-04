@@ -25,6 +25,9 @@ class Render3DRequest(BaseModel):
     fov: float = 45.0  # Field of view in degrees
     camera_mode: Literal["exterior", "interior"] = "exterior"  # exterior=orbit outside, interior=inside looking out
     tilt: float = 0.0  # Camera roll in degrees (-180 to 180), Dutch angle effect
+    interior_offset_x: float = 0.0  # Horizontal offset from center (-1 to 1, fraction of half-extent). Interior only.
+    interior_offset_y: float = 0.0  # Vertical offset from center (-1 to 1). Interior only.
+    interior_offset_z: float = 0.0  # Depth offset from center (-1 to 1). Interior only.
     resolution: tuple[int, int] = (1920, 1080)
     output_mode: Literal["direct", "ai_enhanced"] = "direct"
     style_prompt: str | None = None
@@ -63,6 +66,9 @@ async def render_3d_model_endpoint(
         raise HTTPException(400, "Distance multiplier must be between 0.5 and 20.0")
     if request.tilt < -180 or request.tilt > 180:
         raise HTTPException(400, "Tilt must be between -180 and 180 degrees")
+    for axis, val in [("X", request.interior_offset_x), ("Y", request.interior_offset_y), ("Z", request.interior_offset_z)]:
+        if val < -1.0 or val > 1.0:
+            raise HTTPException(400, f"Interior offset {axis} must be between -1.0 and 1.0")
 
     # Download .glb model
     try:
@@ -82,6 +88,9 @@ async def render_3d_model_endpoint(
             resolution=request.resolution,
             camera_mode=request.camera_mode,
             tilt=request.tilt,
+            interior_offset_x=request.interior_offset_x,
+            interior_offset_y=request.interior_offset_y,
+            interior_offset_z=request.interior_offset_z,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))

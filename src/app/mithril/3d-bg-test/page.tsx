@@ -12,6 +12,9 @@ interface CameraParams {
   fov: number;
   tilt: number;
   cameraMode: CameraMode;
+  interiorOffsetX: number;
+  interiorOffsetY: number;
+  interiorOffsetZ: number;
 }
 
 interface RenderEntry {
@@ -27,6 +30,9 @@ export default function ThreeDBackgroundTestPage() {
   const [distanceMultiplier, setDistanceMultiplier] = useState(2.5);
   const [fov, setFov] = useState(45);
   const [tilt, setTilt] = useState(0);
+  const [interiorOffsetX, setInteriorOffsetX] = useState(0);
+  const [interiorOffsetY, setInteriorOffsetY] = useState(0);
+  const [interiorOffsetZ, setInteriorOffsetZ] = useState(0);
   const [cameraMode, setCameraMode] = useState<CameraMode>("exterior");
   const [outputMode, setOutputMode] = useState<OutputMode>("direct");
   const [stylePrompt, setStylePrompt] = useState(
@@ -65,6 +71,9 @@ export default function ThreeDBackgroundTestPage() {
           fov,
           tilt,
           cameraMode,
+          interiorOffsetX,
+          interiorOffsetY,
+          interiorOffsetZ,
           resolution,
           outputMode,
           stylePrompt: outputMode === "ai_enhanced" ? stylePrompt : undefined,
@@ -84,7 +93,7 @@ export default function ThreeDBackgroundTestPage() {
       setHistory((prev) => [
         {
           image: data.image,
-          params: { azimuth, elevation, distanceMultiplier, fov, tilt, cameraMode },
+          params: { azimuth, elevation, distanceMultiplier, fov, tilt, cameraMode, interiorOffsetX, interiorOffsetY, interiorOffsetZ },
           timestamp: Date.now(),
         },
         ...prev,
@@ -104,6 +113,9 @@ export default function ThreeDBackgroundTestPage() {
     setDistanceMultiplier(entry.params.distanceMultiplier);
     setFov(entry.params.fov);
     setTilt(entry.params.tilt);
+    setInteriorOffsetX(entry.params.interiorOffsetX);
+    setInteriorOffsetY(entry.params.interiorOffsetY);
+    setInteriorOffsetZ(entry.params.interiorOffsetZ);
     setCameraMode(entry.params.cameraMode);
     setCurrentImage(entry.image);
   };
@@ -261,6 +273,44 @@ export default function ThreeDBackgroundTestPage() {
                   className="w-full accent-blue-500"
                 />
               </div>
+
+              {/* Interior position offsets (interior mode only) */}
+              {cameraMode === "interior" && (
+                <div className="space-y-2 pt-1 border-t border-gray-700">
+                  <p className="text-xs text-gray-500">
+                    Camera position offset (fraction of model size)
+                  </p>
+                  {(
+                    [
+                      ["Offset X (left/right)", interiorOffsetX, setInteriorOffsetX],
+                      ["Offset Y (up/down)", interiorOffsetY, setInteriorOffsetY],
+                      ["Offset Z (forward/back)", interiorOffsetZ, setInteriorOffsetZ],
+                    ] as [string, number, (v: number) => void][]
+                  ).map(([label, value, setter]) => (
+                    <div key={label}>
+                      <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>{label}</span>
+                        <span>{value.toFixed(2)}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={-1}
+                        max={1}
+                        step={0.05}
+                        value={value}
+                        onChange={(e) => setter(Number(e.target.value))}
+                        className="w-full accent-purple-500"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => { setInteriorOffsetX(0); setInteriorOffsetY(0); setInteriorOffsetZ(0); }}
+                    className="text-xs text-gray-500 hover:text-gray-300 underline"
+                  >
+                    Reset to center
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Resolution */}

@@ -13,6 +13,7 @@ import type {
   VoicePrompt,
   PanelData,
   GenerationConditions,
+  GenerationInstructions,
   StyleGuides,
   Continuity,
 } from './types';
@@ -147,6 +148,15 @@ export function useScriptWriter() {
             image: meta.imageCondition || '',
             video: meta.videoCondition || '',
             sound: meta.soundCondition || '',
+          },
+        });
+        dispatch({
+          type: 'SET_INSTRUCTIONS',
+          instructions: {
+            custom: meta.customInstruction || '',
+            background: meta.backgroundInstruction || '',
+            negative: meta.negativeInstruction || '',
+            video: meta.videoInstruction || '',
           },
         });
 
@@ -487,6 +497,10 @@ export function useScriptWriter() {
     dispatch({ type: 'SET_GUIDES', guides });
   }, []);
 
+  const setInstructions = useCallback((instructions: Partial<GenerationInstructions>) => {
+    dispatch({ type: 'SET_INSTRUCTIONS', instructions });
+  }, []);
+
   // UI toggles
   const toggleConditions = useCallback(() => {
     dispatch({ type: 'TOGGLE_CONDITIONS' });
@@ -511,6 +525,10 @@ export function useScriptWriter() {
       imageCondition: config.conditions.image || '',
       videoCondition: config.conditions.video || '',
       soundCondition: config.conditions.sound || '',
+      customInstruction: config.instructions.custom || '',
+      backgroundInstruction: config.instructions.background || '',
+      negativeInstruction: config.instructions.negative || '',
+      videoInstruction: config.instructions.video || '',
     });
 
     // Save voice prompts
@@ -604,6 +622,10 @@ export function useScriptWriter() {
         soundCondition: currentState.config.conditions.sound,
         imageGuide: currentState.config.guides.image || undefined,
         videoGuide: currentState.config.guides.video || undefined,
+        customInstruction: currentState.config.instructions.custom || undefined,
+        backgroundInstruction: currentState.config.instructions.background || undefined,
+        negativeInstruction: currentState.config.instructions.negative || undefined,
+        videoInstruction: currentState.config.instructions.video || undefined,
       });
 
       if (!result.success) {
@@ -868,6 +890,7 @@ export function useScriptWriter() {
     setSourceText,
     setConditions,
     setGuides,
+    setInstructions,
 
     // Actions - UI
     toggleConditions,

@@ -737,6 +737,10 @@ export interface I2VScriptDocument {
   imageCondition: string;
   videoCondition: string;
   soundCondition: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
   generatedAt: Timestamp;
 }
 
@@ -782,6 +786,10 @@ export interface SaveI2VScriptInput {
   imageCondition: string;
   videoCondition: string;
   soundCondition: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 export interface SaveI2VSceneInput {

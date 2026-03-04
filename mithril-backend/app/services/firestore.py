@@ -696,6 +696,10 @@ class JobQueueService:
             sound_condition=request.sound_condition,
             image_guide=request.image_guide,
             video_guide=request.video_guide,
+            custom_instruction=request.custom_instruction,
+            background_instruction=request.background_instruction,
+            negative_instruction=request.negative_instruction,
+            video_instruction=request.video_instruction,
             max_retries=3,
         )
 

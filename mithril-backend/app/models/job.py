@@ -772,6 +772,11 @@ class I2VStoryboardJobSubmitRequest(BaseModel):
     # Guides
     image_guide: str = ""
     video_guide: str = ""
+    # Additional instructions
+    custom_instruction: str = ""
+    background_instruction: str = ""
+    negative_instruction: str = ""
+    video_instruction: str = ""
     # API key
     api_key: str | None = None
 

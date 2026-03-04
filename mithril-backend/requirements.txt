@@ -27,6 +27,8 @@ xai-sdk>=0.0.1
 
 # 3D rendering
 trimesh>=4.0.0
+plyfile>=0.8.1          # 3DGS .ply loading
+gaussforge             # 3DGS format conversion (SPZ, SPLAT, KSPLAT, SOG → PLY)
 PyOpenGL>=3.1.7
 networkx>=2.2
 freetype-py>=2.2.0

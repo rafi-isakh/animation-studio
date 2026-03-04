@@ -17,11 +17,18 @@ import { uploadBackgroundImage } from "@/components/Mithril/services/s3/images";
 
 const DEFAULT_FRAMEWORK_GUIDE_PATH = "/prompt/Bidirectional Framework.txt";
 const API_KEY_STORAGE_KEY = "bg-generator-api-key";
+const WORLDLABS_API_KEY_STORAGE_KEY = "bg-generator-worldlabs-api-key";
 const SESSION_PROJECT_PREFIX = "standalone-bg-";
+const WORLDLABS_POLL_INTERVAL_MS = 5000;
 
 function getStoredApiKey(): string {
   if (typeof window === "undefined") return "";
   return localStorage.getItem(API_KEY_STORAGE_KEY) || "";
+}
+
+function getStoredWorldLabsApiKey(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem(WORLDLABS_API_KEY_STORAGE_KEY) || "";
 }
 
 function generateSessionProjectId(): string {
@@ -56,6 +63,10 @@ export function useBgGenerator() {
     prompt: string;
   } | null>(null);
   const [apiKey, setApiKeyState] = useState(getStoredApiKey);
+  const [worldLabsApiKey, setWorldLabsApiKeyState] = useState(getStoredWorldLabsApiKey);
+
+  // Map of itemId → polling interval ID
+  const worldLabsPollingRefs = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   // Session-based project ID for orchestrator job tracking
   const sessionProjectId = useMemo(() => generateSessionProjectId(), []);
@@ -207,6 +218,13 @@ export function useBgGenerator() {
     setApiKeyState(key);
     if (typeof window !== "undefined") {
       localStorage.setItem(API_KEY_STORAGE_KEY, key);
+    }
+  }, []);
+
+  const setWorldLabsApiKey = useCallback((key: string) => {
+    setWorldLabsApiKeyState(key);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(WORLDLABS_API_KEY_STORAGE_KEY, key);
     }
   }, []);
 
@@ -767,6 +785,192 @@ Match the ground texture, horizon line, sky gradient, and lighting direction EXA
     [items, style, sessionProjectId, apiKey, orchestrator, uploadImageToS3]
   );
 
+  // --- WorldLabs 3D Generation ---
+
+  const stopWorldLabsPolling = useCallback((itemId: string) => {
+    const interval = worldLabsPollingRefs.current.get(itemId);
+    if (interval !== undefined) {
+      clearInterval(interval);
+      worldLabsPollingRefs.current.delete(itemId);
+    }
+  }, []);
+
+  // Clean up all polling on unmount
+  useEffect(() => {
+    return () => {
+      worldLabsPollingRefs.current.forEach((interval) => clearInterval(interval));
+    };
+  }, []);
+
+  const pollWorldLabsStatus = useCallback(
+    (itemId: string, operationId: string, apiKey: string) => {
+      const doFetch = async () => {
+        try {
+          const res = await fetch(
+            `/api/tools/bg-generator/worldlabs/status?operationId=${encodeURIComponent(operationId)}&apiKey=${encodeURIComponent(apiKey)}`
+          );
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || "Status poll failed");
+          }
+
+          if (data.status === "completed") {
+            stopWorldLabsPolling(itemId);
+            setItems((current) =>
+              current.map((i) =>
+                i.id === itemId
+                  ? {
+                      ...i,
+                      worldLabs: {
+                        operationId,
+                        status: "completed",
+                        worldId: data.worldId,
+                        worldMarbleUrl: data.worldMarbleUrl,
+                        thumbnailUrl: data.thumbnailUrl,
+                        panoUrl: data.panoUrl,
+                        splatUrls: data.splatUrls,
+                        meshUrl: data.meshUrl,
+                      },
+                    }
+                  : i
+              )
+            );
+          } else if (data.status === "failed") {
+            stopWorldLabsPolling(itemId);
+            setItems((current) =>
+              current.map((i) =>
+                i.id === itemId
+                  ? {
+                      ...i,
+                      worldLabs: {
+                        operationId,
+                        status: "failed",
+                        error: data.error || "WorldLabs generation failed",
+                      },
+                    }
+                  : i
+              )
+            );
+          }
+          // "generating" → keep polling
+        } catch (err) {
+          console.error("[WorldLabs poll]", err);
+          stopWorldLabsPolling(itemId);
+          setItems((current) =>
+            current.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    worldLabs: {
+                      ...(i.worldLabs ?? { operationId }),
+                      operationId,
+                      status: "failed",
+                      error: err instanceof Error ? err.message : "Poll error",
+                    },
+                  }
+                : i
+            )
+          );
+        }
+      };
+
+      // Poll immediately, then on interval
+      doFetch();
+      const interval = setInterval(doFetch, WORLDLABS_POLL_INTERVAL_MS);
+      worldLabsPollingRefs.current.set(itemId, interval);
+    },
+    [stopWorldLabsPolling]
+  );
+
+  const handleGenerate3DWorld = useCallback(
+    async (id: string) => {
+      if (!worldLabsApiKey) {
+        alert("Please enter your WorldLabs API key first.");
+        return;
+      }
+
+      const item = itemsRef.current.find((i) => i.id === id);
+      if (!item) return;
+
+      // Get the currently displayed front and back images
+      const frontUrl =
+        item.timeVariants[item.selectedTime]?.front || item.frontImage;
+      const backUrl =
+        item.timeVariants[item.selectedTime]?.back ||
+        item.backImages[item.selectedBackImageIndex];
+
+      if (!frontUrl || !backUrl) {
+        alert("Both front and back images are required to generate a 3D world.");
+        return;
+      }
+
+      // Mark as uploading
+      setItems((current) =>
+        current.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                worldLabs: {
+                  operationId: "",
+                  status: "uploading",
+                },
+              }
+            : i
+        )
+      );
+
+      try {
+        const res = await fetch("/api/tools/bg-generator/worldlabs/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            frontImageUrl: frontUrl,
+            backImageUrl: backUrl,
+            displayName: item.frontPrompt.substring(0, 80) || "BG World",
+            apiKey: worldLabsApiKey,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Generation request failed");
+
+        const { operationId } = data;
+
+        // Mark as generating and start polling
+        setItems((current) =>
+          current.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  worldLabs: { operationId, status: "generating" },
+                }
+              : i
+          )
+        );
+
+        pollWorldLabsStatus(id, operationId, worldLabsApiKey);
+      } catch (err) {
+        console.error("[WorldLabs generate]", err);
+        setItems((current) =>
+          current.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  worldLabs: {
+                    operationId: "",
+                    status: "failed",
+                    error: err instanceof Error ? err.message : "Unknown error",
+                  },
+                }
+              : i
+          )
+        );
+      }
+    },
+    [worldLabsApiKey, pollWorldLabsStatus]
+  );
+
   // --- Item actions ---
 
   const handleDeleteItem = useCallback((id: string) => {
@@ -892,6 +1096,8 @@ Match the ground texture, horizon line, sky gradient, and lighting direction EXA
     setEditingItem,
     apiKey,
     setApiKey,
+    worldLabsApiKey,
+    setWorldLabsApiKey,
 
     // Refs
     frameworkInputRef,
@@ -931,5 +1137,8 @@ Match the ground texture, horizon line, sky gradient, and lighting direction EXA
     // Project
     exportProject,
     importProject,
+
+    // WorldLabs
+    handleGenerate3DWorld,
   };
 }

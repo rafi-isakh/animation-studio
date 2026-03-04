@@ -9,6 +9,25 @@ export interface PromptSlot {
   image: string | null; // data URI
 }
 
+export type WorldLabsStatus =
+  | "idle"
+  | "uploading"
+  | "generating"
+  | "completed"
+  | "failed";
+
+export interface WorldLabsResult {
+  operationId: string;
+  status: WorldLabsStatus;
+  worldId?: string;
+  worldMarbleUrl?: string;
+  thumbnailUrl?: string;
+  panoUrl?: string;
+  splatUrls?: { "100k": string; "500k": string; full_res: string };
+  meshUrl?: string;
+  error?: string;
+}
+
 export interface ProjectItem {
   id: string;
   frontPrompt: string;
@@ -19,6 +38,7 @@ export interface ProjectItem {
   status: GenerationStatus;
   timeVariants: Record<TimeOfDay, { front: string | null; back: string | null }>;
   selectedTime: TimeOfDay;
+  worldLabs?: WorldLabsResult;
 }
 
 export interface BgGeneratorWorkspace {

@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     xai_api_key: str = ""       # xAI API key (grok panel image generation)
     xai_video_api_key: str = ""  # xAI API key (grok video generation)
     modelslab_api_key: str = ""  # ModelsLab API key (z-image-turbo)
+    worldlabs_api_key: str = ""  # WorldLabs API key (3D world generation)
 
     # Application
     debug: bool = False

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 type OutputMode = "direct" | "ai_enhanced";
 type CameraMode = "exterior" | "interior";
+type ModelFormat = "auto" | "glb" | "3dgs";
 
 interface CameraParams {
   azimuth: number;
@@ -12,6 +13,9 @@ interface CameraParams {
   fov: number;
   tilt: number;
   cameraMode: CameraMode;
+  interiorOffsetX: number;
+  interiorOffsetY: number;
+  interiorOffsetZ: number;
 }
 
 interface RenderEntry {
@@ -22,11 +26,18 @@ interface RenderEntry {
 
 export default function ThreeDBackgroundTestPage() {
   const [modelUrl, setModelUrl] = useState("");
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const [localFileData, setLocalFileData] = useState<string | null>(null); // base64
+  const [modelFormat, setModelFormat] = useState<ModelFormat>("auto");
+  const [maxGaussians, setMaxGaussians] = useState(200000);
   const [azimuth, setAzimuth] = useState(0);
   const [elevation, setElevation] = useState(30);
   const [distanceMultiplier, setDistanceMultiplier] = useState(2.5);
   const [fov, setFov] = useState(45);
   const [tilt, setTilt] = useState(0);
+  const [interiorOffsetX, setInteriorOffsetX] = useState(0);
+  const [interiorOffsetY, setInteriorOffsetY] = useState(0);
+  const [interiorOffsetZ, setInteriorOffsetZ] = useState(0);
   const [cameraMode, setCameraMode] = useState<CameraMode>("exterior");
   const [outputMode, setOutputMode] = useState<OutputMode>("direct");
   const [stylePrompt, setStylePrompt] = useState(
@@ -40,9 +51,29 @@ export default function ThreeDBackgroundTestPage() {
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [history, setHistory] = useState<RenderEntry[]>([]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLocalFile(file);
+    setLocalFileData(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      // result is "data:application/octet-stream;base64,XXXX" — strip the prefix
+      const result = ev.target?.result as string;
+      const base64 = result.split(",")[1];
+      setLocalFileData(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRender = async () => {
-    if (!modelUrl.trim()) {
-      setError("Please enter a .glb model URL");
+    const usingLocalFile = localFile !== null;
+    if (!usingLocalFile && !modelUrl.trim()) {
+      setError("Please enter a .glb model URL or select a local file");
+      return;
+    }
+    if (usingLocalFile && !localFileData) {
+      setError("File is still loading, please wait a moment");
       return;
     }
     if (outputMode === "ai_enhanced" && !apiKey.trim()) {
@@ -58,13 +89,19 @@ export default function ThreeDBackgroundTestPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          modelUrl: modelUrl.trim(),
+          modelUrl: localFile ? "" : modelUrl.trim(),
+          modelData: localFile ? localFileData : undefined,
+          modelFormat,
+          maxGaussians,
           azimuth,
           elevation,
           distanceMultiplier,
           fov,
           tilt,
           cameraMode,
+          interiorOffsetX,
+          interiorOffsetY,
+          interiorOffsetZ,
           resolution,
           outputMode,
           stylePrompt: outputMode === "ai_enhanced" ? stylePrompt : undefined,
@@ -84,7 +121,7 @@ export default function ThreeDBackgroundTestPage() {
       setHistory((prev) => [
         {
           image: data.image,
-          params: { azimuth, elevation, distanceMultiplier, fov, tilt, cameraMode },
+          params: { azimuth, elevation, distanceMultiplier, fov, tilt, cameraMode, interiorOffsetX, interiorOffsetY, interiorOffsetZ },
           timestamp: Date.now(),
         },
         ...prev,
@@ -104,6 +141,9 @@ export default function ThreeDBackgroundTestPage() {
     setDistanceMultiplier(entry.params.distanceMultiplier);
     setFov(entry.params.fov);
     setTilt(entry.params.tilt);
+    setInteriorOffsetX(entry.params.interiorOffsetX);
+    setInteriorOffsetY(entry.params.interiorOffsetY);
+    setInteriorOffsetZ(entry.params.interiorOffsetZ);
     setCameraMode(entry.params.cameraMode);
     setCurrentImage(entry.image);
   };
@@ -119,18 +159,95 @@ export default function ThreeDBackgroundTestPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left: Controls */}
           <div className="bg-gray-900 rounded-lg p-5 space-y-4 h-fit">
-            {/* Model URL */}
+            {/* Model source */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-300">
+                3D Model (.glb)
+              </label>
+
+              {/* Local file */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Local file</label>
+                <input
+                  type="file"
+                  accept=".glb,.ply,.splat,.spz"
+                  onChange={(e) => {
+                    handleFileChange(e);
+                    const name = e.target.files?.[0]?.name?.toLowerCase() ?? "";
+                    if (name.endsWith(".ply") || name.endsWith(".splat") || name.endsWith(".spz")) setModelFormat("3dgs");
+                    else if (name.endsWith(".glb")) setModelFormat("glb");
+                    else setModelFormat("auto");
+                  }}
+                  className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                />
+                {localFile && (
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {localFileData ? `✓ ${localFile.name} (${(localFile.size / 1024).toFixed(0)} KB)` : `Loading ${localFile.name}...`}
+                  </p>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-px bg-gray-700" />
+                <span className="text-xs text-gray-500">or</span>
+                <div className="flex-1 h-px bg-gray-700" />
+              </div>
+
+              {/* URL */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">URL (S3 / CDN)</label>
+                <input
+                  type="text"
+                  value={modelUrl}
+                  onChange={(e) => { setModelUrl(e.target.value); if (e.target.value) { setLocalFile(null); setLocalFileData(null); } }}
+                  placeholder="https://cdn.example.com/model.glb"
+                  disabled={!!localFile}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+            {/* Model Format */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                3D Model URL (.glb)
+                Model Format
               </label>
-              <input
-                type="text"
-                value={modelUrl}
-                onChange={(e) => setModelUrl(e.target.value)}
-                placeholder="https://cdn.example.com/model.glb"
-                className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex gap-1">
+                {(["auto", "glb", "3dgs"] as ModelFormat[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setModelFormat(f)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      modelFormat === f
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    {f === "auto" ? "Auto" : f === "glb" ? "GLB" : "3DGS (.ply/.spz)"}
+                  </button>
+                ))}
+              </div>
+              {modelFormat === "3dgs" && (
+                <div className="mt-2">
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span>Max Gaussians (speed vs quality)</span>
+                    <span>{maxGaussians.toLocaleString()}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50000}
+                    max={500000}
+                    step={50000}
+                    value={maxGaussians}
+                    onChange={(e) => setMaxGaussians(Number(e.target.value))}
+                    className="w-full accent-green-500"
+                  />
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Lower = faster (CPU rendering ~20-60 s)
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Camera Mode */}
@@ -261,6 +378,44 @@ export default function ThreeDBackgroundTestPage() {
                   className="w-full accent-blue-500"
                 />
               </div>
+
+              {/* Interior position offsets (interior mode only) */}
+              {cameraMode === "interior" && (
+                <div className="space-y-2 pt-1 border-t border-gray-700">
+                  <p className="text-xs text-gray-500">
+                    Camera position offset (fraction of model size)
+                  </p>
+                  {(
+                    [
+                      ["Offset X (left/right)", interiorOffsetX, setInteriorOffsetX],
+                      ["Offset Y (up/down)", interiorOffsetY, setInteriorOffsetY],
+                      ["Offset Z (forward/back)", interiorOffsetZ, setInteriorOffsetZ],
+                    ] as [string, number, (v: number) => void][]
+                  ).map(([label, value, setter]) => (
+                    <div key={label}>
+                      <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>{label}</span>
+                        <span>{value.toFixed(2)}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={-1}
+                        max={1}
+                        step={0.05}
+                        value={value}
+                        onChange={(e) => setter(Number(e.target.value))}
+                        className="w-full accent-purple-500"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => { setInteriorOffsetX(0); setInteriorOffsetY(0); setInteriorOffsetZ(0); }}
+                    className="text-xs text-gray-500 hover:text-gray-300 underline"
+                  >
+                    Reset to center
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Resolution */}
@@ -343,7 +498,7 @@ export default function ThreeDBackgroundTestPage() {
             {/* Render Button */}
             <button
               onClick={handleRender}
-              disabled={isLoading || !modelUrl.trim()}
+              disabled={isLoading || (!modelUrl.trim() && !localFile)}
               className="w-full px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md text-sm font-medium transition-colors"
             >
               {isLoading ? "Rendering..." : "Render"}

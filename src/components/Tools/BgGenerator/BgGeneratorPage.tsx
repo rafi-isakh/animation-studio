@@ -11,6 +11,7 @@ import EditPromptDialog from "./components/EditPromptDialog";
 export default function BgGeneratorPage() {
   const bg = useBgGenerator();
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showWorldLabsKey, setShowWorldLabsKey] = useState(false);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-[#DB2777]/30">
@@ -45,6 +46,30 @@ export default function BgGeneratorPage() {
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
                 >
                   {showApiKey ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* WorldLabs API Key */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-zinc-600 uppercase tracking-wider hidden lg:block">3D</span>
+              <div className="relative">
+                <input
+                  type={showWorldLabsKey ? "text" : "password"}
+                  value={bg.worldLabsApiKey}
+                  onChange={(e) => bg.setWorldLabsApiKey(e.target.value)}
+                  placeholder="WorldLabs Key"
+                  className="w-36 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 pr-8 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500"
+                />
+                <button
+                  onClick={() => setShowWorldLabsKey(!showWorldLabsKey)}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                >
+                  {showWorldLabsKey ? (
                     <EyeOff className="w-3.5 h-3.5" />
                   ) : (
                     <Eye className="w-3.5 h-3.5" />
@@ -128,6 +153,7 @@ export default function BgGeneratorPage() {
               onGenerateBack={bg.handleGenerateBackView}
               onSelectBackImage={bg.setSelectedBackImageIndex}
               onDownload={bg.downloadImage}
+              onGenerate3DWorld={bg.handleGenerate3DWorld}
             />
           )}
         </AnimatePresence>

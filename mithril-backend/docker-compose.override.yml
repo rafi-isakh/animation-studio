@@ -17,3 +17,6 @@ services:
   worker:
     volumes:
       - ./app:/app/app:ro
+    mem_limit: 2g
+    memswap_limit: 2g
+    command: taskiq worker app.workers.broker:broker app.workers.tasks

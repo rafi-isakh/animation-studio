@@ -24,6 +24,7 @@ interface GalleryViewProps {
   onGenerateBack: (id: string) => void;
   onSelectBackImage: (id: string, index: number) => void;
   onDownload: (dataUrl: string, filename: string) => void;
+  onGenerate3DWorld: (id: string) => void;
 }
 
 export default function GalleryView({
@@ -41,6 +42,7 @@ export default function GalleryView({
   onGenerateBack,
   onSelectBackImage,
   onDownload,
+  onGenerate3DWorld,
 }: GalleryViewProps) {
   const allBacksGenerated = items.every(
     (i) => i.backImages.length > 0 || !i.frontImage
@@ -96,6 +98,7 @@ export default function GalleryView({
             onGenerateBack={() => onGenerateBack(item.id)}
             onSelectBackImage={(idx) => onSelectBackImage(item.id, idx)}
             onDownload={onDownload}
+            onGenerate3DWorld={() => onGenerate3DWorld(item.id)}
           />
         ))}
       </div>

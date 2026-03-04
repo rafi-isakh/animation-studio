@@ -21,13 +21,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const backendUrl = `${ORCHESTRATOR_URL}/api/v1/render-3d/render`;
     const backendPayload = {
-      model_url: body.modelUrl,
+      model_url: body.modelUrl || "",
+      model_data: body.modelData || null,
       azimuth: body.azimuth ?? 0,
       elevation: body.elevation ?? 30,
       distance_multiplier: body.distanceMultiplier ?? 2.5,
       fov: body.fov ?? 45,
       camera_mode: body.cameraMode || "exterior",
       tilt: body.tilt ?? 0,
+      interior_offset_x: body.interiorOffsetX ?? 0,
+      interior_offset_y: body.interiorOffsetY ?? 0,
+      interior_offset_z: body.interiorOffsetZ ?? 0,
+      model_format: body.modelFormat || "auto",
+      max_gaussians: body.maxGaussians ?? 200000,
       resolution: body.resolution || [1920, 1080],
       output_mode: body.outputMode || "direct",
       style_prompt: body.stylePrompt,

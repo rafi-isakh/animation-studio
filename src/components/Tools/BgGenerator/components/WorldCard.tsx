@@ -6,6 +6,8 @@ import {
   Trash2,
   Upload,
   Loader2,
+  Box,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProjectItem, TimeOfDay, ModelProvider } from "../types";
@@ -22,6 +24,7 @@ interface WorldCardProps {
   onGenerateBack: () => void;
   onSelectBackImage: (index: number) => void;
   onDownload: (dataUrl: string, filename: string) => void;
+  onGenerate3DWorld: () => void;
 }
 
 export default function WorldCard({
@@ -36,6 +39,7 @@ export default function WorldCard({
   onGenerateBack,
   onSelectBackImage,
   onDownload,
+  onGenerate3DWorld,
 }: WorldCardProps) {
   const currentFrontImage =
     item.timeVariants[item.selectedTime].front ||
@@ -296,6 +300,111 @@ export default function WorldCard({
           )}
         </div>
       </div>
+
+      {/* WorldLabs 3D Section */}
+      {(item.backImages.length > 0 || item.worldLabs) && (
+        <div className="mt-6 pt-6 border-t border-zinc-800/60">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-violet-400 font-mono text-sm uppercase tracking-wider">
+              <Box className="w-4 h-4" />
+              3D World
+            </div>
+
+            {(!item.worldLabs || item.worldLabs.status === "failed") && (
+              <button
+                onClick={onGenerate3DWorld}
+                disabled={item.backImages.length === 0}
+                className="inline-flex items-center justify-center rounded-md text-xs font-medium transition-colors h-8 py-1 px-3 bg-violet-700 text-white hover:bg-violet-600 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <Box className="w-3 h-3 mr-2" />
+                Generate 3D World
+              </button>
+            )}
+          </div>
+
+          {item.worldLabs && (
+            <div className="mt-3">
+              {(item.worldLabs.status === "uploading" ||
+                item.worldLabs.status === "generating") && (
+                <div className="flex items-center gap-3 text-sm text-zinc-400">
+                  <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                  {item.worldLabs.status === "uploading"
+                    ? "Uploading images to WorldLabs..."
+                    : "Generating 3D world (may take 1–3 min)..."}
+                </div>
+              )}
+
+              {item.worldLabs.status === "failed" && (
+                <div className="text-xs text-red-400 mt-1">
+                  Failed: {item.worldLabs.error}
+                </div>
+              )}
+
+              {item.worldLabs.status === "completed" && (
+                <div className="mt-2 space-y-3">
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {item.worldLabs.worldMarbleUrl && (
+                      <a
+                        href={item.worldLabs.worldMarbleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-violet-700/60 bg-violet-900/20 text-violet-300 hover:bg-violet-800/30 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        View World
+                      </a>
+                    )}
+                    {item.worldLabs.panoUrl && (
+                      <a
+                        href={item.worldLabs.panoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                      >
+                        <Download className="w-3 h-3" />
+                        Panorama
+                      </a>
+                    )}
+                    {item.worldLabs.splatUrls && (
+                      <>
+                        <a
+                          href={item.worldLabs.splatUrls["100k"]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          3DGS 100k
+                        </a>
+                        <a
+                          href={item.worldLabs.splatUrls["500k"]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          3DGS 500k
+                        </a>
+                      </>
+                    )}
+                    {item.worldLabs.meshUrl && (
+                      <a
+                        href={item.worldLabs.meshUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                      >
+                        <Download className="w-3 h-3" />
+                        Mesh (.glb)
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       operationId,
       worldId,
       // WorldLabs viewer link (standard pattern)
-      worldMarbleUrl: worldId ? `https://worldlabs.ai/worlds/${worldId}` : undefined,
+      worldMarbleUrl: worldId ? `https://marble.worldlabs.ai/world/${worldId}` : undefined,
       thumbnailUrl: r.thumbnail_url,
       panoUrl: r.assets?.imagery?.pano_url,
       splatUrls: r.assets?.splats?.spz_urls,

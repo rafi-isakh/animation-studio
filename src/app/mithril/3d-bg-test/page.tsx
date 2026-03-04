@@ -4,6 +4,7 @@ import { useState } from "react";
 
 type OutputMode = "direct" | "ai_enhanced";
 type CameraMode = "exterior" | "interior";
+type ModelFormat = "auto" | "glb" | "3dgs";
 
 interface CameraParams {
   azimuth: number;
@@ -27,6 +28,8 @@ export default function ThreeDBackgroundTestPage() {
   const [modelUrl, setModelUrl] = useState("");
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localFileData, setLocalFileData] = useState<string | null>(null); // base64
+  const [modelFormat, setModelFormat] = useState<ModelFormat>("auto");
+  const [maxGaussians, setMaxGaussians] = useState(200000);
   const [azimuth, setAzimuth] = useState(0);
   const [elevation, setElevation] = useState(30);
   const [distanceMultiplier, setDistanceMultiplier] = useState(2.5);
@@ -88,6 +91,8 @@ export default function ThreeDBackgroundTestPage() {
         body: JSON.stringify({
           modelUrl: localFile ? "" : modelUrl.trim(),
           modelData: localFile ? localFileData : undefined,
+          modelFormat,
+          maxGaussians,
           azimuth,
           elevation,
           distanceMultiplier,
@@ -165,8 +170,14 @@ export default function ThreeDBackgroundTestPage() {
                 <label className="block text-xs text-gray-400 mb-1">Local file</label>
                 <input
                   type="file"
-                  accept=".glb"
-                  onChange={handleFileChange}
+                  accept=".glb,.ply,.splat,.spz"
+                  onChange={(e) => {
+                    handleFileChange(e);
+                    const name = e.target.files?.[0]?.name?.toLowerCase() ?? "";
+                    if (name.endsWith(".ply") || name.endsWith(".splat") || name.endsWith(".spz")) setModelFormat("3dgs");
+                    else if (name.endsWith(".glb")) setModelFormat("glb");
+                    else setModelFormat("auto");
+                  }}
                   className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
                 />
                 {localFile && (
@@ -195,6 +206,48 @@ export default function ThreeDBackgroundTestPage() {
                   className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40"
                 />
               </div>
+            </div>
+
+            {/* Model Format */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Model Format
+              </label>
+              <div className="flex gap-1">
+                {(["auto", "glb", "3dgs"] as ModelFormat[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setModelFormat(f)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      modelFormat === f
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    {f === "auto" ? "Auto" : f === "glb" ? "GLB" : "3DGS (.ply/.spz)"}
+                  </button>
+                ))}
+              </div>
+              {modelFormat === "3dgs" && (
+                <div className="mt-2">
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span>Max Gaussians (speed vs quality)</span>
+                    <span>{maxGaussians.toLocaleString()}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50000}
+                    max={500000}
+                    step={50000}
+                    value={maxGaussians}
+                    onChange={(e) => setMaxGaussians(Number(e.target.value))}
+                    className="w-full accent-green-500"
+                  />
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Lower = faster (CPU rendering ~20-60 s)
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Camera Mode */}

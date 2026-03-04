@@ -341,16 +341,7 @@ export default function WorldCard({
               )}
 
               {item.worldLabs.status === "completed" && (
-                <div className="flex flex-wrap items-center gap-3 mt-2">
-                  {item.worldLabs.thumbnailUrl && (
-                    <div className="w-24 h-16 rounded overflow-hidden border border-zinc-700 flex-shrink-0">
-                      <img
-                        src={item.worldLabs.thumbnailUrl}
-                        alt="World thumbnail"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
+                <div className="mt-2 space-y-3">
                   <div className="flex flex-wrap gap-2 text-xs">
                     {item.worldLabs.worldMarbleUrl && (
                       <a
@@ -370,7 +361,7 @@ export default function WorldCard({
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-800 transition-colors"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <Download className="w-3 h-3" />
                         Panorama
                       </a>
                     )}

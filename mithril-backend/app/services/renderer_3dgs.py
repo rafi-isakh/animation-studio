@@ -1,8 +1,9 @@
 """
 3D Gaussian Splatting renderer (CPU).
 
-Implements EWA splatting: projects each Gaussian to a 2D ellipse and
-alpha-composites them back-to-front (standard "over" operator).
+Implements full EWA splatting: projects each Gaussian's 3D covariance to a
+2D oriented ellipse via the Jacobian of perspective projection, then
+alpha-composites them front-to-back.
 
 Supported input formats:
   - INRIA .ply  (PLY header starts with ASCII "ply")
@@ -30,27 +31,30 @@ _SH_C0 = 0.28209479177387814
 
 
 # ---------------------------------------------------------------------------
-# Camera helpers (duplicated from renderer_3d to keep modules independent)
+# Camera helpers
 # ---------------------------------------------------------------------------
 
-def _look_at_pose(eye: np.ndarray, target: np.ndarray, tilt_deg: float = 0.0) -> np.ndarray:
+def _look_at_pose(
+    eye: np.ndarray,
+    target: np.ndarray,
+    up: np.ndarray,
+    tilt_deg: float = 0.0,
+) -> np.ndarray:
     """
     Camera-to-world 4×4 matrix in COLMAP/OpenCV convention:
       +X  right,  +Y  down (image Y),  +Z  forward into scene.
-    This matches the projection math in _project_gaussians (positive z = in front).
     """
     forward = target - eye
     norm = np.linalg.norm(forward)
     forward = forward / norm if norm > 1e-8 else np.array([0.0, 0.0, 1.0])
 
-    world_up = np.array([0.0, 1.0, 0.0])
-    # COLMAP: right = world_up × forward  (NOT forward × world_up — that gives left)
-    right = np.cross(world_up, forward)
+    right = np.cross(up, forward)
     if np.linalg.norm(right) < 1e-6:
-        world_up = np.array([0.0, 0.0, 1.0])
-        right = np.cross(world_up, forward)
+        # Degenerate — forward aligned with up; pick arbitrary perpendicular
+        alt_up = np.array([1.0, 0.0, 0.0]) if abs(up[0]) < 0.9 else np.array([0.0, 0.0, 1.0])
+        right = np.cross(alt_up, forward)
     right /= np.linalg.norm(right)
-    # COLMAP: camera Y points down → down = right × forward gives [0,-1,0] when Y-up world
+
     down = np.cross(right, forward)
     down /= np.linalg.norm(down)
 
@@ -63,10 +67,31 @@ def _look_at_pose(eye: np.ndarray, target: np.ndarray, tilt_deg: float = 0.0) ->
 
     pose = np.eye(4, dtype=np.float64)
     pose[:3, 0] = right
-    pose[:3, 1] = down     # COLMAP: Y is down
-    pose[:3, 2] = forward  # COLMAP: Z is forward
+    pose[:3, 1] = down
+    pose[:3, 2] = forward
     pose[:3, 3] = eye
     return pose
+
+
+def _detect_up_axis(extents: np.ndarray) -> np.ndarray:
+    """
+    Heuristic: for interior/room scenes the vertical axis typically has
+    the smallest bounding-box extent (floor-to-ceiling is shorter than
+    wall-to-wall).  Return the corresponding unit vector.
+
+    Falls back to Y-up [0,1,0] if extents are roughly equal.
+    """
+    ratios = extents / np.max(extents)
+    min_idx = int(np.argmin(extents))
+    # Only use the heuristic when one axis is clearly shorter
+    if ratios[min_idx] < 0.65:
+        up = np.zeros(3, dtype=np.float64)
+        up[min_idx] = 1.0
+        axis_name = "XYZ"[min_idx]
+        logger.info(f"[3DGS] Auto-detected {axis_name}-up (ratio={ratios[min_idx]:.2f})")
+        return up
+    logger.info("[3DGS] Extents roughly equal — defaulting to Y-up")
+    return np.array([0.0, 1.0, 0.0])
 
 
 # ---------------------------------------------------------------------------
@@ -75,12 +100,7 @@ def _look_at_pose(eye: np.ndarray, target: np.ndarray, tilt_deg: float = 0.0) ->
 
 def _load_3dgs_ply(data: bytes) -> dict:
     """
-    Load a 3DGS .ply file and return a dict of numpy arrays:
-      means      [N, 3]  — Gaussian centres (xyz)
-      scales     [N, 3]  — axis scales (exp of stored log-scales)
-      rots       [N, 4]  — quaternions (w, x, y, z), normalised
-      opacities  [N]     — [0, 1] (sigmoid of stored logit)
-      colors     [N, 3]  — base RGB [0, 1] from SH DC coefficient
+    Load a 3DGS .ply file and return a dict of numpy arrays.
     """
     from plyfile import PlyData
 
@@ -98,31 +118,26 @@ def _load_3dgs_ply(data: bytes) -> dict:
     def _col(key):
         return np.asarray(v[key], dtype=np.float32)
 
-    # Positions
     means = np.stack([_col("x"), _col("y"), _col("z")], axis=1)
 
-    # Scales
     if {"scale_0", "scale_1", "scale_2"} <= names:
         scales = np.exp(np.stack([_col("scale_0"), _col("scale_1"), _col("scale_2")], axis=1))
     else:
         scales = np.full((len(means), 3), 0.01, dtype=np.float32)
 
-    # Rotations (w, x, y, z)
     if {"rot_0", "rot_1", "rot_2", "rot_3"} <= names:
         rots = np.stack([_col("rot_0"), _col("rot_1"), _col("rot_2"), _col("rot_3")], axis=1)
         norms = np.linalg.norm(rots, axis=1, keepdims=True)
         rots /= np.maximum(norms, 1e-8)
     else:
         rots = np.zeros((len(means), 4), dtype=np.float32)
-        rots[:, 0] = 1.0  # identity
+        rots[:, 0] = 1.0
 
-    # Opacities
     if "opacity" in names:
         opacities = 1.0 / (1.0 + np.exp(-_col("opacity")))
     else:
         opacities = np.full(len(means), 0.5, dtype=np.float32)
 
-    # Base colors from SH DC
     if {"f_dc_0", "f_dc_1", "f_dc_2"} <= names:
         f_dc = np.stack([_col("f_dc_0"), _col("f_dc_1"), _col("f_dc_2")], axis=1)
         colors = np.clip(0.5 + _SH_C0 * f_dc, 0.0, 1.0)
@@ -144,7 +159,7 @@ def _load_3dgs_ply(data: bytes) -> dict:
 # ---------------------------------------------------------------------------
 
 _GZIP_MAGIC = b"\x1f\x8b"
-_SPZ_MAGIC = b"NGSP"   # uint32 LE 0x5053474e
+_SPZ_MAGIC = b"NGSP"
 
 
 def _convert_to_ply(data: bytes, src_fmt: str) -> bytes:
@@ -152,7 +167,6 @@ def _convert_to_ply(data: bytes, src_fmt: str) -> bytes:
     import gaussforge
     gf = gaussforge.GaussForge()
 
-    # Try convert() first; fall back to read()+write() if result is wrong
     result = gf.convert(data, src_fmt, "ply")
     if "error" in result:
         raise ValueError(f"gaussforge convert() failed: {result['error']}")
@@ -163,17 +177,14 @@ def _convert_to_ply(data: bytes, src_fmt: str) -> bytes:
         f"data_len={len(ply_bytes)} first_bytes={ply_bytes[:8].hex() if ply_bytes else 'n/a'}"
     )
 
-    # If the output doesn't look like a PLY file, try the read()+write() path
     if not ply_bytes or not ply_bytes[:3] == b"ply":
         logger.info("[3DGS] convert() didn't return PLY, trying read()+write()")
         ir = gf.read(data, src_fmt)
-        logger.info(f"[3DGS] gaussforge read() result keys={list(ir.keys()) if isinstance(ir, dict) else type(ir)}")
         write_result = gf.write(ir, "ply")
         if isinstance(write_result, dict):
             ply_bytes = write_result.get("data", b"")
         else:
             ply_bytes = write_result
-        logger.info(f"[3DGS] gaussforge write() output: len={len(ply_bytes)} first_bytes={ply_bytes[:8].hex() if ply_bytes else 'n/a'}")
 
     if not ply_bytes or not ply_bytes[:3] == b"ply":
         raise ValueError(
@@ -186,17 +197,7 @@ def _convert_to_ply(data: bytes, src_fmt: str) -> bytes:
 
 
 def _load_gaussians(data: bytes) -> dict:
-    """
-    Auto-detect format from magic bytes and load accordingly.
-
-    PLY files are loaded directly; everything else is converted via gaussforge.
-
-    Supported magic signatures:
-      b'ply'  → INRIA PLY (direct)
-      b'NGSP' → Niantic SPZ raw payload (via gaussforge)
-      b'\\x1f\\x8b' → gzip-wrapped SPZ — the gzip IS part of the SPZ format,
-                      passed directly to gaussforge without pre-decompressing
-    """
+    """Auto-detect format from magic bytes and load."""
     if data[:3] == b"ply":
         return _load_3dgs_ply(data)
 
@@ -206,18 +207,34 @@ def _load_gaussians(data: bytes) -> dict:
         return _load_3dgs_ply(ply_bytes)
 
     raise ValueError(
-        f"Unknown 3DGS format. Expected PLY ('ply') or SPZ ('NGSP' / gzip). "
+        f"Unknown 3DGS format. Expected PLY or SPZ. "
         f"Got first bytes: {data[:8].hex()}"
     )
 
 
 # ---------------------------------------------------------------------------
-# Projection + culling
+# EWA projection — full covariance pipeline
 # ---------------------------------------------------------------------------
 
-def _project_gaussians(
+def _quat_to_rotmat(quats: np.ndarray) -> np.ndarray:
+    """Batch quaternion (w,x,y,z) [N,4] → rotation matrices [N,3,3]."""
+    w, x, y, z = quats[:, 0], quats[:, 1], quats[:, 2], quats[:, 3]
+    R = np.empty((len(quats), 3, 3), dtype=np.float32)
+    R[:, 0, 0] = 1 - 2 * (y * y + z * z)
+    R[:, 0, 1] = 2 * (x * y - w * z)
+    R[:, 0, 2] = 2 * (x * z + w * y)
+    R[:, 1, 0] = 2 * (x * y + w * z)
+    R[:, 1, 1] = 1 - 2 * (x * x + z * z)
+    R[:, 1, 2] = 2 * (y * z - w * x)
+    R[:, 2, 0] = 2 * (x * z - w * y)
+    R[:, 2, 1] = 2 * (y * z + w * x)
+    R[:, 2, 2] = 1 - 2 * (x * x + y * y)
+    return R
+
+
+def _project_gaussians_ewa(
     gaussians: dict,
-    view_mat: np.ndarray,  # 4×4 world-to-camera
+    view_mat: np.ndarray,
     fx: float,
     fy: float,
     cx: float,
@@ -227,91 +244,169 @@ def _project_gaussians(
     znear: float = 0.1,
 ) -> tuple:
     """
-    Project all Gaussians to 2D using screen-space radius (no 3D covariance rotation).
+    Full EWA projection: 3D covariance → Jacobian of projection → 2D covariance.
 
-    Screen-space radius = fx * max_scale / z, capped at 256 px.
-    This avoids the full EWA covariance pipeline while remaining visually correct.
-
-    Returns (means2d, screen_radii, colors, opacities, depths, mask).
+    Returns (means2d, cov2d_inv, radii, colors, opacities, depths, mask).
+      cov2d_inv: [N, 2, 2]  inverse of 2D covariance (for Mahalanobis distance)
+      radii:     [N]         screen-space extent in pixels (3σ of major axis)
     """
-    means = gaussians["means"]          # [N, 3]
-    scales = gaussians["scales"]        # [N, 3]  already exp'd
-    colors = gaussians["colors"]        # [N, 3]
-    opacities = gaussians["opacities"]  # [N]
+    means = gaussians["means"]
+    scales = gaussians["scales"]
+    rots = gaussians["rots"]
+    colors = gaussians["colors"]
+    opacities = gaussians["opacities"]
 
     N = len(means)
-    ones = np.ones((N, 1), dtype=np.float32)
-    means_h = np.concatenate([means, ones], axis=1)  # [N, 4]
-    means_cam = (view_mat @ means_h.T).T             # [N, 4]
 
+    # --- Transform Gaussian centres to camera space ---
+    ones = np.ones((N, 1), dtype=np.float32)
+    means_h = np.concatenate([means, ones], axis=1)
+    means_cam = (view_mat @ means_h.T).T
     x_cam = means_cam[:, 0]
     y_cam = means_cam[:, 1]
     z_cam = means_cam[:, 2]
 
-    # In front of camera and non-trivial opacity
+    # Visibility mask: in front of camera with non-trivial opacity
     mask = (z_cam > znear) & (opacities > 0.004)
+    n_depth_ok = mask.sum()
+    logger.info(f"[3DGS] Depth+opacity filter: {n_depth_ok:,}/{N:,} pass")
 
-    z_safe = np.maximum(z_cam, znear)
+    # --- Build 3D covariance matrices (only for visible Gaussians) ---
+    idx = np.where(mask)[0]
+    M = len(idx)
+    if M == 0:
+        empty2 = np.zeros((N, 2), dtype=np.float32)
+        empty22 = np.zeros((N, 2, 2), dtype=np.float32)
+        empty1 = np.zeros(N, dtype=np.float32)
+        return empty2, empty22, empty1, colors, opacities, z_cam, mask
 
-    # Perspective projection → pixel coordinates
-    px = fx * x_cam / z_safe + cx
-    py = fy * y_cam / z_safe + cy
+    R_batch = _quat_to_rotmat(rots[idx])                    # [M, 3, 3]
+    S_batch = scales[idx]                                     # [M, 3]
+    # M_mat = R @ diag(S):  M_mat[:, :, j] = R[:, :, j] * S[:, j]
+    M_mat = R_batch * S_batch[:, np.newaxis, :]               # [M, 3, 3]
+    # Sigma_3d = M @ M^T
+    Sigma_3d = np.einsum("nij,nkj->nik", M_mat, M_mat)       # [M, 3, 3]
 
-    margin = 64
-    mask &= (px > -margin) & (px < width + margin)
-    mask &= (py > -margin) & (py < height + margin)
+    # --- Transform covariance to camera space ---
+    W = view_mat[:3, :3].astype(np.float32)                   # [3, 3]
+    # Sigma_cam = W @ Sigma_3d @ W^T
+    WS = np.einsum("ij,njk->nik", W, Sigma_3d)               # [M, 3, 3]
+    Sigma_cam = np.einsum("nij,kj->nik", WS, W)              # [M, 3, 3]
 
-    means2d = np.stack([px, py], axis=1)  # [N, 2]
+    # --- Jacobian of perspective projection ---
+    xc = x_cam[idx]
+    yc = y_cam[idx]
+    zc = np.maximum(z_cam[idx], znear)
+    zc2 = zc * zc
 
-    # Screen-space radius from largest 3D scale
-    max_scale = scales.max(axis=1)  # [N]
-    screen_r = np.clip(fx * max_scale / z_safe, 0.5, 256.0).astype(np.float32)
+    J = np.zeros((M, 2, 3), dtype=np.float32)
+    J[:, 0, 0] = fx / zc
+    J[:, 0, 2] = -fx * xc / zc2
+    J[:, 1, 1] = fy / zc
+    J[:, 1, 2] = -fy * yc / zc2
 
-    return means2d, screen_r, colors, opacities, z_cam, mask
+    # Sigma_2d = J @ Sigma_cam @ J^T   [M, 2, 2]
+    JS = np.einsum("nij,njk->nik", J, Sigma_cam)             # [M, 2, 3]
+    Sigma_2d = np.einsum("nij,nkj->nik", JS, J)              # [M, 2, 2]
+
+    # Anti-aliasing regularisation (from original 3DGS paper)
+    Sigma_2d[:, 0, 0] += 0.3
+    Sigma_2d[:, 1, 1] += 0.3
+
+    # --- Invert 2×2 covariance ---
+    a = Sigma_2d[:, 0, 0]
+    b = Sigma_2d[:, 0, 1]
+    c = Sigma_2d[:, 1, 0]
+    d = Sigma_2d[:, 1, 1]
+    det = a * d - b * c
+    det = np.maximum(det, 1e-8)
+
+    inv_det = 1.0 / det
+    cov_inv = np.zeros((M, 2, 2), dtype=np.float32)
+    cov_inv[:, 0, 0] = d * inv_det
+    cov_inv[:, 0, 1] = -b * inv_det
+    cov_inv[:, 1, 0] = -c * inv_det
+    cov_inv[:, 1, 1] = a * inv_det
+
+    # --- Screen-space radius from eigenvalues of Sigma_2d ---
+    # eigenvalues of [[a,b],[c,d]]: 0.5*(a+d) ± sqrt(0.25*(a-d)² + b*c)
+    trace = a + d
+    disc = np.maximum(0.25 * (a - d) ** 2 + b * c, 0.0)
+    lambda_max = 0.5 * trace + np.sqrt(disc)
+    radii_sub = np.clip(3.0 * np.sqrt(lambda_max), 1.0, 1024.0)
+
+    # --- Pixel coordinates ---
+    px = fx * xc / zc + cx
+    py = fy * yc / zc + cy
+
+    # Viewport culling (generous margin for interior views)
+    margin = max(width, height) * 2
+    vis = (px > -margin) & (px < width + margin) & (py > -margin) & (py < height + margin)
+
+    # Scatter results back into full-size arrays
+    means2d_full = np.zeros((N, 2), dtype=np.float32)
+    cov_inv_full = np.zeros((N, 2, 2), dtype=np.float32)
+    radii_full = np.zeros(N, dtype=np.float32)
+
+    means2d_full[idx, 0] = px
+    means2d_full[idx, 1] = py
+    cov_inv_full[idx] = cov_inv
+    radii_full[idx] = radii_sub
+
+    # Update mask with viewport filter
+    mask_copy = mask.copy()
+    mask_copy[idx[~vis]] = False
+
+    n_final = mask_copy.sum()
+    logger.info(f"[3DGS] After viewport cull: {n_final:,}/{N:,} visible")
+
+    return means2d_full, cov_inv_full, radii_full, colors, opacities, z_cam, mask_copy
 
 
 # ---------------------------------------------------------------------------
-# Rasterizer
+# Rasterizer — oriented ellipses, front-to-back
 # ---------------------------------------------------------------------------
 
-def _rasterize(
-    means2d: np.ndarray,      # [M, 2]
-    screen_radii: np.ndarray, # [M] screen-space σ in pixels
-    colors: np.ndarray,       # [M, 3]
-    opacities: np.ndarray,    # [M]
-    depths: np.ndarray,       # [M]
+def _rasterize_ewa(
+    means2d: np.ndarray,       # [M, 2]
+    cov2d_inv: np.ndarray,     # [M, 2, 2]
+    radii: np.ndarray,         # [M]
+    colors: np.ndarray,        # [M, 3]
+    opacities: np.ndarray,     # [M]
+    depths: np.ndarray,        # [M]
     width: int,
     height: int,
     max_gaussians: int,
 ) -> np.ndarray:
-    """Back-to-front alpha compositing of isotropic screen-space Gaussians.
+    """Front-to-back alpha compositing of oriented 2D Gaussians.
     Returns RGB uint8 [H, W, 3]."""
 
-    # Sort back-to-front then cap
-    order = np.argsort(-depths)[:max_gaussians]
+    # Sort FRONT-to-back (closest first), then cap
+    order = np.argsort(depths)[:max_gaussians]
 
     m2d = means2d[order]
-    sr  = screen_radii[order]
+    cinv = cov2d_inv[order]
+    rad = radii[order]
     col = colors[order]
     opa = opacities[order]
 
     img = np.zeros((height, width, 3), dtype=np.float32)
-    alpha_acc = np.zeros((height, width), dtype=np.float32)
+    T = np.ones((height, width), dtype=np.float32)  # transmittance
 
     n_rendered = len(order)
-    logger.info(f"[3DGS] Rasterizing {n_rendered:,} Gaussians…")
+    logger.info(f"[3DGS] Rasterizing {n_rendered:,} Gaussians (front-to-back)…")
 
     for i in range(n_rendered):
-        # Early exit once the image is nearly fully opaque
-        if alpha_acc.min() > 0.9995:
+        # Early exit when image is fully opaque
+        if T.max() < 0.005:
+            logger.info(f"[3DGS] Early exit at Gaussian {i:,} (image fully opaque)")
             break
 
         gx, gy = m2d[i]
-        r = float(sr[i])
-        color = col[i]
+        radius_px = int(math.ceil(rad[i])) + 1
         alpha = float(opa[i])
-
-        radius_px = int(math.ceil(3.0 * r)) + 1
+        color = col[i]
+        inv_cov = cinv[i]  # [2, 2]
 
         x0 = max(0, int(gx) - radius_px)
         x1 = min(width, int(gx) + radius_px + 1)
@@ -320,27 +415,35 @@ def _rasterize(
         if x0 >= x1 or y0 >= y1:
             continue
 
-        # Isotropic Gaussian with σ = r
         xs = np.arange(x0, x1, dtype=np.float32) - gx
         ys = np.arange(y0, y1, dtype=np.float32) - gy
-        xx, yy = np.meshgrid(xs, ys, indexing="xy")
-        g = np.exp(-0.5 * (xx * xx + yy * yy) / (r * r))
+        dx, dy = np.meshgrid(xs, ys, indexing="xy")
 
-        # "Over" compositing
-        remaining = 1.0 - alpha_acc[y0:y1, x0:x1]
-        contrib = alpha * g * remaining
+        # Mahalanobis distance: power = -0.5 * [dx, dy] @ Σ⁻¹ @ [dx, dy]ᵀ
+        power = -0.5 * (
+            inv_cov[0, 0] * dx * dx
+            + (inv_cov[0, 1] + inv_cov[1, 0]) * dx * dy
+            + inv_cov[1, 1] * dy * dy
+        )
+        # Clamp to avoid exp() overflow on negative side
+        gauss = np.exp(np.clip(power, -16.0, 0.0))
 
+        # Front-to-back: C += T * α * G * color;  T *= (1 - α * G)
+        patch_T = T[y0:y1, x0:x1]
+        alpha_g = alpha * gauss
+        alpha_g = np.minimum(alpha_g, 0.99)  # clamp max contribution
+
+        contrib = patch_T * alpha_g
         img[y0:y1, x0:x1] += contrib[:, :, np.newaxis] * color
-        alpha_acc[y0:y1, x0:x1] += contrib
+        T[y0:y1, x0:x1] *= (1.0 - alpha_g)
 
     # Composite over white background
-    remaining = np.clip(1.0 - alpha_acc[:, :, np.newaxis], 0.0, 1.0)
-    final = np.clip(img + remaining, 0.0, 1.0)
-    return (final * 255).astype(np.uint8)
+    img += T[:, :, np.newaxis]  # T * bg_color (white = 1.0)
+    return (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
 
 
 # ---------------------------------------------------------------------------
-# Public API — same signature as renderer_3d.render_single_view
+# Public API
 # ---------------------------------------------------------------------------
 
 async def render_single_view_3dgs(
@@ -356,12 +459,13 @@ async def render_single_view_3dgs(
     interior_offset_y: float = 0.0,
     interior_offset_z: float = 0.0,
     max_gaussians: int = 200_000,
+    up_axis: str = "auto",
 ) -> bytes:
     """
-    Render a single camera view of a 3DGS .ply model.
+    Render a single camera view of a 3DGS model with full EWA splatting.
 
     Args:
-        model_data: Raw bytes of the .ply file.
+        model_data: Raw bytes of the .ply / .spz file.
         azimuth: Horizontal look angle in degrees (0-360).
         elevation: Vertical look angle in degrees (-90 to 90).
         distance_multiplier: Orbit radius as multiple of scene extent (exterior only).
@@ -369,8 +473,9 @@ async def render_single_view_3dgs(
         resolution: (width, height).
         camera_mode: "exterior" or "interior".
         tilt: Camera roll in degrees (Dutch angle).
-        interior_offset_x/y/z: Camera offset from centre as fraction of half-extent (interior only).
+        interior_offset_x/y/z: Camera offset from centre as fraction of half-extent.
         max_gaussians: Cap on rendered Gaussians. Lower = faster preview.
+        up_axis: "auto", "y", or "z". Controls world up direction.
 
     Returns:
         PNG image bytes.
@@ -389,6 +494,19 @@ async def render_single_view_3dgs(
 
     logger.info(f"[3DGS] Scene centre={center}, extents={extents}")
 
+    # Determine world up vector
+    if up_axis == "y":
+        world_up = np.array([0.0, 1.0, 0.0])
+    elif up_axis == "z":
+        world_up = np.array([0.0, 0.0, 1.0])
+    else:
+        world_up = _detect_up_axis(extents)
+
+    # Determine which axes form the horizontal plane
+    up_idx = int(np.argmax(np.abs(world_up)))
+    horiz = [i for i in range(3) if i != up_idx]
+    h0, h1 = horiz[0], horiz[1]
+
     # Build camera pose
     az = math.radians(azimuth)
     el = math.radians(elevation)
@@ -400,34 +518,46 @@ async def render_single_view_3dgs(
             interior_offset_y * half[1],
             interior_offset_z * half[2],
         ])
-        look_dir = np.array([math.cos(el) * math.cos(az), math.sin(el), math.cos(el) * math.sin(az)])
+        # Look direction in the coordinate system defined by up_axis
+        cos_el = math.cos(el)
+        look_dir = np.zeros(3)
+        look_dir[h0] = cos_el * math.cos(az)
+        look_dir[h1] = cos_el * math.sin(az)
+        look_dir[up_idx] = math.sin(el)
         target = eye + look_dir * max_extent
     else:
         radius = max_extent * distance_multiplier
-        eye = center + radius * np.array([
-            math.cos(el) * math.cos(az),
-            math.sin(el),
-            math.cos(el) * math.sin(az),
-        ])
+        offset = np.zeros(3)
+        cos_el = math.cos(el)
+        offset[h0] = cos_el * math.cos(az)
+        offset[h1] = cos_el * math.sin(az)
+        offset[up_idx] = math.sin(el)
+        eye = center + radius * offset
         target = center
 
-    pose = _look_at_pose(eye, target, tilt)               # camera-to-world
-    view_mat = np.linalg.inv(pose).astype(np.float32)     # world-to-camera
+    logger.info(
+        f"[3DGS] Camera mode={camera_mode} up={world_up} "
+        f"eye={eye} target={target} az={azimuth} el={elevation}"
+    )
+
+    pose = _look_at_pose(eye, target, world_up, tilt)
+    view_mat = np.linalg.inv(pose).astype(np.float32)
 
     width, height = resolution
     fov_rad = math.radians(fov)
-    fx = width / (2.0 * math.tan(fov_rad / 2.0))
     fy = height / (2.0 * math.tan(fov_rad / 2.0))
+    fx = fy  # square pixels
 
-    means2d, screen_radii, colors, opacities, depths, mask = _project_gaussians(
+    means2d, cov2d_inv, radii, colors, opacities, depths, mask = _project_gaussians_ewa(
         gaussians, view_mat, fx, fy, width / 2.0, height / 2.0, width, height,
     )
 
     n_valid = mask.sum()
     logger.info(f"[3DGS] {n_valid:,} / {len(mask):,} Gaussians visible")
 
-    img_array = _rasterize(
-        means2d[mask], screen_radii[mask], colors[mask], opacities[mask], depths[mask],
+    img_array = _rasterize_ewa(
+        means2d[mask], cov2d_inv[mask], radii[mask],
+        colors[mask], opacities[mask], depths[mask],
         width, height, max_gaussians,
     )
 

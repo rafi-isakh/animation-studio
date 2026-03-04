@@ -31,6 +31,7 @@ class Render3DRequest(BaseModel):
     interior_offset_z: float = 0.0  # Depth offset from center (-1 to 1). Interior only.
     model_format: Literal["glb", "3dgs", "auto"] = "auto"  # "glb"=trimesh/pyrender, "3dgs"=Gaussian splat .ply, "auto"=detect from URL/data
     max_gaussians: int = 200_000  # 3DGS only: cap on rendered Gaussians (lower = faster)
+    up_axis: Literal["auto", "y", "z"] = "auto"  # 3DGS only: world up direction
     resolution: tuple[int, int] = (1920, 1080)
     output_mode: Literal["direct", "ai_enhanced"] = "direct"
     style_prompt: str | None = None
@@ -124,6 +125,7 @@ async def render_3d_model_endpoint(
                 interior_offset_y=request.interior_offset_y,
                 interior_offset_z=request.interior_offset_z,
                 max_gaussians=request.max_gaussians,
+                up_axis=request.up_axis,
             )
         else:
             logger.info("[RENDER-3D] Using GLB renderer (pyrender)")

@@ -6,11 +6,17 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const operationId = searchParams.get("operationId");
-    const apiKey = searchParams.get("apiKey");
+    const apiKey = searchParams.get("apiKey") || process.env.WORLDLABS_API_KEY;
 
-    if (!operationId || !apiKey) {
+    if (!operationId) {
       return NextResponse.json(
-        { error: "operationId and apiKey are required" },
+        { error: "operationId is required" },
+        { status: 400 }
+      );
+    }
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "No WorldLabs API key found. Provide apiKey or set WORLDLABS_API_KEY env var." },
         { status: 400 }
       );
     }

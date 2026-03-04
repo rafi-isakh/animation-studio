@@ -7,6 +7,7 @@ interface GenerateRequestBody {
   backImageUrl: string;
   displayName?: string;
   apiKey: string;
+  model?: "Marble 0.1-plus" | "Marble 0.1-mini";
 }
 
 async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
@@ -80,11 +81,18 @@ async function uploadFile(
 export async function POST(req: NextRequest) {
   try {
     const body: GenerateRequestBody = await req.json();
-    const { frontImageUrl, backImageUrl, displayName, apiKey } = body;
+    const { frontImageUrl, backImageUrl, displayName } = body;
+    const apiKey = body.apiKey || process.env.WORLDLABS_API_KEY;
 
-    if (!frontImageUrl || !backImageUrl || !apiKey) {
+    if (!frontImageUrl || !backImageUrl) {
       return NextResponse.json(
-        { error: "frontImageUrl, backImageUrl, and apiKey are required" },
+        { error: "frontImageUrl and backImageUrl are required" },
+        { status: 400 }
+      );
+    }
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "No WorldLabs API key found. Provide apiKey or set WORLDLABS_API_KEY env var." },
         { status: 400 }
       );
     }
@@ -115,6 +123,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        model: body.model || "Marble 0.1-mini",
         display_name: displayName || "BG Generator World",
         world_prompt: {
           type: "multi-image",
@@ -134,6 +143,12 @@ export async function POST(req: NextRequest) {
 
     if (!generateRes.ok) {
       const err = await generateRes.text();
+      console.error("[WorldLabs generate] Request body:", JSON.stringify({
+        model: body.model || "Marble 0.1-mini",
+        display_name: displayName || "BG Generator World",
+        world_prompt: { type: "multi-image" },
+      }));
+      console.error("[WorldLabs generate] Response:", generateRes.status, err);
       throw new Error(`worlds:generate failed (${generateRes.status}): ${err}`);
     }
 

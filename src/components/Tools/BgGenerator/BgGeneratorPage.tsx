@@ -107,9 +107,6 @@ export default function BgGeneratorPage() {
                 <Plus className="w-4 h-4 mr-2" /> New Batch
               </button>
             )}
-            <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider hidden sm:block">
-              v1.0.0 • Gemini Powered
-            </div>
           </div>
         </div>
       </header>

@@ -120,25 +120,52 @@ def _interior_camera_pose(
     return _look_at_pose(eye, look_target, tilt_deg)
 
 
-def _add_lighting(scene: pyrender.Scene, bbox_extents: np.ndarray, center: np.ndarray) -> None:
-    """Add 3-point lighting + ambient to the scene."""
+def _add_lighting(
+    scene: pyrender.Scene,
+    bbox_extents: np.ndarray,
+    center: np.ndarray,
+    camera_mode: str = "exterior",
+) -> None:
+    """
+    Add lighting to the scene.
+
+    Exterior: 3-point directional setup (key/fill/rim) + soft ambient.
+    Interior: high ambient + multiple point lights distributed inside the space.
+              Directional lights are omitted because they produce large black patches
+              on faces whose normals point away from the light (common in interior geometry).
+    """
     max_ext = float(np.max(bbox_extents))
     intensity = max_ext * 5.0
 
-    scene.ambient_light = np.array([0.3, 0.3, 0.3, 1.0])
+    if camera_mode == "interior":
+        # Flat, even illumination — prevents black-face artifacts from inverted normals
+        scene.ambient_light = np.array([0.85, 0.85, 0.85, 1.0])
 
-    key_pose = tf.translation_matrix(center + np.array([max_ext, max_ext * 1.5, max_ext]))
-    scene.add(pyrender.DirectionalLight(color=[1.0, 1.0, 0.95], intensity=intensity * 0.8), pose=key_pose)
+        # Several point lights spread around the interior so every surface gets hit
+        offsets = [
+            np.array([0.0, 0.0, 0.0]),                          # center
+            np.array([max_ext * 0.4, max_ext * 0.4, 0.0]),      # upper-right
+            np.array([-max_ext * 0.4, max_ext * 0.4, 0.0]),     # upper-left
+            np.array([0.0, max_ext * 0.4, max_ext * 0.4]),      # upper-front
+            np.array([0.0, max_ext * 0.4, -max_ext * 0.4]),     # upper-back
+        ]
+        for offset in offsets:
+            scene.add(
+                pyrender.PointLight(color=[1.0, 1.0, 1.0], intensity=intensity * 0.6),
+                pose=tf.translation_matrix(center + offset),
+            )
+    else:
+        # Standard 3-point exterior setup
+        scene.ambient_light = np.array([0.3, 0.3, 0.3, 1.0])
 
-    fill_pose = tf.translation_matrix(center + np.array([-max_ext, max_ext * 0.5, max_ext * 0.8]))
-    scene.add(pyrender.DirectionalLight(color=[0.9, 0.9, 1.0], intensity=intensity * 0.4), pose=fill_pose)
+        key_pose = tf.translation_matrix(center + np.array([max_ext, max_ext * 1.5, max_ext]))
+        scene.add(pyrender.DirectionalLight(color=[1.0, 1.0, 0.95], intensity=intensity * 0.8), pose=key_pose)
 
-    rim_pose = tf.translation_matrix(center + np.array([0, max_ext * 1.2, -max_ext]))
-    scene.add(pyrender.DirectionalLight(color=[1.0, 1.0, 1.0], intensity=intensity * 0.3), pose=rim_pose)
+        fill_pose = tf.translation_matrix(center + np.array([-max_ext, max_ext * 0.5, max_ext * 0.8]))
+        scene.add(pyrender.DirectionalLight(color=[0.9, 0.9, 1.0], intensity=intensity * 0.4), pose=fill_pose)
 
-    # Interior point light at center for inside views
-    scene.add(pyrender.PointLight(color=[1.0, 1.0, 1.0], intensity=intensity * 0.5),
-              pose=tf.translation_matrix(center))
+        rim_pose = tf.translation_matrix(center + np.array([0, max_ext * 1.2, -max_ext]))
+        scene.add(pyrender.DirectionalLight(color=[1.0, 1.0, 1.0], intensity=intensity * 0.3), pose=rim_pose)
 
 
 def _load_scene_with_materials(tmp_path: str) -> pyrender.Scene:
@@ -164,6 +191,10 @@ def _load_scene_with_materials(tmp_path: str) -> pyrender.Scene:
 
         if not isinstance(mesh, trimesh.Trimesh):
             continue
+
+        # Fix degenerate faces and recompute normals to avoid black patches
+        mesh.remove_degenerate_faces()
+        mesh.fix_normals()
 
         # Try to preserve the original material
         primitives = []
@@ -318,7 +349,7 @@ async def render_single_view(
         logger.info(f"Model bounds: center={center}, extents={extents}, mode={camera_mode}")
 
         # Add lighting
-        _add_lighting(pr_scene, extents, center)
+        _add_lighting(pr_scene, extents, center, camera_mode)
 
         # Camera
         width, height = resolution

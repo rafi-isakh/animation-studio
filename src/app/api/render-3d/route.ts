@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const backendUrl = `${ORCHESTRATOR_URL}/api/v1/render-3d/render`;
     const backendPayload = {
-      model_url: body.modelUrl,
+      model_url: body.modelUrl || "",
+      model_data: body.modelData || null,
       azimuth: body.azimuth ?? 0,
       elevation: body.elevation ?? 30,
       distance_multiplier: body.distanceMultiplier ?? 2.5,

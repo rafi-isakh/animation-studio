@@ -18,7 +18,8 @@ router = APIRouter(prefix="/render-3d", tags=["render-3d"])
 class Render3DRequest(BaseModel):
     """Request model for single 3D model render."""
 
-    model_url: str  # S3/CloudFront URL to .glb file
+    model_url: str = ""  # S3/CloudFront URL to .glb file (mutually exclusive with model_data)
+    model_data: str | None = None  # Base64-encoded .glb bytes (for local file uploads)
     azimuth: float = 0.0  # Horizontal angle in degrees (0-360)
     elevation: float = 30.0  # Vertical angle in degrees (-90 to 90)
     distance_multiplier: float = 2.5  # Camera distance as multiplier of model extent
@@ -56,7 +57,10 @@ async def render_3d_model_endpoint(
         f"from {request.model_url[:80]}... (mode={request.output_mode})"
     )
 
-    # Validate
+    # Validate source
+    if not request.model_url and not request.model_data:
+        raise HTTPException(400, "Either model_url or model_data (base64) must be provided")
+
     width, height = request.resolution
     if width < 256 or height < 256 or width > 3840 or height > 3840:
         raise HTTPException(400, "Resolution must be between 256 and 3840 per dimension")
@@ -70,12 +74,19 @@ async def render_3d_model_endpoint(
         if val < -1.0 or val > 1.0:
             raise HTTPException(400, f"Interior offset {axis} must be between -1.0 and 1.0")
 
-    # Download .glb model
-    try:
-        model_data = await download_image(request.model_url)
-    except Exception as e:
-        logger.error(f"[RENDER-3D] Failed to download model: {e}")
-        raise HTTPException(400, f"Failed to download model from URL: {e}")
+    # Resolve model bytes — either decode base64 or download from URL
+    if request.model_data:
+        try:
+            model_data = base64.b64decode(request.model_data)
+            logger.info(f"[RENDER-3D] Using uploaded model data ({len(model_data)} bytes)")
+        except Exception as e:
+            raise HTTPException(400, f"Invalid base64 model_data: {e}")
+    else:
+        try:
+            model_data = await download_image(request.model_url)
+        except Exception as e:
+            logger.error(f"[RENDER-3D] Failed to download model: {e}")
+            raise HTTPException(400, f"Failed to download model from URL: {e}")
 
     # Render single view
     try:

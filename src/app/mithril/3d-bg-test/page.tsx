@@ -25,6 +25,8 @@ interface RenderEntry {
 
 export default function ThreeDBackgroundTestPage() {
   const [modelUrl, setModelUrl] = useState("");
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const [localFileData, setLocalFileData] = useState<string | null>(null); // base64
   const [azimuth, setAzimuth] = useState(0);
   const [elevation, setElevation] = useState(30);
   const [distanceMultiplier, setDistanceMultiplier] = useState(2.5);
@@ -46,9 +48,29 @@ export default function ThreeDBackgroundTestPage() {
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [history, setHistory] = useState<RenderEntry[]>([]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLocalFile(file);
+    setLocalFileData(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      // result is "data:application/octet-stream;base64,XXXX" — strip the prefix
+      const result = ev.target?.result as string;
+      const base64 = result.split(",")[1];
+      setLocalFileData(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRender = async () => {
-    if (!modelUrl.trim()) {
-      setError("Please enter a .glb model URL");
+    const usingLocalFile = localFile !== null;
+    if (!usingLocalFile && !modelUrl.trim()) {
+      setError("Please enter a .glb model URL or select a local file");
+      return;
+    }
+    if (usingLocalFile && !localFileData) {
+      setError("File is still loading, please wait a moment");
       return;
     }
     if (outputMode === "ai_enhanced" && !apiKey.trim()) {
@@ -64,7 +86,8 @@ export default function ThreeDBackgroundTestPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          modelUrl: modelUrl.trim(),
+          modelUrl: localFile ? "" : modelUrl.trim(),
+          modelData: localFile ? localFileData : undefined,
           azimuth,
           elevation,
           distanceMultiplier,
@@ -131,18 +154,47 @@ export default function ThreeDBackgroundTestPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left: Controls */}
           <div className="bg-gray-900 rounded-lg p-5 space-y-4 h-fit">
-            {/* Model URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                3D Model URL (.glb)
+            {/* Model source */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-300">
+                3D Model (.glb)
               </label>
-              <input
-                type="text"
-                value={modelUrl}
-                onChange={(e) => setModelUrl(e.target.value)}
-                placeholder="https://cdn.example.com/model.glb"
-                className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+
+              {/* Local file */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Local file</label>
+                <input
+                  type="file"
+                  accept=".glb"
+                  onChange={handleFileChange}
+                  className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                />
+                {localFile && (
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {localFileData ? `✓ ${localFile.name} (${(localFile.size / 1024).toFixed(0)} KB)` : `Loading ${localFile.name}...`}
+                  </p>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-px bg-gray-700" />
+                <span className="text-xs text-gray-500">or</span>
+                <div className="flex-1 h-px bg-gray-700" />
+              </div>
+
+              {/* URL */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">URL (S3 / CDN)</label>
+                <input
+                  type="text"
+                  value={modelUrl}
+                  onChange={(e) => { setModelUrl(e.target.value); if (e.target.value) { setLocalFile(null); setLocalFileData(null); } }}
+                  placeholder="https://cdn.example.com/model.glb"
+                  disabled={!!localFile}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40"
+                />
+              </div>
             </div>
 
             {/* Camera Mode */}
@@ -393,7 +445,7 @@ export default function ThreeDBackgroundTestPage() {
             {/* Render Button */}
             <button
               onClick={handleRender}
-              disabled={isLoading || !modelUrl.trim()}
+              disabled={isLoading || (!modelUrl.trim() && !localFile)}
               className="w-full px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md text-sm font-medium transition-colors"
             >
               {isLoading ? "Rendering..." : "Render"}

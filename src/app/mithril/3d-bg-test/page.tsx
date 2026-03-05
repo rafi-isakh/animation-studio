@@ -3,8 +3,9 @@
 import { useState } from "react";
 
 type OutputMode = "direct" | "ai_enhanced";
-type CameraMode = "exterior" | "interior";
+type CameraMode = "exterior" | "interior" | "absolute";
 type ModelFormat = "auto" | "glb" | "3dgs";
+type UpAxis = "auto" | "y" | "-y" | "z" | "-z";
 
 interface CameraParams {
   azimuth: number;
@@ -39,6 +40,11 @@ export default function ThreeDBackgroundTestPage() {
   const [interiorOffsetY, setInteriorOffsetY] = useState(0);
   const [interiorOffsetZ, setInteriorOffsetZ] = useState(0);
   const [cameraMode, setCameraMode] = useState<CameraMode>("exterior");
+  const [eyeX, setEyeX] = useState(0);
+  const [eyeY, setEyeY] = useState(0);
+  const [eyeZ, setEyeZ] = useState(0);
+  const [upAxis, setUpAxis] = useState<UpAxis>("auto");
+  const [lookAtCenter, setLookAtCenter] = useState(true);
   const [outputMode, setOutputMode] = useState<OutputMode>("direct");
   const [stylePrompt, setStylePrompt] = useState(
     "Transform this 3D render into a polished anime-style animation background. Maintain the exact camera angle and composition."
@@ -49,6 +55,7 @@ export default function ThreeDBackgroundTestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [sceneInfo, setSceneInfo] = useState<Record<string, number[]> | null>(null);
   const [history, setHistory] = useState<RenderEntry[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +106,9 @@ export default function ThreeDBackgroundTestPage() {
           fov,
           tilt,
           cameraMode,
+          upAxis,
+          eye: cameraMode === "absolute" ? [eyeX, eyeY, eyeZ] : undefined,
+          lookAtCenter: cameraMode === "absolute" ? lookAtCenter : undefined,
           interiorOffsetX,
           interiorOffsetY,
           interiorOffsetZ,
@@ -118,6 +128,7 @@ export default function ThreeDBackgroundTestPage() {
       }
 
       setCurrentImage(data.image);
+      setSceneInfo(data.sceneInfo ?? null);
       setHistory((prev) => [
         {
           image: data.image,
@@ -256,33 +267,136 @@ export default function ThreeDBackgroundTestPage() {
                 Camera Mode
               </label>
               <div className="flex gap-1">
-                <button
-                  onClick={() => setCameraMode("exterior")}
-                  className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    cameraMode === "exterior"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
-                  Exterior
-                </button>
-                <button
-                  onClick={() => setCameraMode("interior")}
-                  className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    cameraMode === "interior"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
-                  Interior
-                </button>
+                {(["exterior", "interior", "absolute"] as CameraMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setCameraMode(mode)}
+                    className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      cameraMode === mode
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 {cameraMode === "exterior"
                   ? "Camera orbits outside the model looking in"
-                  : "Camera is inside the model looking outward"}
+                  : cameraMode === "interior"
+                  ? "Camera is inside the model looking outward"
+                  : "Raw XYZ camera position (paste from SuperSplat)"}
               </p>
+
+              {/* Absolute eye position inputs */}
+              {cameraMode === "absolute" && (
+                <div className="space-y-2 mt-2 pt-2 border-t border-gray-700">
+                  <p className="text-xs text-gray-500">
+                    Camera position (world coordinates)
+                  </p>
+                  {([
+                    ["X", eyeX, setEyeX],
+                    ["Y", eyeY, setEyeY],
+                    ["Z", eyeZ, setEyeZ],
+                  ] as [string, number, (v: number) => void][]).map(([label, value, setter]) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-4">{label}</span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={value}
+                        onChange={(e) => setter(Number(e.target.value))}
+                        className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Look at Center toggle */}
+                  <label className="flex items-center gap-2 cursor-pointer mt-1">
+                    <input
+                      type="checkbox"
+                      checked={lookAtCenter}
+                      onChange={(e) => setLookAtCenter(e.target.checked)}
+                      className="accent-blue-500"
+                    />
+                    <span className="text-xs text-gray-400">
+                      Look at scene center {lookAtCenter ? "(ignores azimuth/elevation)" : "(uses azimuth/elevation for direction)"}
+                    </span>
+                  </label>
+
+                  {/* Quick position buttons (show after first render with scene info) */}
+                  {sceneInfo && (
+                    <div className="mt-2 pt-2 border-t border-gray-700">
+                      <p className="text-xs text-gray-500 mb-1">Quick positions</p>
+                      <div className="grid grid-cols-4 gap-1">
+                        {(() => {
+                          const dc = sceneInfo.center;
+                          const dmin = sceneInfo.dense_min;
+                          const dmax = sceneInfo.dense_max;
+                          return [
+                            { label: "Center", pos: dc },
+                            { label: "+X edge", pos: [dmax[0], dc[1], dc[2]] },
+                            { label: "-X edge", pos: [dmin[0], dc[1], dc[2]] },
+                            { label: "+Y edge", pos: [dc[0], dmax[1], dc[2]] },
+                            { label: "-Y edge", pos: [dc[0], dmin[1], dc[2]] },
+                            { label: "+Z edge", pos: [dc[0], dc[1], dmax[2]] },
+                            { label: "-Z edge", pos: [dc[0], dc[1], dmin[2]] },
+                            { label: "+X mid", pos: [(dc[0] + dmax[0]) / 2, dc[1], dc[2]] },
+                            { label: "-X mid", pos: [(dc[0] + dmin[0]) / 2, dc[1], dc[2]] },
+                            { label: "+Z mid", pos: [dc[0], dc[1], (dc[2] + dmax[2]) / 2] },
+                            { label: "-Z mid", pos: [dc[0], dc[1], (dc[2] + dmin[2]) / 2] },
+                          ];
+                        })().map(({ label, pos }) => (
+                          <button
+                            key={label}
+                            onClick={() => { setEyeX(Math.round(pos[0] * 100) / 100); setEyeY(Math.round(pos[1] * 100) / 100); setEyeZ(Math.round(pos[2] * 100) / 100); }}
+                            className="px-1.5 py-1 rounded text-[10px] bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200 transition-colors"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Up Axis — only relevant for 3DGS */}
+            {modelFormat === "3dgs" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Up Axis
+                </label>
+                <div className="flex gap-1">
+                  {(["auto", "y", "-y", "z", "-z"] as UpAxis[]).map((axis) => (
+                    <button
+                      key={axis}
+                      onClick={() => setUpAxis(axis)}
+                      className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                        upAxis === axis
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                      }`}
+                    >
+                      {axis === "auto" ? "Auto" : axis.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {upAxis === "auto"
+                    ? "Guessed from bounding box — try other options if scene is flipped"
+                    : upAxis === "y"
+                    ? "Y-up (OpenGL / COLMAP convention)"
+                    : upAxis === "-y"
+                    ? "-Y up (inverted Y — try if Y is upside down)"
+                    : upAxis === "z"
+                    ? "Z-up (Blender convention)"
+                    : "-Z up (inverted Z — try if Z is upside down)"}
+                </p>
+              </div>
+            )}
 
             {/* Camera Controls */}
             <div className="space-y-3">
@@ -431,9 +545,10 @@ export default function ThreeDBackgroundTestPage() {
                 }}
                 className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="1920x1080">1920 x 1080</option>
-                <option value="1280x720">1280 x 720</option>
-                <option value="960x540">960 x 540</option>
+                <option value="1920x1080">1920 × 1080 (final)</option>
+                <option value="1280x720">1280 × 720</option>
+                <option value="960x540">960 × 540</option>
+                <option value="480x270">480 × 270 (draft — fastest)</option>
               </select>
             </div>
 
@@ -535,6 +650,21 @@ export default function ThreeDBackgroundTestPage() {
                 </div>
               )}
             </div>
+
+            {/* Scene Info */}
+            {sceneInfo && (
+              <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs text-gray-400 space-y-1">
+                <h4 className="text-gray-300 text-sm font-medium mb-2">Scene Info</h4>
+                <p className="text-yellow-400">Dense center: [{sceneInfo.center?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-yellow-600">Dense min: [{sceneInfo.dense_min?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-yellow-600">Dense max: [{sceneInfo.dense_max?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-yellow-600">Dense extents: [{sceneInfo.extents?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-gray-600 mt-1">Raw bbox min: [{sceneInfo.bbox_min?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-gray-600">Raw bbox max: [{sceneInfo.bbox_max?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-green-400 mt-1">Eye: [{sceneInfo.eye?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+                <p className="text-blue-400">Target: [{sceneInfo.target?.map((v: number) => v.toFixed(2)).join(", ")}]</p>
+              </div>
+            )}
 
             {/* History */}
             {history.length > 0 && (

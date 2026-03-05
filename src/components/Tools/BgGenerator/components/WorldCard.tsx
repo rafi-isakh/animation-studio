@@ -8,7 +8,9 @@ import {
   Loader2,
   Box,
   ExternalLink,
+  Scissors,
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ProjectItem, TimeOfDay, ModelProvider } from "../types";
 
@@ -397,6 +399,15 @@ export default function WorldCard({
                         <Download className="w-3 h-3" />
                         Mesh (.glb)
                       </a>
+                    )}
+                    {item.worldLabs.panoUrl && (
+                      <Link
+                        href={`/tools/pano-crop?url=${encodeURIComponent(item.worldLabs.panoUrl)}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DB2777]/60 bg-[#DB2777]/10 text-[#DB2777] hover:bg-[#DB2777]/20 transition-colors"
+                      >
+                        <Scissors className="w-3 h-3" />
+                        Crop Views
+                      </Link>
                     )}
                   </div>
                 </div>

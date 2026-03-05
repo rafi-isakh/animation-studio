@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Plus,
   Loader2,
@@ -71,9 +72,14 @@ function makeViews(
 }
 
 export default function PanoCropPage() {
-  const [panoUrl, setPanoUrl] = useState("");
+  const searchParams = useSearchParams();
+  const initialUrl = searchParams.get("url") || "";
+
+  const [panoUrl, setPanoUrl] = useState(initialUrl);
   const [panoData, setPanoData] = useState<string | null>(null);
-  const [panoPreview, setPanoPreview] = useState<string | null>(null);
+  const [panoPreview, setPanoPreview] = useState<string | null>(
+    initialUrl || null
+  );
   const [views, setViews] = useState<ViewConfig[]>(() =>
     makeViews(PRESETS[0].views)
   );

@@ -387,8 +387,8 @@ def _rasterize_ewa(
     m2d = means2d[order]
     cinv = cov2d_inv[order]
     rad = radii[order]
-    col = colors[order]
-    opa = opacities[order]
+    col = colors[order].astype(np.float32)
+    opa = opacities[order].astype(np.float32)
 
     img = np.zeros((height, width, 3), dtype=np.float32)
     T = np.ones((height, width), dtype=np.float32)  # transmittance
@@ -396,17 +396,28 @@ def _rasterize_ewa(
     n_rendered = len(order)
     logger.info(f"[3DGS] Rasterizing {n_rendered:,} Gaussians (front-to-back)…")
 
-    for i in range(n_rendered):
-        # Early exit when image is fully opaque
-        if T.max() < 0.005:
-            logger.info(f"[3DGS] Early exit at Gaussian {i:,} (image fully opaque)")
-            break
+    # Try Numba-accelerated path first, fall back to NumPy
+    try:
+        _rasterize_numba(m2d, cinv, rad, col, opa, img, T, width, height)
+    except Exception:
+        _rasterize_numpy(m2d, cinv, rad, col, opa, img, T, width, height)
 
-        gx, gy = m2d[i]
+    # Composite over white background
+    img += T[:, :, np.newaxis]  # T * bg_color (white = 1.0)
+    return (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
+
+
+def _rasterize_numpy(m2d, cinv, rad, col, opa, img, T, width, height):
+    """Pure NumPy rasterization (fallback)."""
+    n_rendered = len(m2d)
+    for i in range(n_rendered):
+        if T.max() < 0.005:
+            break
+        gx, gy = float(m2d[i, 0]), float(m2d[i, 1])
         radius_px = int(math.ceil(rad[i])) + 1
         alpha = float(opa[i])
         color = col[i]
-        inv_cov = cinv[i]  # [2, 2]
+        inv_cov = cinv[i]
 
         x0 = max(0, int(gx) - radius_px)
         x1 = min(width, int(gx) + radius_px + 1)
@@ -419,27 +430,76 @@ def _rasterize_ewa(
         ys = np.arange(y0, y1, dtype=np.float32) - gy
         dx, dy = np.meshgrid(xs, ys, indexing="xy")
 
-        # Mahalanobis distance: power = -0.5 * [dx, dy] @ Σ⁻¹ @ [dx, dy]ᵀ
         power = -0.5 * (
             inv_cov[0, 0] * dx * dx
             + (inv_cov[0, 1] + inv_cov[1, 0]) * dx * dy
             + inv_cov[1, 1] * dy * dy
         )
-        # Clamp to avoid exp() overflow on negative side
         gauss = np.exp(np.clip(power, -16.0, 0.0))
+        alpha_g = np.minimum(alpha * gauss, 0.99)
 
-        # Front-to-back: C += T * α * G * color;  T *= (1 - α * G)
-        patch_T = T[y0:y1, x0:x1]
-        alpha_g = alpha * gauss
-        alpha_g = np.minimum(alpha_g, 0.99)  # clamp max contribution
-
-        contrib = patch_T * alpha_g
+        contrib = T[y0:y1, x0:x1] * alpha_g
         img[y0:y1, x0:x1] += contrib[:, :, np.newaxis] * color
         T[y0:y1, x0:x1] *= (1.0 - alpha_g)
 
-    # Composite over white background
-    img += T[:, :, np.newaxis]  # T * bg_color (white = 1.0)
-    return (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
+
+_NUMBA_KERNEL = None
+
+
+def _get_numba_kernel():
+    """Lazily compile and cache the Numba JIT kernel (compiled once per process)."""
+    global _NUMBA_KERNEL
+    if _NUMBA_KERNEL is not None:
+        return _NUMBA_KERNEL
+    from numba import njit
+    import math as _m
+
+    @njit(cache=True, parallel=False)
+    def _kernel(m2d, cinv, rad, col, opa, img, T, width, height):
+        n = len(m2d)
+        for i in range(n):
+            gx = m2d[i, 0]
+            gy = m2d[i, 1]
+            radius_px = int(_m.ceil(rad[i])) + 1
+            alpha = opa[i]
+
+            x0 = max(0, int(gx) - radius_px)
+            x1 = min(width, int(gx) + radius_px + 1)
+            y0 = max(0, int(gy) - radius_px)
+            y1 = min(height, int(gy) + radius_px + 1)
+            if x0 >= x1 or y0 >= y1:
+                continue
+
+            ic00 = cinv[i, 0, 0]
+            ic01 = cinv[i, 0, 1] + cinv[i, 1, 0]
+            ic11 = cinv[i, 1, 1]
+            cr, cg, cb = col[i, 0], col[i, 1], col[i, 2]
+
+            for py in range(y0, y1):
+                dy = float(py) - gy
+                for px in range(x0, x1):
+                    dx = float(px) - gx
+                    power = -0.5 * (ic00 * dx * dx + ic01 * dx * dy + ic11 * dy * dy)
+                    if power < -16.0:
+                        continue
+                    g = _m.exp(power)
+                    ag = alpha * g
+                    if ag > 0.99:
+                        ag = 0.99
+                    t = T[py, px]
+                    contrib = t * ag
+                    img[py, px, 0] += contrib * cr
+                    img[py, px, 1] += contrib * cg
+                    img[py, px, 2] += contrib * cb
+                    T[py, px] = t * (1.0 - ag)
+
+    _NUMBA_KERNEL = _kernel
+    return _NUMBA_KERNEL
+
+
+def _rasterize_numba(m2d, cinv, rad, col, opa, img, T, width, height):
+    """Numba JIT-accelerated rasterization (~10-30× faster than NumPy loop)."""
+    _get_numba_kernel()(m2d, cinv, rad, col, opa, img, T, width, height)
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +520,9 @@ async def render_single_view_3dgs(
     interior_offset_z: float = 0.0,
     max_gaussians: int = 200_000,
     up_axis: str = "auto",
+    eye: tuple[float, float, float] | None = None,
+    look_at_center: bool = False,
+    fixed_extent: float | None = None,
 ) -> bytes:
     """
     Render a single camera view of a 3DGS model with full EWA splatting.
@@ -476,6 +539,9 @@ async def render_single_view_3dgs(
         interior_offset_x/y/z: Camera offset from centre as fraction of half-extent.
         max_gaussians: Cap on rendered Gaussians. Lower = faster preview.
         up_axis: "auto", "y", or "z". Controls world up direction.
+        fixed_extent: If set, override the dense-region extents with a uniform cube of
+                      this size. Makes camera placement consistent across models of
+                      different real-world scales.
 
     Returns:
         PNG image bytes.
@@ -488,22 +554,46 @@ async def render_single_view_3dgs(
     means = gaussians["means"]
     bbox_min = means.min(axis=0)
     bbox_max = means.max(axis=0)
-    center = ((bbox_min + bbox_max) / 2.0).astype(np.float64)
-    extents = (bbox_max - bbox_min).astype(np.float64)
+
+    # Compute dense region using percentiles — ignores floater Gaussians that
+    # inflate the raw bounding box far beyond the actual scene geometry.
+    dense_min = np.percentile(means, 10, axis=0).astype(np.float64)
+    dense_max = np.percentile(means, 90, axis=0).astype(np.float64)
+    dense_center = ((dense_min + dense_max) / 2.0).astype(np.float64)
+    dense_extents = (dense_max - dense_min).astype(np.float64)
+
+    # Use dense region for all camera calculations (orbit center, interior offsets,
+    # up-axis detection, look direction scale). Raw bbox kept only for diagnostics.
+    center = dense_center
+    if fixed_extent is not None and fixed_extent > 0:
+        # Override per-model extents with a uniform cube so that camera placement
+        # (offsets, orbit radius) is consistent across models of different scales.
+        extents = np.array([fixed_extent, fixed_extent, fixed_extent], dtype=np.float64)
+        logger.info(f"[3DGS] fixed_extent={fixed_extent} overrides dense extents {dense_extents}")
+    else:
+        extents = dense_extents
     max_extent = float(np.max(extents))
 
-    logger.info(f"[3DGS] Scene centre={center}, extents={extents}")
+    logger.info(
+        f"[3DGS] Raw bbox: min={bbox_min}, max={bbox_max}\n"
+        f"[3DGS] Dense region (p10-p90): center={dense_center}, extents={dense_extents}"
+    )
 
     # Determine world up vector
     if up_axis == "y":
         world_up = np.array([0.0, 1.0, 0.0])
+    elif up_axis == "-y":
+        world_up = np.array([0.0, -1.0, 0.0])
     elif up_axis == "z":
         world_up = np.array([0.0, 0.0, 1.0])
+    elif up_axis == "-z":
+        world_up = np.array([0.0, 0.0, -1.0])
     else:
         world_up = _detect_up_axis(extents)
 
     # Determine which axes form the horizontal plane
     up_idx = int(np.argmax(np.abs(world_up)))
+    up_sign = float(np.sign(world_up[up_idx]))  # +1 for y/z, -1 for -y/-z
     horiz = [i for i in range(3) if i != up_idx]
     h0, h1 = horiz[0], horiz[1]
 
@@ -511,19 +601,35 @@ async def render_single_view_3dgs(
     az = math.radians(azimuth)
     el = math.radians(elevation)
 
-    if camera_mode == "interior":
+    if camera_mode == "absolute" and eye is not None:
+        eye_pos = np.array(eye, dtype=np.float64)
+        if look_at_center:
+            # Always look toward the dense center (where most Gaussians are)
+            target = dense_center.copy()
+        else:
+            # Use azimuth/elevation as look direction from the eye position
+            cos_el = math.cos(el)
+            look_dir = np.zeros(3)
+            look_dir[h0] = cos_el * math.cos(az)
+            look_dir[h1] = cos_el * math.sin(az)
+            look_dir[up_idx] = up_sign * math.sin(el)
+            target = eye_pos + look_dir * max_extent
+        eye = eye_pos
+    elif camera_mode == "interior":
         half = extents / 2.0
-        eye = center + np.array([
-            interior_offset_x * half[0],
-            interior_offset_y * half[1],
-            interior_offset_z * half[2],
-        ])
+        # Map offsets to semantic axes: X→horizontal1, Y→vertical, Z→horizontal2
+        # interior_offset_y is always "upward" regardless of up_axis sign
+        offset = np.zeros(3)
+        offset[h0] = interior_offset_x * half[h0]
+        offset[up_idx] = up_sign * interior_offset_y * half[up_idx]
+        offset[h1] = interior_offset_z * half[h1]
+        eye = center + offset
         # Look direction in the coordinate system defined by up_axis
         cos_el = math.cos(el)
         look_dir = np.zeros(3)
         look_dir[h0] = cos_el * math.cos(az)
         look_dir[h1] = cos_el * math.sin(az)
-        look_dir[up_idx] = math.sin(el)
+        look_dir[up_idx] = up_sign * math.sin(el)
         target = eye + look_dir * max_extent
     else:
         radius = max_extent * distance_multiplier
@@ -531,7 +637,7 @@ async def render_single_view_3dgs(
         cos_el = math.cos(el)
         offset[h0] = cos_el * math.cos(az)
         offset[h1] = cos_el * math.sin(az)
-        offset[up_idx] = math.sin(el)
+        offset[up_idx] = up_sign * math.sin(el)
         eye = center + radius * offset
         target = center
 
@@ -548,8 +654,11 @@ async def render_single_view_3dgs(
     fy = height / (2.0 * math.tan(fov_rad / 2.0))
     fx = fy  # square pixels
 
+    # Use smaller znear for interior/absolute modes to see close Gaussians
+    znear = 0.01 if camera_mode in ("interior", "absolute") else 0.1
+
     means2d, cov2d_inv, radii, colors, opacities, depths, mask = _project_gaussians_ewa(
-        gaussians, view_mat, fx, fy, width / 2.0, height / 2.0, width, height,
+        gaussians, view_mat, fx, fy, width / 2.0, height / 2.0, width, height, znear=znear,
     )
 
     n_valid = mask.sum()
@@ -564,5 +673,19 @@ async def render_single_view_3dgs(
     img = Image.fromarray(img_array, "RGB")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    logger.info(f"[3DGS] Render complete: {len(buf.getvalue()):,} bytes")
-    return buf.getvalue()
+    png_bytes = buf.getvalue()
+    logger.info(f"[3DGS] Render complete: {len(png_bytes):,} bytes")
+
+    scene_info = {
+        # center/extents now refer to the dense region (used for camera)
+        "center": dense_center.tolist(),
+        "extents": dense_extents.tolist(),
+        "dense_min": dense_min.tolist(),
+        "dense_max": dense_max.tolist(),
+        # raw bbox kept for reference
+        "bbox_min": bbox_min.tolist(),
+        "bbox_max": bbox_max.tolist(),
+        "eye": eye.tolist() if isinstance(eye, np.ndarray) else list(eye),
+        "target": target.tolist(),
+    }
+    return png_bytes, scene_info

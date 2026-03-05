@@ -1242,7 +1242,7 @@ export function useImageSplitter() {
       ctx.lineWidth = 4;
       ctx.font = 'bold 24px Arial';
 
-      page.panels.forEach((panel) => {
+      page.panels.forEach((panel, idx) => {
         const [ymin, xmin, ymax, xmax] = panel.box_2d;
 
         // Convert from 0-1000 scale to pixel coordinates
@@ -1261,9 +1261,9 @@ export function useImageSplitter() {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
         ctx.fillRect(s_xmin, s_ymin - 30, 40, 30);
 
-        // Draw label text
+        // Draw numeric label to match the API request/response mapping (1, 2, 3...)
         ctx.fillStyle = '#00FF00';
-        ctx.fillText(panel.label || '?', s_xmin + 8, s_ymin - 7);
+        ctx.fillText(String(idx + 1), s_xmin + 8, s_ymin - 7);
       });
 
       const result = canvas.toDataURL('image/jpeg', 0.8);

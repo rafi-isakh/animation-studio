@@ -38,16 +38,31 @@ async def check_cancellation(job_id: str) -> None:
         raise CancellationRequested(f"Job {job_id} was cancelled by user")
 
 
+_LIGHTING_PRESETS = {
+    "Morning": "LIGHTING: Morning (Cool, blueish tint, soft shadows, fresh atmosphere).",
+    "Daylight": "LIGHTING: Daylight (Neutral, bright, high contrast, clear visibility).",
+    "Evening": "LIGHTING: Evening (Golden hour, warm orange/purple tint, long shadows, dramatic sunset).",
+    "Night": "LIGHTING: Night (Dark, blue/purple ambient, strong contrast, moonlight or artificial lights).",
+}
+
+
 def build_colorizer_prompt(
     target_aspect_ratio: str,
     global_prompt: str,
     has_references: bool,
     reference_count: int,
+    mode: str = "colorize",
+    time_of_day: str | None = None,
 ) -> str:
     """
     Build the prompt for manga panel colorization.
 
     Adapted from the reference project's transformMangaToAnime prompt.
+
+    Args:
+        mode: "colorize" prepends the master colorization instruction;
+              "remix" uses raw global_prompt as the sole user instruction.
+        time_of_day: Optional lighting preset inserted before the user prompt.
     """
     if has_references:
         reference_instructions = f"""
@@ -65,13 +80,33 @@ def build_colorizer_prompt(
     INPUT CONTEXT:
     - IMAGE 1: TARGET MANGA PANEL."""
 
+    lighting_section = ""
+    if time_of_day:
+        lighting_text = _LIGHTING_PRESETS.get(time_of_day, f"LIGHTING: {time_of_day}.")
+        lighting_section = f"""
+    CRITICAL LIGHTING INSTRUCTION:
+    {lighting_text}
+    Ensure the entire scene reflects this time of day.
+"""
+
+    if mode == "remix":
+        user_prompt_section = global_prompt or "Refine this image."
+    else:
+        master = (
+            "color this manga panel in anime screenshot style. "
+            "color the characters according to the character sheets that I uploaded "
+            "(in the color reference section). "
+            "Dont' draw the eye if the manga panel didn't have one, for simplification purposes"
+        )
+        user_prompt_section = f"{master}{f' Additional Context: {global_prompt}' if global_prompt else ''}"
+
     prompt = f"""ACT AS A MASTER ANIME BACKGROUND ARTIST AND COMPOSITOR.
 
     {reference_instructions}
 
     CORE TASK:
     Transform the source manga panel into a clean, borderless, full-color {target_aspect_ratio} Anime Screenshot.
-
+    {lighting_section}
     MANDATORY CLEANUP & RESTORATION (PRIORITY 1):
     1. REMOVE ALL TEXT & SYMBOLS:
        - Erase ALL speech bubbles, dialogue boxes, and narration rectangles.
@@ -101,7 +136,7 @@ def build_colorizer_prompt(
     - No paper texture, no halftone dots.
 
     USER PROMPT:
-    {global_prompt}"""
+    {user_prompt_section}"""
 
     return prompt
 
@@ -112,13 +147,14 @@ async def _generate_colorized_image_gemini(
     prompt: str,
     reference_images: list[dict],
     api_key: str,
+    aspect_ratio: str = "16:9",
 ) -> bytes:
     """Generate colorized panel image using Gemini API (supports reference images)."""
     from google import genai
     from google.genai import types
 
     client = genai.Client(api_key=api_key)
-    model = "gemini-2.0-flash-exp-image-generation"
+    model = "gemini-3-pro-image-preview"
 
     contents = []
 
@@ -144,6 +180,7 @@ async def _generate_colorized_image_gemini(
 
     generate_config = types.GenerateContentConfig(
         response_modalities=["IMAGE", "TEXT"],
+        image_config=types.ImageConfig(aspect_ratio=aspect_ratio),
     )
 
     response = await client.aio.models.generate_content(
@@ -172,7 +209,7 @@ async def generate_colorized_image_for_provider(
     """Dispatch colorized panel image generation to the appropriate provider."""
     if provider_id == "gemini":
         return await _generate_colorized_image_gemini(
-            image_base64, mime_type, prompt, reference_images, api_key,
+            image_base64, mime_type, prompt, reference_images, api_key, aspect_ratio,
         )
     # For non-Gemini providers, use the panel generation dispatch
     # (reference images are not supported; prompt-only colorization)
@@ -308,6 +345,8 @@ async def _stage_prepare(
         global_prompt=job.global_prompt or "",
         has_references=len(reference_images) > 0,
         reference_count=len(reference_images),
+        mode=job.colorizer_mode or "colorize",
+        time_of_day=job.time_of_day,
     )
 
     await job_queue_service.update_job(job.id, progress=0.2)

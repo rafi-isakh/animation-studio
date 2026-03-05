@@ -21,7 +21,7 @@ from app.services.firestore import get_job_queue_service
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3-pro-preview"
 
 IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
 
@@ -287,6 +287,10 @@ async def _generate_i2v_storyboard_with_gemini(
     image_guide = job.image_guide or "없음"
     video_guide = job.video_guide or "없음"
     source_text = job.source_text or ""
+    custom_instruction = job.custom_instruction or ""
+    background_instruction = job.background_instruction or ""
+    negative_instruction = job.negative_instruction or ""
+    video_instruction = job.video_instruction or ""
 
     # Build multimodal parts: images first, then prompt text
     content_parts: list[types.Part] = []
@@ -336,6 +340,24 @@ async def _generate_i2v_storyboard_with_gemini(
 **[CRITICAL: 클립 길이 및 총 시간 규칙]**
 - 모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.**
 - 마지막 클립의 'accumulatedTime'은 반드시 **{_format_time(total_seconds)}**이어야 합니다.
+
+**[CRITICAL: 비디오 프롬프트 발화 규칙]**
+- 클립에 대사(dialogue)가 존재하거나 캐릭터가 말하는 상황이라면, `videoPrompt`에 반드시 해당 캐릭터가 말하는 동작(speaks, yells, shouts, whispers 등)을 포함하십시오.
+- 말하는 장면에는 항상 "(pronoun)'s head angle stays still"을 videoPrompt 끝에 추가하십시오.
+- 발화 장면에서 애매하거나 비유적 표현 금지. (잘못된 예: "delivers a warning" → 올바른 예: "speaks firmly")
+
+**[사용자 특별 지시사항 (스토리 흐름)]**
+{custom_instruction if custom_instruction else "특별한 지시 없음"}
+
+**[배경 ID 및 카메라 앵글 지시사항]**
+{background_instruction if background_instruction else "특별한 지시 없음"}
+
+**[비디오 프롬프트 추가 지시사항]**
+{video_instruction if video_instruction else "특별한 지시 없음"}
+
+**[Negative Prompt (절대 금지 사항)]**
+{negative_instruction if negative_instruction else "특별한 지시 없음"}
+- 위 목록에 명시된 모든 요소는 모든 칼럼에서 무조건 제외하십시오.
 
 각 필드 가이드라인:
 - **story**: 규칙: {story_condition}. (한국어 필수)

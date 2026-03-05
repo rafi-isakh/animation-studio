@@ -390,6 +390,8 @@ class JobQueueService:
             source_mime_type=request.mime_type,
             global_prompt=request.global_prompt,
             reference_image_count=len(request.reference_images),
+            time_of_day=request.time_of_day,
+            colorizer_mode=request.colorizer_mode,
             max_retries=2,
         )
 
@@ -694,6 +696,10 @@ class JobQueueService:
             sound_condition=request.sound_condition,
             image_guide=request.image_guide,
             video_guide=request.video_guide,
+            custom_instruction=request.custom_instruction,
+            background_instruction=request.background_instruction,
+            negative_instruction=request.negative_instruction,
+            video_instruction=request.video_instruction,
             max_retries=3,
         )
 

@@ -98,7 +98,7 @@ Return a JSON object with a "panels" array where each panel has:
 Analyze all ${panels.length} panels shown in the image.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-pro-preview",
       contents: {
         parts: [
           {

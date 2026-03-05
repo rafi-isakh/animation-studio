@@ -17,6 +17,7 @@ from app.core.errors import (
     VideoJobError,
     classify_exception,
 )
+from app.core.retry import RetryState
 from app.core.state_machine import JobStateMachine
 from app.models.job import JobDocument, JobStatus
 from app.services.firestore import get_job_queue_service
@@ -27,7 +28,7 @@ settings = get_settings()
 
 # Concurrency control: limit to 3 concurrent panel splitter jobs per worker
 # This prevents API rate limit issues and reduces memory pressure
-PANEL_SPLITTER_CONCURRENCY = 3
+PANEL_SPLITTER_CONCURRENCY = 1
 _panel_splitter_semaphore: asyncio.Semaphore | None = None
 
 
@@ -39,7 +40,7 @@ def get_panel_splitter_semaphore() -> asyncio.Semaphore:
         logger.info(f"[PANEL-SPLITTER] Initialized concurrency semaphore (max {PANEL_SPLITTER_CONCURRENCY})")
     return _panel_splitter_semaphore
 
-MODEL_NAME = "gemini-2.5-flash"  # Flash for speed
+MODEL_NAME = "gemini-3-pro-preview"
 
 
 class CancellationRequested(Exception):
@@ -235,6 +236,81 @@ Exclude:
             })
 
     return valid_panels
+
+
+async def _handle_error(
+    job: JobDocument,
+    error: VideoJobError,
+    state_machine: JobStateMachine,
+    image_url: str,
+    custom_api_key: str | None = None,
+) -> dict:
+    """Handle job error with potential retry."""
+    from app.workers.tasks import retry_failed_panel_splitter_job
+
+    job_queue_service = get_job_queue_service()
+
+    logger.error(f"[PANEL-SPLITTER] [{job.id}] Error: {error.code.value} - {error.message}")
+
+    retry_state = RetryState(
+        max_retries=job.max_retries,
+        retry_count=job.retry_count,
+    )
+    retry_state.record_failure(error.code.value, error.message)
+
+    if error.retryable and retry_state.can_retry():
+        delay = retry_state.get_next_delay(error.code)
+        logger.info(
+            f"[PANEL-SPLITTER] [{job.id}] Will retry in {delay:.1f}s "
+            f"(attempt {retry_state.retry_count}/{retry_state.max_retries})"
+        )
+
+        state_machine.transition_to(JobStatus.FAILED)
+        await job_queue_service.update_job(
+            job.id,
+            status=JobStatus.PENDING.value,
+            retry_count=retry_state.retry_count,
+            error_code=error.code.value,
+            error_message=error.message,
+            error_retryable=True,
+        )
+
+        await retry_failed_panel_splitter_job.kiq(
+            job.id, image_url, delay, custom_api_key
+        )
+
+        return {
+            "job_id": job.id,
+            "status": "retry_scheduled",
+            "retry_after": delay,
+            "attempt": retry_state.retry_count,
+        }
+    else:
+        logger.warning(f"[PANEL-SPLITTER] [{job.id}] Moving to DLQ after {retry_state.retry_count} attempts")
+
+        state_machine.transition_to(JobStatus.FAILED)
+        await job_queue_service.update_job_status(
+            job.id,
+            JobStatus.FAILED,
+            error_code=error.code.value,
+            error_message=error.message,
+            error_retryable=False,
+        )
+
+        await job_queue_service.move_to_dlq(
+            job.id,
+            error.code.value,
+            error.message,
+            retry_state.failure_history,
+        )
+
+        return {
+            "job_id": job.id,
+            "status": "failed",
+            "error_code": error.code.value,
+            "error_message": error.message,
+            "moved_to_dlq": True,
+        }
 
 
 async def process_panel_splitter(
@@ -437,25 +513,11 @@ async def _process_panel_splitter_impl(
             "status": "cancelled",
         }
 
+    except VideoJobError as e:
+        logger.error(f"[PANEL-SPLITTER] {job_id} - VideoJobError: {e.code.value} - {e.message}")
+        return await _handle_error(job, e, state_machine, image_url, custom_api_key)
+
     except Exception as e:
-        logger.exception(f"[PANEL-SPLITTER] {job_id} - Error during processing: {e}")
-
-        # Classify the error
-        error_info = classify_exception(e)
-
-        # Update job status to failed
-        await job_queue_service.update_job_status(
-            job_id,
-            JobStatus.FAILED,
-            error_code=error_info.code.value,
-            error_message=str(e),
-            error_retryable=error_info.retryable,
-        )
-
-        return {
-            "job_id": job_id,
-            "status": "failed",
-            "error": str(e),
-            "error_code": error_info.code.value,
-            "retryable": error_info.retryable,
-        }
+        logger.exception(f"[PANEL-SPLITTER] {job_id} - Unexpected error: {type(e).__name__}: {str(e)}")
+        video_error = classify_exception(e)
+        return await _handle_error(job, video_error, state_machine, image_url, custom_api_key)

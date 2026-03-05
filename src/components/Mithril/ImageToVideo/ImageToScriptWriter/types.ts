@@ -63,6 +63,14 @@ export interface StyleGuides {
   video: string;
 }
 
+// Additional instruction fields (file-uploadable specs)
+export interface GenerationInstructions {
+  custom: string;      // Story flow instructions
+  background: string;  // Background ID spec
+  negative: string;    // Negative prompts (absolute prohibitions)
+  video: string;       // Video prompt rules spec
+}
+
 // Configuration state
 export interface ScriptWriterConfig {
   genre: string;
@@ -70,6 +78,7 @@ export interface ScriptWriterConfig {
   sourceText: string;
   conditions: GenerationConditions;
   guides: StyleGuides;
+  instructions: GenerationInstructions;
 }
 
 // UI state

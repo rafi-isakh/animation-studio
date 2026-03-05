@@ -143,6 +143,8 @@ class JobDocument(BaseModel):
     # Panel colorizer-specific fields (for type=PANEL_COLORIZER)
     global_prompt: str | None = None  # Scene description (lighting, atmosphere)
     reference_image_count: int | None = None  # Number of reference images provided
+    time_of_day: str | None = None  # Lighting: "Morning", "Daylight", "Evening", "Night"
+    colorizer_mode: str | None = None  # "colorize" (default) or "remix" (no master prompt)
 
     # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
     original_text: str | None = None  # Full text for glossary analysis
@@ -464,6 +466,8 @@ class PanelColorizerJobSubmitRequest(BaseModel):
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
     api_key: str | None = None  # Custom API key (optional)
     provider: Literal["gemini", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
+    time_of_day: str | None = None  # Lighting: "Morning", "Daylight", "Evening", "Night"
+    colorizer_mode: Literal["colorize", "remix"] = "colorize"  # colorize=default, remix=no master prompt
 
 
 class PanelColorizerJobStatusResponse(BaseModel):
@@ -768,6 +772,11 @@ class I2VStoryboardJobSubmitRequest(BaseModel):
     # Guides
     image_guide: str = ""
     video_guide: str = ""
+    # Additional instructions
+    custom_instruction: str = ""
+    background_instruction: str = ""
+    negative_instruction: str = ""
+    video_instruction: str = ""
     # API key
     api_key: str | None = None
 

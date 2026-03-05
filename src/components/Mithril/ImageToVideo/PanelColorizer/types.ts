@@ -24,6 +24,7 @@ export interface PanelData {
   status: ProcessingStatus;
   resultUrl?: string;
   error?: string;
+  timeOfDay?: string; // Active time-of-day lighting preset
 }
 
 // Reference image for color extraction (character sheets)

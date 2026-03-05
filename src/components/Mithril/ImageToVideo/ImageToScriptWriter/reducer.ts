@@ -1,6 +1,7 @@
 import type {
   ScriptWriterState,
   GenerationConditions,
+  GenerationInstructions,
   StyleGuides,
   Scene,
   VoicePrompt,
@@ -15,6 +16,7 @@ export type ScriptWriterAction =
   | { type: 'SET_SOURCE_TEXT'; text: string }
   | { type: 'SET_CONDITIONS'; conditions: Partial<GenerationConditions> }
   | { type: 'SET_GUIDES'; guides: Partial<StyleGuides> }
+  | { type: 'SET_INSTRUCTIONS'; instructions: Partial<GenerationInstructions> }
   // UI actions
   | { type: 'TOGGLE_CONDITIONS' }
   | { type: 'TOGGLE_GUIDES' }
@@ -39,7 +41,7 @@ const defaultPreset = GENRE_PRESETS[0];
 // Initial state
 export const initialState: ScriptWriterState = {
   config: {
-    genre: 'fantasy',
+    genre: defaultPreset.id,
     targetDuration: '03:00',
     sourceText: '',
     conditions: {
@@ -50,6 +52,12 @@ export const initialState: ScriptWriterState = {
     },
     guides: {
       image: '',
+      video: '',
+    },
+    instructions: {
+      custom: '',
+      background: '',
+      negative: '',
       video: '',
     },
   },
@@ -123,6 +131,15 @@ export function scriptWriterReducer(
         config: {
           ...state.config,
           guides: { ...state.config.guides, ...action.guides },
+        },
+      };
+
+    case 'SET_INSTRUCTIONS':
+      return {
+        ...state,
+        config: {
+          ...state.config,
+          instructions: { ...state.config.instructions, ...action.instructions },
         },
       };
 

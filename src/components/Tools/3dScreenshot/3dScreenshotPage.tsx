@@ -42,38 +42,76 @@ function makeViews(configs: Omit<ViewConfig, "id" | "label">[]): ViewConfig[] {
 
 export default function ThreeDScreenshotPage() {
   const [modelUrl, setModelUrl] = useState("");
-  const [modelData, setModelData] = useState<string | null>(null);
   const [modelFileName, setModelFileName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [views, setViews] = useState<ViewConfig[]>(() => makeViews(PRESETS[0].views));
   const [results, setResults] = useState<RenderResult[]>([]);
   const [resolution, setResolution] = useState<[number, number]>([1920, 1080]);
   const [fixedExtent, setFixedExtent] = useState("");
+  const [upAxis, setUpAxis] = useState<"y" | "-y" | "z" | "-z">("y");
   const [renderingViewId, setRenderingViewId] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadedKeyRef = useRef<string | null>(null);
 
-  const hasModel = Boolean(modelUrl.trim() || modelData);
+  const hasModel = Boolean(modelUrl.trim());
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const deleteUploadedFile = useCallback((key: string) => {
+    fetch("/api/mithril/s3/presign", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    }).catch(() => {}); // fire-and-forget
+  }, []);
+
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setModelFileName(file.name);
-    setModelUrl("");
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUri = reader.result as string;
-      setModelData(dataUri.split(",")[1]);
-    };
-    reader.readAsDataURL(file);
     e.target.value = "";
-  }, []);
+    setIsUploading(true);
+    setError(null);
+    // Delete the previous uploaded file if any
+    if (uploadedKeyRef.current) {
+      deleteUploadedFile(uploadedKeyRef.current);
+      uploadedKeyRef.current = null;
+    }
+    try {
+      const key = `mithril/3d-screenshots/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const presignRes = await fetch("/api/mithril/s3/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, contentType: "application/octet-stream" }),
+      });
+      const presignData = await presignRes.json();
+      if (!presignRes.ok) throw new Error(presignData.error || "Failed to get upload URL");
+
+      const uploadRes = await fetch(presignData.presignedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: file,
+      });
+      if (!uploadRes.ok) throw new Error("Failed to upload file to S3");
+
+      uploadedKeyRef.current = key;
+      setModelFileName(file.name);
+      setModelUrl(presignData.fileUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  }, [deleteUploadedFile]);
 
   const handleUrlChange = useCallback((url: string) => {
+    // If switching to a URL, clean up any previously uploaded file
+    if (uploadedKeyRef.current) {
+      deleteUploadedFile(uploadedKeyRef.current);
+      uploadedKeyRef.current = null;
+    }
     setModelUrl(url);
-    setModelData(null);
     setModelFileName(null);
-  }, []);
+  }, [deleteUploadedFile]);
 
   const applyPreset = useCallback((preset: (typeof PRESETS)[number]) => {
     setViews(makeViews(preset.views));
@@ -97,11 +135,10 @@ export default function ThreeDScreenshotPage() {
   }, []);
 
   const renderPayload = useCallback((view: ViewConfig) => ({
-    modelUrl: modelData ? "" : modelUrl.trim(),
-    modelData: modelData || undefined,
+    modelUrl: modelUrl.trim(),
     modelFormat: "3dgs",
     cameraMode: "interior",
-    upAxis: "-y",
+    upAxis,
     azimuth: view.azimuth,
     elevation: view.elevation,
     fov: view.fov,
@@ -112,7 +149,7 @@ export default function ThreeDScreenshotPage() {
     maxGaussians: 500000,
     fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
     outputMode: "direct",
-  }), [modelData, modelUrl, resolution, fixedExtent]);
+  }), [modelUrl, resolution, fixedExtent, upAxis]);
 
   const renderSingle = useCallback(async (viewId: string) => {
     if (!hasModel || isRendering) return;
@@ -173,8 +210,13 @@ export default function ThreeDScreenshotPage() {
     } finally {
       setIsRendering(false);
       setRenderingViewId(null);
+      // Clean up temporary S3 file — all views rendered, it's no longer needed
+      if (uploadedKeyRef.current) {
+        deleteUploadedFile(uploadedKeyRef.current);
+        uploadedKeyRef.current = null;
+      }
     }
-  }, [hasModel, views, renderPayload]);
+  }, [hasModel, views, renderPayload, deleteUploadedFile]);
 
   const getTimestamp = () => {
     const d = new Date();
@@ -225,20 +267,36 @@ export default function ThreeDScreenshotPage() {
             <h1 className="text-lg font-semibold">3D Scene Screenshot</h1>
           </div>
 
-          <select
-            value={`${resolution[0]}x${resolution[1]}`}
-            onChange={(e) => {
-              const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
-              if (r) setResolution(r.value);
-            }}
-            className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
-          >
-            {RESOLUTIONS.map((r) => (
-              <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-zinc-500">Up</span>
+              <select
+                value={upAxis}
+                onChange={(e) => setUpAxis(e.target.value as typeof upAxis)}
+                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+              >
+                <option value="y">+Y</option>
+                <option value="-y">-Y</option>
+                <option value="z">+Z</option>
+                <option value="-z">-Z</option>
+              </select>
+            </div>
+
+            <select
+              value={`${resolution[0]}x${resolution[1]}`}
+              onChange={(e) => {
+                const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
+                if (r) setResolution(r.value);
+              }}
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+            >
+              {RESOLUTIONS.map((r) => (
+                <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -265,10 +323,14 @@ export default function ThreeDScreenshotPage() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-100 transition-colors"
+              disabled={isUploading}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-colors"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload
+              {isUploading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
+              ) : (
+                <><Upload className="w-4 h-4 mr-2" />Upload</>
+              )}
             </button>
           </div>
           <div className="flex items-center gap-3 mt-1">

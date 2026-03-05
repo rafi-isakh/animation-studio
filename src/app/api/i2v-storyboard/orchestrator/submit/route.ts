@@ -20,6 +20,11 @@ interface I2VStoryboardSubmitRequest {
   // Guides
   imageGuide?: string;
   videoGuide?: string;
+  // Instructions
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
   // API key
   apiKey?: string;
 }
@@ -59,6 +64,11 @@ export async function POST(request: NextRequest) {
       // Guides
       image_guide: body.imageGuide || "",
       video_guide: body.videoGuide || "",
+      // Instructions
+      custom_instruction: body.customInstruction || "",
+      background_instruction: body.backgroundInstruction || "",
+      negative_instruction: body.negativeInstruction || "",
+      video_instruction: body.videoInstruction || "",
       // API key
       api_key: body.apiKey,
     };

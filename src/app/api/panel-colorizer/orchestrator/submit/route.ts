@@ -18,6 +18,8 @@ interface PanelColorizerJobSubmitRequest {
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   apiKey?: string;
   provider?: "gemini" | "grok" | "z_image_turbo" | "flux2_dev";
+  timeOfDay?: string;
+  mode?: "colorize" | "remix";
 }
 
 export async function POST(request: NextRequest) {
@@ -68,6 +70,8 @@ export async function POST(request: NextRequest) {
         target_aspect_ratio: body.targetAspectRatio,
         api_key: body.apiKey,
         provider: body.provider ?? "gemini",
+        time_of_day: body.timeOfDay ?? null,
+        colorizer_mode: body.mode ?? "colorize",
       }),
     });
 

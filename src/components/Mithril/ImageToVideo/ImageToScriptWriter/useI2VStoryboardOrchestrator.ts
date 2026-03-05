@@ -23,6 +23,11 @@ interface SubmitI2VStoryboardParams {
   // Guides
   imageGuide?: string;
   videoGuide?: string;
+  // Instructions
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 interface SubmitJobResponse {
@@ -174,6 +179,11 @@ export function useI2VStoryboardOrchestrator({
           // Guides
           imageGuide: params.imageGuide,
           videoGuide: params.videoGuide,
+          // Instructions
+          customInstruction: params.customInstruction,
+          backgroundInstruction: params.backgroundInstruction,
+          negativeInstruction: params.negativeInstruction,
+          videoInstruction: params.videoInstruction,
           // API key
           apiKey: customApiKey,
         }),

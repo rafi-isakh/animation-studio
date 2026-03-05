@@ -36,6 +36,7 @@ export default function ImageToScriptWriter() {
     setSourceText,
     setConditions,
     setGuides,
+    setInstructions,
     toggleConditions,
     toggleGuides,
     uploadMangaFiles,
@@ -61,6 +62,19 @@ export default function ImageToScriptWriter() {
       alert(error instanceof Error ? error.message : "Failed to upload files");
     }
 
+    if (e.target) e.target.value = "";
+  };
+
+  // Read a .txt file into a string and call setter
+  const handleFileInstruction = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (value: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => setter(event.target?.result as string ?? "");
+    reader.readAsText(file);
     if (e.target) e.target.value = "";
   };
 
@@ -239,6 +253,69 @@ export default function ImageToScriptWriter() {
           rows={4}
           className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
         />
+      </div>
+
+      {/* Instructions */}
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Custom Instructions (Story Flow)
+          </label>
+          <textarea
+            value={config.instructions.custom}
+            onChange={(e) => setInstructions({ custom: e.target.value })}
+            placeholder="강조하거나 누락하고 싶은 흐름을 적어주세요..."
+            rows={3}
+            className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Background ID Spec (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ background: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.background && (
+              <p className="text-xs text-cyan-500 mt-1">✓ Spec loaded ({config.instructions.background.length} chars)</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Negative Prompt (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ negative: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.negative && (
+              <p className="text-xs text-red-500 mt-1">✓ Spec loaded ({config.instructions.negative.length} chars)</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Video Prompt Spec (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ video: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.video && (
+              <p className="text-xs text-blue-500 mt-1">✓ Spec loaded ({config.instructions.video.length} chars)</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Conditions (Collapsible) */}

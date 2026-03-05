@@ -3,6 +3,7 @@
 import asyncio
 import base64
 import logging
+import time
 from typing import Literal
 
 import httpx
@@ -12,6 +13,7 @@ from pydantic import BaseModel
 from app.api.deps import AuthenticatedUser
 from app.providers.image.base import ImageGenerateRequest
 from app.providers.image.gemini import gemini_image_provider
+from app.services.s3 import download_image, upload_image
 
 logger = logging.getLogger(__name__)
 
@@ -21,20 +23,30 @@ router = APIRouter(prefix="/anime-bg", tags=["anime-bg"])
 class AnimeBgEnhanceRequest(BaseModel):
     """Request for single image anime conversion."""
 
-    image_base64: str
-    image_mime_type: str = "image/png"
+    image_url: str  # CloudFront URL of source image
     prompt: str
-    reference_image_base64: str | None = None
-    reference_image_mime_type: str | None = None
+    reference_image_url: str | None = None  # CloudFront URL of style reference
     aspect_ratio: Literal["16:9", "9:16", "1:1"] = "16:9"
     api_key: str | None = None
     provider: Literal["gemini", "grok"] = "gemini"
+    session_id: str = ""  # For S3 key generation
+    image_id: str = ""  # For S3 key generation
 
 
 class AnimeBgEnhanceResponse(BaseModel):
-    """Response with generated anime image."""
+    """Response with generated anime image URL."""
 
-    image: str  # base64 data URI
+    image_url: str  # CloudFront URL of the result
+
+
+def _build_prompt(prompt: str, has_reference: bool) -> str:
+    """Build the final prompt with structural preservation instructions."""
+    return (
+        f"Edit this image. {prompt}. "
+        f"{'Use the second provided image strictly as a color and style reference. ' if has_reference else ''}"
+        f"You MUST maintain the exact original angle, structure, and design of the first image. "
+        f"Make sure the output is strictly a 2D hand-drawn anime illustration, NOT 3D or CGI."
+    )
 
 
 async def _generate_gemini(
@@ -49,12 +61,7 @@ async def _generate_gemini(
     if ref_bytes:
         reference_images.append(ref_bytes)
 
-    final_prompt = (
-        f"Edit this image. {prompt}. "
-        f"{'Use the second provided image strictly as a color and style reference. ' if ref_bytes else ''}"
-        f"You MUST maintain the exact original angle, structure, and design of the first image. "
-        f"Make sure the output is strictly a 2D hand-drawn anime illustration, NOT 3D or CGI."
-    )
+    final_prompt = _build_prompt(prompt, ref_bytes is not None)
 
     request = ImageGenerateRequest(
         prompt=final_prompt,
@@ -65,10 +72,8 @@ async def _generate_gemini(
 
 
 async def _generate_grok(
-    source_base64: str,
-    source_mime: str,
-    ref_base64: str | None,
-    ref_mime: str | None,
+    source_bytes: bytes,
+    ref_bytes: bytes | None,
     prompt: str,
     aspect_ratio: str,
     api_key: str,
@@ -79,17 +84,14 @@ async def _generate_grok(
     client = xai_sdk.Client(api_key=api_key)
     model = "grok-imagine-image-pro"
 
-    # Build image URLs list (data URIs)
-    image_urls = [f"data:{source_mime};base64,{source_base64}"]
-    if ref_base64 and ref_mime:
-        image_urls.append(f"data:{ref_mime};base64,{ref_base64}")
+    # Build image URLs as data URIs
+    source_b64 = base64.b64encode(source_bytes).decode("ascii")
+    image_urls = [f"data:image/png;base64,{source_b64}"]
+    if ref_bytes:
+        ref_b64 = base64.b64encode(ref_bytes).decode("ascii")
+        image_urls.append(f"data:image/png;base64,{ref_b64}")
 
-    final_prompt = (
-        f"Edit this image. {prompt}. "
-        f"{'Use the second provided image strictly as a color and style reference. ' if ref_base64 else ''}"
-        f"You MUST maintain the exact original angle, structure, and design of the first image. "
-        f"Make sure the output is strictly a 2D hand-drawn anime illustration, NOT 3D or CGI."
-    )
+    final_prompt = _build_prompt(prompt, ref_bytes is not None)
 
     logger.info(f"[ANIME-BG-GROK] Submitting to xAI ({model}), {len(image_urls)} image(s), aspect_ratio={aspect_ratio}")
 
@@ -142,27 +144,28 @@ async def enhance_image(
     if not effective_key:
         raise HTTPException(400, f"API key required for {request.provider} provider")
 
-    # Decode source image
+    # Download source image from URL
     try:
-        source_bytes = base64.b64decode(request.image_base64)
+        source_bytes = await download_image(request.image_url)
+        logger.info(f"[ANIME-BG] Downloaded source image: {len(source_bytes)} bytes")
     except Exception as e:
-        raise HTTPException(400, f"Invalid image_base64: {e}")
+        raise HTTPException(400, f"Failed to download source image: {e}")
 
-    # Decode reference image if provided
+    # Download reference image if provided
     ref_bytes: bytes | None = None
-    if request.reference_image_base64:
+    if request.reference_image_url:
         try:
-            ref_bytes = base64.b64decode(request.reference_image_base64)
+            ref_bytes = await download_image(request.reference_image_url)
+            logger.info(f"[ANIME-BG] Downloaded reference image: {len(ref_bytes)} bytes")
         except Exception as e:
-            raise HTTPException(400, f"Invalid reference_image_base64: {e}")
+            raise HTTPException(400, f"Failed to download reference image: {e}")
 
+    # Generate
     try:
         if request.provider == "grok":
             result_bytes = await _generate_grok(
-                source_base64=request.image_base64,
-                source_mime=request.image_mime_type,
-                ref_base64=request.reference_image_base64,
-                ref_mime=request.reference_image_mime_type,
+                source_bytes=source_bytes,
+                ref_bytes=ref_bytes,
                 prompt=request.prompt,
                 aspect_ratio=request.aspect_ratio,
                 api_key=effective_key,
@@ -179,5 +182,16 @@ async def enhance_image(
         logger.error(f"[ANIME-BG] {request.provider} generation failed: {e}")
         raise HTTPException(500, f"Image generation failed: {e}")
 
-    b64 = base64.b64encode(result_bytes).decode("ascii")
-    return AnimeBgEnhanceResponse(image=f"data:image/png;base64,{b64}")
+    # Upload result to S3
+    session_id = request.session_id or "default"
+    image_id = request.image_id or str(int(time.time() * 1000))
+    s3_key = f"tools/anime-bg/{session_id}/result/{image_id}.png"
+
+    try:
+        result_url = await upload_image(result_bytes, s3_key, "image/png")
+        logger.info(f"[ANIME-BG] Uploaded result to S3: {s3_key}")
+    except Exception as e:
+        logger.error(f"[ANIME-BG] Failed to upload result to S3: {e}")
+        raise HTTPException(500, f"Failed to upload result: {e}")
+
+    return AnimeBgEnhanceResponse(image_url=result_url)

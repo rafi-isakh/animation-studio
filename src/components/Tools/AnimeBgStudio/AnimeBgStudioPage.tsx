@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   Upload,
@@ -68,15 +68,6 @@ function downloadJson(data: unknown, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function downloadImage(dataUrl: string, filename: string) {
-  const a = document.createElement("a");
-  a.href = dataUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
 function getStorageKey(provider: ImageProvider): string {
   return provider === "grok"
     ? GROK_API_KEY_STORAGE_KEY
@@ -97,9 +88,29 @@ function setStoredApiKey(provider: ImageProvider, key: string) {
   }
 }
 
+/** Upload a base64 image to S3 via /api/anime-bg/upload */
+async function uploadToS3(
+  base64: string,
+  mimeType: string,
+  imageId: string,
+  type: "source" | "reference" | "result",
+  sessionId: string
+): Promise<string> {
+  const res = await fetch("/api/anime-bg/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ base64, mimeType, imageId, type, sessionId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Upload failed");
+  return data.url;
+}
+
 // --- Main Component ---
 
 export default function AnimeBgStudioPage() {
+  const sessionId = useMemo(() => crypto.randomUUID(), []);
+
   const [state, setState] = useState<WorkspaceState>({
     images: [],
     globalPrompt: DEFAULT_PROMPT,
@@ -128,9 +139,7 @@ export default function AnimeBgStudioPage() {
 
   const handleProviderChange = useCallback(
     (provider: ImageProvider) => {
-      // Save current key for current provider
       setStoredApiKey(state.provider, apiKey);
-      // Load key for new provider
       const newKey = getStoredApiKey(provider);
       setApiKeyState(newKey);
       setState((prev) => ({ ...prev, provider }));
@@ -171,12 +180,20 @@ export default function AnimeBgStudioPage() {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
     const dataUrl = await fileToBase64(file);
-    setState((prev) => ({ ...prev, referenceImageDataUrl: dataUrl }));
+    setState((prev) => ({
+      ...prev,
+      referenceImageDataUrl: dataUrl,
+      referenceS3Url: undefined, // reset S3 URL, will re-upload on next generate
+    }));
     if (refFileInputRef.current) refFileInputRef.current.value = "";
   };
 
   const removeReferenceImage = () => {
-    setState((prev) => ({ ...prev, referenceImageDataUrl: undefined }));
+    setState((prev) => ({
+      ...prev,
+      referenceImageDataUrl: undefined,
+      referenceS3Url: undefined,
+    }));
   };
 
   const updateImage = useCallback(
@@ -198,6 +215,36 @@ export default function AnimeBgStudioPage() {
     }));
   };
 
+  // --- S3 Upload helpers ---
+
+  /** Ensure source image is uploaded to S3, return its CloudFront URL */
+  const ensureSourceUploaded = useCallback(
+    async (image: WorkspaceImage): Promise<string> => {
+      if (image.originalS3Url) return image.originalS3Url;
+
+      const { base64, mimeType } = extractBase64Data(image.originalDataUrl);
+      const url = await uploadToS3(base64, mimeType, image.id, "source", sessionId);
+      updateImage(image.id, { originalS3Url: url });
+      return url;
+    },
+    [sessionId, updateImage]
+  );
+
+  /** Ensure reference image is uploaded to S3, return its CloudFront URL */
+  const ensureReferenceUploaded = useCallback(async (): Promise<
+    string | undefined
+  > => {
+    if (!state.referenceImageDataUrl) return undefined;
+
+    // Check current state for cached S3 URL
+    if (state.referenceS3Url) return state.referenceS3Url;
+
+    const { base64, mimeType } = extractBase64Data(state.referenceImageDataUrl);
+    const url = await uploadToS3(base64, mimeType, "ref", "reference", sessionId);
+    setState((prev) => ({ ...prev, referenceS3Url: url }));
+    return url;
+  }, [state.referenceImageDataUrl, state.referenceS3Url, sessionId]);
+
   // --- Generation ---
 
   const generateImage = useCallback(
@@ -208,30 +255,26 @@ export default function AnimeBgStudioPage() {
       updateImage(id, { status: "generating", error: undefined });
 
       try {
-        const original = extractBase64Data(image.originalDataUrl);
-        let referenceBase64: string | undefined;
-        let referenceMimeType: string | undefined;
-        if (state.referenceImageDataUrl) {
-          const ref = extractBase64Data(state.referenceImageDataUrl);
-          referenceBase64 = ref.base64;
-          referenceMimeType = ref.mimeType;
-        }
+        // Upload source to S3
+        const imageUrl = await ensureSourceUploaded(image);
 
-        const activePrompt =
-          image.prompt.trim() || state.globalPrompt;
+        // Upload reference to S3 (if present)
+        const referenceImageUrl = await ensureReferenceUploaded();
+
+        const activePrompt = image.prompt.trim() || state.globalPrompt;
 
         const res = await fetch("/api/anime-bg/enhance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            imageBase64: original.base64,
-            imageMimeType: original.mimeType,
+            imageUrl,
             prompt: activePrompt,
-            referenceImageBase64: referenceBase64,
-            referenceImageMimeType: referenceMimeType,
+            referenceImageUrl,
             aspectRatio: state.aspectRatio,
             apiKey,
             provider: state.provider,
+            sessionId,
+            imageId: id,
           }),
         });
 
@@ -240,14 +283,24 @@ export default function AnimeBgStudioPage() {
           throw new Error(data.error || "Generation failed");
         }
 
-        updateImage(id, { status: "success", generatedDataUrl: data.image });
+        updateImage(id, { status: "success", generatedUrl: data.imageUrl });
       } catch (error: unknown) {
         const message =
           error instanceof Error ? error.message : "Generation failed";
         updateImage(id, { status: "error", error: message });
       }
     },
-    [state.images, state.referenceImageDataUrl, state.globalPrompt, state.aspectRatio, state.provider, apiKey, updateImage]
+    [
+      state.images,
+      state.globalPrompt,
+      state.aspectRatio,
+      state.provider,
+      apiKey,
+      sessionId,
+      updateImage,
+      ensureSourceUploaded,
+      ensureReferenceUploaded,
+    ]
   );
 
   const generateAll = async () => {
@@ -299,15 +352,15 @@ export default function AnimeBgStudioPage() {
   // --- Download ZIP ---
 
   const downloadAllZip = async () => {
-    const completed = state.images.filter((img) => img.generatedDataUrl);
+    const completed = state.images.filter((img) => img.generatedUrl);
     if (completed.length === 0) return;
 
     const zip = new JSZip();
     for (const img of completed) {
-      const { base64 } = extractBase64Data(img.generatedDataUrl!);
-      zip.file(`anime-bg-${img.id.slice(0, 8)}.png`, base64, {
-        base64: true,
-      });
+      // Fetch image from CloudFront URL
+      const resp = await fetch(img.generatedUrl!);
+      const blob = await resp.blob();
+      zip.file(`anime-bg-${img.id.slice(0, 8)}.png`, blob);
     }
 
     const blob = await zip.generateAsync({ type: "blob" });
@@ -321,12 +374,35 @@ export default function AnimeBgStudioPage() {
     URL.revokeObjectURL(url);
   };
 
+  // --- Clear S3 session ---
+
+  const clearSessionFiles = async () => {
+    try {
+      const res = await fetch("/api/anime-bg/upload", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to clear files");
+      setState({
+        images: [],
+        globalPrompt: DEFAULT_PROMPT,
+        aspectRatio: "16:9",
+        provider: state.provider,
+      });
+    } catch (error) {
+      console.error("Failed to clear session files:", error);
+      alert("Failed to clear session files from S3.");
+    }
+  };
+
   // --- Derived state ---
 
   const hasPendingImages = state.images.some(
     (img) => img.status === "idle" || img.status === "error"
   );
-  const hasCompletedImages = state.images.some((img) => img.generatedDataUrl);
+  const hasCompletedImages = state.images.some((img) => img.generatedUrl);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col md:flex-row">
@@ -502,9 +578,7 @@ export default function AnimeBgStudioPage() {
             ) : (
               <button
                 onClick={generateAll}
-                disabled={
-                  state.images.length === 0 || !hasPendingImages
-                }
+                disabled={state.images.length === 0 || !hasPendingImages}
                 className="w-full py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-[#DB2777]/40 disabled:text-white/50 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[#DB2777]/20"
               >
                 <Play className="w-4 h-4 fill-current" />
@@ -523,6 +597,18 @@ export default function AnimeBgStudioPage() {
             )}
           </div>
         </div>
+
+        {/* Clear Session */}
+          {state.images.length > 0 && (
+            <button
+              onClick={clearSessionFiles}
+              disabled={isGeneratingAll}
+              className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+            >
+              <Trash2 className="w-3 h-3" />
+              Clear Session & S3 Files
+            </button>
+          )}
 
         {/* Export / Import */}
         <div className="mt-auto pt-6 border-t border-white/5 flex gap-2">
@@ -583,9 +669,9 @@ export default function AnimeBgStudioPage() {
                     </div>
                   </div>
                   <div className="relative bg-zinc-950/80 flex items-center justify-center">
-                    {img.generatedDataUrl ? (
+                    {img.generatedUrl ? (
                       <img
-                        src={img.generatedDataUrl}
+                        src={img.generatedUrl}
                         alt="Generated"
                         className="w-full h-full object-contain"
                       />
@@ -648,19 +734,15 @@ export default function AnimeBgStudioPage() {
                     </button>
 
                     <div className="flex gap-2">
-                      {img.generatedDataUrl && (
-                        <button
-                          onClick={() =>
-                            downloadImage(
-                              img.generatedDataUrl!,
-                              `anime-bg-${img.id.slice(0, 8)}.png`
-                            )
-                          }
+                      {img.generatedUrl && (
+                        <a
+                          href={img.generatedUrl}
+                          download={`anime-bg-${img.id.slice(0, 8)}.png`}
                           className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
-                        </button>
+                        </a>
                       )}
                       <button
                         onClick={() => generateImage(img.id)}
@@ -669,12 +751,12 @@ export default function AnimeBgStudioPage() {
                       >
                         {img.status === "generating" ? (
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : img.generatedDataUrl ? (
+                        ) : img.generatedUrl ? (
                           <RefreshCw className="w-4 h-4" />
                         ) : (
                           <Play className="w-4 h-4" />
                         )}
-                        {img.generatedDataUrl ? "Regenerate" : "Convert"}
+                        {img.generatedUrl ? "Regenerate" : "Convert"}
                       </button>
                     </div>
                   </div>

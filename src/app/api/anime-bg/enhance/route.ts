@@ -20,14 +20,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const backendUrl = `${ORCHESTRATOR_URL}/api/v1/anime-bg/enhance`;
     const backendPayload = {
-      image_base64: body.imageBase64,
-      image_mime_type: body.imageMimeType || "image/png",
+      image_url: body.imageUrl,
       prompt: body.prompt,
-      reference_image_base64: body.referenceImageBase64 || null,
-      reference_image_mime_type: body.referenceImageMimeType || null,
+      reference_image_url: body.referenceImageUrl || null,
       aspect_ratio: body.aspectRatio || "16:9",
       api_key: body.apiKey || null,
       provider: body.provider || "gemini",
+      session_id: body.sessionId || "",
+      image_id: body.imageId || "",
     };
 
     let response: Response;
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ image: data.image });
+    return NextResponse.json({ imageUrl: data.image_url });
   } catch (error) {
     console.error("[anime-bg] Unexpected error:", error);
     return NextResponse.json(

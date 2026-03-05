@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Camera, Plus, Loader2, Download, Upload } from "lucide-react";
+import { Camera, Plus, Loader2, Download, Upload, Paintbrush } from "lucide-react";
+import Link from "next/link";
 import type { ViewConfig, RenderResult } from "./types";
 import ViewConfigRow from "./components/ViewConfigRow";
 
@@ -339,15 +340,24 @@ export default function ThreeDScreenshotPage() {
               <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
                 Screenshots ({results.length}/{views.length})
               </h2>
-              {results.length === views.length && (
-                <button
-                  onClick={downloadAll}
-                  className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300 transition-colors"
+              <div className="flex gap-2">
+                {results.length === views.length && (
+                  <button
+                    onClick={downloadAll}
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300 transition-colors"
+                  >
+                    <Download className="w-3 h-3 mr-1.5" />
+                    Download All
+                  </button>
+                )}
+                <Link
+                  href="/tools/anime-bg-studio"
+                  className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 bg-[#DB2777] text-white hover:bg-[#BE185D] transition-colors"
                 >
-                  <Download className="w-3 h-3 mr-1.5" />
-                  Download All
-                </button>
-              )}
+                  <Paintbrush className="w-3 h-3 mr-1.5" />
+                  Open Anime BG Studio
+                </Link>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

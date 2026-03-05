@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
       interior_offset_x: body.interiorOffsetX ?? 0,
       interior_offset_y: body.interiorOffsetY ?? 0,
       interior_offset_z: body.interiorOffsetZ ?? 0,
+      eye: body.eye || null,
+      look_at_center: body.lookAtCenter || false,
       model_format: body.modelFormat || "auto",
+      up_axis: body.upAxis || "auto",
       max_gaussians: body.maxGaussians ?? 200000,
       resolution: body.resolution || [1920, 1080],
       output_mode: body.outputMode || "direct",
@@ -106,6 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       image: data.image,
       cameraParams: data.camera_params,
+      sceneInfo: data.scene_info,
     });
   } catch (error) {
     console.error("[render-3d] Unexpected error:", error);

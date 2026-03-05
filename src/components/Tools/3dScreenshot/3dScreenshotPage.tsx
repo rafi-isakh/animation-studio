@@ -97,6 +97,51 @@ export default function ThreeDScreenshotPage() {
     setResults((prev) => prev.filter((r) => r.viewId !== id));
   }, []);
 
+  const renderPayload = useCallback((view: ViewConfig) => ({
+    modelUrl: modelData ? "" : modelUrl.trim(),
+    modelData: modelData || undefined,
+    modelFormat: "3dgs",
+    cameraMode: "interior",
+    upAxis: "-y",
+    azimuth: view.azimuth,
+    elevation: view.elevation,
+    fov: view.fov,
+    interiorOffsetX: view.offsetX,
+    interiorOffsetY: view.offsetY,
+    interiorOffsetZ: view.offsetZ,
+    resolution,
+    maxGaussians: 500000,
+    fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
+    outputMode: "direct",
+  }), [modelData, modelUrl, resolution, fixedExtent]);
+
+  const renderSingle = useCallback(async (viewId: string) => {
+    if (!hasModel || isRendering) return;
+    const view = views.find((v) => v.id === viewId);
+    if (!view) return;
+    setIsRendering(true);
+    setRenderingViewId(viewId);
+    setError(null);
+    try {
+      const res = await fetch("/api/render-3d", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(renderPayload(view)),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `View "${view.label}" failed`);
+      setResults((prev) => [
+        ...prev.filter((r) => r.viewId !== viewId),
+        { viewId, image: data.image, cameraParams: data.cameraParams },
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Rendering failed");
+    } finally {
+      setIsRendering(false);
+      setRenderingViewId(null);
+    }
+  }, [hasModel, isRendering, views, renderPayload]);
+
   const renderAll = useCallback(async () => {
     if (!hasModel || views.length === 0) return;
     setIsRendering(true);
@@ -111,23 +156,7 @@ export default function ThreeDScreenshotPage() {
         const res = await fetch("/api/render-3d", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            modelUrl: modelData ? "" : modelUrl.trim(),
-            modelData: modelData || undefined,
-            modelFormat: "3dgs",
-            cameraMode: "interior",
-            upAxis: "-y",
-            azimuth: view.azimuth,
-            elevation: view.elevation,
-            fov: view.fov,
-            interiorOffsetX: view.offsetX,
-            interiorOffsetY: view.offsetY,
-            interiorOffsetZ: view.offsetZ,
-            resolution,
-            maxGaussians: 500000,
-            fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
-            outputMode: "direct",
-          }),
+          body: JSON.stringify(renderPayload(view)),
         });
 
         const data = await res.json();
@@ -146,7 +175,20 @@ export default function ThreeDScreenshotPage() {
       setIsRendering(false);
       setRenderingViewId(null);
     }
-  }, [hasModel, views, modelUrl, modelData, resolution, fixedExtent]);
+  }, [hasModel, views, renderPayload]);
+
+  const getTimestamp = () => {
+    const d = new Date();
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, "0"),
+      String(d.getDate()).padStart(2, "0"),
+      "_",
+      String(d.getHours()).padStart(2, "0"),
+      String(d.getMinutes()).padStart(2, "0"),
+      String(d.getSeconds()).padStart(2, "0"),
+    ].join("");
+  };
 
   const downloadImage = useCallback((dataUri: string, filename: string) => {
     const a = document.createElement("a");
@@ -158,17 +200,18 @@ export default function ThreeDScreenshotPage() {
   const downloadAll = useCallback(async () => {
     const JSZip = (await import("jszip")).default;
     const zip = new JSZip();
+    const ts = getTimestamp();
     results.forEach((r) => {
       const view = views.find((v) => v.id === r.viewId);
       const label = view?.label?.replace(/\s+/g, "_") || r.viewId;
       const base64 = r.image.split(",")[1];
-      zip.file(`3d-shot-${label}.png`, base64, { base64: true });
+      zip.file(`3d-shot-${label}_${ts}.png`, base64, { base64: true });
     });
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "3d-screenshots.zip";
+    a.download = `3d-screenshots_${ts}.zip`;
     a.click();
     URL.revokeObjectURL(url);
   }, [results, views]);
@@ -282,16 +325,15 @@ export default function ThreeDScreenshotPage() {
                   view={view}
                   index={i}
                   canDelete={views.length > 1}
+                  hasResult={Boolean(results.find((r) => r.viewId === view.id))}
+                  isRendering={renderingViewId === view.id}
+                  canRender={hasModel && !isRendering}
                   onChange={updateView}
                   onDelete={() => deleteView(view.id)}
+                  onRender={() => renderSingle(view.id)}
                 />
                 {renderingViewId === view.id && (
-                  <div className="absolute inset-0 rounded-lg bg-[#DB2777]/10 border border-[#DB2777]/40 flex items-center justify-center pointer-events-none">
-                    <Loader2 className="w-4 h-4 text-[#DB2777] animate-spin" />
-                  </div>
-                )}
-                {results.find((r) => r.viewId === view.id) && renderingViewId !== view.id && (
-                  <div className="absolute right-3 top-3 w-2 h-2 rounded-full bg-green-500 pointer-events-none" />
+                  <div className="absolute inset-0 rounded-lg bg-[#DB2777]/10 border border-[#DB2777]/40 pointer-events-none" />
                 )}
               </div>
             ))}
@@ -341,7 +383,7 @@ export default function ThreeDScreenshotPage() {
                 Screenshots ({results.length}/{views.length})
               </h2>
               <div className="flex gap-2">
-                {results.length === views.length && (
+                {results.length > 0 && (
                   <button
                     onClick={downloadAll}
                     className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300 transition-colors"
@@ -377,7 +419,7 @@ export default function ThreeDScreenshotPage() {
                       />
                       <button
                         onClick={() =>
-                          downloadImage(result.image, `3d-shot-${label.replace(/\s+/g, "_")}.png`)
+                          downloadImage(result.image, `3d-shot-${label.replace(/\s+/g, "_")}_${getTimestamp()}.png`)
                         }
                         className="absolute top-2 right-2 p-1.5 rounded-md bg-zinc-900/80 text-zinc-300 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
                       >

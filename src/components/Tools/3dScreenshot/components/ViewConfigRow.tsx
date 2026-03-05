@@ -1,14 +1,18 @@
 "use client";
 
-import { X } from "lucide-react";
+import { X, Camera, RefreshCw, Loader2 } from "lucide-react";
 import type { ViewConfig } from "../types";
 
 interface ViewConfigRowProps {
   view: ViewConfig;
   index: number;
   canDelete: boolean;
+  hasResult: boolean;
+  isRendering: boolean;
+  canRender: boolean;
   onChange: (updated: ViewConfig) => void;
   onDelete: () => void;
+  onRender: () => void;
 }
 
 function NumInput({
@@ -34,11 +38,11 @@ function NumInput({
 }
 
 export default function ViewConfigRow({
-  view, index, canDelete, onChange, onDelete,
+  view, index, canDelete, hasResult, isRendering, canRender, onChange, onDelete, onRender,
 }: ViewConfigRowProps) {
   return (
     <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-3 space-y-2">
-      {/* Row 1: index, label, az/el/fov, delete */}
+      {/* Row 1: index, label, az/el/fov, render, delete */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-zinc-500 font-mono w-6 shrink-0">{index + 1}</span>
 
@@ -54,14 +58,30 @@ export default function ViewConfigRow({
         <NumInput label="El"  value={view.elevation}  min={-90}  max={90}  onChange={(v) => onChange({ ...view, elevation: v })} />
         <NumInput label="FoV" value={view.fov}        min={30}   max={120} onChange={(v) => onChange({ ...view, fov: v })} />
 
-        {canDelete && (
+        <div className="flex items-center gap-1 ml-auto">
           <button
-            onClick={onDelete}
-            className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors ml-auto"
+            onClick={onRender}
+            disabled={!canRender || isRendering}
+            title={hasResult ? "Re-render" : "Render"}
+            className="p-1.5 text-zinc-500 hover:text-[#DB2777] hover:bg-[#DB2777]/10 rounded-md transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
-            <X className="w-3.5 h-3.5" />
+            {isRendering
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#DB2777]" />
+              : hasResult
+                ? <RefreshCw className="w-3.5 h-3.5" />
+                : <Camera className="w-3.5 h-3.5" />
+            }
           </button>
-        )}
+
+          {canDelete && (
+            <button
+              onClick={onDelete}
+              className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Row 2: interior position sliders */}

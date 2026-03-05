@@ -34,6 +34,7 @@ class Render3DRequest(BaseModel):
     max_gaussians: int = 200_000  # 3DGS only: cap on rendered Gaussians (lower = faster)
     up_axis: Literal["auto", "y", "-y", "z", "-z"] = "auto"  # 3DGS only: world up direction
     look_at_center: bool = False  # Absolute mode: look at scene center instead of using azimuth/elevation for direction
+    fixed_extent: float | None = None  # Override dense-region extents with a uniform cube for consistent cross-model camera placement
     resolution: tuple[int, int] = (1920, 1080)
     output_mode: Literal["direct", "ai_enhanced"] = "direct"
     style_prompt: str | None = None
@@ -132,6 +133,7 @@ async def render_3d_model_endpoint(
                 up_axis=request.up_axis,
                 eye=request.eye,
                 look_at_center=request.look_at_center,
+                fixed_extent=request.fixed_extent,
             )
         else:
             logger.info("[RENDER-3D] Using GLB renderer (pyrender)")

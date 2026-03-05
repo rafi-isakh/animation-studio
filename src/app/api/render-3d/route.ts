@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       interior_offset_z: body.interiorOffsetZ ?? 0,
       eye: body.eye || null,
       look_at_center: body.lookAtCenter || false,
+      fixed_extent: body.fixedExtent ?? null,
       model_format: body.modelFormat || "auto",
       up_axis: body.upAxis || "auto",
       max_gaussians: body.maxGaussians ?? 200000,

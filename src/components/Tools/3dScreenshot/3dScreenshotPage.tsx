@@ -46,6 +46,7 @@ export default function ThreeDScreenshotPage() {
   const [views, setViews] = useState<ViewConfig[]>(() => makeViews(PRESETS[0].views));
   const [results, setResults] = useState<RenderResult[]>([]);
   const [resolution, setResolution] = useState<[number, number]>([1920, 1080]);
+  const [fixedExtent, setFixedExtent] = useState("");
   const [renderingViewId, setRenderingViewId] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +124,7 @@ export default function ThreeDScreenshotPage() {
             interiorOffsetZ: view.offsetZ,
             resolution,
             maxGaussians: 500000,
+            fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
             outputMode: "direct",
           }),
         });
@@ -143,7 +145,7 @@ export default function ThreeDScreenshotPage() {
       setIsRendering(false);
       setRenderingViewId(null);
     }
-  }, [hasModel, views, modelUrl, modelData, resolution]);
+  }, [hasModel, views, modelUrl, modelData, resolution, fixedExtent]);
 
   const downloadImage = useCallback((dataUri: string, filename: string) => {
     const a = document.createElement("a");
@@ -225,6 +227,28 @@ export default function ThreeDScreenshotPage() {
               <Upload className="w-4 h-4 mr-2" />
               Upload
             </button>
+          </div>
+          <div className="flex items-center gap-3 mt-1">
+            <label className="text-xs text-zinc-500 shrink-0">Fixed Extent</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={fixedExtent}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "" || /^\d*\.?\d*$/.test(v)) setFixedExtent(v);
+              }}
+              placeholder="Auto (use model's dense region)"
+              className="flex-1 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+            />
+            {fixedExtent && (
+              <button
+                onClick={() => setFixedExtent("")}
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                Clear
+              </button>
+            )}
           </div>
           {modelFileName && (
             <p className="text-xs text-[#DB2777] font-mono">{modelFileName}</p>

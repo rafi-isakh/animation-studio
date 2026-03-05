@@ -522,6 +522,7 @@ async def render_single_view_3dgs(
     up_axis: str = "auto",
     eye: tuple[float, float, float] | None = None,
     look_at_center: bool = False,
+    fixed_extent: float | None = None,
 ) -> bytes:
     """
     Render a single camera view of a 3DGS model with full EWA splatting.
@@ -538,6 +539,9 @@ async def render_single_view_3dgs(
         interior_offset_x/y/z: Camera offset from centre as fraction of half-extent.
         max_gaussians: Cap on rendered Gaussians. Lower = faster preview.
         up_axis: "auto", "y", or "z". Controls world up direction.
+        fixed_extent: If set, override the dense-region extents with a uniform cube of
+                      this size. Makes camera placement consistent across models of
+                      different real-world scales.
 
     Returns:
         PNG image bytes.
@@ -561,7 +565,13 @@ async def render_single_view_3dgs(
     # Use dense region for all camera calculations (orbit center, interior offsets,
     # up-axis detection, look direction scale). Raw bbox kept only for diagnostics.
     center = dense_center
-    extents = dense_extents
+    if fixed_extent is not None and fixed_extent > 0:
+        # Override per-model extents with a uniform cube so that camera placement
+        # (offsets, orbit radius) is consistent across models of different scales.
+        extents = np.array([fixed_extent, fixed_extent, fixed_extent], dtype=np.float64)
+        logger.info(f"[3DGS] fixed_extent={fixed_extent} overrides dense extents {dense_extents}")
+    else:
+        extents = dense_extents
     max_extent = float(np.max(extents))
 
     logger.info(

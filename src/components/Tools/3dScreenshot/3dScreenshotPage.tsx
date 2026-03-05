@@ -48,6 +48,7 @@ export default function ThreeDScreenshotPage() {
   const [results, setResults] = useState<RenderResult[]>([]);
   const [resolution, setResolution] = useState<[number, number]>([1920, 1080]);
   const [fixedExtent, setFixedExtent] = useState("");
+  const [upAxis, setUpAxis] = useState<"y" | "-y" | "z" | "-z">("y");
   const [renderingViewId, setRenderingViewId] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +138,7 @@ export default function ThreeDScreenshotPage() {
     modelUrl: modelUrl.trim(),
     modelFormat: "3dgs",
     cameraMode: "interior",
-    upAxis: "-y",
+    upAxis,
     azimuth: view.azimuth,
     elevation: view.elevation,
     fov: view.fov,
@@ -148,7 +149,7 @@ export default function ThreeDScreenshotPage() {
     maxGaussians: 500000,
     fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
     outputMode: "direct",
-  }), [modelUrl, resolution, fixedExtent]);
+  }), [modelUrl, resolution, fixedExtent, upAxis]);
 
   const renderSingle = useCallback(async (viewId: string) => {
     if (!hasModel || isRendering) return;
@@ -266,20 +267,36 @@ export default function ThreeDScreenshotPage() {
             <h1 className="text-lg font-semibold">3D Scene Screenshot</h1>
           </div>
 
-          <select
-            value={`${resolution[0]}x${resolution[1]}`}
-            onChange={(e) => {
-              const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
-              if (r) setResolution(r.value);
-            }}
-            className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
-          >
-            {RESOLUTIONS.map((r) => (
-              <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-zinc-500">Up</span>
+              <select
+                value={upAxis}
+                onChange={(e) => setUpAxis(e.target.value as typeof upAxis)}
+                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+              >
+                <option value="y">+Y</option>
+                <option value="-y">-Y</option>
+                <option value="z">+Z</option>
+                <option value="-z">-Z</option>
+              </select>
+            </div>
+
+            <select
+              value={`${resolution[0]}x${resolution[1]}`}
+              onChange={(e) => {
+                const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
+                if (r) setResolution(r.value);
+              }}
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+            >
+              {RESOLUTIONS.map((r) => (
+                <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

@@ -351,14 +351,28 @@ export default function AnimeBgStudioPage() {
 
   // --- Download ZIP ---
 
+  const downloadSingleImage = async (url: string, filename: string) => {
+    const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(url)}`;
+    const resp = await fetch(proxyUrl);
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  };
+
   const downloadAllZip = async () => {
     const completed = state.images.filter((img) => img.generatedUrl);
     if (completed.length === 0) return;
 
     const zip = new JSZip();
     for (const img of completed) {
-      // Fetch image from CloudFront URL
-      const resp = await fetch(img.generatedUrl!);
+      const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(img.generatedUrl!)}`;
+      const resp = await fetch(proxyUrl);
       const blob = await resp.blob();
       zip.file(`anime-bg-${img.id.slice(0, 8)}.png`, blob);
     }
@@ -735,14 +749,18 @@ export default function AnimeBgStudioPage() {
 
                     <div className="flex gap-2">
                       {img.generatedUrl && (
-                        <a
-                          href={img.generatedUrl}
-                          download={`anime-bg-${img.id.slice(0, 8)}.png`}
+                        <button
+                          onClick={() =>
+                            downloadSingleImage(
+                              img.generatedUrl!,
+                              `anime-bg-${img.id.slice(0, 8)}.png`
+                            )
+                          }
                           className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
-                        </a>
+                        </button>
                       )}
                       <button
                         onClick={() => generateImage(img.id)}

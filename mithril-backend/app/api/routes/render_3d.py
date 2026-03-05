@@ -24,14 +24,17 @@ class Render3DRequest(BaseModel):
     elevation: float = 30.0  # Vertical angle in degrees (-90 to 90)
     distance_multiplier: float = 2.5  # Camera distance as multiplier of model extent
     fov: float = 45.0  # Field of view in degrees
-    camera_mode: Literal["exterior", "interior"] = "exterior"  # exterior=orbit outside, interior=inside looking out
+    camera_mode: Literal["exterior", "interior", "absolute"] = "exterior"  # exterior=orbit outside, interior=inside looking out, absolute=raw XYZ
     tilt: float = 0.0  # Camera roll in degrees (-180 to 180), Dutch angle effect
     interior_offset_x: float = 0.0  # Horizontal offset from center (-1 to 1, fraction of half-extent). Interior only.
     interior_offset_y: float = 0.0  # Vertical offset from center (-1 to 1). Interior only.
     interior_offset_z: float = 0.0  # Depth offset from center (-1 to 1). Interior only.
+    eye: tuple[float, float, float] | None = None  # Absolute camera position (X, Y, Z). Absolute mode only.
     model_format: Literal["glb", "3dgs", "auto"] = "auto"  # "glb"=trimesh/pyrender, "3dgs"=Gaussian splat .ply, "auto"=detect from URL/data
     max_gaussians: int = 200_000  # 3DGS only: cap on rendered Gaussians (lower = faster)
-    up_axis: Literal["auto", "y", "z"] = "auto"  # 3DGS only: world up direction
+    up_axis: Literal["auto", "y", "-y", "z", "-z"] = "auto"  # 3DGS only: world up direction
+    look_at_center: bool = False  # Absolute mode: look at scene center instead of using azimuth/elevation for direction
+    fixed_extent: float | None = None  # Override dense-region extents with a uniform cube for consistent cross-model camera placement
     resolution: tuple[int, int] = (1920, 1080)
     output_mode: Literal["direct", "ai_enhanced"] = "direct"
     style_prompt: str | None = None
@@ -43,6 +46,7 @@ class Render3DResponse(BaseModel):
 
     image: str  # base64 data URI
     camera_params: dict[str, float]  # {azimuth, elevation, distance_multiplier, fov}
+    scene_info: dict | None = None  # {center, bbox_min, bbox_max, extents} — for absolute camera positioning
 
 
 @router.post("/render", response_model=Render3DResponse)
@@ -109,10 +113,11 @@ async def render_3d_model_endpoint(
 
     # Render single view
     try:
+        scene_info = None
         if effective_format == "3dgs":
             from app.services.renderer_3dgs import render_single_view_3dgs
             logger.info(f"[RENDER-3D] Using 3DGS renderer (max_gaussians={request.max_gaussians})")
-            png_bytes = await render_single_view_3dgs(
+            png_bytes, scene_info = await render_single_view_3dgs(
                 model_data=model_data,
                 azimuth=request.azimuth,
                 elevation=request.elevation,
@@ -126,6 +131,9 @@ async def render_3d_model_endpoint(
                 interior_offset_z=request.interior_offset_z,
                 max_gaussians=request.max_gaussians,
                 up_axis=request.up_axis,
+                eye=request.eye,
+                look_at_center=request.look_at_center,
+                fixed_extent=request.fixed_extent,
             )
         else:
             logger.info("[RENDER-3D] Using GLB renderer (pyrender)")
@@ -165,6 +173,7 @@ async def render_3d_model_endpoint(
             "distance_multiplier": request.distance_multiplier,
             "fov": request.fov,
         },
+        scene_info=scene_info,
     )
 
 

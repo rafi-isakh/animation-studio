@@ -31,7 +31,7 @@ function NumInput({
         max={max}
         step={step}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-20 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 text-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+        className="w-20 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 text-center outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777] focus-visible:relative focus-visible:z-10"
       />
     </div>
   );
@@ -50,7 +50,7 @@ export default function ViewConfigRow({
           type="text"
           value={view.label}
           onChange={(e) => onChange({ ...view, label: e.target.value })}
-          className="w-28 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+          className="w-28 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777] focus-visible:relative focus-visible:z-10"
           placeholder="Label"
         />
 

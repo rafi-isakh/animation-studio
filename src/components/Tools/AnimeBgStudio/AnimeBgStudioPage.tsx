@@ -360,7 +360,7 @@ export default function AnimeBgStudioPage() {
               onChange={(e) =>
                 handleProviderChange(e.target.value as ImageProvider)
               }
-              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#DB2777] transition-colors"
+              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
             >
               {PROVIDERS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -381,7 +381,7 @@ export default function AnimeBgStudioPage() {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={`Enter ${state.provider === "grok" ? "xAI" : "Gemini"} API key...`}
-                className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:border-[#DB2777] transition-colors"
+                className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 pr-10 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
               />
               <button
                 type="button"
@@ -407,7 +407,7 @@ export default function AnimeBgStudioPage() {
               onChange={(e) =>
                 setState((prev) => ({ ...prev, globalPrompt: e.target.value }))
               }
-              className="w-full bg-zinc-950 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-[#DB2777] transition-colors resize-none h-24"
+              className="w-full bg-zinc-950 border border-white/10 rounded-xl p-3 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors resize-none h-24"
               placeholder="Enter global style instructions..."
             />
           </div>
@@ -425,7 +425,7 @@ export default function AnimeBgStudioPage() {
                   aspectRatio: e.target.value as AspectRatio,
                 }))
               }
-              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#DB2777] transition-colors"
+              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
             >
               {ASPECT_RATIOS.map((ar) => (
                 <option key={ar.value} value={ar.value}>
@@ -636,7 +636,7 @@ export default function AnimeBgStudioPage() {
                       updateImage(img.id, { prompt: e.target.value })
                     }
                     placeholder="Custom prompt override (leave empty to use global)"
-                    className="w-full bg-zinc-950 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#DB2777] transition-colors"
+                    className="w-full bg-zinc-950 border border-white/5 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
                   />
                   <div className="flex justify-between items-center">
                     <button

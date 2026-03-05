@@ -81,12 +81,11 @@ export default function ThreeDScreenshotPage() {
   }, []);
 
   const addView = useCallback(() => {
-    if (views.length >= 12) return;
     setViews((prev) => [
       ...prev,
       { id: makeId(), label: `View ${prev.length + 1}`, ...DEFAULT_VIEW },
     ]);
-  }, [views.length]);
+  }, []);
 
   const updateView = useCallback((updated: ViewConfig) => {
     setViews((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
@@ -232,7 +231,7 @@ export default function ThreeDScreenshotPage() {
               const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
               if (r) setResolution(r.value);
             }}
-            className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+            className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
           >
             {RESOLUTIONS.map((r) => (
               <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
@@ -255,7 +254,7 @@ export default function ThreeDScreenshotPage() {
               value={modelUrl}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="Paste .spz URL..."
-              className="flex-1 h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+              className="flex-1 h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
             />
             <input
               type="file"
@@ -283,7 +282,7 @@ export default function ThreeDScreenshotPage() {
                 if (v === "" || /^\d*\.?\d*$/.test(v)) setFixedExtent(v);
               }}
               placeholder="Auto (use model's dense region)"
-              className="flex-1 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+              className="flex-1 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
             />
             {fixedExtent && (
               <button
@@ -303,7 +302,7 @@ export default function ThreeDScreenshotPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
-              Camera Views ({views.length}/12)
+              Camera Views ({views.length})
             </h2>
             <div className="flex gap-2">
               {PRESETS.map((preset) => (
@@ -342,7 +341,7 @@ export default function ThreeDScreenshotPage() {
           <div className="flex gap-3">
             <button
               onClick={addView}
-              disabled={views.length >= 12}
+              disabled={false}
               className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300 disabled:opacity-50 disabled:pointer-events-none transition-colors"
             >
               <Plus className="w-3 h-3 mr-1.5" />

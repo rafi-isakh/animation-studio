@@ -35,6 +35,8 @@ export function panelEditorReducer(
     }
 
     case 'REMOVE_PANEL': {
+      const removed = state.panels.find((p) => p.id === action.id);
+      if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
       return {
         ...state,
         panels: state.panels.filter((p) => p.id !== action.id),

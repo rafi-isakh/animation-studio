@@ -24,6 +24,7 @@ export interface PanelData {
   status: ProcessingStatus;
   resultUrl?: string;
   error?: string;
+  originalImageRef?: string; // S3 URL for original image (for persistence across navigation)
 }
 
 // App configuration

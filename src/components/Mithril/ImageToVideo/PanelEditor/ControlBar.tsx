@@ -9,6 +9,7 @@ interface ControlBarProps {
   onConfigChange: (newConfig: Partial<PanelEditorConfig>) => void;
   onProcessAll: () => void;
   onCancel: () => void;
+  onClearAll: () => void;
   onDownloadAll: () => void;
   onSaveProject: () => void;
   onLoadProject: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,6 +23,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onConfigChange,
   onProcessAll,
   onCancel,
+  onClearAll,
   onDownloadAll,
   onSaveProject,
   onLoadProject,
@@ -63,6 +65,15 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           ref={fileInputRef}
           onChange={onLoadProject}
         />
+        <button
+          onClick={onClearAll}
+          disabled={panelCount === 0 || isProcessing}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Clear Workspace"
+        >
+          <XMarkIcon className="w-4 h-4" />
+          Clear
+        </button>
       </div>
 
       {/* Aspect Ratio */}

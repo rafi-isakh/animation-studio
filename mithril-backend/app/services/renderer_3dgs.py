@@ -390,21 +390,185 @@ def _rasterize_ewa(
     col = colors[order].astype(np.float32)
     opa = opacities[order].astype(np.float32)
 
-    img = np.zeros((height, width, 3), dtype=np.float32)
-    T = np.ones((height, width), dtype=np.float32)  # transmittance
-
     n_rendered = len(order)
     logger.info(f"[3DGS] Rasterizing {n_rendered:,} Gaussians (front-to-back)…")
 
-    # Try Numba-accelerated path first, fall back to NumPy
+    # Try tile-based Numba parallel path first, then sequential Numba, then NumPy
+    img = None
     try:
-        _rasterize_numba(m2d, cinv, rad, col, opa, img, T, width, height)
-    except Exception:
-        _rasterize_numpy(m2d, cinv, rad, col, opa, img, T, width, height)
+        img = _rasterize_tiled_numba(m2d, cinv, rad, col, opa, width, height)
+    except Exception as e:
+        logger.info(f"[3DGS] Tile-based Numba failed ({e}), trying sequential Numba")
 
-    # Composite over white background
-    img += T[:, :, np.newaxis]  # T * bg_color (white = 1.0)
+    if img is None:
+        img = np.zeros((height, width, 3), dtype=np.float32)
+        T = np.ones((height, width), dtype=np.float32)
+        try:
+            _rasterize_numba(m2d, cinv, rad, col, opa, img, T, width, height)
+        except Exception:
+            _rasterize_numpy(m2d, cinv, rad, col, opa, img, T, width, height)
+        img += T[:, :, np.newaxis]
+
     return (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
+
+
+_TILE_SIZE = 16
+
+
+def _build_tile_gaussian_lists(
+    m2d: np.ndarray,
+    rad: np.ndarray,
+    width: int,
+    height: int,
+) -> tuple:
+    """Assign each Gaussian to the tiles it overlaps. Returns (tile_starts, tile_counts, tile_indices)."""
+    tiles_x = (width + _TILE_SIZE - 1) // _TILE_SIZE
+    tiles_y = (height + _TILE_SIZE - 1) // _TILE_SIZE
+    n_tiles = tiles_x * tiles_y
+    N = len(m2d)
+
+    # Count how many Gaussians per tile
+    tile_counts = np.zeros(n_tiles, dtype=np.int32)
+    for i in range(N):
+        gx, gy, r = m2d[i, 0], m2d[i, 1], rad[i]
+        tx0 = max(0, int((gx - r) / _TILE_SIZE))
+        tx1 = min(tiles_x - 1, int((gx + r) / _TILE_SIZE))
+        ty0 = max(0, int((gy - r) / _TILE_SIZE))
+        ty1 = min(tiles_y - 1, int((gy + r) / _TILE_SIZE))
+        for ty in range(ty0, ty1 + 1):
+            for tx in range(tx0, tx1 + 1):
+                tile_counts[ty * tiles_x + tx] += 1
+
+    # Build offsets
+    tile_starts = np.zeros(n_tiles + 1, dtype=np.int32)
+    for t in range(n_tiles):
+        tile_starts[t + 1] = tile_starts[t] + tile_counts[t]
+    total = tile_starts[n_tiles]
+
+    # Fill per-tile Gaussian index lists (depth-sorted order preserved)
+    tile_indices = np.empty(total, dtype=np.int32)
+    fill = tile_starts.copy()
+    for i in range(N):
+        gx, gy, r = m2d[i, 0], m2d[i, 1], rad[i]
+        tx0 = max(0, int((gx - r) / _TILE_SIZE))
+        tx1 = min(tiles_x - 1, int((gx + r) / _TILE_SIZE))
+        ty0 = max(0, int((gy - r) / _TILE_SIZE))
+        ty1 = min(tiles_y - 1, int((gy + r) / _TILE_SIZE))
+        for ty in range(ty0, ty1 + 1):
+            for tx in range(tx0, tx1 + 1):
+                tid = ty * tiles_x + tx
+                tile_indices[fill[tid]] = i
+                fill[tid] += 1
+
+    return tiles_x, tiles_y, tile_starts, tile_counts, tile_indices
+
+
+_TILED_NUMBA_KERNEL = None
+
+
+def _get_tiled_numba_kernel():
+    """Lazily compile tile-based parallel rasterization kernel."""
+    global _TILED_NUMBA_KERNEL
+    if _TILED_NUMBA_KERNEL is not None:
+        return _TILED_NUMBA_KERNEL
+    from numba import njit, prange
+    import math as _m
+
+    @njit(cache=True, parallel=True)
+    def _tiled_kernel(
+        m2d, cinv, col, opa,
+        tile_starts, tile_indices,
+        tiles_x, tiles_y, tile_size,
+        img, width, height,
+    ):
+        n_tiles = tiles_x * tiles_y
+        for tid in prange(n_tiles):
+            tx = tid % tiles_x
+            ty = tid // tiles_x
+            px0 = tx * tile_size
+            py0 = ty * tile_size
+            px1 = min(px0 + tile_size, width)
+            py1 = min(py0 + tile_size, height)
+
+            start = tile_starts[tid]
+            end = tile_starts[tid + 1]
+            if start == end:
+                # No Gaussians in this tile — fill with white background
+                for py in range(py0, py1):
+                    for px in range(px0, px1):
+                        img[py, px, 0] = 1.0
+                        img[py, px, 1] = 1.0
+                        img[py, px, 2] = 1.0
+                continue
+
+            # Per-pixel transmittance and color accumulation for this tile
+            tw = px1 - px0
+            th = py1 - py0
+            tile_T = np.ones(tw * th, dtype=np.float32)
+            tile_r = np.zeros(tw * th, dtype=np.float32)
+            tile_g = np.zeros(tw * th, dtype=np.float32)
+            tile_b = np.zeros(tw * th, dtype=np.float32)
+
+            for k in range(start, end):
+                i = tile_indices[k]
+                gx = m2d[i, 0]
+                gy = m2d[i, 1]
+                alpha = opa[i]
+                ic00 = cinv[i, 0, 0]
+                ic01 = cinv[i, 0, 1] + cinv[i, 1, 0]
+                ic11 = cinv[i, 1, 1]
+                cr, cg, cb = col[i, 0], col[i, 1], col[i, 2]
+
+                for ly in range(th):
+                    py = py0 + ly
+                    dy = float(py) - gy
+                    for lx in range(tw):
+                        px = px0 + lx
+                        dx = float(px) - gx
+                        power = -0.5 * (ic00 * dx * dx + ic01 * dx * dy + ic11 * dy * dy)
+                        if power < -16.0:
+                            continue
+                        g = _m.exp(power)
+                        ag = alpha * g
+                        if ag > 0.99:
+                            ag = 0.99
+                        pidx = ly * tw + lx
+                        t = tile_T[pidx]
+                        if t < 0.005:
+                            continue
+                        contrib = t * ag
+                        tile_r[pidx] += contrib * cr
+                        tile_g[pidx] += contrib * cg
+                        tile_b[pidx] += contrib * cb
+                        tile_T[pidx] = t * (1.0 - ag)
+
+            # Write tile results + white background
+            for ly in range(th):
+                for lx in range(tw):
+                    pidx = ly * tw + lx
+                    t = tile_T[pidx]
+                    img[py0 + ly, px0 + lx, 0] = tile_r[pidx] + t
+                    img[py0 + ly, px0 + lx, 1] = tile_g[pidx] + t
+                    img[py0 + ly, px0 + lx, 2] = tile_b[pidx] + t
+
+    _TILED_NUMBA_KERNEL = _tiled_kernel
+    return _TILED_NUMBA_KERNEL
+
+
+def _rasterize_tiled_numba(m2d, cinv, rad, col, opa, width, height) -> np.ndarray:
+    """Tile-based parallel rasterization using Numba prange."""
+    tiles_x, tiles_y, tile_starts, tile_counts, tile_indices = _build_tile_gaussian_lists(
+        m2d, rad, width, height,
+    )
+    logger.info(
+        f"[3DGS] Tile-based raster: {tiles_x}x{tiles_y} tiles, "
+        f"{len(tile_indices):,} Gaussian-tile pairs"
+    )
+
+    img = np.zeros((height, width, 3), dtype=np.float32)
+    kernel = _get_tiled_numba_kernel()
+    kernel(m2d, cinv, col, opa, tile_starts, tile_indices, tiles_x, tiles_y, _TILE_SIZE, img, width, height)
+    return img
 
 
 def _rasterize_numpy(m2d, cinv, rad, col, opa, img, T, width, height):

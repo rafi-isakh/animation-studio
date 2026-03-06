@@ -155,15 +155,41 @@ export default function AnimeBgStudioPage() {
     if (!e.target.files?.length) return;
 
     const newImages: WorkspaceImage[] = [];
+
     for (let i = 0; i < e.target.files.length; i++) {
       const file = e.target.files[i];
-      const dataUrl = await fileToBase64(file);
-      newImages.push({
-        id: crypto.randomUUID(),
-        originalDataUrl: dataUrl,
-        prompt: "",
-        status: "idle",
-      });
+
+      if (file.name.toLowerCase().endsWith(".zip") || file.type === "application/zip") {
+        // Extract images from ZIP
+        const zip = await JSZip.loadAsync(file);
+        const imageFiles = Object.entries(zip.files).filter(([name, entry]) => {
+          if (entry.dir) return false;
+          const lower = name.toLowerCase();
+          return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp");
+        });
+
+        for (const [name, entry] of imageFiles) {
+          const blob = await entry.async("blob");
+          const ext = name.split(".").pop()?.toLowerCase() || "png";
+          const mimeType = ext === "webp" ? "image/webp" : ext === "png" ? "image/png" : "image/jpeg";
+          const imageFile = new File([blob], name, { type: mimeType });
+          const dataUrl = await fileToBase64(imageFile);
+          newImages.push({
+            id: crypto.randomUUID(),
+            originalDataUrl: dataUrl,
+            prompt: "",
+            status: "idle",
+          });
+        }
+      } else {
+        const dataUrl = await fileToBase64(file);
+        newImages.push({
+          id: crypto.randomUUID(),
+          originalDataUrl: dataUrl,
+          prompt: "",
+          status: "idle",
+        });
+      }
     }
 
     setState((prev) => ({
@@ -571,11 +597,11 @@ export default function AnimeBgStudioPage() {
               className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-white/10"
             >
               <Upload className="w-4 h-4" />
-              Add Target Images
+              Add Images / ZIP
             </button>
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,.zip"
               multiple
               className="hidden"
               ref={fileInputRef}

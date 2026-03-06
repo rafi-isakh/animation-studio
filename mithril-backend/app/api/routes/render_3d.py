@@ -24,7 +24,7 @@ class Render3DRequest(BaseModel):
     elevation: float = 30.0  # Vertical angle in degrees (-90 to 90)
     distance_multiplier: float = 2.5  # Camera distance as multiplier of model extent
     fov: float = 45.0  # Field of view in degrees
-    camera_mode: Literal["exterior", "interior", "absolute"] = "exterior"  # exterior=orbit outside, interior=inside looking out, absolute=raw XYZ
+    camera_mode: Literal["exterior", "interior", "absolute", "environment"] = "exterior"  # exterior=orbit outside, interior=inside looking out, absolute=raw XYZ, environment=ground-level for outdoor scenes
     tilt: float = 0.0  # Camera roll in degrees (-180 to 180), Dutch angle effect
     interior_offset_x: float = 0.0  # Horizontal offset from center (-1 to 1, fraction of half-extent). Interior only.
     interior_offset_y: float = 0.0  # Vertical offset from center (-1 to 1). Interior only.

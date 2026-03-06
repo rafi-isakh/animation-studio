@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 type OutputMode = "direct" | "ai_enhanced";
-type CameraMode = "exterior" | "interior" | "absolute";
+type CameraMode = "exterior" | "interior" | "absolute" | "environment";
 type ModelFormat = "auto" | "glb" | "3dgs";
 type UpAxis = "auto" | "y" | "-y" | "z" | "-z";
 
@@ -266,18 +266,18 @@ export default function ThreeDBackgroundTestPage() {
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Camera Mode
               </label>
-              <div className="flex gap-1">
-                {(["exterior", "interior", "absolute"] as CameraMode[]).map((mode) => (
+              <div className="flex gap-1 flex-wrap">
+                {(["exterior", "interior", "environment", "absolute"] as CameraMode[]).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setCameraMode(mode)}
-                    className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
                       cameraMode === mode
                         ? "bg-blue-600 text-white"
                         : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                     }`}
                   >
-                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    {mode === "environment" ? "Environ." : mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </button>
                 ))}
               </div>
@@ -286,6 +286,8 @@ export default function ThreeDBackgroundTestPage() {
                   ? "Camera orbits outside the model looking in"
                   : cameraMode === "interior"
                   ? "Camera is inside the model looking outward"
+                  : cameraMode === "environment"
+                  ? "Ground-level camera for outdoor scenes (auto-detects ground plane)"
                   : "Raw XYZ camera position (paste from SuperSplat)"}
               </p>
 
@@ -493,8 +495,8 @@ export default function ThreeDBackgroundTestPage() {
                 />
               </div>
 
-              {/* Interior position offsets (interior mode only) */}
-              {cameraMode === "interior" && (
+              {/* Position offsets (interior & environment modes) */}
+              {(cameraMode === "interior" || cameraMode === "environment") && (
                 <div className="space-y-2 pt-1 border-t border-gray-700">
                   <p className="text-xs text-gray-500">
                     Camera position offset (fraction of model size)
@@ -686,7 +688,7 @@ export default function ThreeDBackgroundTestPage() {
                       />
                       <div className="px-1.5 py-1">
                         <p className="text-[10px] text-gray-500 font-mono truncate">
-                          {entry.params.cameraMode === "interior" ? "IN" : "EX"}{" "}
+                          {entry.params.cameraMode === "interior" ? "IN" : entry.params.cameraMode === "environment" ? "ENV" : "EX"}{" "}
                           Az {entry.params.azimuth}° El {entry.params.elevation}°
                           {entry.params.cameraMode === "exterior" &&
                             ` D ${entry.params.distanceMultiplier.toFixed(1)}x`}

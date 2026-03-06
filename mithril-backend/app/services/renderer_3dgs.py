@@ -601,7 +601,40 @@ async def render_single_view_3dgs(
     az = math.radians(azimuth)
     el = math.radians(elevation)
 
-    if camera_mode == "absolute" and eye is not None:
+    if camera_mode == "environment":
+        # For outdoor scenes, the dense region is misleading — the camera was
+        # typically at ground level when the scene was captured.  We estimate
+        # the ground plane from the Gaussian distribution:
+        #   - Horizontal position: median of the two horizontal axes
+        #   - Vertical position: 25th percentile of the up axis + a small
+        #     head-height offset (5% of vertical extent), approximating
+        #     where a person would stand.
+        # The camera then looks outward using azimuth/elevation like interior mode.
+        up_means = means[:, up_idx]
+        ground_level = float(np.percentile(up_means, 25))
+        vertical_extent = float(np.percentile(up_means, 90) - np.percentile(up_means, 10))
+        head_offset = vertical_extent * 0.05  # slightly above ground
+
+        env_eye = np.zeros(3, dtype=np.float64)
+        env_eye[h0] = float(np.median(means[:, h0]))
+        env_eye[h1] = float(np.median(means[:, h1]))
+        env_eye[up_idx] = ground_level + up_sign * head_offset
+
+        # Apply interior offsets for fine-tuning position
+        env_half = extents / 2.0
+        env_eye[h0] += interior_offset_x * env_half[h0]
+        env_eye[up_idx] += up_sign * interior_offset_y * env_half[up_idx]
+        env_eye[h1] += interior_offset_z * env_half[h1]
+
+        eye = env_eye
+        cos_el = math.cos(el)
+        look_dir = np.zeros(3)
+        look_dir[h0] = cos_el * math.cos(az)
+        look_dir[h1] = cos_el * math.sin(az)
+        look_dir[up_idx] = up_sign * math.sin(el)
+        target = eye + look_dir * max_extent
+
+    elif camera_mode == "absolute" and eye is not None:
         eye_pos = np.array(eye, dtype=np.float64)
         if look_at_center:
             # Always look toward the dense center (where most Gaussians are)
@@ -654,8 +687,8 @@ async def render_single_view_3dgs(
     fy = height / (2.0 * math.tan(fov_rad / 2.0))
     fx = fy  # square pixels
 
-    # Use smaller znear for interior/absolute modes to see close Gaussians
-    znear = 0.01 if camera_mode in ("interior", "absolute") else 0.1
+    # Use smaller znear for interior/absolute/environment modes to see close Gaussians
+    znear = 0.01 if camera_mode in ("interior", "absolute", "environment") else 0.1
 
     means2d, cov2d_inv, radii, colors, opacities, depths, mask = _project_gaussians_ewa(
         gaussians, view_mat, fx, fy, width / 2.0, height / 2.0, width, height, znear=znear,

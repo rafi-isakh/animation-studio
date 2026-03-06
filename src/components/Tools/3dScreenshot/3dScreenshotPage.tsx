@@ -48,6 +48,7 @@ export default function ThreeDScreenshotPage() {
   const [results, setResults] = useState<RenderResult[]>([]);
   const [resolution, setResolution] = useState<[number, number]>([1920, 1080]);
   const [fixedExtent, setFixedExtent] = useState("");
+  const [cameraMode, setCameraMode] = useState<"interior" | "environment">("interior");
   const [upAxis, setUpAxis] = useState<"y" | "-y" | "z" | "-z">("y");
   const [renderingViewId, setRenderingViewId] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
@@ -137,7 +138,7 @@ export default function ThreeDScreenshotPage() {
   const renderPayload = useCallback((view: ViewConfig) => ({
     modelUrl: modelUrl.trim(),
     modelFormat: "3dgs",
-    cameraMode: "interior",
+    cameraMode,
     upAxis,
     azimuth: view.azimuth,
     elevation: view.elevation,
@@ -149,7 +150,7 @@ export default function ThreeDScreenshotPage() {
     maxGaussians: 500000,
     fixedExtent: fixedExtent ? parseFloat(fixedExtent) : undefined,
     outputMode: "direct",
-  }), [modelUrl, resolution, fixedExtent, upAxis]);
+  }), [modelUrl, resolution, fixedExtent, upAxis, cameraMode]);
 
   const renderSingle = useCallback(async (viewId: string) => {
     if (!hasModel || isRendering) return;
@@ -268,6 +269,18 @@ export default function ThreeDScreenshotPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-zinc-500">Mode</span>
+              <select
+                value={cameraMode}
+                onChange={(e) => setCameraMode(e.target.value as typeof cameraMode)}
+                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+              >
+                <option value="interior">Interior</option>
+                <option value="environment">Environment</option>
+              </select>
+            </div>
+
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-zinc-500">Up</span>
               <select

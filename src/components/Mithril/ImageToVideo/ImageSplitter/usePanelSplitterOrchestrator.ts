@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   subscribeToProjectPanelSplitterJobs,
   mapPanelSplitterJobToUpdate,
@@ -54,6 +54,11 @@ interface UsePanelSplitterOrchestratorOptions {
 /**
  * Hook for integrating with the panel splitter orchestrator backend.
  * Provides methods to submit panel splitting jobs and subscribes to real-time status updates.
+ *
+ * Implements the standard orchestrator pattern:
+ * - initialSnapshotRef: skip the first Firestore snapshot (replayed history)
+ * - processedJobIdsRef: deduplicate already-forwarded terminal jobs
+ * - pendingUpdates: queue updates for consumer to apply when ready
  */
 export function usePanelSplitterOrchestrator({
   projectId,
@@ -64,10 +69,28 @@ export function usePanelSplitterOrchestrator({
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const onPageUpdateRef = useRef(onPageUpdate);
 
+  // Standard orchestrator pattern refs
+  const initialSnapshotRef = useRef(true);
+  const processedJobIdsRef = useRef<Set<string>>(new Set());
+
+  // Pending updates queue: updates received before consumer is ready
+  const [pendingUpdates, setPendingUpdates] = useState<PanelSplitterJobUpdate[]>([]);
+
+  const clearPendingUpdates = useCallback(() => {
+    setPendingUpdates([]);
+  }, []);
+
   // Keep callback ref updated
   useEffect(() => {
     onPageUpdateRef.current = onPageUpdate;
   }, [onPageUpdate]);
+
+  // Reset refs when projectId changes
+  useEffect(() => {
+    initialSnapshotRef.current = true;
+    processedJobIdsRef.current = new Set();
+    setPendingUpdates([]);
+  }, [projectId]);
 
   // Subscribe to job updates via Firestore
   useEffect(() => {
@@ -90,8 +113,44 @@ export function usePanelSplitterOrchestrator({
         }
       });
 
-      // Notify callback for the latest job of each page
+      // On initial snapshot, just record what exists — don't forward
+      if (initialSnapshotRef.current) {
+        initialSnapshotRef.current = false;
+
+        const terminalStatuses = ['completed', 'failed', 'cancelled'];
+        const queued: PanelSplitterJobUpdate[] = [];
+
+        latestJobsByPage.forEach((job) => {
+          if (terminalStatuses.includes(job.status)) {
+            // Mark terminal jobs as already processed so we don't forward them again
+            processedJobIdsRef.current.add(job.id);
+          } else {
+            // In-flight jobs: queue as pending so consumer can apply them when ready
+            const update = mapPanelSplitterJobToUpdate(job);
+            queued.push(update);
+          }
+        });
+
+        if (queued.length > 0) {
+          setPendingUpdates(queued);
+        }
+        return;
+      }
+
+      // Subsequent snapshots: forward new/changed jobs, deduplicate terminal ones
       latestJobsByPage.forEach((job) => {
+        const terminalStatuses = ['completed', 'failed', 'cancelled'];
+        const isTerminal = terminalStatuses.includes(job.status);
+
+        if (isTerminal && processedJobIdsRef.current.has(job.id)) {
+          // Already forwarded this terminal job
+          return;
+        }
+
+        if (isTerminal) {
+          processedJobIdsRef.current.add(job.id);
+        }
+
         const update = mapPanelSplitterJobToUpdate(job);
         onPageUpdateRef.current?.(update);
       });
@@ -248,5 +307,7 @@ export function usePanelSplitterOrchestrator({
     cancelJob,
     cancelAllJobs,
     getJobStatus,
+    pendingUpdates,
+    clearPendingUpdates,
   };
 }

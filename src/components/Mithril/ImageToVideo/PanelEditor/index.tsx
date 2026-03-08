@@ -60,16 +60,19 @@ export default function PanelEditor() {
     provider,
     setProvider,
     isLoadingSplitterPanels,
+    isLoadingPanels,
     addFilesToLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
+    loadPanels,
     removePanel,
     updateConfig,
     processAllPanels,
     cancelProcessing,
     retryPanel,
     refinePanel,
+    clearPanels,
     successCount,
   } = usePanelEditor({ projectId: currentProjectId || '' });
 
@@ -191,29 +194,25 @@ export default function PanelEditor() {
     reader.onload = (ev) => {
       try {
         const json = JSON.parse(ev.target?.result as string);
-        if (json.config) updateConfig(json.config);
         if (json.panels && Array.isArray(json.panels)) {
           const loadedPanels: PanelData[] = json.panels.map((p: any) => {
-            const file = base64ToFile(
+            const panelFile = base64ToFile(
               p.originalData,
               p.originalName,
               p.originalType
             );
             return {
               id: p.id || uuidv4(),
-              file: file,
-              previewUrl: URL.createObjectURL(file),
+              file: panelFile,
+              previewUrl: URL.createObjectURL(panelFile),
               fileName: p.originalName,
-              status: p.status,
+              status: p.status || ProcessingStatus.Idle,
               resultUrl: p.resultUrl,
               error: p.error,
             };
           });
-          // Clear existing panels first then add loaded ones
-          // This is a simplified approach; a more robust solution would use the reducer
-          loadedPanels.forEach((panel) => {
-            addPanels([panel.file]);
-          });
+          // Clear existing panels and load with full metadata preserved
+          loadPanels(loadedPanels, json.config);
         }
       } catch (err) {
         console.error('Failed to load project', err);
@@ -289,6 +288,7 @@ export default function PanelEditor() {
         onConfigChange={updateConfig}
         onProcessAll={processAllPanels}
         onCancel={cancelProcessing}
+        onClearAll={clearPanels}
         onDownloadAll={handleDownloadAll}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
@@ -315,7 +315,11 @@ export default function PanelEditor() {
           </span>
         </div>
 
-        {panels.length === 0 ? (
+        {isLoadingPanels ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+            <p className="text-lg animate-pulse">Restoring workspace...</p>
+          </div>
+        ) : panels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
             <p className="text-lg">
               Upload files or load via manifest to begin

@@ -2,12 +2,14 @@
 
 import asyncio
 import base64
+import io
 import logging
 import time
 from typing import Literal
 
 import httpx
 from fastapi import APIRouter, HTTPException
+from PIL import Image
 from pydantic import BaseModel
 
 from app.api.deps import AuthenticatedUser
@@ -16,6 +18,54 @@ from app.providers.image.gemini import gemini_image_provider
 from app.services.s3 import download_image, upload_image
 
 logger = logging.getLogger(__name__)
+
+# Max dimension on longest side before sending to AI providers.
+# Gemini works best at ~1536px; larger images waste tokens and may be
+# silently downscaled with quality loss.
+MAX_INPUT_DIMENSION = 1536
+
+
+def _preprocess_image(image_bytes: bytes) -> bytes:
+    """Resize large images and normalize to PNG for consistent AI provider input.
+
+    - Caps the longest side at MAX_INPUT_DIMENSION (preserving aspect ratio).
+    - Converts WEBP/BMP/TIFF to PNG (providers handle PNG most reliably).
+    - Converts palette/CMYK modes to RGBA/RGB.
+    - Returns original bytes unchanged if already within limits and PNG/JPEG.
+    """
+    img = Image.open(io.BytesIO(image_bytes))
+    w, h = img.size
+    original_format = (img.format or "").upper()
+
+    needs_resize = max(w, h) > MAX_INPUT_DIMENSION
+    needs_convert = original_format not in ("PNG", "JPEG", "JPG")
+
+    if not needs_resize and not needs_convert:
+        return image_bytes
+
+    # Resize if needed (maintain aspect ratio)
+    if needs_resize:
+        scale = MAX_INPUT_DIMENSION / max(w, h)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        logger.info(f"[ANIME-BG] Resized {w}x{h} -> {new_w}x{new_h}")
+
+    # Normalize mode for PNG output
+    if img.mode in ("P", "PA"):
+        img = img.convert("RGBA")
+    elif img.mode == "CMYK":
+        img = img.convert("RGB")
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    buf.seek(0)
+    result = buf.read()
+
+    if needs_convert:
+        logger.info(f"[ANIME-BG] Converted {original_format} -> PNG")
+
+    return result
 
 router = APIRouter(prefix="/anime-bg", tags=["anime-bg"])
 
@@ -84,12 +134,21 @@ async def _generate_grok(
     client = xai_sdk.Client(api_key=api_key)
     model = "grok-imagine-image-pro"
 
-    # Build image URLs as data URIs
+    # Build image URLs as data URIs with correct mime type
+    def _detect_mime(data: bytes) -> str:
+        if data[:8] == b'\x89PNG\r\n\x1a\n':
+            return "image/png"
+        if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+            return "image/webp"
+        return "image/jpeg"
+
     source_b64 = base64.b64encode(source_bytes).decode("ascii")
-    image_urls = [f"data:image/png;base64,{source_b64}"]
+    source_mime = _detect_mime(source_bytes)
+    image_urls = [f"data:{source_mime};base64,{source_b64}"]
     if ref_bytes:
         ref_b64 = base64.b64encode(ref_bytes).decode("ascii")
-        image_urls.append(f"data:image/png;base64,{ref_b64}")
+        ref_mime = _detect_mime(ref_bytes)
+        image_urls.append(f"data:{ref_mime};base64,{ref_b64}")
 
     final_prompt = _build_prompt(prompt, ref_bytes is not None)
 
@@ -144,19 +203,25 @@ async def enhance_image(
     if not effective_key:
         raise HTTPException(400, f"API key required for {request.provider} provider")
 
-    # Download source image from URL
+    # Download and preprocess source image
     try:
         source_bytes = await download_image(request.image_url)
         logger.info(f"[ANIME-BG] Downloaded source image: {len(source_bytes)} bytes")
+        source_bytes = _preprocess_image(source_bytes)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(400, f"Failed to download source image: {e}")
 
-    # Download reference image if provided
+    # Download and preprocess reference image if provided
     ref_bytes: bytes | None = None
     if request.reference_image_url:
         try:
             ref_bytes = await download_image(request.reference_image_url)
             logger.info(f"[ANIME-BG] Downloaded reference image: {len(ref_bytes)} bytes")
+            ref_bytes = _preprocess_image(ref_bytes)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(400, f"Failed to download reference image: {e}")
 

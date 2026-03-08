@@ -175,9 +175,22 @@ export function useImageSplitter() {
   // Control when Firestore subscription starts (prevents race condition with loadFromFirestore)
   const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
 
-  // Reset subscription state when project changes (prevents race condition on project switch)
+  // Counter to trigger re-load after project switch reset
+  const [loadTrigger, setLoadTrigger] = useState(0);
+
+  // Reset state when project changes (prevents stale data from old project)
+  const prevProjectIdRef = useRef(currentProjectId);
   useEffect(() => {
     setSubscriptionEnabled(false);
+    if (prevProjectIdRef.current !== currentProjectId && prevProjectIdRef.current !== null) {
+      // Project switched — reset all local state
+      dispatch({ type: 'RESET' });
+      setActiveJobs({});
+      isLoadingRef.current = false;
+      // Bump loadTrigger so the load effect re-fires after reset
+      setLoadTrigger((c) => c + 1);
+    }
+    prevProjectIdRef.current = currentProjectId;
   }, [currentProjectId]);
 
   // Keep a ref to current state for cleanup and async operations
@@ -340,12 +353,24 @@ export function useImageSplitter() {
   }, [state.isProcessing, state.pages, state.readingDirection, currentProjectId, setStageResult]);
 
   // Initialize orchestrator (subscription controlled by subscriptionEnabled to prevent race condition)
-  const { submitBatch, cancelAllJobs } = usePanelSplitterOrchestrator({
+  const { submitBatch, cancelAllJobs, pendingUpdates, clearPendingUpdates } = usePanelSplitterOrchestrator({
     projectId: currentProjectId,
     customApiKey,
     onPageUpdate: handlePageUpdate,
     enabled: subscriptionEnabled,
   });
+
+  // Apply pending updates from orchestrator (in-flight jobs detected on initial snapshot)
+  useEffect(() => {
+    if (pendingUpdates.length === 0) return;
+    // Only apply once pages are loaded (stateRef has content or no Firestore data)
+    if (stateRef.current.pages.length === 0 && isLoadingRef.current) return;
+
+    for (const update of pendingUpdates) {
+      handlePageUpdate(update);
+    }
+    clearPendingUpdates();
+  }, [pendingUpdates, handlePageUpdate, clearPendingUpdates]);
 
   // Load data from Firestore when project changes
   useEffect(() => {
@@ -505,7 +530,7 @@ export function useImageSplitter() {
     };
 
     loadFromFirestore();
-  }, [currentProjectId, setStageResult]);
+  }, [currentProjectId, setStageResult, loadTrigger]);
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -614,10 +639,15 @@ export function useImageSplitter() {
     [state.readingDirection, extractImagesFromZip]
   );
 
-  // Start processing all pending pages via orchestrator
+  // Start processing all pending/error pages via orchestrator
   const process = useCallback(async () => {
-    const pendingPages = stateRef.current.pages.filter((p) => p.status === 'pending');
+    const pendingPages = stateRef.current.pages.filter((p) => p.status === 'pending' || p.status === 'error');
     if (pendingPages.length === 0) return;
+
+    // Reset error pages to pending before processing
+    pendingPages
+      .filter((p) => p.status === 'error')
+      .forEach((p) => dispatch({ type: 'UPDATE_PAGE_STATUS', id: p.id, status: 'pending' }));
 
     dispatch({ type: 'START_PROCESSING', total: pendingPages.length });
     processingStartTimeRef.current = Date.now();
@@ -738,7 +768,7 @@ export function useImageSplitter() {
 
   // Cancel ongoing processing via orchestrator
   const cancelProcessing = useCallback(async () => {
-    const jobIds = Object.values(activeJobs);
+    const jobIds = Object.values(activeJobsRef.current);
     if (jobIds.length > 0) {
       await cancelAllJobs(jobIds);
     }
@@ -756,7 +786,7 @@ export function useImageSplitter() {
       stats: null as unknown as { duration: string; pageCount: number; panelCount: number },
     });
     processingStartTimeRef.current = null;
-  }, [activeJobs, cancelAllJobs]);
+  }, [cancelAllJobs]);
 
   // Remove a page
   const remove = useCallback(async (id: string) => {

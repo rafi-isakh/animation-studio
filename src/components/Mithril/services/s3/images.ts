@@ -37,6 +37,7 @@ import {
   getImageGenEditedKey,
   getI2VPageKey,
   getI2VPanelKey,
+  getI2VPanelEditorKey,
 } from './types';
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
@@ -1223,6 +1224,44 @@ export async function clearAllI2VImages(projectId: string): Promise<void> {
 }
 
 // ============================================================================
+// I2V Panel Editor Original Images
+// ============================================================================
+
+/**
+ * Upload a panel editor original image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VPanelEditorImage(
+  projectId: string,
+  panelEditorId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel-editor',
+    panelEditorId,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload panel editor image');
+  }
+
+  return result.url;
+}
+
+// ============================================================================
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================
 
@@ -1439,4 +1478,5 @@ export {
   getImageGenEditedKey,
   getI2VPageKey,
   getI2VPanelKey,
+  getI2VPanelEditorKey,
 };

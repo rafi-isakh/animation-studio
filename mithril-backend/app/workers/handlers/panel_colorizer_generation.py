@@ -309,9 +309,9 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         return custom_api_key
 
     if job.provider_id == "grok":
-        if not settings.modelslab_api_key:
-            raise VideoJobError.invalid_request("No ModelsLab API key configured for Grok provider")
-        return settings.modelslab_api_key
+        if not settings.xai_api_key:
+            raise VideoJobError.invalid_request("No xAI API key configured for Grok provider")
+        return settings.xai_api_key
 
     if job.provider_id == "z_image_turbo":
         if not settings.modelslab_api_key:

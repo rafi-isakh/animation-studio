@@ -27,7 +27,7 @@ export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode
 
 export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
 
-export type I2VImageSubtype = 'page' | 'panel' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset';
+export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset';
 
 export interface UploadImageRequest {
   projectId: string;
@@ -60,6 +60,8 @@ export interface UploadImageRequest {
   // For i2v storyboard assets
   assetId?: string;
   assetType?: 'character' | 'background';
+  // For i2v panel-editor originals
+  panelEditorId?: string;
   // Image data
   base64: string;
   mimeType?: string;
@@ -103,6 +105,8 @@ export interface DeleteImageRequest {
   // For i2v storyboard assets
   assetId?: string;
   assetType?: 'character' | 'background';
+  // For i2v panel-editor originals
+  panelEditorId?: string;
 }
 
 export interface DeleteImageResponse {
@@ -339,6 +343,13 @@ export function getI2VPanelsFolderPrefix(projectId: string): string {
  */
 export function getI2VPanelPrefix(projectId: string, pageIndex: number, panelIndex: number): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/panels/${pageIndex}_${panelIndex}`;
+}
+
+/**
+ * Get S3 key for I2V panel-editor original image
+ */
+export function getI2VPanelEditorKey(projectId: string, panelEditorId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panel-editor/${panelEditorId}.webp`;
 }
 
 /**

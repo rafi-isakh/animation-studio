@@ -31,6 +31,7 @@ import {
   getI2VStoryboardFrameEndKey,
   getI2VStoryboardAssetKey,
   getI2VStoryboardFolderPrefix,
+  getI2VPanelEditorKey,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType, panelEditorId } = body;
         switch (i2vSubtype) {
           case "panel":
             if (pageIndex === undefined || panelIndex === undefined) {
@@ -182,6 +183,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
               );
             }
             s3Key = getI2VPanelKey(projectId, pageIndex, panelIndex);
+            break;
+          case "panel-editor":
+            if (!panelEditorId) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "panelEditorId is required for panel-editor images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VPanelEditorKey(projectId, panelEditorId);
             break;
           case "page":
             if (pageIndex === undefined) {
@@ -447,8 +457,13 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType, panelEditorId } = body;
         switch (i2vSubtype) {
+          case "panel-editor":
+            if (panelEditorId) {
+              keysToDelete = [getI2VPanelEditorKey(projectId, panelEditorId)];
+            }
+            break;
           case "panel":
             if (pageIndex !== undefined && panelIndex !== undefined) {
               // Use prefix listing to catch both legacy keys ({pageIndex}_{panelIndex}.webp)

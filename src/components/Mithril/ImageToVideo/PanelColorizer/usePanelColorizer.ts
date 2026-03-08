@@ -38,7 +38,7 @@ export function usePanelColorizer({ projectId }: UsePanelColorizerOptions) {
   const isMountedRef = useRef(true);
 
   // Generate a unique session ID for this instance
-  const [sessionId] = useState(() => uuidv4());
+  const [sessionId, setSessionId] = useState(() => uuidv4());
 
   // Use the global API key from MithrilContext
   const { customApiKey } = useMithril();
@@ -51,6 +51,17 @@ export function usePanelColorizer({ projectId }: UsePanelColorizerOptions) {
 
   // Track active jobs: panelId -> jobId
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+
+  // Reset state when projectId changes
+  const prevProjectIdRef = useRef(projectId);
+  useEffect(() => {
+    if (prevProjectIdRef.current !== projectId && prevProjectIdRef.current !== '') {
+      dispatch({ type: 'RESET_STATE' });
+      activeJobsRef.current.clear();
+      setSessionId(uuidv4());
+    }
+    prevProjectIdRef.current = projectId;
+  }, [projectId]);
 
   // Cleanup on unmount
   useEffect(() => {

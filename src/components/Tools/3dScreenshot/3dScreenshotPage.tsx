@@ -40,7 +40,12 @@ function makeViews(configs: Omit<ViewConfig, "id" | "label">[]): ViewConfig[] {
   return configs.map((c, i) => ({ id: makeId(), label: `View ${i + 1}`, ...c }));
 }
 
-export default function ThreeDScreenshotPage() {
+interface ThreeDScreenshotPageProps {
+  embedded?: boolean;
+  onScreenshotsReady?: (results: RenderResult[]) => void;
+}
+
+export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsReady }: ThreeDScreenshotPageProps) {
   const [modelUrl, setModelUrl] = useState("");
   const [modelFileName, setModelFileName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -259,7 +264,7 @@ export default function ThreeDScreenshotPage() {
   }, [results, views]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className={`${embedded ? 'h-full overflow-y-auto' : 'min-h-screen'} bg-zinc-950 text-zinc-100`}>
       {/* Header */}
       <div className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -466,13 +471,23 @@ export default function ThreeDScreenshotPage() {
                     Download All
                   </button>
                 )}
-                <Link
-                  href="/tools/anime-bg-studio"
-                  className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 bg-[#DB2777] text-white hover:bg-[#BE185D] transition-colors"
-                >
-                  <Paintbrush className="w-3 h-3 mr-1.5" />
-                  Open Anime BG Studio
-                </Link>
+                {onScreenshotsReady ? (
+                  <button
+                    onClick={() => onScreenshotsReady(results)}
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 bg-[#DB2777] text-white hover:bg-[#BE185D] transition-colors"
+                  >
+                    <Paintbrush className="w-3 h-3 mr-1.5" />
+                    Send to Workspace
+                  </button>
+                ) : (
+                  <Link
+                    href="/tools/anime-bg-studio"
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 bg-[#DB2777] text-white hover:bg-[#BE185D] transition-colors"
+                  >
+                    <Paintbrush className="w-3 h-3 mr-1.5" />
+                    Open Anime BG Studio
+                  </Link>
+                )}
               </div>
             </div>
 

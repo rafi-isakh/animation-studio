@@ -24,6 +24,7 @@ import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
 import AnimeBgStudio from "./AnimeBgStudio";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
+import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { getProjectTypeConfig, getPipelineStages, isTextToVideoType, isImageToVideoType } from "./config/projectTypes";
@@ -218,6 +219,7 @@ function MithrilContent() {
     projectType,
     isStageSkipped,
   } = useMithril();
+  const { setSidebarNode } = useStageSidebar();
   const { language, dictionary } = useLanguage();
 
   // API key visibility toggles
@@ -258,8 +260,9 @@ function MithrilContent() {
   const isVideoStageComponent = currentStageConfig?.component === 'I2VVideoGenerator'
     || currentStageConfig?.component === 'CsvVideoGenerator'
     || currentStageConfig?.component === 'NsfwVideoGenerator';
+  const isAnimeBgStudio = currentStageConfig?.component === 'AnimeBgStudio';
   const needsImageApiKey = (
-    (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7))) ||
+    (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7)) && !isAnimeBgStudio) ||
     (isImageToVideo && !isVideoStageComponent)
   );
   const needsVideoApiKey =
@@ -366,6 +369,7 @@ function MithrilContent() {
               />
             )}
             {showCostTracker && <CostTrackerDashboard />}
+            <div ref={setSidebarNode} />
             <div className="flex-1" />
             <PrevNextButtons
               currentStage={currentStage}
@@ -479,9 +483,14 @@ function MithrilContent() {
             </div>
           )}
 
-          {/* Stage content */}
+          {/* Stage content — wrapped in its own StageSidebarProvider so any
+              portal-based sidebar injection here targets a null node and is suppressed,
+              preventing duplicate renders when a stage (e.g. AnimeBgStudio) portals
+              content into the desktop-only sidebar slot. */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-            {StageComponent ? <StageComponent /> : null}
+            <StageSidebarProvider>
+              {StageComponent ? <StageComponent /> : null}
+            </StageSidebarProvider>
           </div>
         </div>
 
@@ -506,9 +515,11 @@ function MithrilContent() {
 export default function Mithril() {
   return (
     <CostProvider>
-      <MithrilProvider>
-        <MithrilContent />
-      </MithrilProvider>
+      <StageSidebarProvider>
+        <MithrilProvider>
+          <MithrilContent />
+        </MithrilProvider>
+      </StageSidebarProvider>
     </CostProvider>
   );
 }

@@ -156,7 +156,8 @@ function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus
 }
 
 export function useImageSplitter() {
-  const { setStageResult, currentProjectId, customApiKey } = useMithril();
+  const { setStageResult, currentProjectId, customApiKey, projectType } = useMithril();
+  const isNsfw = projectType ? (projectType as string).includes('nsfw') : false;
   const { toast } = useToast();
   const [state, dispatch] = useReducer(imageSplitterReducer, initialState);
   const isLoadingRef = useRef(false);
@@ -1354,6 +1355,7 @@ export function useImageSplitter() {
             image: base64Data,
             panels: page.panels.map((_, idx) => ({ label: String(idx + 1) })),
             apiKey: customApiKey,
+            isNsfw,
           }),
         });
 

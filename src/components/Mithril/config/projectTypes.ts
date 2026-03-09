@@ -200,10 +200,11 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
 // Helper functions
 
 /**
- * Get the configuration for a project type
+ * Get the configuration for a project type.
+ * Falls back to the default type if the given type is unknown (e.g. stale Firestore data).
  */
 export function getProjectTypeConfig(type: ProjectType): ProjectTypeConfig {
-  return PROJECT_TYPE_CONFIGS[type];
+  return PROJECT_TYPE_CONFIGS[type] ?? PROJECT_TYPE_CONFIGS[getDefaultProjectType()];
 }
 
 export function isPipelineStage(stage: StageDefinition): boolean {

@@ -58,6 +58,20 @@ const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
         isNsfw: true,
         icon: <FileText className="w-6 h-6" />,
       },
+      {
+        type: 'text-to-video-anime-bg',
+        label: 'General (3D BG)',
+        description: 'Animated videos with 3D background studio',
+        isNsfw: false,
+        icon: <FileText className="w-6 h-6" />,
+      },
+      {
+        type: 'text-to-video-nsfw-anime-bg',
+        label: 'NSFW (3D BG)',
+        description: 'Adult content with 3D background studio',
+        isNsfw: true,
+        icon: <FileText className="w-6 h-6" />,
+      },
     ],
   },
   {

@@ -416,6 +416,19 @@ export default function ImageSplitter() {
         </div>
       </div>
 
+      {/* -- Main Workspace + Stats Banner -- */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* Processing Stats */}
+      {processingStats && !isProcessing && (
+        <div className="px-4 py-2 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 flex items-center text-green-700 dark:text-green-400 text-sm shrink-0">
+          <Check className="w-4 h-4 mr-2 shrink-0" />
+          <span>
+            Processed <strong>{pages.length}</strong> pages ({processingStats.panelCount} panels) in <strong>{processingStats.duration}</strong> minutes.
+          </span>
+        </div>
+      )}
+
       {/* -- Main Workspace -- */}
       <div className="flex-1 bg-gray-900 flex flex-col overflow-hidden relative select-none">
         {activePage ? (
@@ -597,15 +610,7 @@ export default function ImageSplitter() {
           </div>
         )}
 
-        {/* Processing Stats */}
-        {processingStats && !isProcessing && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center text-green-700 dark:text-green-400 text-sm shadow-lg z-50">
-            <Check className="w-4 h-4 mr-2" />
-            <span>
-              Processed <strong>{pages.length}</strong> pages ({processingStats.panelCount} panels) in <strong>{processingStats.duration}</strong> minutes.
-            </span>
-          </div>
-        )}
+      </div>
       </div>
     </div>
   );

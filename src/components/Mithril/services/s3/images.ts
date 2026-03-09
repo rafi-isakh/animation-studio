@@ -1084,28 +1084,36 @@ export async function uploadI2VPageImage(
   base64: string,
   mimeType = 'image/webp'
 ): Promise<string> {
-  const request: UploadImageRequest = {
-    projectId,
-    imageType: 'i2v',
-    i2vSubtype: 'page',
-    pageIndex,
-    base64,
-    mimeType,
-  };
+  const key = getI2VPageKey(projectId, pageIndex);
 
-  const response = await fetch(IMAGE_API_URL, {
+  // Request a presigned PUT URL — avoids routing base64 through Next.js body parser
+  // which has a 4 MB limit (problematic for tall webtoon pages).
+  const presignRes = await fetch('/api/mithril/s3/presign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
+    body: JSON.stringify({ key, contentType: mimeType }),
   });
 
-  const result: UploadImageResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to upload I2V page image');
+  const presignData = await presignRes.json();
+  if (!presignRes.ok) {
+    throw new Error(presignData.error || 'Failed to get presigned upload URL');
   }
 
-  return result.url;
+  // Convert base64 → binary and PUT directly to S3 (bypasses Next.js entirely)
+  const binaryStr = atob(base64);
+  const bytes = Uint8Array.from(binaryStr, (c) => c.charCodeAt(0));
+
+  const uploadRes = await fetch(presignData.presignedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': mimeType },
+    body: bytes,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error('Failed to upload I2V page image to S3');
+  }
+
+  return presignData.fileUrl;
 }
 
 /**

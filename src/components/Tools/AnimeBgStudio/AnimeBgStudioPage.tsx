@@ -108,7 +108,11 @@ async function uploadToS3(
 
 // --- Main Component ---
 
-export default function AnimeBgStudioPage() {
+interface AnimeBgStudioPageProps {
+  embedded?: boolean;
+}
+
+export default function AnimeBgStudioPage({ embedded = false }: AnimeBgStudioPageProps) {
   const sessionId = useMemo(() => crypto.randomUUID(), []);
 
   const [state, setState] = useState<WorkspaceState>({
@@ -445,9 +449,9 @@ export default function AnimeBgStudioPage() {
   const hasCompletedImages = state.images.some((img) => img.generatedUrl);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col md:flex-row">
+    <div className={`${embedded ? 'h-full' : 'min-h-screen'} bg-zinc-950 text-zinc-200 font-sans flex flex-col md:flex-row`}>
       {/* Sidebar */}
-      <div className="w-full md:w-80 bg-zinc-900 border-r border-white/5 p-6 flex flex-col gap-5 shrink-0 overflow-y-auto h-screen sticky top-0">
+      <div className={`w-full md:w-80 bg-zinc-900 border-r border-white/5 p-6 flex flex-col gap-5 shrink-0 overflow-y-auto ${embedded ? 'md:h-full' : 'h-screen sticky top-0'}`}>
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             <Settings className="w-6 h-6 text-[#DB2777]" />
@@ -456,13 +460,15 @@ export default function AnimeBgStudioPage() {
           <p className="text-xs text-zinc-400 mt-1">
             Image-to-Anime Batch Converter
           </p>
-          <Link
-            href="/tools/3d-screenshot"
-            className="mt-2 inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#DB2777] transition-colors"
-          >
-            <Camera className="w-3 h-3" />
-            3D Screenshot Tool
-          </Link>
+          {!embedded && (
+            <Link
+              href="/tools/3d-screenshot"
+              className="mt-2 inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#DB2777] transition-colors"
+            >
+              <Camera className="w-3 h-3" />
+              3D Screenshot Tool
+            </Link>
+          )}
         </div>
 
         <div className="space-y-4">

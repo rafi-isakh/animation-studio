@@ -137,6 +137,7 @@ export default function ProjectListPage() {
       'mithril_stage4': 'Storyboard',
       'mithril_stage5_prop': 'Assets',
       'mithril_stage5': 'Backgrounds',
+      'mithril_stage5_3d_bg': '3D BG Studio',
       'mithril_stage6': 'Image Clips',
       'mithril_stage7': 'Videos',
       'mithril_i2v_stage1': 'Panel Splitter',

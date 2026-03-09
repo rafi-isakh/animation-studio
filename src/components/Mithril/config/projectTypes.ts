@@ -2,6 +2,8 @@
 export type ProjectType =
   | 'text-to-video'
   | 'text-to-video-nsfw'
+  | 'text-to-video-anime-bg'
+  | 'text-to-video-nsfw-anime-bg'
   | 'manga-to-video'
   | 'manga-to-video-nsfw'
   | 'webtoon-to-video'
@@ -47,6 +49,18 @@ const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'StoryboardGenerator' },
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
+  { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
+  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
+];
+
+// Stage configurations for Text-to-Video with 3D BG (replaces BgSheetGenerator with AnimeBgStudio)
+const TEXT_TO_VIDEO_3D_BG_STAGES: StageDefinition[] = [
+  { id: 1, key: 'id-converter', labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
+  { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
+  { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator', visibility: 'tool' },
+  { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'StoryboardGenerator' },
+  { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
+  { id: 6, key: 'anime-bg-studio', labelKey: 'mithril_stage5_3d_bg', component: 'AnimeBgStudio' },
   { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
   { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
 ];
@@ -113,6 +127,24 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     descriptionKey: 'project_type_text_to_video_nsfw_desc',
     icon: 'FileText',
     stages: TEXT_TO_VIDEO_STAGES,
+    pipeline: 'text-to-video',
+    isNsfw: true,
+  },
+  'text-to-video-anime-bg': {
+    type: 'text-to-video-anime-bg',
+    labelKey: 'project_type_text_to_video_3d_bg',
+    descriptionKey: 'project_type_text_to_video_3d_bg_desc',
+    icon: 'FileText',
+    stages: TEXT_TO_VIDEO_3D_BG_STAGES,
+    pipeline: 'text-to-video',
+    isNsfw: false,
+  },
+  'text-to-video-nsfw-anime-bg': {
+    type: 'text-to-video-nsfw-anime-bg',
+    labelKey: 'project_type_text_to_video_nsfw_3d_bg',
+    descriptionKey: 'project_type_text_to_video_nsfw_3d_bg_desc',
+    icon: 'FileText',
+    stages: TEXT_TO_VIDEO_3D_BG_STAGES,
     pipeline: 'text-to-video',
     isNsfw: true,
   },

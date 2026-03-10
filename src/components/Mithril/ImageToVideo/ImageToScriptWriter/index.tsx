@@ -243,27 +243,28 @@ export default function ImageToScriptWriter() {
 
       {/* Source Text (Optional) */}
       <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Source Text (Optional)
-          </label>
-          <label className="cursor-pointer text-xs text-blue-500 hover:text-blue-600">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Source Text (Optional)
+        </label>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => document.getElementById('source-text-file-input')?.click()}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
             원본 텍스트 파일 업로드 (.txt)
-            <input
-              type="file"
-              accept=".txt"
-              className="hidden"
-              onChange={(e) => handleFileInstruction(e, (v) => setSourceText(v))}
-            />
-          </label>
+          </button>
+          <input
+            id="source-text-file-input"
+            type="file"
+            accept=".txt"
+            className="hidden"
+            onChange={(e) => handleFileInstruction(e, (v) => setSourceText(v))}
+          />
+          {config.sourceText && (
+            <span className="text-xs text-green-500">✓ {config.sourceText.length} chars loaded</span>
+          )}
         </div>
-        <textarea
-          value={config.sourceText}
-          onChange={(e) => setSourceText(e.target.value)}
-          placeholder="Paste original story text here for better context..."
-          rows={4}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-        />
       </div>
 
       {/* Instructions */}

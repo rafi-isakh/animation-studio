@@ -125,7 +125,7 @@ export default function InputView({
         </div>
 
         <button
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DB2777] disabled:opacity-50 disabled:pointer-events-none bg-[#DB2777] text-white hover:bg-[#BE185D] shadow-sm w-full h-12 text-base"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none bg-[#DB2777] text-white hover:bg-[#BE185D] shadow-sm w-full h-12 text-base"
           onClick={onGenerate}
           disabled={isGlobalGenerating || !hasValidInput}
         >

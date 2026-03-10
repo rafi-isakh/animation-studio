@@ -45,7 +45,7 @@ export default function EditPromptDialog({
               <textarea
                 value={editingItem.prompt}
                 onChange={(e) => onPromptChange(e.target.value)}
-                className="flex min-h-[80px] w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm ring-offset-zinc-950 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DB2777] focus-visible:ring-offset-2 text-zinc-100 h-32 resize-none"
+                className="flex min-h-[80px] w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm ring-offset-zinc-950 placeholder:text-zinc-400 focus-visible:outline-none text-zinc-100 h-32 resize-none"
               />
               <p className="text-xs text-zinc-500">
                 The current image will be used as a reference. Changes to the

@@ -109,16 +109,6 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
     }
   }, [deleteUploadedFile]);
 
-  const handleUrlChange = useCallback((url: string) => {
-    // If switching to a URL, clean up any previously uploaded file
-    if (uploadedKeyRef.current) {
-      deleteUploadedFile(uploadedKeyRef.current);
-      uploadedKeyRef.current = null;
-    }
-    setModelUrl(url);
-    setModelFileName(null);
-  }, [deleteUploadedFile]);
-
   const applyPreset = useCallback((preset: (typeof PRESETS)[number]) => {
     setViews(makeViews(preset.views));
     setResults([]);
@@ -279,7 +269,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
               <select
                 value={cameraMode}
                 onChange={(e) => setCameraMode(e.target.value as typeof cameraMode)}
-                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0"
               >
                 <option value="interior">Interior</option>
                 <option value="environment">Environment</option>
@@ -291,7 +281,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
               <select
                 value={upAxis}
                 onChange={(e) => setUpAxis(e.target.value as typeof upAxis)}
-                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+                className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0"
               >
                 <option value="y">+Y</option>
                 <option value="-y">-Y</option>
@@ -306,7 +296,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
                 const r = RESOLUTIONS.find((r) => `${r.value[0]}x${r.value[1]}` === e.target.value);
                 if (r) setResolution(r.value);
               }}
-              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-300 outline-none focus:ring-0 focus:ring-offset-0"
             >
               {RESOLUTIONS.map((r) => (
                 <option key={`${r.value[0]}x${r.value[1]}`} value={`${r.value[0]}x${r.value[1]}`}>
@@ -324,14 +314,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
           <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
             3D Scene Source (.spz)
           </h2>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={modelUrl}
-              onChange={(e) => handleUrlChange(e.target.value)}
-              placeholder="Paste .spz URL..."
-              className="flex-1 h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
-            />
+          <div className="flex items-center gap-3">
             <input
               type="file"
               ref={fileInputRef}
@@ -342,7 +325,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-colors shrink-0"
             >
               {isUploading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
@@ -350,6 +333,13 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
                 <><Upload className="w-4 h-4 mr-2" />Upload</>
               )}
             </button>
+            <span className="flex-1 truncate text-sm font-mono text-[#DB2777]">
+              {modelFileName
+                ? modelFileName
+                : modelUrl
+                  ? modelUrl
+                  : <span className="text-zinc-600">No file selected</span>}
+            </span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <label className="text-xs text-zinc-500 shrink-0">Fixed Extent</label>
@@ -362,7 +352,7 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
                 if (v === "" || /^\d*\.?\d*$/.test(v)) setFixedExtent(v);
               }}
               placeholder="Auto (use model's dense region)"
-              className="flex-1 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0 focus-visible:border-[#DB2777]"
+              className="flex-1 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0 focus:ring-offset-0"
             />
             {fixedExtent && (
               <button
@@ -373,9 +363,6 @@ export default function ThreeDScreenshotPage({ embedded = false, onScreenshotsRe
               </button>
             )}
           </div>
-          {modelFileName && (
-            <p className="text-xs text-[#DB2777] font-mono">{modelFileName}</p>
-          )}
         </div>
 
         {/* View Configuration */}

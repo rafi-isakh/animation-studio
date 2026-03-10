@@ -22,7 +22,7 @@ export default function StyleSelector({
       <div className="space-y-2">
         <label className="text-sm font-medium text-zinc-300">Art Style</label>
         <select
-          className="w-full h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DB2777]"
+          className="w-full h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 focus-visible:outline-none"
           value={style}
           onChange={(e) => onStyleChange(e.target.value)}
         >

@@ -82,10 +82,9 @@ async def submit_panel_splitter_batch(
     job_queue_service = get_job_queue_service()
     batch_id = str(uuid.uuid4())
 
-    job_responses = []
-    for page in request.pages:
-        # Override reading direction from batch if not set on individual page
-        page_request = PanelSplitterJobSubmitRequest(
+    # Build all page requests first
+    page_requests = [
+        PanelSplitterJobSubmitRequest(
             project_id=request.project_id,
             page_id=page.page_id,
             page_index=page.page_index,
@@ -94,23 +93,26 @@ async def submit_panel_splitter_batch(
             reading_direction=page.reading_direction or request.reading_direction,
             api_key=page.api_key or request.api_key,
         )
+        for page in request.pages
+    ]
 
-        # Create job in Firestore
-        job = await job_queue_service.create_panel_splitter_job(
-            page_request, user.uid, batch_id=batch_id
-        )
-        logger.info(f"[PANEL-SPLITTER-API] Created job {job.id} for page {page.page_id}")
+    # Create ALL jobs in a single Firestore WriteBatch (1 RPC instead of N)
+    jobs = await job_queue_service.create_panel_splitter_jobs_batch(
+        [(pr, pr.image_url) for pr in page_requests],
+        user.uid,
+        batch_id=batch_id,
+    )
+    logger.info(f"[PANEL-SPLITTER-API] Batch {batch_id}: {len(jobs)} jobs written to Firestore in one commit")
 
-        # Queue for processing (pass image_url through task queue)
+    # Enqueue Redis tasks after all Firestore writes are committed
+    for job, page_request in zip(jobs, page_requests):
         await process_panel_splitter_job.kiq(job.id, page_request.image_url, page_request.api_key)
+        logger.info(f"[PANEL-SPLITTER-API] Queued job {job.id} for page {page_request.page_id}")
 
-        job_responses.append(
-            JobSubmitResponse(
-                job_id=job.id,
-                status=job.status,
-                created_at=job.created_at,
-            )
-        )
+    job_responses = [
+        JobSubmitResponse(job_id=job.id, status=job.status, created_at=job.created_at)
+        for job in jobs
+    ]
 
     logger.info(f"[PANEL-SPLITTER-API] Batch {batch_id} created with {len(job_responses)} jobs")
 

@@ -432,7 +432,7 @@ export default function ImageToScriptWriter() {
       <div className="flex justify-end gap-4 flex-wrap">
         <button
           onClick={handleGenerate}
-          disabled={processing.isGenerating || totalPanels === 0}
+          disabled={processing.isGenerating || (totalPanels === 0 && !config.sourceText)}
           className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {processing.isGenerating ? (

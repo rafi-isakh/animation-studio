@@ -5,12 +5,11 @@ import logging
 
 import httpx
 
+from app.core.rate_limiter import distributed_rate_limit
+
 logger = logging.getLogger(__name__)
 
 XAI_MODEL = "grok-imagine-image-pro"
-
-# Limit concurrent xAI API calls per worker to avoid rate-limit errors
-_GROK_SEMAPHORE = asyncio.Semaphore(2)
 
 
 async def generate_grok_panel(
@@ -41,7 +40,7 @@ async def generate_grok_panel(
     logger.info(f"[GROK] Submitting to xAI ({XAI_MODEL}), aspect_ratio={aspect_ratio}")
 
     # xAI SDK is synchronous — run in thread pool to avoid blocking the event loop
-    async with _GROK_SEMAPHORE:
+    async with distributed_rate_limit("grok"):
         response = await asyncio.to_thread(
             client.image.sample,
             prompt=prompt,

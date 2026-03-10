@@ -13,11 +13,9 @@ from app.models.provider import (
     VideoStatusResult,
 )
 from app.providers.base import VideoProvider
+from app.core.rate_limiter import distributed_rate_limit
 
 logger = logging.getLogger(__name__)
-
-# Rate gate: 1 concurrent call + 2s cooldown = max ~0.5 req/s to ModelsLab
-_MODELSLAB_SEMAPHORE = asyncio.Semaphore(1)
 
 MODELSLAB_VIDEO_URL = "https://modelslab.com/api/v7/video-fusion/image-to-video"
 MODEL_ID = "grok-imagine-video-i2v"
@@ -89,12 +87,11 @@ class GrokI2VProvider(VideoProvider):
 
         logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
 
-        async with _MODELSLAB_SEMAPHORE:
+        async with distributed_rate_limit("modelslab"):
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(MODELSLAB_VIDEO_URL, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
-            await asyncio.sleep(2)  # Rate gate: ensure ≤0.5 req/s to ModelsLab
 
         status = data.get("status")
         logger.info(f"[GROK_I2V] Submit response status: {status}")

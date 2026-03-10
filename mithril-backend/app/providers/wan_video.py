@@ -13,11 +13,9 @@ from app.models.provider import (
     VideoStatusResult,
 )
 from app.providers.base import VideoProvider
+from app.core.rate_limiter import distributed_rate_limit
 
 logger = logging.getLogger(__name__)
-
-# Rate gate: 1 concurrent call + 2s cooldown = max ~0.5 req/s to ModelsLab
-_MODELSLAB_SEMAPHORE = asyncio.Semaphore(1)
 
 WAN_VIDEO_URL = "https://modelslab.com/api/v6/video/img2video_ultra"
 
@@ -121,12 +119,11 @@ class _WanI2VBase(VideoProvider):
 
         logger.info(f"[{self._log_tag}] Submitting to ModelsLab, duration={duration}s, frames={num_frames}")
 
-        async with _MODELSLAB_SEMAPHORE:
+        async with distributed_rate_limit("modelslab"):
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(WAN_VIDEO_URL, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
-            await asyncio.sleep(2)  # Rate gate: ensure ≤0.5 req/s to ModelsLab
 
         status = data.get("status")
         logger.info(f"[{self._log_tag}] Submit response status: {status}")

@@ -47,6 +47,7 @@ export default function ImageToScriptWriter() {
     clear,
     splitStartEnd,
     updateClip,
+    replaceReferenceImage,
     exportCSV,
   } = useScriptWriter();
 
@@ -513,6 +514,7 @@ export default function ImageToScriptWriter() {
         voicePrompts={result?.voicePrompts || []}
         hasEndPrompt={hasEndPrompts}
         onUpdateClip={updateClip}
+        onReplaceReferenceImage={replaceReferenceImage}
       />
     </div>
   );

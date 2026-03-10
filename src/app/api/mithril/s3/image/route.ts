@@ -30,6 +30,7 @@ import {
   getI2VStoryboardFrameKey,
   getI2VStoryboardFrameEndKey,
   getI2VStoryboardAssetKey,
+  getI2VStoryboardReferenceKey,
   getI2VStoryboardFolderPrefix,
   getI2VPanelEditorKey,
 } from "@/components/Mithril/services/s3/types";
@@ -228,6 +229,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
               );
             }
             s3Key = getI2VStoryboardAssetKey(projectId, assetId, assetType);
+            break;
+          case "storyboard-reference":
+            if (i2vSceneIndex === undefined || i2vClipIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "i2vSceneIndex and i2vClipIndex are required for i2v storyboard reference images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VStoryboardReferenceKey(projectId, i2vSceneIndex, i2vClipIndex);
             break;
           default:
             return NextResponse.json(
@@ -509,6 +519,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
           case "storyboard-asset":
             if (assetId && assetType) {
               keysToDelete = [getI2VStoryboardAssetKey(projectId, assetId, assetType)];
+            }
+            break;
+          case "storyboard-reference":
+            if (i2vSceneIndex !== undefined && i2vClipIndex !== undefined) {
+              keysToDelete = [getI2VStoryboardReferenceKey(projectId, i2vSceneIndex, i2vClipIndex)];
             }
             break;
           default:

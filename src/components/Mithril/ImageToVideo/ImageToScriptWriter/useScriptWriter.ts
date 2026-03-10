@@ -33,7 +33,7 @@ import {
   getMangaPages,
   getMangaPanels,
 } from '../../services/firestore';
-import { uploadI2VPanelImage } from '../../services/s3/images';
+import { uploadI2VPanelImage, uploadI2VStoryboardReferenceImage } from '../../services/s3/images';
 
 export function useScriptWriter() {
   const { getStageResult, setStageResult, currentProjectId, customApiKey } = useMithril();
@@ -183,6 +183,9 @@ export function useScriptWriter() {
             backgroundPrompt: c.backgroundPrompt || '',
             backgroundId: c.backgroundId || '',
             referenceImageIndex: c.referenceImageIndex,
+            referenceImageUrl: c.referenceImageUrl,
+            // If a custom reference image URL was saved, use it directly (skip panel index lookup)
+            referenceImage: c.referenceImageUrl || undefined,
           }));
 
           loadedScenes.push({
@@ -546,6 +549,7 @@ export function useScriptWriter() {
         const clip = scene.clips[clipIndex];
         await saveI2VClip(projectId, sceneIndex, clipIndex, {
           referenceImageIndex: clip.referenceImageIndex ?? 0,
+          referenceImageUrl: clip.referenceImageUrl,
           story: clip.story || '',
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
@@ -735,6 +739,57 @@ export function useScriptWriter() {
     }
   }, [currentProjectId]);
 
+  // Upload a new reference image to S3 and persist the URL
+  const replaceReferenceImage = useCallback(
+    async (sceneIndex: number, clipIndex: number, base64: string) => {
+      if (!currentProjectId) return;
+
+      const url = await uploadI2VStoryboardReferenceImage(currentProjectId, sceneIndex, clipIndex, base64);
+
+      const currentState = stateRef.current;
+      if (!currentState.result) return;
+
+      const updatedScenes = currentState.result.scenes.map((scene, sIdx) => {
+        if (sIdx !== sceneIndex) return scene;
+        return {
+          ...scene,
+          clips: scene.clips.map((clip, cIdx) => {
+            if (cIdx !== clipIndex) return clip;
+            return { ...clip, referenceImage: url, referenceImageUrl: url };
+          }),
+        };
+      });
+
+      dispatch({ type: 'UPDATE_SCENES', scenes: updatedScenes });
+      setStageResult(2, { scenes: updatedScenes, voicePrompts: currentState.result.voicePrompts });
+
+      // Persist the URL to Firestore immediately
+      const clip = updatedScenes[sceneIndex]?.clips[clipIndex];
+      if (clip) {
+        await saveI2VClip(currentProjectId, sceneIndex, clipIndex, {
+          referenceImageIndex: clip.referenceImageIndex ?? 0,
+          referenceImageUrl: url,
+          story: clip.story || '',
+          imagePrompt: clip.imagePrompt || '',
+          imagePromptEnd: clip.imagePromptEnd || '',
+          videoPrompt: clip.videoPrompt || '',
+          soraVideoPrompt: clip.soraVideoPrompt || '',
+          dialogue: clip.dialogue || '',
+          dialogueEn: clip.dialogueEn || '',
+          sfx: clip.sfx || '',
+          sfxEn: clip.sfxEn || '',
+          bgm: clip.bgm || '',
+          bgmEn: clip.bgmEn || '',
+          length: clip.length || '',
+          accumulatedTime: clip.accumulatedTime || '',
+          backgroundPrompt: clip.backgroundPrompt || '',
+          backgroundId: clip.backgroundId || '',
+        });
+      }
+    },
+    [currentProjectId, setStageResult]
+  );
+
   // Update a clip
   const updateClip = useCallback(
     (sceneIndex: number, clipIndex: number, changes: Partial<Continuity>) => {
@@ -904,6 +959,7 @@ export function useScriptWriter() {
     generate,
     splitStartEnd,
     updateClip,
+    replaceReferenceImage,
     cancel,
     clear,
     exportCSV,

@@ -27,7 +27,7 @@ export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode
 
 export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
 
-export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset';
+export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset' | 'storyboard-reference';
 
 export interface UploadImageRequest {
   projectId: string;
@@ -382,6 +382,13 @@ export function getI2VStoryboardFrameEndKey(projectId: string, sceneIndex: numbe
  */
 export function getI2VStoryboardAssetKey(projectId: string, assetId: string, assetType: 'character' | 'background'): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/storyboard/assets/${assetType}/${assetId}.webp`;
+}
+
+/**
+ * Get S3 key for I2V storyboard reference image (custom user-uploaded reference per clip)
+ */
+export function getI2VStoryboardReferenceKey(projectId: string, sceneIndex: number, clipIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/storyboard/references/${sceneIndex}_${clipIndex}.webp`;
 }
 
 /**

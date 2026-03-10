@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
 
     const body: I2VStoryboardSubmitRequest = await request.json();
 
-    if (!body.panelUrls || !Array.isArray(body.panelUrls) || body.panelUrls.length === 0) {
+    if (!Array.isArray(body.panelUrls)) {
       return NextResponse.json(
-        { error: "panelUrls is required and must be a non-empty array" },
+        { error: "panelUrls must be an array" },
         { status: 400 }
       );
     }

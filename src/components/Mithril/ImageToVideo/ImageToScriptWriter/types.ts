@@ -17,6 +17,7 @@ export interface Continuity {
   backgroundId: string;
   referenceImage?: string;
   referenceImageIndex?: number;
+  referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image (persisted)
   panelCoordinates?: number[];
 }
 

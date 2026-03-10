@@ -1386,6 +1386,42 @@ export async function uploadI2VStoryboardAssetImage(
 }
 
 /**
+ * Upload an I2V storyboard reference image to S3 (custom user-uploaded reference per clip)
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VStoryboardReferenceImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-reference',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V storyboard reference image');
+  }
+
+  return result.url;
+}
+
+/**
  * Delete an I2V storyboard frame image from S3
  */
 export async function deleteI2VStoryboardFrameImage(

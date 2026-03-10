@@ -9,6 +9,7 @@ interface StoryboardTableProps {
   voicePrompts: VoicePrompt[];
   hasEndPrompt: boolean;
   onUpdateClip?: (sceneIndex: number, clipIndex: number, changes: Partial<Continuity>) => void;
+  onReplaceReferenceImage?: (sceneIndex: number, clipIndex: number, base64: string) => Promise<void>;
 }
 
 // Flattened row types for pagination
@@ -18,8 +19,9 @@ type RowItem =
 
 const ITEMS_PER_PAGE = 20;
 
-export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePrompts, hasEndPrompt, onUpdateClip }) => {
+export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePrompts, hasEndPrompt, onUpdateClip, onReplaceReferenceImage }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [uploadingCell, setUploadingCell] = useState<string | null>(null);
 
   const clipHeaders = [
     "Clip", "Length", "Acc. Time", "BG ID", "Reference", "Story",
@@ -57,7 +59,9 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, sIdx: number, cIdx: number) => {
     const file = e.target.files?.[0];
-    if (!file || !onUpdateClip) return;
+    if (!file) return;
+    // Reset input value so the same file can be re-selected
+    e.target.value = '';
 
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -74,9 +78,20 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
         reader.readAsDataURL(file);
       });
 
-      onUpdateClip(sIdx, cIdx, { referenceImage: base64 });
+      if (onReplaceReferenceImage) {
+        const cellKey = `${sIdx}-${cIdx}`;
+        setUploadingCell(cellKey);
+        try {
+          await onReplaceReferenceImage(sIdx, cIdx, base64);
+        } finally {
+          setUploadingCell(null);
+        }
+      } else if (onUpdateClip) {
+        onUpdateClip(sIdx, cIdx, { referenceImage: base64 });
+      }
     } catch (err) {
-      console.error("Failed to read file", err);
+      console.error("Failed to upload reference image", err);
+      setUploadingCell(null);
     }
   };
 
@@ -188,20 +203,31 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                           <span className="text-[10px] text-gray-600">No Image</span>
                         </div>
                       )}
-                      {onUpdateClip && (
+                      {(onUpdateClip || onReplaceReferenceImage) && (
                         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/cell:opacity-100 flex items-center justify-center gap-2 transition-opacity duration-100 z-10">
-                          <label className="cursor-pointer p-2 bg-blue-600/90 rounded-full hover:bg-blue-500 hover:scale-110 transition-transform text-white shadow-lg" title="Upload/Change Image">
-                            <Upload className="w-4 h-4" />
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, sceneIndex, clipIndex)} />
-                          </label>
-                          {clip.referenceImage && (
-                            <button
-                              onClick={() => handleDeleteImage(sceneIndex, clipIndex)}
-                              className="p-2 bg-red-600/90 rounded-full hover:bg-red-500 hover:scale-110 transition-transform text-white shadow-lg"
-                              title="Delete Image"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                          {uploadingCell === `${sceneIndex}-${clipIndex}` ? (
+                            <div className="p-2 text-white">
+                              <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <>
+                              <label className="cursor-pointer p-2 bg-blue-600/90 rounded-full hover:bg-blue-500 hover:scale-110 transition-transform text-white shadow-lg" title="Upload/Change Image">
+                                <Upload className="w-4 h-4" />
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, sceneIndex, clipIndex)} />
+                              </label>
+                              {clip.referenceImage && (
+                                <button
+                                  onClick={() => handleDeleteImage(sceneIndex, clipIndex)}
+                                  className="p-2 bg-red-600/90 rounded-full hover:bg-red-500 hover:scale-110 transition-transform text-white shadow-lg"
+                                  title="Delete Image"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       )}

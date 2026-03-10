@@ -42,7 +42,7 @@ def _get_redis() -> aioredis.Redis:
 PROVIDER_RATE_CONFIGS: dict[str, dict] = {
     "modelslab": {
         "max_concurrent": 1,
-        "cooldown_seconds": 2.5,
+        "cooldown_seconds": 10,
     },
     "grok": {
         "max_concurrent": 2,

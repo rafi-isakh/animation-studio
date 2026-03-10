@@ -1,5 +1,6 @@
 """ModelsLab WAN image-to-video-ultra generation providers (2.1 and 2.2)."""
 
+import asyncio
 import logging
 
 import httpx
@@ -14,6 +15,9 @@ from app.models.provider import (
 from app.providers.base import VideoProvider
 
 logger = logging.getLogger(__name__)
+
+# Rate gate: 1 concurrent call + 2s cooldown = max ~0.5 req/s to ModelsLab
+_MODELSLAB_SEMAPHORE = asyncio.Semaphore(1)
 
 WAN_VIDEO_URL = "https://modelslab.com/api/v6/video/img2video_ultra"
 
@@ -117,10 +121,12 @@ class _WanI2VBase(VideoProvider):
 
         logger.info(f"[{self._log_tag}] Submitting to ModelsLab, duration={duration}s, frames={num_frames}")
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(WAN_VIDEO_URL, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+        async with _MODELSLAB_SEMAPHORE:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(WAN_VIDEO_URL, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+            await asyncio.sleep(2)  # Rate gate: ensure ≤0.5 req/s to ModelsLab
 
         status = data.get("status")
         logger.info(f"[{self._log_tag}] Submit response status: {status}")

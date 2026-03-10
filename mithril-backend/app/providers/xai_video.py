@@ -16,6 +16,9 @@ from app.providers.base import VideoProvider
 
 logger = logging.getLogger(__name__)
 
+# Limit concurrent xAI API calls per worker to avoid rate-limit errors
+_XAI_SEMAPHORE = asyncio.Semaphore(2)
+
 XAI_VIDEO_MODEL = "grok-imagine-video"
 
 XAI_VIDEO_CONSTRAINTS = ProviderConstraints(
@@ -78,14 +81,15 @@ class XAIVideoProvider(VideoProvider):
 
         try:
             # xAI SDK is synchronous — run in thread pool
-            start_response = await asyncio.to_thread(
-                client.video.start,
-                prompt=request.prompt,
-                model=XAI_VIDEO_MODEL,
-                image_url=image_url,
-                duration=duration,
-                aspect_ratio=request.aspect_ratio,
-            )
+            async with _XAI_SEMAPHORE:
+                start_response = await asyncio.to_thread(
+                    client.video.start,
+                    prompt=request.prompt,
+                    model=XAI_VIDEO_MODEL,
+                    image_url=image_url,
+                    duration=duration,
+                    aspect_ratio=request.aspect_ratio,
+                )
         except Exception as e:
             logger.error(
                 f"[XAI-VIDEO] submit_job failed: {type(e).__name__}: {e}",

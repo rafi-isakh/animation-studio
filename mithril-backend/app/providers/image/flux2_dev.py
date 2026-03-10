@@ -12,8 +12,8 @@ MODEL_ID = "flux-2-dev"
 POLL_INTERVAL = 5  # seconds between polls
 MAX_POLL_ATTEMPTS = 24  # 24 × 5s = 2 min max wait
 
-# Limit concurrent ModelsLab API calls per worker to avoid rate-limit errors
-_MODELSLAB_SEMAPHORE = asyncio.Semaphore(2)
+# Rate gate: 1 concurrent call + 2s cooldown = max ~0.5 req/s to ModelsLab
+_MODELSLAB_SEMAPHORE = asyncio.Semaphore(1)
 
 
 async def generate_flux2_dev_panel(
@@ -55,6 +55,7 @@ async def generate_flux2_dev_panel(
             response = await client.post(MODELSLAB_V6_I2I_URL, json=payload)
             response.raise_for_status()
             data = response.json()
+        await asyncio.sleep(2)  # Rate gate: ensure ≤0.5 req/s to ModelsLab
 
     status = data.get("status")
     logger.info(f"[FLUX2-DEV] Initial response status: {status}")

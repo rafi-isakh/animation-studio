@@ -18,6 +18,9 @@ from app.services.image_processor import prepare_image_for_provider
 
 logger = logging.getLogger(__name__)
 
+# Limit concurrent Veo3 API calls per worker to avoid rate-limit errors
+_VEO3_SEMAPHORE = asyncio.Semaphore(2)
+
 # Veo 3 API base URL (for status polling)
 VEO3_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
@@ -138,7 +141,8 @@ class Veo3Provider(VideoProvider):
                 logger.info(f"[veo3] config keys: {list(config.keys())}")
                 return client.models.generate_videos(**kwargs)
 
-            operation = await asyncio.to_thread(_submit)
+            async with _VEO3_SEMAPHORE:
+                operation = await asyncio.to_thread(_submit)
 
             logger.info(f"[veo3] Operation response: {operation}")
 

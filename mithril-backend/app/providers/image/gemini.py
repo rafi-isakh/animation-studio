@@ -16,6 +16,9 @@ from app.providers.image.base import (
 
 logger = logging.getLogger(__name__)
 
+# Limit concurrent Gemini API calls per worker to avoid rate-limit errors
+_GEMINI_SEMAPHORE = asyncio.Semaphore(5)
+
 # Gemini image constraints
 GEMINI_IMAGE_CONSTRAINTS = ImageProviderConstraints(
     aspect_ratios=["16:9", "9:16", "1:1"],
@@ -159,7 +162,8 @@ class GeminiImageProvider(ImageProvider):
                 )
 
             logger.debug(f"[GEMINI-IMAGE] Executing API call...")
-            response = await asyncio.to_thread(_generate)
+            async with _GEMINI_SEMAPHORE:
+                response = await asyncio.to_thread(_generate)
             logger.info(f"[GEMINI-IMAGE] ✓ API call completed")
 
             # Extract image from response

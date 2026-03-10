@@ -32,6 +32,7 @@ import {
   PROVIDERS,
   ASPECT_RATIOS,
 } from "./constants";
+import { StageSidebarPortal } from "@/components/Mithril/StageSidebarContext";
 
 // --- Helpers ---
 
@@ -110,17 +111,30 @@ async function uploadToS3(
 
 interface AnimeBgStudioPageProps {
   embedded?: boolean;
+  initialImages?: WorkspaceImage[];
 }
 
-export default function AnimeBgStudioPage({ embedded = false }: AnimeBgStudioPageProps) {
+export default function AnimeBgStudioPage({ embedded = false, initialImages }: AnimeBgStudioPageProps) {
   const sessionId = useMemo(() => crypto.randomUUID(), []);
 
   const [state, setState] = useState<WorkspaceState>({
-    images: [],
+    images: initialImages ?? [],
     globalPrompt: DEFAULT_PROMPT,
     aspectRatio: "16:9",
     provider: "gemini",
   });
+
+  // Append new images when initialImages changes (e.g. from 3D Screenshot)
+  const prevInitialRef = useRef(initialImages);
+  if (initialImages && initialImages !== prevInitialRef.current) {
+    prevInitialRef.current = initialImages;
+    // Deduplicate by id
+    const existingIds = new Set(state.images.map((img) => img.id));
+    const newImages = initialImages.filter((img) => !existingIds.has(img.id));
+    if (newImages.length > 0) {
+      setState((prev) => ({ ...prev, images: [...prev.images, ...newImages] }));
+    }
+  }
 
   const [apiKey, setApiKeyState] = useState(() => getStoredApiKey("gemini"));
   const [showApiKey, setShowApiKey] = useState(false);
@@ -448,10 +462,202 @@ export default function AnimeBgStudioPage({ embedded = false }: AnimeBgStudioPag
   );
   const hasCompletedImages = state.images.some((img) => img.generatedUrl);
 
+  // --- Sidebar content (shared between standalone and embedded) ---
+  const sidebarControls = (
+    <div className="space-y-4 text-zinc-200">
+      {/* Provider Selector */}
+      <div>
+        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+          Provider
+        </label>
+        <select
+          value={state.provider}
+          onChange={(e) =>
+            handleProviderChange(e.target.value as ImageProvider)
+          }
+          className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
+        >
+          {PROVIDERS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* API Key */}
+      <div>
+        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+          {state.provider === "grok" ? "Grok" : "Gemini"} API Key (Optional)
+        </label>
+        <div className="relative">
+          <input
+            type={showApiKey ? "text" : "password"}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder={`Enter ${state.provider === "grok" ? "xAI" : "Gemini"} API key...`}
+            className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 pr-10 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
+          />
+          <button
+            type="button"
+            onClick={() => setShowApiKey(!showApiKey)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
+          >
+            {showApiKey ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Global Prompt */}
+      <div>
+        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+          Global Style Prompt
+        </label>
+        <textarea
+          value={state.globalPrompt}
+          onChange={(e) =>
+            setState((prev) => ({ ...prev, globalPrompt: e.target.value }))
+          }
+          className="w-full bg-zinc-950 border border-white/10 rounded-xl p-3 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors resize-none h-24"
+          placeholder="Enter global style instructions..."
+        />
+      </div>
+
+      {/* Aspect Ratio */}
+      <div>
+        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+          Aspect Ratio
+        </label>
+        <select
+          value={state.aspectRatio}
+          onChange={(e) =>
+            setState((prev) => ({
+              ...prev,
+              aspectRatio: e.target.value as AspectRatio,
+            }))
+          }
+          className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
+        >
+          {ASPECT_RATIOS.map((ar) => (
+            <option key={ar.value} value={ar.value}>
+              {ar.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Reference Image */}
+      <div>
+        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+          Color/Style Reference (Optional)
+        </label>
+        {state.referenceImageDataUrl ? (
+          <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-zinc-950">
+            <img
+              src={state.referenceImageDataUrl}
+              alt="Reference"
+              className="w-full h-32 object-contain opacity-80"
+            />
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={removeReferenceImage}
+                className="p-2 bg-red-500/80 text-white rounded-full hover:bg-red-500 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => refFileInputRef.current?.click()}
+            className="w-full h-32 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-white/30 transition-colors bg-zinc-950"
+          >
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-sm">Upload Reference</span>
+          </button>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          ref={refFileInputRef}
+          onChange={handleReferenceImageUpload}
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="pt-4 border-t border-white/5 space-y-3">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-white/10"
+        >
+          <Upload className="w-4 h-4" />
+          Add Images / ZIP
+        </button>
+        <input
+          type="file"
+          accept="image/*,.zip"
+          multiple
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleTargetImagesUpload}
+        />
+
+        {isGeneratingAll ? (
+          <button
+            onClick={stopGenerating}
+            className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            Stop Generation
+          </button>
+        ) : (
+          <button
+            onClick={generateAll}
+            disabled={state.images.length === 0 || !hasPendingImages}
+            className="w-full py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-[#DB2777]/40 disabled:text-white/50 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[#DB2777]/20"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            Convert All Pending
+          </button>
+        )}
+
+        {hasCompletedImages && (
+          <button
+            onClick={downloadAllZip}
+            className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-white/10"
+          >
+            <FileArchive className="w-4 h-4" />
+            Download All as ZIP
+          </button>
+        )}
+      </div>
+
+      {/* Clear Session */}
+      {state.images.length > 0 && (
+        <button
+          onClick={clearSessionFiles}
+          disabled={isGeneratingAll}
+          className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          <Trash2 className="w-3 h-3" />
+          Clear Session & S3 Files
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className={`${embedded ? 'h-full' : 'min-h-screen'} bg-zinc-950 text-zinc-200 font-sans flex flex-col md:flex-row`}>
-      {/* Sidebar */}
-      <div className={`w-full md:w-80 bg-zinc-900 border-r border-white/5 p-6 flex flex-col gap-5 shrink-0 overflow-y-auto ${embedded ? 'md:h-full' : 'h-screen sticky top-0'}`}>
+      {/* When embedded, render sidebar controls into the pipeline's left panel via portal */}
+      {embedded && <StageSidebarPortal>{sidebarControls}</StageSidebarPortal>}
+
+      {/* Sidebar — only rendered in standalone mode */}
+      {!embedded && (
+      <div className="w-full md:w-80 bg-zinc-900 border-r border-white/5 p-6 flex flex-col gap-5 shrink-0 overflow-y-auto h-screen sticky top-0">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             <Settings className="w-6 h-6 text-[#DB2777]" />
@@ -471,190 +677,7 @@ export default function AnimeBgStudioPage({ embedded = false }: AnimeBgStudioPag
           )}
         </div>
 
-        <div className="space-y-4">
-          {/* Provider Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Provider
-            </label>
-            <select
-              value={state.provider}
-              onChange={(e) =>
-                handleProviderChange(e.target.value as ImageProvider)
-              }
-              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
-            >
-              {PROVIDERS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* API Key */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              {state.provider === "grok" ? "Grok" : "Gemini"} API Key (Optional)
-            </label>
-            <div className="relative">
-              <input
-                type={showApiKey ? "text" : "password"}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={`Enter ${state.provider === "grok" ? "xAI" : "Gemini"} API key...`}
-                className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 pr-10 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
-              >
-                {showApiKey ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Global Prompt */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Global Style Prompt
-            </label>
-            <textarea
-              value={state.globalPrompt}
-              onChange={(e) =>
-                setState((prev) => ({ ...prev, globalPrompt: e.target.value }))
-              }
-              className="w-full bg-zinc-950 border border-white/10 rounded-xl p-3 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors resize-none h-24"
-              placeholder="Enter global style instructions..."
-            />
-          </div>
-
-          {/* Aspect Ratio */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Aspect Ratio
-            </label>
-            <select
-              value={state.aspectRatio}
-              onChange={(e) =>
-                setState((prev) => ({
-                  ...prev,
-                  aspectRatio: e.target.value as AspectRatio,
-                }))
-              }
-              className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-0 focus:ring-offset-0 focus:border-[#DB2777] transition-colors"
-            >
-              {ASPECT_RATIOS.map((ar) => (
-                <option key={ar.value} value={ar.value}>
-                  {ar.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Reference Image */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Color/Style Reference (Optional)
-            </label>
-            {state.referenceImageDataUrl ? (
-              <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-zinc-950">
-                <img
-                  src={state.referenceImageDataUrl}
-                  alt="Reference"
-                  className="w-full h-32 object-contain opacity-80"
-                />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={removeReferenceImage}
-                    className="p-2 bg-red-500/80 text-white rounded-full hover:bg-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => refFileInputRef.current?.click()}
-                className="w-full h-32 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-white/30 transition-colors bg-zinc-950"
-              >
-                <ImageIcon className="w-6 h-6" />
-                <span className="text-sm">Upload Reference</span>
-              </button>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              ref={refFileInputRef}
-              onChange={handleReferenceImageUpload}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="pt-4 border-t border-white/5 space-y-3">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-white/10"
-            >
-              <Upload className="w-4 h-4" />
-              Add Images / ZIP
-            </button>
-            <input
-              type="file"
-              accept="image/*,.zip"
-              multiple
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleTargetImagesUpload}
-            />
-
-            {isGeneratingAll ? (
-              <button
-                onClick={stopGenerating}
-                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-              >
-                Stop Generation
-              </button>
-            ) : (
-              <button
-                onClick={generateAll}
-                disabled={state.images.length === 0 || !hasPendingImages}
-                className="w-full py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-[#DB2777]/40 disabled:text-white/50 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[#DB2777]/20"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                Convert All Pending
-              </button>
-            )}
-
-            {hasCompletedImages && (
-              <button
-                onClick={downloadAllZip}
-                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-white/10"
-              >
-                <FileArchive className="w-4 h-4" />
-                Download All as ZIP
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Clear Session */}
-          {state.images.length > 0 && (
-            <button
-              onClick={clearSessionFiles}
-              disabled={isGeneratingAll}
-              className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
-            >
-              <Trash2 className="w-3 h-3" />
-              Clear Session & S3 Files
-            </button>
-          )}
+        {sidebarControls}
 
         {/* Export / Import */}
         <div className="mt-auto pt-6 border-t border-white/5 flex gap-2">
@@ -679,6 +702,7 @@ export default function AnimeBgStudioPage({ embedded = false }: AnimeBgStudioPag
           />
         </div>
       </div>
+      )}
 
       {/* Main Workspace */}
       <div className="flex-1 p-6 md:p-10 overflow-y-auto">

@@ -286,29 +286,25 @@ async def process_panel_generation(
     # Initialize state machine
     state_machine = JobStateMachine(job_id, job.status)
 
-    # Mark job as being processed by this worker
-    await job_queue_service.update_job(job_id, worker_id=worker_id)
-
     try:
-        # === CHECKPOINT 1: Before preparing ===
-        await check_cancellation(job_id)
+        # === CHECKPOINT 1: In-memory check using freshly-loaded job (no extra Firestore read) ===
+        if job.cancellation_requested:
+            logger.info(f"Cancellation detected for panel job {job_id}")
+            raise CancellationRequested(f"Job {job_id} was cancelled by user")
 
         # Get API key
         api_key = _get_api_key(job, custom_api_key)
 
-        # === Stage 1: Prepare - build prompt ===
-        prompt = await _stage_prepare(job, state_machine)
+        # === Stage 1: Prepare - build prompt (worker_id recorded here, merged with PREPARING write) ===
+        prompt = await _stage_prepare(job, state_machine, worker_id=worker_id)
 
-        # === CHECKPOINT 2: Before generating ===
+        # === CHECKPOINT 2: Re-read from Firestore before the slow AI call ===
         await check_cancellation(job_id)
 
         # === Stage 2: Generate image ===
         image_bytes = await _stage_generate(job, image_base64, prompt, api_key, state_machine)
 
-        # === CHECKPOINT 3: Before upload ===
-        await check_cancellation(job_id)
-
-        # === Stage 3: Upload to S3 ===
+        # === Stage 3: Upload to S3 (no checkpoint — upload is fast and non-retryable) ===
         result = await _stage_upload(job, image_bytes, state_machine)
 
         # === Stage 4: Complete ===
@@ -372,6 +368,7 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
 async def _stage_prepare(
     job: JobDocument,
     state_machine: JobStateMachine,
+    worker_id: str | None = None,
 ) -> str:
     """Stage 1: Build prompt for panel transformation."""
     job_queue_service = get_job_queue_service()
@@ -379,16 +376,17 @@ async def _stage_prepare(
     logger.info(f"[PANEL-GEN] {job.id} - Stage 1: PREPARING (building prompt)")
 
     state_machine.transition_to(JobStatus.PREPARING)
-    await job_queue_service.update_job_status(job.id, JobStatus.PREPARING, progress=0.1)
+    # Merge worker_id recording into this write to avoid a separate update_job call
+    extra: dict = {"worker_id": worker_id} if worker_id else {}
+    await job_queue_service.update_job_status(job.id, JobStatus.PREPARING, progress=0.1, **extra)
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to PREPARING in Firestore")
 
-    # Build the transformation prompt
+    # Build the transformation prompt (no intermediate progress write — saves 1 Firestore write)
     prompt = build_panel_prompt(
         target_aspect_ratio=job.aspect_ratio,
         refinement_mode=job.refinement_mode or "default",
     )
 
-    await job_queue_service.update_job(job.id, progress=0.2)
     logger.info(f"[PANEL-GEN] {job.id} - Stage 1 complete: prompt built")
     return prompt
 
@@ -430,7 +428,7 @@ async def _stage_generate(
         logger.error(f"[PANEL-GEN] {job.id} - {provider_id} API error: {type(e).__name__}: {str(e)}")
         raise classify_exception(e)
 
-    await job_queue_service.update_job(job.id, progress=0.7)
+    # No intermediate progress write here — UPLOADING stage will set progress=0.8
     return image_bytes
 
 

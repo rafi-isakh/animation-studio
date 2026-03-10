@@ -5,6 +5,7 @@ interface AnalyzeStoryboardRequest {
   image: string; // base64 encoded annotated image with panel boxes
   panels: Array<{ label: string }>;
   apiKey?: string; // Optional custom API key
+  isNsfw?: boolean;
 }
 
 interface StoryboardResult {
@@ -43,7 +44,7 @@ const storyboardSchema = {
 export async function POST(request: NextRequest) {
   try {
     const body: AnalyzeStoryboardRequest = await request.json();
-    const { image, panels, apiKey: customApiKey } = body;
+    const { image, panels, apiKey: customApiKey, isNsfw = false } = body;
 
     if (!image || typeof image !== "string") {
       return NextResponse.json(
@@ -69,6 +70,26 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
+    const nsfwSection = isNsfw ? `
+4. **NSFW & Video Prompt**:
+   - First, determine if a panel is NSFW. If it is, include the indicator "**NSFW" in the output.
+   - For NSFW panels, generate a recommended video prompt and a recommended Video Model based on the following conditions:
+     Condition 1: If the panel is more of a still shot, no dynamic movement or action is detected (e.g., even if nude, just lying in bed, surprised face, no action started yet), print video prompt:
+     still shot, light breathing, don't add any effects that did not exist, body stays still
+     Additionally, print recommended Video Model: Grok
+     Condition 2: If the panel contains action, loud sound effects and repetitive strong motion is detected, print video prompt:
+     still shot, sex scene, woman is repeatedly sexually penetrated by man, fast moving, breasts fast movement, man is penetrating fast, keep angle same, nude body no clothing, don't move hand
+     Additionally, print recommended Video Model: Wan 2.2
+     Condition 3: If a panel is an abstract visualization of movement of a substance, interpret the anticipated motion based on the visual and the sfx analyzed, then generate a video prompt describing the motion.
+     Additionally, print recommended Video Model: Wan 2.2
+   - The phrases "still shot, light breathing, don't add any effects that did not exist, body stays still" (for Condition 1) and "still shot, sex scene", "fast moving", "keep angle same, nude body no clothing, don't move hand" (for Condition 2) are fixed templates. Do NOT include brackets [] in the output. The other parts of the prompt should be adjusted depending on the action detected in the scene.
+   - For panels that are not NSFW, skip the video prompt entirely.` : '';
+
+    const nsfwOutputFormat = isNsfw ? `
+**NSFW (if applicable)
+Video Prompt: [Generated Video Prompt] (if NSFW)
+Video Model: [Recommended Video Model] (if NSFW)` : '';
+
     const prompt = `Analyze this manga/comic page.
 There are numbered green boxes drawn on the image representing the panels to focus on.
 
@@ -83,13 +104,13 @@ There are numbered green boxes drawn on the image representing the panels to foc
 3. **Dialogue & Text**:
    - **Merge Dialogue**: If a speaker says a continuous sentence split across multiple speech bubbles, MERGE them into ONE "DIALOGUE" line.
    - **Narration**: If text is in a rectangular box (caption/narration), label it "NARRATION ([Emotion]): [Text]".
-   - **Speech**: "DIALOGUE: [Visual Subject]: [Merged Speech]"
+   - **Speech**: "DIALOGUE: [Visual Subject]: [Merged Speech]"${nsfwSection}
 
 **Output Format**:
 VISUAL: [Camera Shot] [Description + Peak Emotion if applicable]
 DIALOGUE: [Visual Subject]: [Merged Speech]
 NARRATION (Calm): [Text]
-SFX: [Sound Effects]
+SFX: [Sound Effects]${nsfwOutputFormat}
 
 Return a JSON object with a "panels" array where each panel has:
 - label: the panel number (matching the green box)

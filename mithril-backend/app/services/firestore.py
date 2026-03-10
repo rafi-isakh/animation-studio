@@ -1,5 +1,6 @@
 """Firestore service for job queue operations."""
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -597,6 +598,69 @@ class JobQueueService:
 
         logger.info(f"Created panel splitter job {job_id} for page {request.page_id}")
         return job
+
+    async def create_panel_splitter_jobs_batch(
+        self,
+        requests: list[tuple["PanelSplitterJobSubmitRequest", str]],
+        user_id: str,
+        batch_id: str,
+    ) -> list["JobDocument"]:
+        """
+        Create multiple panel splitter jobs in a single Firestore WriteBatch commit.
+
+        All documents are written in one RPC instead of N individual set() calls,
+        which prevents 429 quota errors on large batches.
+
+        Args:
+            requests: List of (PanelSplitterJobSubmitRequest, image_url) tuples
+            user_id: ID of the user creating the jobs
+            batch_id: Shared batch ID for all jobs
+
+        Returns:
+            List of created JobDocument objects (in the same order as requests)
+        """
+        now = datetime.now(timezone.utc)
+        jobs: list[JobDocument] = []
+
+        # Build all JobDocument objects
+        FIRESTORE_BATCH_LIMIT = 500
+        for request, _ in requests:
+            job_id = str(uuid.uuid4())
+            job = JobDocument(
+                id=job_id,
+                type=JobType.PANEL_SPLITTER,
+                project_id=request.project_id,
+                scene_index=0,
+                clip_index=0,
+                provider_id="gemini",
+                prompt="",
+                aspect_ratio="",
+                api_key_hash=hash_api_key(request.api_key),
+                status=JobStatus.PENDING,
+                created_at=now,
+                updated_at=now,
+                user_id=user_id,
+                batch_id=batch_id,
+                page_id=request.page_id,
+                page_index=request.page_index,
+                file_name=request.file_name,
+                reading_direction=request.reading_direction,
+                max_retries=3,
+            )
+            jobs.append(job)
+
+        # Commit in chunks to stay within Firestore's 500-write-per-batch limit
+        for chunk_start in range(0, len(jobs), FIRESTORE_BATCH_LIMIT):
+            chunk = jobs[chunk_start : chunk_start + FIRESTORE_BATCH_LIMIT]
+            write_batch = self.db.batch()
+            for job in chunk:
+                write_batch.set(self._job_ref(job.id), job.model_dump(mode="json"))
+            await write_batch.commit()
+            if chunk_start + FIRESTORE_BATCH_LIMIT < len(jobs):
+                await asyncio.sleep(0.1)
+
+        logger.info(f"Batch-created {len(jobs)} panel splitter jobs (batch_id={batch_id})")
+        return jobs
 
     async def create_storyboard_job(
         self,

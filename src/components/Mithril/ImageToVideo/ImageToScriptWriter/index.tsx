@@ -128,9 +128,9 @@ export default function ImageToScriptWriter() {
             </p>
           </div>
         </div>
-        {totalPanels === 0 && (
+        {totalPanels === 0 && !config.sourceText && (
           <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
-            Upload panels below or complete the Panel Splitter stage first
+            Upload panels below or the source text first
           </p>
         )}
       </div>

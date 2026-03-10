@@ -574,8 +574,8 @@ export function useScriptWriter() {
   const generate = useCallback(async () => {
     const currentState = stateRef.current;
 
-    if (allPanels.length === 0) {
-      throw new Error('No panel images available. Please upload panels or complete Stage 1.');
+    if (allPanels.length === 0 && !currentState.config.sourceText) {
+      throw new Error('No panel images available. Please upload panels or source file (.txt).');
     }
 
     if (!currentProjectId) {

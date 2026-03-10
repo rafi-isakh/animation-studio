@@ -111,8 +111,8 @@ async def _download_image(url: str) -> bytes:
     Retries on 404 to handle ModelsLab R2 CDN propagation delay — the API
     can report 'success' before the file is actually available on the CDN.
     """
-    max_attempts = 5
-    retry_delay = 3.0  # seconds
+    max_attempts = 8
+    retry_delay = 5.0  # seconds (8 × 5s = 40s max wait)
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         for attempt in range(1, max_attempts + 1):

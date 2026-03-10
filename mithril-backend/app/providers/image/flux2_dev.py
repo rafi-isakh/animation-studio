@@ -55,25 +55,25 @@ async def generate_flux2_dev_panel(
             response.raise_for_status()
             data = response.json()
 
-    status = data.get("status")
-    logger.info(f"[FLUX2-DEV] Initial response status: {status}")
+        status = data.get("status")
+        logger.info(f"[FLUX2-DEV] Initial response status: {status}")
 
-    if status == "error":
-        raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
+        if status == "error":
+            raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
 
-    if status == "success" and data.get("output"):
-        output = data["output"]
-        image_url = output[0] if isinstance(output, list) else output
-        return await _download_image(image_url)
+        if status == "success" and data.get("output"):
+            output = data["output"]
+            image_url = output[0] if isinstance(output, list) else output
+            return await _download_image(image_url)
 
-    if status == "processing":
-        fetch_url = data.get("fetch_result")
-        if not fetch_url:
-            raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
-        logger.info(f"[FLUX2-DEV] Processing async, polling: {fetch_url}")
-        return await _poll_for_result(fetch_url, api_key)
+        if status == "processing":
+            fetch_url = data.get("fetch_result")
+            if not fetch_url:
+                raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
+            logger.info(f"[FLUX2-DEV] Processing async, polling: {fetch_url}")
+            return await _poll_for_result(fetch_url, api_key)
 
-    raise RuntimeError(f"Unexpected ModelsLab response: {data}")
+        raise RuntimeError(f"Unexpected ModelsLab response: {data}")
 
 
 async def _poll_for_result(fetch_url: str, api_key: str) -> bytes:

@@ -161,7 +161,7 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         if not settings.xai_video_api_key:
             raise VideoJobError.invalid_request("No xAI video API key configured")
         return settings.xai_video_api_key
-    elif job.provider_id in ("wan_i2v", "wan22_i2v"):
+    elif job.provider_id in ("wan_i2v", "wan22_i2v", "grok_imagine_i2v"):
         if not settings.modelslab_api_key:
             raise VideoJobError.invalid_request("No ModelsLab API key configured")
         return settings.modelslab_api_key

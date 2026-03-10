@@ -43,15 +43,15 @@ class GrokI2VProvider(VideoProvider):
 
     @property
     def id(self) -> str:
-        return "grok_i2v"
+        return "grok_imagine_i2v"
 
     @property
     def name(self) -> str:
-        return "Grok Aurora"
+        return "Grok Imagine I2V"
 
     @property
     def description(self) -> str:
-        return "ModelsLab's xAI Grok image-to-video model"
+        return "ModelsLab grok-imagine-video-i2v model"
 
     @property
     def model_name(self) -> str:
@@ -85,7 +85,7 @@ class GrokI2VProvider(VideoProvider):
         if request.image_end_url:
             payload["end_image"] = await self._resolve_end_image_url(request.image_end_url)
 
-        logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
+        logger.info(f"[GROK_IMAGINE_I2V] Submitting to ModelsLab, duration={duration}s")
 
         async with distributed_rate_limit("modelslab"):
             async with httpx.AsyncClient(timeout=60.0) as client:
@@ -94,7 +94,7 @@ class GrokI2VProvider(VideoProvider):
                 data = resp.json()
 
         status = data.get("status")
-        logger.info(f"[GROK_I2V] Submit response status: {status}")
+        logger.info(f"[GROK_IMAGINE_I2V] Submit response status: {status}")
 
         if status == "error":
             raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
@@ -102,7 +102,7 @@ class GrokI2VProvider(VideoProvider):
         if status == "success" and data.get("output"):
             output = data["output"]
             video_url = output[0] if isinstance(output, list) else output
-            logger.info(f"[GROK_I2V] Immediate success, video URL: {video_url[:60]}...")
+            logger.info(f"[GROK_IMAGINE_I2V] Immediate success, video URL: {video_url[:60]}...")
             return VideoSubmitResult(
                 job_id=f"{IMMEDIATE_PREFIX}{video_url}",
                 status="pending",
@@ -112,7 +112,7 @@ class GrokI2VProvider(VideoProvider):
             fetch_url = data.get("fetch_result")
             if not fetch_url:
                 raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
-            logger.info(f"[GROK_I2V] Processing async, fetch URL: {fetch_url}")
+            logger.info(f"[GROK_IMAGINE_I2V] Processing async, fetch URL: {fetch_url}")
             return VideoSubmitResult(job_id=fetch_url, status="pending")
 
         raise RuntimeError(f"Unexpected ModelsLab response: {data}")
@@ -139,7 +139,7 @@ class GrokI2VProvider(VideoProvider):
             data = resp.json()
 
         status = data.get("status")
-        logger.info(f"[GROK_I2V] Poll status: {status}")
+        logger.info(f"[GROK_IMAGINE_I2V] Poll status: {status}")
 
         if status == "success" and data.get("output"):
             output = data["output"]
@@ -176,10 +176,10 @@ class GrokI2VProvider(VideoProvider):
             video_url = result.video_url
 
         async with httpx.AsyncClient(timeout=120.0) as client:
-            logger.info(f"[GROK_I2V] Downloading video from {video_url[:80]}...")
+            logger.info(f"[GROK_IMAGINE_I2V] Downloading video from {video_url[:80]}...")
             resp = await client.get(video_url)
             resp.raise_for_status()
-            logger.info(f"[GROK_I2V] Downloaded {len(resp.content)} bytes")
+            logger.info(f"[GROK_IMAGINE_I2V] Downloaded {len(resp.content)} bytes")
             return resp.content
 
     async def _resolve_image_url(self, request: VideoSubmitRequest) -> str:
@@ -204,9 +204,9 @@ class GrokI2VProvider(VideoProvider):
             raw = raw.split(",", 1)[1]
         image_bytes = base64.b64decode(raw)
         timestamp = int(time.time() * 1000)
-        s3_key = f"mithril/temp/grok-i2v-source/{timestamp}.jpg"
+        s3_key = f"mithril/temp/grok-imagine-i2v-source/{timestamp}.jpg"
         url = await upload_image(image_bytes, s3_key, "image/jpeg")
-        logger.info(f"[GROK_I2V] Uploaded source frame to S3: {url}")
+        logger.info(f"[GROK_IMAGINE_I2V] Uploaded source frame to S3: {url}")
         return url
 
     async def _resolve_end_image_url(self, image_end_url: str) -> str:
@@ -223,7 +223,7 @@ class GrokI2VProvider(VideoProvider):
         timestamp = int(time.time() * 1000)
         s3_key = f"mithril/temp/grok-i2v-end/{timestamp}.jpg"
         url = await upload_image(image_bytes, s3_key, "image/jpeg")
-        logger.info(f"[GROK_I2V] Uploaded end frame to S3: {url}")
+        logger.info(f"[GROK_IMAGINE_I2V] Uploaded end frame to S3: {url}")
         return url
 
 

@@ -5,6 +5,7 @@ export interface CsvColumnMapping {
   dialogue: string;
   sfx: string;
   clipLength: string;
+  videoApi: string;
 }
 
 export interface CsvFrame {
@@ -16,6 +17,7 @@ export interface CsvFrame {
   dialogue?: string;
   sfx?: string;
   clipLength?: string;          // raw string from CSV e.g. "5", "10"
+  videoApi?: string;            // per-frame provider override (e.g. "sora", "veo3")
   imageData: string | null;     // base64 data URL (in-memory preview)
   endFrameData: string | null;  // base64 data URL (in-memory)
   imageUrl: string | null;      // S3 URL after upload (persisted)

@@ -69,12 +69,13 @@ export function parseCSV(text: string): string[][] {
  */
 export function autoDetectMapping(headers: string[]): CsvColumnMapping {
   return {
-    frameNumber:      headers[1]  ?? '',
-    clipLength:       headers[2]  ?? '',
-    veoPrompt:        headers[9]  ?? '',
-    dialogue:         headers[11] ?? '',
-    sfx:              headers[13] ?? '',
+    frameNumber:       headers[1]  ?? '',
+    clipLength:        headers[2]  ?? '',
+    veoPrompt:         headers[9]  ?? '',
+    dialogue:          headers[11] ?? '',
+    sfx:               headers[13] ?? '',
     referenceFilename: headers[16] ?? '',
+    videoApi:          '',
   };
 }
 
@@ -95,6 +96,7 @@ export function applyMapping(
   const dialogueIdx  = idx(mapping.dialogue);
   const sfxIdx       = idx(mapping.sfx);
   const lengthIdx    = idx(mapping.clipLength);
+  const videoApiIdx  = idx(mapping.videoApi);
 
   const now = Date.now();
 
@@ -108,9 +110,10 @@ export function applyMapping(
       dialogue:           dialogueIdx > -1 ? (row[dialogueIdx] ?? '').trim() : undefined,
       sfx:                sfxIdx     > -1 ? (row[sfxIdx]     ?? '').trim() : undefined,
       clipLength:         lengthIdx  > -1 ? (row[lengthIdx]  ?? '').trim() : undefined,
+      videoApi:           videoApiIdx > -1 ? (row[videoApiIdx] ?? '').trim() || undefined : undefined,
       imageData:          null,
       endFrameData:       null,
-      imageUrl:           null,
+      imageUrl:           filenameIdx > -1 && (row[filenameIdx] ?? '').trim().startsWith('http') ? (row[filenameIdx] ?? '').trim() : null,
       videoUrl:           null,
       jobId:              null,
       s3FileName:         null,

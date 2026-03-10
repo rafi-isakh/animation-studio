@@ -1,5 +1,6 @@
 """Firestore service for job queue operations."""
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -621,8 +622,8 @@ class JobQueueService:
         now = datetime.now(timezone.utc)
         jobs: list[JobDocument] = []
 
-        # Build all JobDocument objects and stage them in a WriteBatch
-        write_batch = self.db.batch()
+        # Build all JobDocument objects
+        FIRESTORE_BATCH_LIMIT = 500
         for request, _ in requests:
             job_id = str(uuid.uuid4())
             job = JobDocument(
@@ -646,11 +647,18 @@ class JobQueueService:
                 reading_direction=request.reading_direction,
                 max_retries=3,
             )
-            write_batch.set(self._job_ref(job_id), job.model_dump(mode="json"))
             jobs.append(job)
 
-        # Single Firestore RPC for all documents
-        await write_batch.commit()
+        # Commit in chunks to stay within Firestore's 500-write-per-batch limit
+        for chunk_start in range(0, len(jobs), FIRESTORE_BATCH_LIMIT):
+            chunk = jobs[chunk_start : chunk_start + FIRESTORE_BATCH_LIMIT]
+            write_batch = self.db.batch()
+            for job in chunk:
+                write_batch.set(self._job_ref(job.id), job.model_dump(mode="json"))
+            await write_batch.commit()
+            if chunk_start + FIRESTORE_BATCH_LIMIT < len(jobs):
+                await asyncio.sleep(0.1)
+
         logger.info(f"Batch-created {len(jobs)} panel splitter jobs (batch_id={batch_id})")
         return jobs
 

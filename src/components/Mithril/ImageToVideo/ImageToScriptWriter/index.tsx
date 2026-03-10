@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Loader2,
   Sparkles,
@@ -24,6 +24,7 @@ export type { Continuity, VoicePrompt, Scene, GenerationResult } from "./types";
 
 export default function ImageToScriptWriter() {
   const mangaInputRef = useRef<HTMLInputElement>(null);
+  const [sourceTextFilename, setSourceTextFilename] = useState<string | null>(null);
 
   const {
     state,
@@ -259,10 +260,13 @@ export default function ImageToScriptWriter() {
             type="file"
             accept=".txt"
             className="hidden"
-            onChange={(e) => handleFileInstruction(e, (v) => setSourceText(v))}
+            onChange={(e) => {
+              const filename = e.target.files?.[0]?.name ?? null;
+              handleFileInstruction(e, (v) => { setSourceText(v); setSourceTextFilename(filename); });
+            }}
           />
-          {config.sourceText && (
-            <span className="text-xs text-green-500">✓ {config.sourceText.length} chars loaded</span>
+          {sourceTextFilename && (
+            <span className="text-xs text-green-500">✓ {sourceTextFilename}</span>
           )}
         </div>
       </div>

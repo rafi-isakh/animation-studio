@@ -12,6 +12,9 @@ MODEL_ID = "z-image-turbo"
 POLL_INTERVAL = 5  # seconds between polls
 MAX_POLL_ATTEMPTS = 24  # 24 × 5s = 2 min max wait
 
+# Limit concurrent ModelsLab API calls per worker to avoid rate-limit errors
+_MODELSLAB_SEMAPHORE = asyncio.Semaphore(2)
+
 
 async def generate_z_image_turbo_panel(
     source_url: str,
@@ -46,11 +49,12 @@ async def generate_z_image_turbo_panel(
         "base64": False,
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        logger.info(f"[Z-IMAGE-TURBO] Calling ModelsLab v6 img2img ({MODEL_ID}), source={source_url[:60]}...")
-        response = await client.post(MODELSLAB_V6_I2I_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
+    async with _MODELSLAB_SEMAPHORE:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            logger.info(f"[Z-IMAGE-TURBO] Calling ModelsLab v6 img2img ({MODEL_ID}), source={source_url[:60]}...")
+            response = await client.post(MODELSLAB_V6_I2I_URL, json=payload)
+            response.raise_for_status()
+            data = response.json()
 
     status = data.get("status")
     logger.info(f"[Z-IMAGE-TURBO] Initial response status: {status}")

@@ -491,7 +491,12 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       (p) => p.status === ProcessingStatus.Idle || p.status === ProcessingStatus.Error
     );
 
-    const concurrency = 2;
+    // ModelsLab providers (z_image_turbo, flux2_dev) have strict rate limits
+    // (~0.5 req/s) — process sequentially to avoid 429 errors
+    const isModelsLab = provider === 'z_image_turbo' || provider === 'flux2_dev';
+    const concurrency = isModelsLab ? 1 : 2;
+    // ModelsLab rate limit is ~0.5 req/s — wait longer between submissions
+    const delayMs = isModelsLab ? 3000 : 500;
     const queue = [...pendingPanels];
 
     const worker = async () => {
@@ -501,8 +506,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
         if (panel) {
           if (cancelProcessingRef.current) break;
           await processSinglePanel(panel.id);
-          // Small delay between submissions to avoid overwhelming the backend
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          // Delay between submissions to avoid overwhelming the backend
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       }
     };
@@ -527,7 +532,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
 
     dispatch({ type: 'SET_PROCESSING', isProcessing: false });
     cancelProcessingRef.current = false;
-  }, [processSinglePanel]);
+  }, [processSinglePanel, provider]);
 
   // ── Cancel processing ────────────────────────────────────────────────
   const cancelProcessing = useCallback(async () => {

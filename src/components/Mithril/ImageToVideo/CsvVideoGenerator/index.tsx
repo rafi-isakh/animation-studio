@@ -5,9 +5,8 @@ import { useMithril } from "../../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Trash2 } from "lucide-react";
-import ProviderSelector from "../../VideoGenerator/ProviderSelector";
-import { getProviderConstraints, getDefaultProviderId } from "../../VideoGenerator/providers";
+import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown } from "lucide-react";
+import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../../VideoGenerator/providers";
 import { ASPECT_RATIOS } from "../../VideoGenerator/types";
 import type { AspectRatio } from "../../VideoGenerator/providers/types";
 import {
@@ -37,6 +36,7 @@ const DEFAULT_MAPPING: CsvColumnMapping = {
   dialogue: '',
   sfx: '',
   clipLength: '',
+  videoApi: '',
 };
 
 // ============================================================
@@ -58,20 +58,24 @@ function Loader({ message }: { message: string }) {
 
 interface StoryboardItemCardProps {
   frame: CsvFrame;
+  globalProvider: string;
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
   onUpdateEndFrame: (id: string, data: string | null) => void;
   onUpdateDuration: (id: string, duration: string) => void;
+  onUpdateVideoApi: (id: string, videoApi: string) => void;
 }
 
 function StoryboardItemCard({
   frame,
+  globalProvider,
   onGenerate,
   onRegenerate,
   onUpdatePrompt,
   onUpdateEndFrame,
   onUpdateDuration,
+  onUpdateVideoApi,
 }: StoryboardItemCardProps) {
   const { language, dictionary } = useLanguage();
 
@@ -112,19 +116,37 @@ function StoryboardItemCard({
           </span>
         </div>
 
-        {/* Duration Selector */}
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] text-gray-500 uppercase font-bold">Dur:</span>
-          <select
-            className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-[#DB2777]"
-            value={currentDuration}
-            onChange={(e) => onUpdateDuration(frame.id, e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <option value="5">5s</option>
-            <option value="8">8s</option>
-            <option value="10">10s</option>
-          </select>
+        <div className="flex items-center gap-2">
+          {/* Per-frame Provider Selector */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500 uppercase font-bold">API:</span>
+            <select
+              className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:ring-0"
+              value={frame.videoApi || ''}
+              onChange={(e) => onUpdateVideoApi(frame.id, e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <option value="">Default ({getProviderOptions().find(p => p.id === globalProvider)?.name || globalProvider})</option>
+              {getProviderOptions().map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Duration Selector */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500 uppercase font-bold">Dur:</span>
+            <select
+              className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:ring-0"
+              value={currentDuration}
+              onChange={(e) => onUpdateDuration(frame.id, e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <option value="5">5s</option>
+              <option value="8">8s</option>
+              <option value="10">10s</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -207,12 +229,12 @@ function StoryboardItemCard({
           )}
 
           {/* Prompt Input */}
-          <div className="flex-1 min-h-[100px]">
+          <div className="flex-1 flex flex-col min-h-[100px]">
             <label className="text-xs text-gray-500 uppercase font-bold mb-1 block">
               {phrase(dictionary, 'prompt', language) || 'Veo Prompt'}
             </label>
             <textarea
-              className="w-full h-full min-h-[80px] bg-gray-950 border border-gray-700 rounded p-2 text-sm text-gray-300 focus:outline-none focus:border-[#DB2777] resize-none"
+              className="w-full flex-1 min-h-[80px] bg-gray-950 border border-gray-700 rounded p-2 text-sm text-gray-300 focus:outline-none focus:ring-0 resize-vertical"
               value={frame.veoPrompt}
               onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
               placeholder="Enter video prompt..."
@@ -355,9 +377,10 @@ export default function CsvVideoGenerator() {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const shouldStopRef  = useRef(false);
-  const isMountedRef   = useRef(true);
-  const activeJobsRef  = useRef<Set<string>>(new Set());
+  const shouldStopRef    = useRef(false);
+  const isMountedRef     = useRef(true);
+  const activeJobsRef    = useRef<Set<string>>(new Set());
+  const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -449,6 +472,7 @@ export default function CsvVideoGenerator() {
             veoPrompt:          clip.videoPrompt || '',
             referenceFilename:  clip.referenceFilename || '',
             clipLength:         clip.length?.replace(/[^0-9]/g, '') || '5',
+            videoApi:           clip.videoApi ?? undefined,
             imageData:          null,
             endFrameData:       null,
             imageUrl:           clip.imageUrl ?? null,
@@ -516,7 +540,7 @@ export default function CsvVideoGenerator() {
     reader.readAsText(file);
   }, []);
 
-  const handleConfirmMapping = useCallback(() => {
+  const handleConfirmMapping = useCallback(async () => {
     if (!mapping.frameNumber || !mapping.veoPrompt || !mapping.referenceFilename) {
       toast({
         title: 'Missing required columns',
@@ -538,7 +562,30 @@ export default function CsvVideoGenerator() {
 
     setFrames(newFrames);
     setShowImageUploader(true);
-  }, [mapping, headers, csvData, toast]);
+
+    // Persist all frames to Firestore so they survive navigation
+    if (currentProjectId) {
+      try {
+        await saveCsvVideoMeta(currentProjectId, aspectRatio, selectedProvider);
+        await Promise.all(
+          newFrames.map((frame) =>
+            saveCsvVideoClip(currentProjectId, `0_${frame.rowIndex}`, {
+              clipIndex:         frame.rowIndex,
+              sceneIndex:        0,
+              sceneTitle:        `Frame ${frame.frameNumber}`,
+              videoPrompt:       frame.veoPrompt,
+              referenceFilename: frame.referenceFilename,
+              length:            `${frame.clipLength || '5'}초`,
+              videoApi:          frame.videoApi ?? null,
+              imageUrl:          frame.imageUrl ?? null,
+            })
+          )
+        );
+      } catch (err) {
+        console.error('CsvVideoGenerator: failed to persist frames', err);
+      }
+    }
+  }, [mapping, headers, csvData, toast, currentProjectId, aspectRatio, selectedProvider]);
 
   // ── Image matching ───────────────────────────────────────
   const handleImagesUploaded = useCallback(
@@ -576,17 +623,48 @@ export default function CsvVideoGenerator() {
   );
 
   // ── Frame updaters ───────────────────────────────────────
+  const debounceSaveClip = useCallback((frame: CsvFrame, updates: Parameters<typeof updateCsvVideoClipStatus>[2]) => {
+    if (!currentProjectId) return;
+    const key = frame.id;
+    const existing = editDebounceRef.current.get(key);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      editDebounceRef.current.delete(key);
+      updateCsvVideoClipStatus(currentProjectId, `0_${frame.rowIndex}`, updates).catch(console.error);
+    }, 800);
+    editDebounceRef.current.set(key, timer);
+  }, [currentProjectId]);
+
   const updatePrompt = useCallback((id: string, prompt: string) => {
-    setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, veoPrompt: prompt } : f)));
-  }, []);
+    setFrames((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, veoPrompt: prompt } : f));
+      const frame = updated.find((f) => f.id === id);
+      if (frame) debounceSaveClip(frame, { videoPrompt: prompt });
+      return updated;
+    });
+  }, [debounceSaveClip]);
 
   const updateEndFrame = useCallback((id: string, data: string | null) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, endFrameData: data } : f)));
   }, []);
 
   const updateDuration = useCallback((id: string, duration: string) => {
-    setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, clipLength: duration } : f)));
-  }, []);
+    setFrames((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, clipLength: duration } : f));
+      const frame = updated.find((f) => f.id === id);
+      if (frame) debounceSaveClip(frame, { length: `${duration}초` });
+      return updated;
+    });
+  }, [debounceSaveClip]);
+
+  const updateVideoApi = useCallback((id: string, videoApi: string) => {
+    setFrames((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, videoApi: videoApi || undefined } : f));
+      const frame = updated.find((f) => f.id === id);
+      if (frame) debounceSaveClip(frame, { videoApi: videoApi || null });
+      return updated;
+    });
+  }, [debounceSaveClip]);
 
   // ── Video generation ─────────────────────────────────────
   const generateFrame = useCallback(
@@ -603,7 +681,8 @@ export default function CsvVideoGenerator() {
       );
 
       try {
-        const constraints = getProviderConstraints(selectedProvider);
+        const effectiveProvider = frame.videoApi || selectedProvider;
+        const constraints = getProviderConstraints(effectiveProvider);
         const validDurations = constraints?.durations || [4, 8];
         const parsed = parseInt(frame.clipLength || '5', 10);
         const duration = validDurations.reduce((prev, curr) =>
@@ -614,7 +693,7 @@ export default function CsvVideoGenerator() {
           projectId:   currentProjectId,
           sceneIndex:  0,
           clipIndex:   frame.rowIndex,
-          providerId:  selectedProvider as 'sora' | 'veo3' | 'grok_i2v' | 'wan_i2v' | 'wan22_i2v',
+          providerId:  effectiveProvider as 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v',
           prompt:      frame.veoPrompt,
           imageUrl:    frame.imageUrl || frame.imageData || undefined,
           imageEndUrl: frame.endFrameData || undefined,
@@ -625,8 +704,11 @@ export default function CsvVideoGenerator() {
 
         activeJobsRef.current.add(response.jobId);
 
+        // Use the CDN URL returned by the submit route (base64 was uploaded to S3)
+        const resolvedImageUrl = response.resolvedImageUrl || frame.imageUrl || null;
+
         setFrames((prev) =>
-          prev.map((f) => (f.id === frameId ? { ...f, jobId: response.jobId } : f))
+          prev.map((f) => (f.id === frameId ? { ...f, jobId: response.jobId, imageUrl: resolvedImageUrl } : f))
         );
 
         // Persist initial clip state to Firestore
@@ -638,12 +720,12 @@ export default function CsvVideoGenerator() {
           videoPrompt:       frame.veoPrompt,
           referenceFilename: frame.referenceFilename,
           length:            `${frame.clipLength || '5'}초`,
-          imageUrl:          frame.imageUrl ?? null,
+          imageUrl:          resolvedImageUrl,
         });
         await updateCsvVideoClipStatus(currentProjectId, clipId, {
           jobId:     response.jobId,
           status:    'generating',
-          providerId: selectedProvider,
+          providerId: effectiveProvider,
         });
       } catch (err) {
         if (!isMountedRef.current) return;
@@ -748,6 +830,169 @@ export default function CsvVideoGenerator() {
     activeJobsRef.current.clear();
   }, [currentProjectId]);
 
+  // ── ZIP download ────────────────────────────────────────
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+
+  const handleDownloadAll = useCallback(async () => {
+    const completedFrames = frames.filter(
+      (f) => f.status === 'completed' && f.s3FileName
+    );
+
+    if (completedFrames.length === 0) {
+      toast({
+        title: phrase(dictionary, 'sora_toast_error', language) || 'Error',
+        description: phrase(dictionary, 'sora_toast_no_videos', language) || 'No completed videos to download.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsDownloadingZip(true);
+
+    try {
+      const response = await fetch('/api/video/zip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clips: completedFrames.map((f) => ({
+            s3FileName: f.s3FileName,
+            sceneIndex: 0,
+            clipIndex: f.rowIndex,
+          })),
+          zipFileName: `csv_videos_${Date.now()}.zip`,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create ZIP');
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `csv_videos_${Date.now()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: phrase(dictionary, 'sora_toast_success', language) || 'Success',
+        description: phrase(dictionary, 'sora_toast_zip_downloaded', language) || 'ZIP downloaded successfully.',
+      });
+    } catch (error) {
+      console.error('ZIP download error:', error);
+      toast({
+        title: phrase(dictionary, 'sora_toast_error', language) || 'Error',
+        description: phrase(dictionary, 'sora_toast_zip_failed', language) || 'Failed to download ZIP.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  }, [frames, toast, dictionary, language]);
+
+  // ── Project export/import ───────────────────────────────
+  const handleExportProject = useCallback(() => {
+    if (frames.length === 0) return;
+
+    const projectData = {
+      name: `csv_project_${Date.now()}`,
+      aspectRatio,
+      providerId: selectedProvider,
+      frames: frames.map((f) => ({
+        frameNumber:       f.frameNumber,
+        veoPrompt:         f.veoPrompt,
+        referenceFilename: f.referenceFilename,
+        dialogue:          f.dialogue,
+        sfx:               f.sfx,
+        clipLength:        f.clipLength,
+        videoApi:          f.videoApi,
+        imageUrl:          f.imageUrl,
+        videoUrl:          f.videoUrl,
+        s3FileName:        f.s3FileName,
+        status:            f.status,
+        providerId:        f.providerId,
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `csv_video_project_${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: phrase(dictionary, 'sora_toast_success', language) || 'Success',
+      description: 'Project exported successfully.',
+    });
+  }, [frames, aspectRatio, selectedProvider, toast, dictionary, language]);
+
+  const handleImportProject = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target?.result as string);
+        if (!data.frames || !Array.isArray(data.frames)) {
+          toast({
+            title: 'Invalid project file',
+            description: 'The file does not contain valid frame data.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        if (data.aspectRatio) setAspectRatio(data.aspectRatio);
+        if (data.providerId) setSelectedProvider(data.providerId);
+
+        const now = Date.now();
+        const importedFrames: CsvFrame[] = data.frames.map((f: Record<string, string | undefined>, i: number) => ({
+          id:                `frame-${i}-${now}`,
+          rowIndex:          i,
+          frameNumber:       f.frameNumber || String(i + 1),
+          veoPrompt:         f.veoPrompt || '',
+          referenceFilename: f.referenceFilename || '',
+          dialogue:          f.dialogue,
+          sfx:               f.sfx,
+          clipLength:        f.clipLength,
+          videoApi:          f.videoApi,
+          imageData:         null,
+          endFrameData:      null,
+          imageUrl:          f.imageUrl || null,
+          videoUrl:          f.videoUrl || null,
+          jobId:             null,
+          s3FileName:        f.s3FileName || null,
+          status:            (f.status as CsvFrame['status']) || 'idle',
+          providerId:        f.providerId,
+        }));
+
+        setFrames(importedFrames);
+        setShowImageUploader(true);
+
+        toast({
+          title: phrase(dictionary, 'sora_toast_success', language) || 'Success',
+          description: `Imported ${importedFrames.length} frames.`,
+        });
+      } catch {
+        toast({
+          title: 'Import failed',
+          description: 'Could not parse the project file.',
+          variant: 'destructive',
+        });
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset input so same file can be re-imported
+    e.target.value = '';
+  }, [toast, dictionary, language]);
+
   // ── Derived values ───────────────────────────────────────
   const missingImagesCount = frames.filter((f) => !f.imageData && !f.imageUrl).length;
   const matchedImagesCount = frames.length - missingImagesCount;
@@ -772,25 +1017,50 @@ export default function CsvVideoGenerator() {
           </h2>
 
           {csvStep === 1 && (
-            <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-[#DB2777] transition-colors bg-gray-950/50">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCsvFileUpload}
-                className="hidden"
-                id="csv-upload"
-              />
-              <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="text-gray-300 font-medium">
-                  {phrase(dictionary, 'csv_import_upload_label', language) || 'Click to upload CSV Script'}
-                </span>
-                <span className="text-gray-500 text-sm mt-1">
-                  {phrase(dictionary, 'csv_import_upload_hint', language) || 'Expected columns: Frame Number, Prompt, Filename, (Optional) Dialogue, SFX'}
-                </span>
-              </label>
+            <div className="space-y-4">
+              <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-[#DB2777] transition-colors bg-gray-950/50">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvFileUpload}
+                  className="hidden"
+                  id="csv-upload"
+                />
+                <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="text-gray-300 font-medium">
+                    {phrase(dictionary, 'csv_import_upload_label', language) || 'Click to upload CSV Script'}
+                  </span>
+                  <span className="text-gray-500 text-sm mt-1">
+                    {phrase(dictionary, 'csv_import_upload_hint', language) || 'Expected columns: Frame Number, Prompt, Filename, (Optional) Dialogue, SFX'}
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-gray-700" />
+                <span className="text-xs text-gray-500 uppercase font-bold">or</span>
+                <div className="flex-1 h-px bg-gray-700" />
+              </div>
+
+              <div className="text-center">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportProject}
+                  className="hidden"
+                  id="json-import"
+                />
+                <label
+                  htmlFor="json-import"
+                  className="inline-flex items-center gap-2 cursor-pointer px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <Upload className="h-4 w-4" />
+                  Import from Project JSON
+                </label>
+              </div>
             </div>
           )}
 
@@ -807,7 +1077,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_frame_number', language) || 'Frame Number'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.frameNumber}
                     onChange={(e) => setMapping({ ...mapping, frameNumber: e.target.value })}
                   >
@@ -822,7 +1092,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_prompt', language) || 'Veo Video Prompt'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.veoPrompt}
                     onChange={(e) => setMapping({ ...mapping, veoPrompt: e.target.value })}
                   >
@@ -837,7 +1107,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_reference', language) || 'Ref. Filename'} *
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.referenceFilename}
                     onChange={(e) => setMapping({ ...mapping, referenceFilename: e.target.value })}
                   >
@@ -857,7 +1127,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_dialogue', language) || 'Dialogue (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.dialogue}
                     onChange={(e) => setMapping({ ...mapping, dialogue: e.target.value })}
                   >
@@ -872,7 +1142,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_sfx', language) || 'Sound Effect (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.sfx}
                     onChange={(e) => setMapping({ ...mapping, sfx: e.target.value })}
                   >
@@ -887,7 +1157,7 @@ export default function CsvVideoGenerator() {
                     {phrase(dictionary, 'csv_column_length', language) || 'Clip Length (Optional)'}
                   </label>
                   <select
-                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#DB2777]"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
                     value={mapping.clipLength}
                     onChange={(e) => setMapping({ ...mapping, clipLength: e.target.value })}
                   >
@@ -895,6 +1165,20 @@ export default function CsvVideoGenerator() {
                     {headers.map((h) => <option key={h} value={h}>{h}</option>)}
                   </select>
                   <span className="text-[10px] text-gray-500 ml-1">Default: Col C</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    {phrase(dictionary, 'csv_column_video_api', language) || 'Video API (Optional)'}
+                  </label>
+                  <select
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
+                    value={mapping.videoApi}
+                    onChange={(e) => setMapping({ ...mapping, videoApi: e.target.value })}
+                  >
+                    <option value="">-- None --</option>
+                    {headers.map((h) => <option key={h} value={h}>{h}</option>)}
+                  </select>
                 </div>
               </div>
 
@@ -1001,12 +1285,6 @@ export default function CsvVideoGenerator() {
                 ))}
               </div>
 
-              {/* Provider selector */}
-              <ProviderSelector
-                value={selectedProvider}
-                onChange={setSelectedProvider}
-              />
-
               {/* Action buttons */}
               <button
                 onClick={handleSave}
@@ -1017,6 +1295,32 @@ export default function CsvVideoGenerator() {
                 {isSaving
                   ? (phrase(dictionary, 'sora_saving', language) || 'Saving...')
                   : (phrase(dictionary, 'sora_save', language) || 'Save')}
+              </button>
+
+              {completedCount > 0 && (
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={isDownloadingZip}
+                  className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                  title="Download all videos as ZIP"
+                >
+                  {isDownloadingZip ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  {isDownloadingZip ? 'Downloading...' : 'ZIP'}
+                </button>
+              )}
+
+              <button
+                onClick={handleExportProject}
+                disabled={frames.length === 0}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                title="Export project as JSON"
+              >
+                <FileDown className="h-4 w-4" />
+                Export
               </button>
 
               <button
@@ -1049,17 +1353,29 @@ export default function CsvVideoGenerator() {
             </div>
           </div>
 
+          {/* Progress bar */}
+          {isGeneratingAll && frames.length > 0 && (
+            <div className="w-full bg-gray-800 rounded-full h-2">
+              <div
+                className="bg-[#DB2777] h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(completedCount / frames.length) * 100}%` }}
+              />
+            </div>
+          )}
+
           {/* Frame cards */}
           <div className="grid grid-cols-1 gap-6">
             {frames.map((frame) => (
               <StoryboardItemCard
                 key={frame.id}
                 frame={frame}
+                globalProvider={selectedProvider}
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
                 onUpdatePrompt={updatePrompt}
                 onUpdateEndFrame={updateEndFrame}
                 onUpdateDuration={updateDuration}
+                onUpdateVideoApi={updateVideoApi}
               />
             ))}
           </div>

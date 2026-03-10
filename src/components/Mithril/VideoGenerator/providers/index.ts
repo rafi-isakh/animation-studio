@@ -4,6 +4,7 @@ import type { VideoProvider, ProviderInfo, ProviderConstraints } from "./types";
 import { soraProvider } from "./sora";
 import { veo3Provider } from "./veo3";
 import { grokI2VProvider } from "./grokI2V";
+import { grokImagineI2VProvider } from "./grokImagineI2V";
 import { wanI2VProvider } from "./wanI2V";
 import { wan22I2VProvider } from "./wanI2V22";
 
@@ -12,6 +13,7 @@ const providers = new Map<string, VideoProvider>([
   [soraProvider.id, soraProvider as VideoProvider],
   [veo3Provider.id, veo3Provider as VideoProvider],
   [grokI2VProvider.id, grokI2VProvider as VideoProvider],
+  [grokImagineI2VProvider.id, grokImagineI2VProvider as VideoProvider],
   [wanI2VProvider.id, wanI2VProvider as VideoProvider],
   [wan22I2VProvider.id, wan22I2VProvider as VideoProvider],
 ]);
@@ -82,5 +84,6 @@ export * from "./types";
 export { soraProvider } from "./sora";
 export { veo3Provider } from "./veo3";
 export { grokI2VProvider } from "./grokI2V";
+export { grokImagineI2VProvider } from "./grokImagineI2V";
 export { wanI2VProvider } from "./wanI2V";
 export { wan22I2VProvider } from "./wanI2V22";

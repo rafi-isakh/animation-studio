@@ -43,7 +43,7 @@ interface OrchestratorSubmitRequest {
   projectId: string;
   sceneIndex: number;
   clipIndex: number;
-  providerId: "sora" | "veo3" | "grok_i2v" | "wan_i2v" | "wan22_i2v";
+  providerId: "sora" | "veo3" | "grok_i2v" | "grok_imagine_i2v" | "wan_i2v" | "wan22_i2v";
   prompt: string;
   imageUrl?: string;
   imageEndUrl?: string;
@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
       jobId: data.job_id,
       status: data.status,
       createdAt: data.created_at,
+      resolvedImageUrl: imageUrl || null,
     });
   } catch (error) {
     console.error("Error submitting to orchestrator:", error);

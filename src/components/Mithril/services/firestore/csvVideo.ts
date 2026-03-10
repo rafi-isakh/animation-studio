@@ -27,6 +27,7 @@ export interface CsvVideoClipDocument {
   videoPrompt?: string;
   referenceFilename?: string;
   length?: string;
+  videoApi?: string | null;
   imageUrl?: string | null;      // S3 URL for start frame
   videoRef?: string | null;
   jobId?: string | null;
@@ -43,12 +44,16 @@ export interface SaveCsvVideoClipInput {
   videoPrompt: string;
   referenceFilename: string;
   length: string;
+  videoApi?: string | null;
   imageUrl?: string | null;
 }
 
 export interface UpdateCsvVideoClipInput {
   sceneIndex?: number;
   clipIndex?: number;
+  videoPrompt?: string;
+  length?: string;
+  videoApi?: string | null;
   imageUrl?: string | null;
   videoRef?: string | null;
   jobId?: string | null;
@@ -152,6 +157,7 @@ export async function saveCsvVideoClip(
     videoPrompt:        input.videoPrompt,
     referenceFilename:  input.referenceFilename,
     length:             input.length,
+    videoApi:           input.videoApi ?? null,
     imageUrl:           input.imageUrl ?? null,
     videoRef:           null,
     jobId:              null,

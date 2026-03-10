@@ -9,7 +9,7 @@ interface SubmitJobParams {
   projectId: string;
   sceneIndex: number;
   clipIndex: number;
-  providerId: 'sora' | 'veo3' | 'grok_i2v' | 'wan_i2v' | 'wan22_i2v';
+  providerId: 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v';
   prompt: string;
   imageUrl?: string;
   imageEndUrl?: string;
@@ -32,6 +32,7 @@ interface SubmitJobResponse {
   jobId: string;
   status: string;
   createdAt: string;
+  resolvedImageUrl?: string | null;
 }
 
 interface SubmitBatchResponse {

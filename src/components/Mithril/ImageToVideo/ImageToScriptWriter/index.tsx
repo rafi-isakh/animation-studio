@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Loader2,
   Sparkles,
@@ -24,6 +24,7 @@ export type { Continuity, VoicePrompt, Scene, GenerationResult } from "./types";
 
 export default function ImageToScriptWriter() {
   const mangaInputRef = useRef<HTMLInputElement>(null);
+  const [sourceTextFilename, setSourceTextFilename] = useState<string | null>(null);
 
   const {
     state,
@@ -246,13 +247,28 @@ export default function ImageToScriptWriter() {
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Source Text (Optional)
         </label>
-        <textarea
-          value={config.sourceText}
-          onChange={(e) => setSourceText(e.target.value)}
-          placeholder="Paste original story text here for better context..."
-          rows={4}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => document.getElementById('source-text-file-input')?.click()}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            원본 텍스트 파일 업로드 (.txt)
+          </button>
+          <input
+            id="source-text-file-input"
+            type="file"
+            accept=".txt"
+            className="hidden"
+            onChange={(e) => {
+              const filename = e.target.files?.[0]?.name ?? null;
+              handleFileInstruction(e, (v) => { setSourceText(v); setSourceTextFilename(filename); });
+            }}
+          />
+          {sourceTextFilename && (
+            <span className="text-xs text-green-500">✓ {sourceTextFilename}</span>
+          )}
+        </div>
       </div>
 
       {/* Instructions */}

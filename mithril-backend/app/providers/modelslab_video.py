@@ -1,5 +1,6 @@
 """ModelsLab Grok image-to-video generation provider."""
 
+import asyncio
 import logging
 
 import httpx
@@ -12,6 +13,7 @@ from app.models.provider import (
     VideoStatusResult,
 )
 from app.providers.base import VideoProvider
+from app.core.rate_limiter import distributed_rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -85,10 +87,11 @@ class GrokI2VProvider(VideoProvider):
 
         logger.info(f"[GROK_I2V] Submitting to ModelsLab, duration={duration}s")
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(MODELSLAB_VIDEO_URL, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+        async with distributed_rate_limit("modelslab"):
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(MODELSLAB_VIDEO_URL, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
 
         status = data.get("status")
         logger.info(f"[GROK_I2V] Submit response status: {status}")

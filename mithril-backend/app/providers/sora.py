@@ -1,5 +1,6 @@
 """Sora (OpenAI) video generation provider."""
 
+import asyncio
 import logging
 
 import httpx
@@ -15,6 +16,9 @@ from app.providers.base import VideoProvider
 from app.services.image_processor import prepare_image_for_provider
 
 logger = logging.getLogger(__name__)
+
+# Limit concurrent Sora API calls per worker to avoid rate-limit errors
+_SORA_SEMAPHORE = asyncio.Semaphore(3)
 
 # Sora API endpoints
 SORA_API_BASE = "https://api.openai.com/v1/videos"
@@ -96,37 +100,38 @@ class SoraProvider(VideoProvider):
                 files["input_reference"] = ("input.jpg", image_bytes, "image/jpeg")
 
         # Submit to Sora API
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                SORA_API_BASE,
-                headers={"Authorization": f"Bearer {api_key}"},
-                data=data,
-                files=files if files else None,
-            )
-
-            if response.status_code == 429:
-                raise Exception("Rate limit exceeded. Please try again later.")
-
-            if response.status_code == 402:
-                raise Exception("Quota exceeded. Please check your API usage.")
-
-            response_data = response.json()
-
-            if not response.is_success:
-                error_msg = (
-                    response_data.get("error", {}).get("message")
-                    or response_data.get("error")
-                    or "Failed to create video job"
+        async with _SORA_SEMAPHORE:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    SORA_API_BASE,
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    data=data,
+                    files=files if files else None,
                 )
-                logger.error(f"Sora API Error: {response_data}")
-                raise Exception(error_msg)
 
-            job_id = response_data.get("id")
-            if not job_id:
-                raise Exception("No job ID returned from Sora API")
+                if response.status_code == 429:
+                    raise Exception("Rate limit exceeded. Please try again later.")
 
-            logger.info(f"Sora job submitted: {job_id}")
-            return VideoSubmitResult(job_id=job_id, status="pending")
+                if response.status_code == 402:
+                    raise Exception("Quota exceeded. Please check your API usage.")
+
+                response_data = response.json()
+
+                if not response.is_success:
+                    error_msg = (
+                        response_data.get("error", {}).get("message")
+                        or response_data.get("error")
+                        or "Failed to create video job"
+                    )
+                    logger.error(f"Sora API Error: {response_data}")
+                    raise Exception(error_msg)
+
+                job_id = response_data.get("id")
+                if not job_id:
+                    raise Exception("No job ID returned from Sora API")
+
+                logger.info(f"Sora job submitted: {job_id}")
+                return VideoSubmitResult(job_id=job_id, status="pending")
 
     async def check_status(
         self,

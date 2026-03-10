@@ -5,6 +5,8 @@ import logging
 
 import httpx
 
+from app.core.rate_limiter import distributed_rate_limit
+
 logger = logging.getLogger(__name__)
 
 MODELSLAB_V6_I2I_URL = "https://modelslab.com/api/v6/images/img2img"
@@ -46,31 +48,32 @@ async def generate_z_image_turbo_panel(
         "base64": False,
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        logger.info(f"[Z-IMAGE-TURBO] Calling ModelsLab v6 img2img ({MODEL_ID}), source={source_url[:60]}...")
-        response = await client.post(MODELSLAB_V6_I2I_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
+    async with distributed_rate_limit("modelslab"):
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            logger.info(f"[Z-IMAGE-TURBO] Calling ModelsLab v6 img2img ({MODEL_ID}), source={source_url[:60]}...")
+            response = await client.post(MODELSLAB_V6_I2I_URL, json=payload)
+            response.raise_for_status()
+            data = response.json()
 
-    status = data.get("status")
-    logger.info(f"[Z-IMAGE-TURBO] Initial response status: {status}")
+        status = data.get("status")
+        logger.info(f"[Z-IMAGE-TURBO] Initial response status: {status}")
 
-    if status == "error":
-        raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
+        if status == "error":
+            raise RuntimeError(f"ModelsLab API error: {data.get('message', data)}")
 
-    if status == "success" and data.get("output"):
-        output = data["output"]
-        image_url = output[0] if isinstance(output, list) else output
-        return await _download_image(image_url)
+        if status == "success" and data.get("output"):
+            output = data["output"]
+            image_url = output[0] if isinstance(output, list) else output
+            return await _download_image(image_url)
 
-    if status == "processing":
-        fetch_url = data.get("fetch_result")
-        if not fetch_url:
-            raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
-        logger.info(f"[Z-IMAGE-TURBO] Processing async, polling: {fetch_url}")
-        return await _poll_for_result(fetch_url, api_key)
+        if status == "processing":
+            fetch_url = data.get("fetch_result")
+            if not fetch_url:
+                raise RuntimeError("ModelsLab returned 'processing' but no fetch_result URL")
+            logger.info(f"[Z-IMAGE-TURBO] Processing async, polling: {fetch_url}")
+            return await _poll_for_result(fetch_url, api_key)
 
-    raise RuntimeError(f"Unexpected ModelsLab response: {data}")
+        raise RuntimeError(f"Unexpected ModelsLab response: {data}")
 
 
 async def _poll_for_result(fetch_url: str, api_key: str) -> bytes:
@@ -108,8 +111,8 @@ async def _download_image(url: str) -> bytes:
     Retries on 404 to handle ModelsLab R2 CDN propagation delay — the API
     can report 'success' before the file is actually available on the CDN.
     """
-    max_attempts = 5
-    retry_delay = 3.0  # seconds
+    max_attempts = 8
+    retry_delay = 5.0  # seconds (8 × 5s = 40s max wait)
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         for attempt in range(1, max_attempts + 1):

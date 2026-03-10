@@ -5,6 +5,8 @@ import logging
 
 import httpx
 
+from app.core.rate_limiter import distributed_rate_limit
+
 logger = logging.getLogger(__name__)
 
 XAI_MODEL = "grok-imagine-image-pro"
@@ -38,13 +40,14 @@ async def generate_grok_panel(
     logger.info(f"[GROK] Submitting to xAI ({XAI_MODEL}), aspect_ratio={aspect_ratio}")
 
     # xAI SDK is synchronous — run in thread pool to avoid blocking the event loop
-    response = await asyncio.to_thread(
-        client.image.sample,
-        prompt=prompt,
-        model=XAI_MODEL,
-        image_url=image_url,
-        aspect_ratio=aspect_ratio,
-    )
+    async with distributed_rate_limit("grok"):
+        response = await asyncio.to_thread(
+            client.image.sample,
+            prompt=prompt,
+            model=XAI_MODEL,
+            image_url=image_url,
+            aspect_ratio=aspect_ratio,
+        )
 
     result_url = response.url
     logger.info(f"[GROK] Generation complete, downloading result from {result_url[:80]}...")

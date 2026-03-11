@@ -31,7 +31,7 @@ export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-fr
 
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -62,6 +62,8 @@ export interface UploadImageRequest {
   assetType?: 'character' | 'background';
   // For i2v panel-editor originals
   panelEditorId?: string;
+  // For csv-frame images
+  csvFrameIndex?: number;
   // Image data
   base64: string;
   mimeType?: string;
@@ -76,7 +78,7 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -107,6 +109,8 @@ export interface DeleteImageRequest {
   assetType?: 'character' | 'background';
   // For i2v panel-editor originals
   panelEditorId?: string;
+  // For csv-frame images
+  csvFrameIndex?: number;
 }
 
 export interface DeleteImageResponse {
@@ -170,6 +174,10 @@ export function getBackgroundReferenceImageKey(projectId: string, bgId: string):
 
 export function getStoryboardImageKey(projectId: string, sceneIndex: number, clipIndex: number): string {
   return `${S3_BASE_PATH}/${projectId}/storyboard/${sceneIndex}_${clipIndex}.webp`;
+}
+
+export function getCsvFrameImageKey(projectId: string, frameIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/csv-frames/${frameIndex}.webp`;
 }
 
 export function getVideoKey(projectId: string, clipId: string): string {

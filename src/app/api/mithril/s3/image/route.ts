@@ -33,6 +33,7 @@ import {
   getI2VStoryboardReferenceKey,
   getI2VStoryboardFolderPrefix,
   getI2VPanelEditorKey,
+  getCsvFrameImageKey,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -119,6 +120,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
           );
         }
         s3Key = getStoryboardImageKey(projectId, sceneIndex, clipIndex);
+        break;
+      }
+      case "csv-frame": {
+        const { csvFrameIndex } = body;
+        if (csvFrameIndex === undefined) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "csvFrameIndex is required for csv-frame images" },
+            { status: 400 }
+          );
+        }
+        s3Key = getCsvFrameImageKey(projectId, csvFrameIndex);
         break;
       }
       case "style-slot": {
@@ -390,6 +402,17 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
           );
         }
         keysToDelete = [getStoryboardImageKey(projectId, sceneIndex, clipIndex)];
+        break;
+      }
+      case "csv-frame": {
+        const { csvFrameIndex } = body;
+        if (csvFrameIndex === undefined) {
+          return NextResponse.json(
+            { success: false, deletedKeys: [], error: "csvFrameIndex is required for csv-frame images" },
+            { status: 400 }
+          );
+        }
+        keysToDelete = [getCsvFrameImageKey(projectId, csvFrameIndex)];
         break;
       }
       case "style-slot": {

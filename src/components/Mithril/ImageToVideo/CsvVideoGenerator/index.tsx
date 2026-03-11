@@ -62,6 +62,7 @@ interface StoryboardItemCardProps {
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
+  onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateEndFrame: (id: string, data: string | null) => void;
   onUpdateDuration: (id: string, duration: string) => void;
   onUpdateVideoApi: (id: string, videoApi: string) => void;
@@ -73,6 +74,7 @@ function StoryboardItemCard({
   onGenerate,
   onRegenerate,
   onUpdatePrompt,
+  onUpdateStartImage,
   onUpdateEndFrame,
   onUpdateDuration,
   onUpdateVideoApi,
@@ -88,6 +90,17 @@ function StoryboardItemCard({
   const currentDuration = frame.clipLength
     ? frame.clipLength.replace(/[^0-9.]/g, '')
     : '5';
+
+  const handleStartImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      onUpdateStartImage(frame.id, evt.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const handleEndFrameUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,13 +174,50 @@ function StoryboardItemCard({
                 START
               </span>
               {startImageSrc ? (
-                <img
-                  src={startImageSrc}
-                  alt="Start"
-                  className="w-full h-full object-contain"
-                />
+                <>
+                  <img
+                    src={startImageSrc}
+                    alt="Start"
+                    className="w-full h-full object-contain"
+                  />
+                  {/* Hover overlay: replace or remove */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-10">
+                    <label className="cursor-pointer flex items-center gap-1 bg-gray-800/90 hover:bg-[#DB2777] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleStartImageUpload}
+                      />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" clipRule="evenodd" />
+                      </svg>
+                      Replace
+                    </label>
+                    <button
+                      onClick={() => onUpdateStartImage(frame.id, null)}
+                      className="flex items-center gap-1 bg-gray-800/90 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      Remove
+                    </button>
+                  </div>
+                </>
               ) : (
-                <div className="text-gray-600 text-xs text-center px-2">Missing Start Image</div>
+                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer text-gray-500 hover:text-gray-300 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleStartImageUpload}
+                  />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span className="text-xs font-medium">Add Start Image</span>
+                </label>
               )}
             </div>
 
@@ -643,6 +693,66 @@ export default function CsvVideoGenerator() {
       return updated;
     });
   }, [debounceSaveClip]);
+
+  const updateStartImage = useCallback(async (id: string, data: string | null) => {
+    const frame = frames.find((f) => f.id === id);
+    if (!frame) return;
+
+    const clipId = `0_${frame.rowIndex}`;
+
+    if (data === null) {
+      // Remove: clear both local state and Firestore
+      setFrames((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, imageData: null, imageUrl: null } : f))
+      );
+      if (currentProjectId) {
+        await updateCsvVideoClipStatus(currentProjectId, clipId, { imageUrl: null }).catch(console.error);
+      }
+      return;
+    }
+
+    // Replace: optimistically show the base64 immediately
+    setFrames((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, imageData: data, imageUrl: null } : f))
+    );
+
+    if (!currentProjectId) return;
+
+    try {
+      const mimeType = data.match(/data:(.*?);/)?.[1] || 'image/webp';
+      const base64 = data.split(',')[1];
+
+      const response = await fetch('/api/mithril/s3/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          imageType: 'csv-frame',
+          csvFrameIndex: frame.rowIndex,
+          base64,
+          mimeType,
+        }),
+      });
+      const result: { success: boolean; url?: string } = await response.json();
+
+      if (result.success && result.url) {
+        // Swap base64 for stable CDN URL in local state
+        setFrames((prev) =>
+          prev.map((f) =>
+            f.id === id ? { ...f, imageData: null, imageUrl: result.url! } : f
+          )
+        );
+        await updateCsvVideoClipStatus(currentProjectId, clipId, { imageUrl: result.url });
+      }
+    } catch (err) {
+      console.error('CsvVideoGenerator: failed to upload start image', err);
+      toast({
+        title: 'Upload failed',
+        description: 'Could not save the start image.',
+        variant: 'destructive',
+      });
+    }
+  }, [frames, currentProjectId, toast]);
 
   const updateEndFrame = useCallback((id: string, data: string | null) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, endFrameData: data } : f)));
@@ -1373,6 +1483,7 @@ export default function CsvVideoGenerator() {
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
                 onUpdatePrompt={updatePrompt}
+                onUpdateStartImage={updateStartImage}
                 onUpdateEndFrame={updateEndFrame}
                 onUpdateDuration={updateDuration}
                 onUpdateVideoApi={updateVideoApi}

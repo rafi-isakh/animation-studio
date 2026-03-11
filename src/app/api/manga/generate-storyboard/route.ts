@@ -11,7 +11,6 @@ interface MangaPanel {
 interface StoryboardRequest {
   panels: MangaPanel[];
   sourceText?: string; // Optional context text
-  targetDuration: string; // MM:SS format
   storyCondition: string;
   imageCondition: string;
   videoCondition: string;
@@ -30,7 +29,7 @@ interface Clip {
   story: string;
   imagePrompt: string;
   videoPrompt: string;
-  soraVideoPrompt: string;
+  soraVideoPrompt?: string;
   dialogue: string;
   dialogueEn: string;
   sfx: string;
@@ -103,22 +102,14 @@ async function resolvePanelImage(panel: MangaPanel): Promise<string> {
   throw new Error(`Panel ${panel.id} has no image data or URL`);
 }
 
-// Parse target duration string to seconds
-function parseDuration(duration: string): number {
-  const parts = duration.split(':');
-  if (parts.length === 2) {
-    const minutes = parseInt(parts[0], 10);
-    const seconds = parseInt(parts[1], 10);
-    return minutes * 60 + seconds;
-  }
-  return 180; // Default 3 minutes
-}
-
-// Format seconds to MM:SS
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+// Parse required clip count from beginning of source text
+// Looks for a number followed by 개/클립/패널/panels/clips in the first 800 chars
+function extractRequiredClipCount(text: string): number | null {
+  if (!text) return null;
+  const prefix = text.slice(0, 800);
+  const match = prefix.match(/(\d+)\s*(?:개|클립|패널|panels?|clips?)/i);
+  if (match) return parseInt(match[1], 10);
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -127,7 +118,6 @@ export async function POST(request: NextRequest) {
     const {
       panels,
       sourceText,
-      targetDuration,
       storyCondition,
       imageCondition,
       videoCondition,
@@ -154,8 +144,8 @@ export async function POST(request: NextRequest) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const totalSeconds = parseDuration(targetDuration || "03:00");
     const totalPanels = panels.length;
+    const requiredClipCount = extractRequiredClipCount(sourceText || '') ?? totalPanels;
 
     // Build parts array with images and prompt
     const parts: Part[] = [];
@@ -177,8 +167,14 @@ export async function POST(request: NextRequest) {
 
     // Build the prompt (Korean detailed prompt matching the reference implementation)
     const prompt = `
-다음 원본 텍스트와 제공된 망가 패널 이미지들을 기반으로 총 5개의 '씬'으로 구성된, **정확히 ${formatTime(totalSeconds)} (${totalSeconds}초)** 분량의 애니메이션 콘티를 제작해 주세요.
-전체 누적 시간이 반드시 ${formatTime(totalSeconds)}이 되도록 설계해야 합니다.
+다음 원본 텍스트와 제공된 망가 패널 이미지들을 기반으로 애니메이션 콘티를 제작해 주세요.
+
+**[CRITICAL: 패널 변환 규칙 — 가장 중요한 규칙]**
+제공된 **모든 ${totalPanels}개의 패널 각각에 대해 반드시 최소 하나의 클립을 생성해야 합니다.** 어떠한 패널도 건너뛰거나 생략해서는 안 됩니다. 런닝타임이나 시간 제한 없이, 총 클립 수는 패널 수 이상이어야 합니다. 클립 수를 임의로 줄이거나 패널을 통합하여 누락시키는 것은 절대 금지입니다.
+
+**[CRITICAL: 정확한 총 클립 수 (절대 준수)]**
+원본 텍스트 초반에 명시된 총 출력 클립/패널 수: **${requiredClipCount}개**
+총 클립 수는 반드시 정확히 **${requiredClipCount}개**이어야 합니다. 하나도 더 만들거나 덜 만들어서는 절대 안 됩니다. 패널을 임의로 합치거나 건너뛰어서 클립 수를 줄이는 것은 금지입니다.
 
 **[이미지 패널 활용 및 인물/사물 ID 규칙]**
 1. 제공된 이미지들은 망가(만화) 패널들입니다. 총 ${totalPanels}개의 패널이 제공됩니다 (0-indexed로 referenceImageIndex 사용).
@@ -194,7 +190,7 @@ export async function POST(request: NextRequest) {
 4. 분석된 내용을 콘티의 'dialogue', 'sfx', 'imagePrompt' 등에 적극적으로 반영하세요.
 
 **[CRITICAL: 필드별 언어 및 내용 규칙]**
-- **story**: 반드시 **한국어**로 작성하세요. 인물/사물 ID를 사용하여 상황을 설명하세요.
+- **story**: 반드시 **한국어**로 작성하세요. 각 클립의 story 필드에는 반드시 다음 정보를 구체적으로 포함하세요: (1) 어떤 장소/상황인지, (2) 누가(CHARACTER_ID), (3) 무슨 행동이나 발화를 했는지. 예: "KANIA가 CHENA를 붙잡으며 멈추라고 외치는 장면", "HERO_A가 홀로 폐허에 서서 주위를 둘러보는 장면". 단순히 '대화', '이동', '표정' 같은 단일 키워드만으로 표현하는 것은 금지합니다.
 - **imagePrompt**: 영어로 작성하되, **캐릭터의 의상(clothing)이나 색상(colors)은 절대 묘사하지 마세요.** (ID를 통해 캐릭터 시트에서 관리됨). 오직 구도, 동작, 인물 ID 위주로만 설명하세요.
 - **backgroundId**: 반드시 **숫자-숫자[-숫자]** 형식을 유지하세요 (예: 1-1, 4-2).
   - 첫 번째 숫자는 **장소(Location)** 고유 번호입니다. **반드시 1부터 시작**하여 새로운 장소가 나올 때마다 1씩 증가시키세요. 같은 장소라면 항상 같은 첫 번째 숫자를 사용하세요.
@@ -208,12 +204,12 @@ export async function POST(request: NextRequest) {
 - 감정은 대괄호 [] 안에 한두 단어의 핵심 단어로 요약.
 - 예시: [조심스럽게] "여기가 제 방인가요...?", [cautiously] "Is this my room...?"
 
-**[CRITICAL: 클립 길이 및 총 시간 규칙]**
+**[CRITICAL: 클립 길이 규칙]**
 - 모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.**
-- 마지막 클립의 'accumulatedTime'은 반드시 **${formatTime(totalSeconds)}**이어야 합니다.
+- 'accumulatedTime' 필드는 각 클립의 누적 시간을 MM:SS 형식으로 기록합니다 (총 시간 제한 없음).
 
 각 필드 가이드라인:
-- **story**: 규칙: ${storyCondition || '원본 텍스트의 내용을 충실히 반영하되, 애니메이션의 특성에 맞게 시각적 서사를 강화한다.'}. (한국어 필수)
+- **story**: 규칙: ${storyCondition || '원본 텍스트의 내용을 충실히 반영하되, 애니메이션의 특성에 맞게 시각적 서사를 강화한다.'}. 반드시 누가 무슨 행동을 했는지, 어떠한 장면인지 구체적으로 서술하세요. (한국어 필수)
 - **imagePrompt**: 규칙: ${imageCondition || '캐릭터의 외형적 특징을 고정한다. 샷의 앵글과 구도는 Background ID의 지침을 따른다.'}. 가이드: ${imageGuide || '없음'}. (의상/색상 묘사 금지)
 - **videoPrompt**: 규칙: ${videoCondition || '카메라 앵글과 동작 위주로 간결하게 구성한다. 캐릭터 이름 대신 대명사를 사용하세요.'}. 가이드: ${videoGuide || '없음'}.
 - **dialogue/sfx/bgm**: 규칙: ${soundCondition || '음향은 대사, 효과음, 배경음악으로 구분한다. 망가 패널의 텍스트가 있는 경우 이를 최우선으로 반영한다.'}.
@@ -241,7 +237,6 @@ ${sourceText ? `원본 텍스트:\n---\n${sourceText}\n---` : '망가 패널 이
                     story: { type: Type.STRING },
                     imagePrompt: { type: Type.STRING },
                     videoPrompt: { type: Type.STRING },
-                    soraVideoPrompt: { type: Type.STRING },
                     dialogue: { type: Type.STRING },
                     dialogueEn: { type: Type.STRING },
                     sfx: { type: Type.STRING },
@@ -261,7 +256,6 @@ ${sourceText ? `원본 텍스트:\n---\n${sourceText}\n---` : '망가 패널 이
                     "story",
                     "imagePrompt",
                     "videoPrompt",
-                    "soraVideoPrompt",
                     "dialogue",
                     "dialogueEn",
                     "sfx",

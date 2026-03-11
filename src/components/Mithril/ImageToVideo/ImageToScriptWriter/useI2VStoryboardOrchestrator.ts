@@ -14,7 +14,6 @@ interface SubmitI2VStoryboardParams {
   panelUrls: string[];
   panelLabels: string[];
   sourceText?: string;
-  targetDuration?: string;
   // Conditions
   storyCondition?: string;
   imageCondition?: string;
@@ -170,7 +169,6 @@ export function useI2VStoryboardOrchestrator({
           panelUrls: params.panelUrls,
           panelLabels: params.panelLabels,
           sourceText: params.sourceText,
-          targetDuration: params.targetDuration,
           // Conditions
           storyCondition: params.storyCondition,
           imageCondition: params.imageCondition,

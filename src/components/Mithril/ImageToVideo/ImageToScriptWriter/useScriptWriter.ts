@@ -134,10 +134,6 @@ export function useScriptWriter() {
         }
 
         // Load config from meta
-        dispatch({
-          type: 'SET_TARGET_DURATION',
-          duration: meta.targetDuration || '03:00',
-        });
         if (meta.sourceText) {
           dispatch({ type: 'SET_SOURCE_TEXT', text: meta.sourceText });
         }
@@ -484,10 +480,6 @@ export function useScriptWriter() {
     dispatch({ type: 'SET_GENRE', genre });
   }, []);
 
-  const setTargetDuration = useCallback((duration: string) => {
-    dispatch({ type: 'SET_TARGET_DURATION', duration });
-  }, []);
-
   const setSourceText = useCallback((text: string) => {
     dispatch({ type: 'SET_SOURCE_TEXT', text });
   }, []);
@@ -522,7 +514,7 @@ export function useScriptWriter() {
   ) => {
     // Save metadata (Firestore doesn't accept undefined, use empty string or omit)
     await saveI2VScriptMeta(projectId, {
-      targetDuration: config.targetDuration,
+      targetDuration: '',
       sourceText: config.sourceText || '',
       storyCondition: config.conditions.story || '',
       imageCondition: config.conditions.image || '',
@@ -619,7 +611,6 @@ export function useScriptWriter() {
         panelUrls,
         panelLabels,
         sourceText: currentState.config.sourceText || undefined,
-        targetDuration: currentState.config.targetDuration,
         storyCondition: currentState.config.conditions.story,
         imageCondition: currentState.config.conditions.image,
         videoCondition: currentState.config.conditions.video,
@@ -859,7 +850,6 @@ export function useScriptWriter() {
         'Image Prompt (Start)',
         ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
         'Video Prompt',
-        'Sora Video Prompt',
         'Dialogue (Ko)',
         'Dialogue (En)',
         'SFX (Ko)',
@@ -890,7 +880,6 @@ export function useScriptWriter() {
 
           row.push(
             escapeCSV(clip.videoPrompt),
-            escapeCSV(clip.soraVideoPrompt),
             escapeCSV(clip.dialogue),
             escapeCSV(clip.dialogueEn),
             escapeCSV(clip.sfx),
@@ -941,7 +930,6 @@ export function useScriptWriter() {
 
     // Actions - Config
     setGenre,
-    setTargetDuration,
     setSourceText,
     setConditions,
     setGuides,

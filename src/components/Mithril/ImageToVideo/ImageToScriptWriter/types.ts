@@ -75,7 +75,6 @@ export interface GenerationInstructions {
 // Configuration state
 export interface ScriptWriterConfig {
   genre: string;
-  targetDuration: string;
   sourceText: string;
   conditions: GenerationConditions;
   guides: StyleGuides;

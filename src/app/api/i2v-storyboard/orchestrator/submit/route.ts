@@ -11,7 +11,6 @@ interface I2VStoryboardSubmitRequest {
   panelUrls: string[];
   panelLabels: string[];
   sourceText?: string;
-  targetDuration?: string;
   // Conditions
   storyCondition?: string;
   imageCondition?: string;
@@ -55,7 +54,6 @@ export async function POST(request: NextRequest) {
       panel_urls: body.panelUrls,
       panel_labels: body.panelLabels || [],
       source_text: body.sourceText || "",
-      target_duration: body.targetDuration || "03:00",
       // Conditions
       story_condition: body.storyCondition || "",
       image_condition: body.imageCondition || "",

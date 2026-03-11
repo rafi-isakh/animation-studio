@@ -98,10 +98,10 @@ export default function PanelEditor() {
           : originalName;
 
       // Ensure unique filenames in zip
-      let fileName = `${baseName}-edited.png`;
+      let fileName = `${baseName}-edited.jpg`;
       let counter = 1;
       while (usedNames.has(fileName)) {
-        fileName = `${baseName}-edited-${counter}.png`;
+        fileName = `${baseName}-edited-${counter}.jpg`;
         counter++;
       }
       usedNames.add(fileName);

@@ -15,7 +15,7 @@ interface StoryboardTableProps {
 // Flattened row types for pagination
 type RowItem =
   | { type: 'scene-header'; sceneTitle: string; sceneIndex: number }
-  | { type: 'clip'; sceneIndex: number; clipIndex: number; clip: Continuity; isNewBg: boolean; prevBgPrompt?: string };
+  | { type: 'clip'; sceneIndex: number; clipIndex: number; globalClipIndex: number; clip: Continuity; isNewBg: boolean; prevBgPrompt?: string };
 
 const ITEMS_PER_PAGE = 20;
 
@@ -36,6 +36,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
   // Flatten data for pagination
   const flatRows = useMemo(() => {
     const rows: RowItem[] = [];
+    let globalClipCounter = 1;
     data.forEach((scene, sIdx) => {
       rows.push({ type: 'scene-header', sceneTitle: scene.sceneTitle, sceneIndex: sIdx });
       scene.clips.forEach((clip, cIdx) => {
@@ -45,6 +46,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
           type: 'clip',
           sceneIndex: sIdx,
           clipIndex: cIdx,
+          globalClipIndex: globalClipCounter++,
           clip,
           isNewBg,
           prevBgPrompt: prevClip?.backgroundPrompt
@@ -166,7 +168,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                 );
               }
 
-              const { sceneIndex, clipIndex, clip, isNewBg } = row;
+              const { sceneIndex, clipIndex, globalClipIndex, clip, isNewBg } = row;
 
               return (
                 <React.Fragment key={`c-${sceneIndex}-${clipIndex}`}>
@@ -178,7 +180,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                     </tr>
                   )}
                   <tr className="hover:bg-gray-800/50 group">
-                    <td className="px-3 py-3 text-[11px] font-mono text-gray-500 text-center border-r border-gray-800">{`${sceneIndex + 1}.${clipIndex + 1}`}</td>
+                    <td className="px-3 py-3 text-[11px] font-mono text-gray-500 text-center border-r border-gray-800">{String(globalClipIndex).padStart(3, '0')}</td>
                     <td className="px-3 py-3 text-[11px] text-gray-400 text-center border-r border-gray-800">{clip.length}</td>
                     <td className="px-3 py-3 text-[11px] text-gray-400 text-center border-r border-gray-800">{clip.accumulatedTime}</td>
                     <td className="px-3 py-3 text-[11px] text-cyan-600 font-mono text-center border-r border-gray-800">{clip.backgroundId}</td>

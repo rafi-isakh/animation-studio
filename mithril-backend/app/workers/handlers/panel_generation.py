@@ -105,7 +105,7 @@ async def _generate_panel_image_gemini(
     from google.genai import types
 
     client = genai.Client(api_key=api_key)
-    model = "gemini-2.0-flash-exp-image-generation"
+    model = "gemini-3-pro-image-preview"
 
     contents = [
         types.Part.from_bytes(
@@ -131,6 +131,46 @@ async def _generate_panel_image_gemini(
                 return part.inline_data.data
 
     raise VideoJobError.provider_error("No image data found in Gemini response")
+
+
+async def _generate_panel_image_gemini_flash(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using Gemini 3.1 Flash Image Preview API."""
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=api_key)
+    model = "gemini-3.1-flash-image-preview"
+
+    contents = [
+        types.Part.from_bytes(
+            data=base64.b64decode(image_base64),
+            mime_type=mime_type,
+        ),
+        types.Part.from_text(text=prompt),
+    ]
+
+    generate_config = types.GenerateContentConfig(
+        response_modalities=["IMAGE", "TEXT"],
+    )
+
+    response = await client.aio.models.generate_content(
+        model=model,
+        contents=contents,
+        config=generate_config,
+    )
+
+    if response.candidates and response.candidates[0].content and response.candidates[0].content.parts:
+        for part in response.candidates[0].content.parts:
+            if part.inline_data and part.inline_data.data:
+                return part.inline_data.data
+
+    raise VideoJobError.provider_error("No image data found in Gemini Flash response")
 
 
 async def _generate_panel_image_grok(
@@ -243,6 +283,8 @@ async def generate_panel_image_for_provider(
         return await _generate_panel_image_z_image_turbo(image_base64, mime_type, prompt, aspect_ratio, api_key)
     if provider_id == "flux2_dev":
         return await _generate_panel_image_flux2_dev(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    if provider_id == "gemini_flash":
+        return await _generate_panel_image_gemini_flash(image_base64, mime_type, prompt, aspect_ratio, api_key)
     return await _generate_panel_image_gemini(image_base64, mime_type, prompt, aspect_ratio, api_key)
 
 

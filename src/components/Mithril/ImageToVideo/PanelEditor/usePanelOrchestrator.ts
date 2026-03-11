@@ -19,7 +19,7 @@ interface SubmitPanelJobParams {
   targetAspectRatio: AspectRatio;
   refinementMode: 'default' | 'zoom' | 'expand';
   apiKey?: string;
-  provider?: 'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev';
+  provider?: 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev';
 }
 
 interface CancelJobParams {

@@ -85,6 +85,20 @@ def _format_time(seconds: int) -> str:
     return f"{str(mins).zfill(2)}:{str(secs).zfill(2)}"
 
 
+def _extract_required_clip_count(text: str) -> int | None:
+    """Parse the required clip count from the beginning of the source text.
+    Looks for a number followed by 개/클립/패널/panels/clips in the first 800 chars.
+    """
+    import re
+    if not text:
+        return None
+    prefix = text[:800]
+    match = re.search(r'(\d+)\s*(?:개|클립|패널|panels?|clips?)', prefix, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    return None
+
+
 async def _download_panel_images(panel_urls: list[str]) -> list[bytes]:
     """Download panel images from S3 URLs."""
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -275,9 +289,8 @@ async def _generate_i2v_storyboard_with_gemini(
     client = genai.Client(api_key=api_key)
 
     # Parse target duration
-    target_duration = job.target_duration or "03:00"
-    total_seconds = _parse_duration(target_duration)
     total_panels = len(panel_images)
+    required_clip_count = _extract_required_clip_count(job.source_text or '') or total_panels
 
     # Build conditions
     story_condition = job.story_condition or "원본 텍스트의 내용을 충실히 반영하되, 애니메이션의 특성에 맞게 시각적 서사를 강화한다."
@@ -306,8 +319,14 @@ async def _generate_i2v_storyboard_with_gemini(
         else "망가 패널 이미지를 기반으로 스토리를 구성하세요."
     )
     prompt = f"""
-다음 원본 텍스트와 제공된 망가 패널 이미지들을 기반으로 총 5개의 '씬'으로 구성된, **정확히 {_format_time(total_seconds)} ({total_seconds}초)** 분량의 애니메이션 콘티를 제작해 주세요.
-전체 누적 시간이 반드시 {_format_time(total_seconds)}이 되도록 설계해야 합니다.
+다음 원본 텍스트와 제공된 망가 패널 이미지들을 기반으로 애니메이션 콘티를 제작해 주세요.
+
+**[CRITICAL: 패널 변환 규칙 — 가장 중요한 규칙]**
+제공된 **모든 {total_panels}개의 패널 각각에 대해 반드시 최소 하나의 클립을 생성해야 합니다.** 어떠한 패널도 건너뛰거나 생략해서는 안 됩니다. 런닝타임이나 시간 제한 없이, 총 클립 수는 패널 수 이상이어야 합니다. 클립 수를 임의로 줄이거나 패널을 통합하여 누락시키는 것은 절대 금지입니다.
+
+**[CRITICAL: 정확한 총 클립 수 (절대 준수)]**
+원본 텍스트 초반에 명시된 총 출력 클립/패널 수: **{required_clip_count}개**
+총 클립 수는 반드시 정확히 **{required_clip_count}개**이어야 합니다. 하나도 더 만들거나 덜 만들어서는 절대 안 됩니다. 패널을 임의로 합치거나 건너뛰어서 클립 수를 줄이는 것은 금지입니다.
 
 **[이미지 패널 활용 및 인물/사물 ID 규칙]**
 1. 제공된 이미지들은 망가(만화) 패널들입니다. 총 {total_panels}개의 패널이 제공됩니다 (0-indexed로 referenceImageIndex 사용).
@@ -323,7 +342,7 @@ async def _generate_i2v_storyboard_with_gemini(
 4. 분석된 내용을 콘티의 'dialogue', 'sfx', 'imagePrompt' 등에 적극적으로 반영하세요.
 
 **[CRITICAL: 필드별 언어 및 내용 규칙]**
-- **story**: 반드시 **한국어**로 작성하세요. 인물/사물 ID를 사용하여 상황을 설명하세요.
+- **story**: 반드시 **한국어**로 작성하세요. 각 클립의 story 필드에는 반드시 다음 정보를 구체적으로 포함하세요: (1) 어떤 장소/상황인지, (2) 누가(CHARACTER_ID), (3) 무슨 행동이나 발화를 했는지. 예: "KANIA가 CHENA를 붙잡으며 멈추라고 외치는 장면", "HERO_A가 홀로 폐허에 서서 주위를 둘러보는 장면". 단순히 '대화', '이동', '표정' 같은 단일 키워드만으로 표현하는 것은 금지합니다.
 - **imagePrompt**: 영어로 작성하되, **캐릭터의 의상(clothing)이나 색상(colors)은 절대 묘사하지 마세요.** (ID를 통해 캐릭터 시트에서 관리됨). 오직 구도, 동작, 인물 ID 위주로만 설명하세요.
 - **backgroundId**: 반드시 **숫자-숫자[-숫자]** 형식을 유지하세요 (예: 1-1, 4-2).
   - 첫 번째 숫자는 **장소(Location)** 고유 번호입니다. **반드시 1부터 시작**하여 새로운 장소가 나올 때마다 1씩 증가시키세요. 같은 장소라면 항상 같은 첫 번째 숫자를 사용하세요.
@@ -337,9 +356,9 @@ async def _generate_i2v_storyboard_with_gemini(
 - 감정은 대괄호 [] 안에 한두 단어의 핵심 단어로 요약.
 - 예시: [조심스럽게] "여기가 제 방인가요...?", [cautiously] "Is this my room...?"
 
-**[CRITICAL: 클립 길이 및 총 시간 규칙]**
+**[CRITICAL: 클립 길이 규칙]**
 - 모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.**
-- 마지막 클립의 'accumulatedTime'은 반드시 **{_format_time(total_seconds)}**이어야 합니다.
+- 'accumulatedTime' 필드는 각 클립의 누적 시간을 MM:SS 형식으로 기록합니다 (총 시간 제한 없음).
 
 **[CRITICAL: 비디오 프롬프트 발화 규칙]**
 - 클립에 대사(dialogue)가 존재하거나 캐릭터가 말하는 상황이라면, `videoPrompt`에 반드시 해당 캐릭터가 말하는 동작(speaks, yells, shouts, whispers 등)을 포함하십시오.
@@ -360,7 +379,7 @@ async def _generate_i2v_storyboard_with_gemini(
 - 위 목록에 명시된 모든 요소는 모든 칼럼에서 무조건 제외하십시오.
 
 각 필드 가이드라인:
-- **story**: 규칙: {story_condition}. (한국어 필수)
+- **story**: 규칙: {story_condition}. 반드시 누가 무슨 행동을 했는지, 어떠한 장면인지 구체적으로 서술하세요. (한국어 필수)
 - **imagePrompt**: 규칙: {image_condition}. 가이드: {image_guide}. (의상/색상 묘사 금지)
 - **videoPrompt**: 규칙: {video_condition}. 가이드: {video_guide}.
 - **dialogue/sfx/bgm**: 규칙: {sound_condition}.
@@ -388,7 +407,6 @@ async def _generate_i2v_storyboard_with_gemini(
                                     "story": {"type": "STRING"},
                                     "imagePrompt": {"type": "STRING"},
                                     "videoPrompt": {"type": "STRING"},
-                                    "soraVideoPrompt": {"type": "STRING"},
                                     "dialogue": {"type": "STRING"},
                                     "dialogueEn": {"type": "STRING"},
                                     "sfx": {"type": "STRING"},
@@ -405,7 +423,7 @@ async def _generate_i2v_storyboard_with_gemini(
                                     },
                                 },
                                 "required": [
-                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt",
+                                    "story", "imagePrompt", "videoPrompt",
                                     "dialogue", "dialogueEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime",

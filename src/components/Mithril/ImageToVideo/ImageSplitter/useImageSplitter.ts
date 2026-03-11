@@ -163,6 +163,8 @@ export function useImageSplitter() {
   const [state, dispatch] = useReducer(imageSplitterReducer, initialState);
   const isLoadingRef = useRef(false);
   const processingStartTimeRef = useRef<number | null>(null);
+  // Guard against race condition: upload-time persist loop aborts if Clear All is in progress
+  const isClearingRef = useRef(false);
 
   // Track active jobs: pageId -> jobId
   const [activeJobs, setActiveJobs] = useState<Record<string, string>>({});
@@ -568,7 +570,7 @@ export function useImageSplitter() {
         const blob = await zipEntry.async('blob');
         const mimeType = getMimeType(filename);
         const file = new File([blob], filename.split('/').pop() || filename, { type: mimeType });
-        
+
         const dims = await getImageDimensions(file);
 
         extractedPages.push({
@@ -619,7 +621,7 @@ export function useImageSplitter() {
         // Handle image files
         if (file.type.startsWith('image/')) {
           const dims = await getImageDimensions(file);
-          
+
           newPages.push({
             id: generateId(),
             file,
@@ -635,10 +637,71 @@ export function useImageSplitter() {
       }
 
       if (newPages.length > 0) {
+        // Calculate starting index BEFORE dispatch so indices are stable
+        const startingIndex = stateRef.current.pages.length;
+        console.log('[ImageSplitter:upload] Starting persist. newPages:', newPages.length, 'startingIndex:', startingIndex, 'isClearingRef:', isClearingRef.current);
+
         dispatch({ type: 'ADD_PAGES', pages: newPages });
+
+        // Persist images to S3 + Firestore immediately on upload
+        if (currentProjectId) {
+          try {
+            // Save/create meta so pages survive a page refresh before Auto-Detect
+            const totalPages = startingIndex + newPages.length;
+            console.log('[ImageSplitter:upload] Saving meta. totalPages:', totalPages);
+            await saveImageSplitterMeta(
+              currentProjectId,
+              state.readingDirection,
+              totalPages,
+              0 // panels not yet analyzed
+            );
+            console.log('[ImageSplitter:upload] Meta saved.');
+          } catch (error) {
+            console.error('[ImageSplitter:upload] Failed to save meta:', error);
+          }
+
+          for (let i = 0; i < newPages.length; i++) {
+            const page = newPages[i];
+            if (!page.file) { console.log('[ImageSplitter:upload] Skipping page (no file):', page.id); continue; }
+            // Abort if Clear All was triggered while this loop is running
+            if (isClearingRef.current) {
+              console.log('[ImageSplitter:upload] ABORTED by isClearingRef at i:', i);
+              break;
+            }
+            const pageIndex = startingIndex + i;
+            console.log(`[ImageSplitter:upload] Persisting page ${i} → pageIndex ${pageIndex} (${page.fileName})`);
+
+            try {
+              // Compress and upload to S3
+              const base64Image = await compressImage(page.file, 1500, 0.8);
+              const imageUrl = await uploadI2VPageImage(currentProjectId, pageIndex, base64Image, 'image/jpeg');
+              console.log(`[ImageSplitter:upload] S3 upload done for pageIndex ${pageIndex}:`, imageUrl);
+
+              // Save page to Firestore with status 'pending'
+              await saveMangaPage(currentProjectId, pageIndex, {
+                fileName: page.fileName,
+                imageRef: imageUrl,
+                readingDirection: page.readingDirection,
+                status: 'pending',
+                originalPageId: page.id,
+                width: page.width,
+                height: page.height,
+              });
+              console.log(`[ImageSplitter:upload] Firestore saved for pageIndex ${pageIndex}`);
+
+              // Store pageIndex in local state for later reference
+              dispatch({ type: 'SET_PAGE_INDEX', id: page.id, pageIndex });
+            } catch (error) {
+              console.error(`[ImageSplitter:upload] Failed to persist page at index ${pageIndex}:`, error);
+            }
+          }
+          console.log('[ImageSplitter:upload] Persist loop done. isClearingRef:', isClearingRef.current);
+        } else {
+          console.log('[ImageSplitter:upload] No projectId — skipping persist.');
+        }
       }
     },
-    [state.readingDirection, extractImagesFromZip]
+    [state.readingDirection, extractImagesFromZip, currentProjectId]
   );
 
   // Start processing all pending/error pages via orchestrator
@@ -666,18 +729,23 @@ export function useImageSplitter() {
 
     for (let i = 0; i < pendingPages.length; i++) {
       const page = pendingPages[i];
-      if (!page.file) {
-        console.warn(`Page ${page.id} has no file, skipping`);
-        continue;
-      }
+      const pageIndex = page.pageIndex ?? stateRef.current.pages.findIndex((p) => p.id === page.id);
 
       try {
-        // Compress image (1500px max width, 80% quality)
-        const base64Image = await compressImage(page.file, 1500, 0.8);
-        const pageIndex = stateRef.current.pages.findIndex((p) => p.id === page.id);
+        let imageUrl: string;
 
-        // Upload to S3 first — returns a CloudFront URL
-        const imageUrl = await uploadI2VPageImage(currentProjectId!, pageIndex, base64Image, 'image/jpeg');
+        if (page.file) {
+          // Local file available — compress and upload to S3 (upload-time persist may have already done this,
+          // but re-uploading to the same key is safe and ensures the job gets the freshest version)
+          const base64Image = await compressImage(page.file, 1500, 0.8);
+          imageUrl = await uploadI2VPageImage(currentProjectId!, pageIndex, base64Image, 'image/jpeg');
+        } else if (page.previewUrl && (page.previewUrl.startsWith('http://') || page.previewUrl.startsWith('https://'))) {
+          // Page was loaded from Firestore (no local File) — reuse the already-stored S3 URL
+          imageUrl = page.previewUrl.split('?')[0]; // strip cache-buster query param
+        } else {
+          console.warn(`Page ${page.id} has no file and no S3 URL, skipping`);
+          continue;
+        }
 
         pagesToSubmit.push({
           pageId: page.id,
@@ -835,6 +903,10 @@ export function useImageSplitter() {
 
   // Clear all data
   const clear = useCallback(async () => {
+    // Signal any in-flight upload-time persist loop to stop
+    console.log('[ImageSplitter:clear] Called. Setting isClearingRef=true');
+    isClearingRef.current = true;
+
     // Revoke all blob URLs
     stateRef.current.pages.forEach((page) => {
       if (page.previewUrl?.startsWith('blob:')) {
@@ -843,18 +915,34 @@ export function useImageSplitter() {
     });
 
     dispatch({ type: 'RESET' });
+    console.log('[ImageSplitter:clear] State reset. Starting S3+Firestore deletion...');
 
-    // Clear from Firestore and S3
+    // Clear from Firestore and S3 — run independently so S3 failure doesn't block Firestore
     if (currentProjectId) {
+      // S3 delete (best-effort — failure here must NOT prevent Firestore from being cleared)
       try {
-        // Delete all I2V images from S3
+        console.log('[ImageSplitter:clear] Calling clearAllI2VImages...');
         await clearAllI2VImages(currentProjectId);
-        // Clear Firestore data
-        await clearImageSplitter(currentProjectId);
+        console.log('[ImageSplitter:clear] S3 clear done.');
       } catch (error) {
-        console.error('Error clearing ImageSplitter from Firestore/S3:', error);
+        console.warn('[ImageSplitter:clear] S3 delete failed (non-fatal, continuing with Firestore clear):', error);
       }
+
+      // Firestore delete — always run regardless of S3 result
+      try {
+        console.log('[ImageSplitter:clear] Calling clearImageSplitter...');
+        await clearImageSplitter(currentProjectId);
+        console.log('[ImageSplitter:clear] Firestore clear done.');
+      } catch (error) {
+        console.error('[ImageSplitter:clear] Firestore clear failed:', error);
+      }
+    } else {
+      console.log('[ImageSplitter:clear] No projectId — skipped Firestore/S3 delete.');
     }
+
+    // Reset the clearing flag so subsequent uploads persist correctly
+    console.log('[ImageSplitter:clear] Done. Resetting isClearingRef=false');
+    isClearingRef.current = false;
   }, [currentProjectId]);
 
   // Set reading direction
@@ -966,33 +1054,30 @@ export function useImageSplitter() {
       url.includes('s3.ap-northeast-2.amazonaws.com') ||
       url.includes('cloudfront.net');
 
+    // Calculate total panel count across all completed pages
+    const totalPanelCount = completedPages.reduce((acc, p) => acc + p.panels.length, 0);
+
     // Collect storyboard scripts for export
     const scriptLines: string[] = [];
-    scriptLines.push('='.repeat(80));
-    scriptLines.push('MANGA STORYBOARD SCRIPT');
-    scriptLines.push('Generated by Toonyz Mithril');
-    scriptLines.push(`Exported: ${new Date().toLocaleString()}`);
-    scriptLines.push('='.repeat(80));
+    // Notice header (required)
+    scriptLines.push(`총 분석된 패널 수: ${totalPanelCount}개`);
+    scriptLines.push('**스크립트 생성기 는 해당 패널수를 엄격히 준수하여 만들어내지말고 패널별로 총 갯수 맞춰 생성해야 함.');
     scriptLines.push('');
+
+    // Global panel counter (001, 002, 003, ...)
+    let globalPanelCounter = 0;
 
     for (let pageIdx = 0; pageIdx < completedPages.length; pageIdx++) {
       const page = completedPages[pageIdx];
-      const baseName = page.fileName.replace(/\.[^/.]+$/, '');
-
-      // Add page header to script
-      scriptLines.push('─'.repeat(80));
-      scriptLines.push(`PAGE ${pageIdx + 1}: ${page.fileName}`);
-      scriptLines.push(`Reading Direction: ${page.readingDirection === 'rtl' ? 'Right-to-Left' : 'Left-to-Right'}`);
-      scriptLines.push(`Total Panels: ${page.panels.length}`);
-      scriptLines.push('─'.repeat(80));
-      scriptLines.push('');
 
       for (let idx = 0; idx < page.panels.length; idx++) {
         const panel = page.panels[idx];
-        const filename = `${baseName}_panel_${String(idx + 1).padStart(2, '0')}.jpg`;
+        globalPanelCounter++;
+        const panelLabel = String(globalPanelCounter).padStart(3, '0');
+        const filename = `${panelLabel}.jpg`;
 
-        // Add panel info to script
-        scriptLines.push(`[PANEL ${idx + 1}] (${filename})`);
+        // Add panel info to script (no page filename, no per-page metadata)
+        scriptLines.push(`[PANEL ${panelLabel}]`);
         if (panel.storyboard?.text) {
           scriptLines.push(panel.storyboard.text);
         } else {
@@ -1043,14 +1128,9 @@ export function useImageSplitter() {
           console.error(`Failed to add panel ${idx} from ${page.fileName} to ZIP:`, error);
         }
       }
-
-      scriptLines.push('');
     }
 
     // Add storyboard script text file to ZIP
-    scriptLines.push('='.repeat(80));
-    scriptLines.push('END OF STORYBOARD SCRIPT');
-    scriptLines.push('='.repeat(80));
     const scriptContent = scriptLines.join('\n');
     zip.file('storyboard_script.txt', scriptContent);
 

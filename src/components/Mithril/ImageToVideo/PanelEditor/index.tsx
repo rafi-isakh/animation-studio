@@ -88,22 +88,10 @@ export default function PanelEditor() {
     const zip = new JSZip();
     const usedNames = new Set<string>();
 
-    for (const panel of successfulPanels) {
-      // Logic to preserve original filename
-      let originalName = panel.fileName;
-      const lastDotIndex = originalName.lastIndexOf('.');
-      let baseName =
-        lastDotIndex !== -1
-          ? originalName.substring(0, lastDotIndex)
-          : originalName;
-
-      // Ensure unique filenames in zip
-      let fileName = `${baseName}-edited.jpg`;
-      let counter = 1;
-      while (usedNames.has(fileName)) {
-        fileName = `${baseName}-edited-${counter}.jpg`;
-        counter++;
-      }
+    for (let i = 0; i < successfulPanels.length; i++) {
+      const panel = successfulPanels[i];
+      const globalIndex = panels.indexOf(panel);
+      const fileName = `${String(globalIndex + 1).padStart(3, '0')}.jpg`;
       usedNames.add(fileName);
 
       // resultUrl can be data:image/png;base64,..., blob:, or https:// (S3)
@@ -327,10 +315,11 @@ export default function PanelEditor() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
-            {panels.map((panel) => (
+            {panels.map((panel, index) => (
               <PanelCard
                 key={panel.id}
                 panel={panel}
+                index={index}
                 onRemove={removePanel}
                 onRetry={retryPanel}
                 onRefine={refinePanel}

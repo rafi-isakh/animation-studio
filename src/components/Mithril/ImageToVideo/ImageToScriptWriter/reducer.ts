@@ -12,7 +12,6 @@ import { GENRE_PRESETS } from './constants';
 export type ScriptWriterAction =
   // Config actions
   | { type: 'SET_GENRE'; genre: string }
-  | { type: 'SET_TARGET_DURATION'; duration: string }
   | { type: 'SET_SOURCE_TEXT'; text: string }
   | { type: 'SET_CONDITIONS'; conditions: Partial<GenerationConditions> }
   | { type: 'SET_GUIDES'; guides: Partial<StyleGuides> }
@@ -42,7 +41,6 @@ const defaultPreset = GENRE_PRESETS[0];
 export const initialState: ScriptWriterState = {
   config: {
     genre: defaultPreset.id,
-    targetDuration: '03:00',
     sourceText: '',
     conditions: {
       story: defaultPreset.story,
@@ -103,12 +101,6 @@ export function scriptWriterReducer(
         config: { ...state.config, genre: action.genre },
       };
     }
-
-    case 'SET_TARGET_DURATION':
-      return {
-        ...state,
-        config: { ...state.config, targetDuration: action.duration },
-      };
 
     case 'SET_SOURCE_TEXT':
       return {

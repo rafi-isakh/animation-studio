@@ -27,7 +27,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
     "Clip", "Length", "Acc. Time", "BG ID", "Reference", "Story",
     "Image Prompt (Start)",
     ...(hasEndPrompt ? ["Image Prompt (End)"] : []),
-    "Video Prompt", "Sora Video Prompt",
+    "Video Prompt",
     "Dialogue (Ko)", "Dialogue (En)",
     "SFX (Ko)", "SFX (En)",
     "BGM (Ko)", "BGM (En)"
@@ -238,7 +238,6 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                     <td className="px-3 py-3 text-[11px] text-gray-500 italic min-w-[180px] border-r border-gray-800">{clip.imagePrompt}</td>
                     {hasEndPrompt && <td className="px-3 py-3 text-[11px] text-orange-400/80 italic min-w-[180px] border-r border-gray-800">{clip.imagePromptEnd || "-"}</td>}
                     <td className="px-3 py-3 text-[11px] text-gray-500 min-w-[180px] border-r border-gray-800">{clip.videoPrompt}</td>
-                    <td className="px-3 py-3 text-[11px] text-blue-400/80 min-w-[180px] border-r border-gray-800 font-mono text-[10px]">{clip.soraVideoPrompt}</td>
                     <td className="px-3 py-3 text-[12px] text-gray-200 min-w-[120px] border-r border-gray-800">{clip.dialogue}</td>
                     <td className="px-3 py-3 text-[11px] text-gray-400 min-w-[120px] border-r border-gray-800 italic">{clip.dialogueEn}</td>
                     <td className="px-3 py-3 text-[11px] text-orange-200/60 min-w-[100px] border-r border-gray-800">{clip.sfx}</td>

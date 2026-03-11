@@ -22,6 +22,7 @@ import {
   deleteI2VPanelImage,
   clearAllI2VImages,
   uploadI2VPageImage,
+  uploadI2VPanelImage,
 } from '../../services/s3/images';
 import { compressImage } from '../ImageToScriptWriter/utils/imageCompression';
 import { usePanelSplitterOrchestrator, PanelSplitterJobUpdate } from './usePanelSplitterOrchestrator';
@@ -156,7 +157,7 @@ function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus
 }
 
 export function useImageSplitter() {
-  const { setStageResult, currentProjectId, customApiKey, projectType } = useMithril();
+  const { setStageResult, currentProjectId, customApiKey, projectType, notifySplitterCropSaved } = useMithril();
   const isNsfw = projectType ? (projectType as string).includes('nsfw') : false;
   const { toast } = useToast();
   const [state, dispatch] = useReducer(imageSplitterReducer, initialState);
@@ -1143,6 +1144,65 @@ export function useImageSplitter() {
     dispatch({ type: 'UPDATE_PANEL', pageId: state.activePageId, panelId, panel: updates });
   }, [state.activePageId]);
 
+  // Re-crop a panel's imageUrl from source using its current box_2d,
+  // upload the result to S3 (overwriting the old panel image) and persist
+  // the new imageRef to Firestore so PanelEditor picks up the change.
+  const cropAndUpdatePanelImage = useCallback(async (panelId: string) => {
+    const page = stateRef.current.pages.find(p => p.id === stateRef.current.activePageId);
+    if (!page || !page.previewUrl || !page.width || !page.height) return;
+
+    const panelIndex = page.panels.findIndex(p => p.id === panelId);
+    if (panelIndex === -1) return;
+    const panel = page.panels[panelIndex];
+
+    try {
+      // 1. Crop from the full source image using the current box_2d
+      const croppedBase64 = await cropPanelFromSource(
+        page.previewUrl,
+        panel.box_2d,
+        page.width,
+        page.height
+      );
+
+      // 2. Strip the data-URL prefix to get raw base64
+      const base64 = croppedBase64.includes(',') ? croppedBase64.split(',')[1] : croppedBase64;
+
+      // 3. Update in-memory imageUrl immediately for instant UI feedback
+      dispatch({ type: 'UPDATE_PANEL', pageId: page.id, panelId, panel: { imageUrl: croppedBase64 } });
+
+      // 4. Upload to S3 and persist to Firestore (if the page has been saved)
+      if (currentProjectId && page.pageIndex !== undefined) {
+        console.log('[CropDebug] Uploading cropped image to S3:', { pageIndex: page.pageIndex, panelIndex, currentProjectId });
+        const s3Url = await uploadI2VPanelImage(
+          currentProjectId,
+          page.pageIndex,
+          panelIndex,
+          base64,
+          'image/jpeg'
+        );
+        console.log('[CropDebug] S3 upload complete. New URL:', s3Url);
+
+        // Update in-memory imageUrl with the canonical S3 URL
+        dispatch({ type: 'UPDATE_PANEL', pageId: page.id, panelId, panel: { imageUrl: s3Url } });
+
+        // Notify PanelEditor so it can refresh the workspace panel in-place
+        console.log('[CropDebug] Calling notifySplitterCropSaved with:', { pageIndex: page.pageIndex, panelIndex, s3Url });
+        notifySplitterCropSaved(page.pageIndex, panelIndex, s3Url);
+
+        // Persist updated imageRef + box_2d to Firestore
+        console.log('[CropDebug] Persisting updated imageRef to Firestore...');
+        await saveMangaPanel(currentProjectId, page.pageIndex, panelIndex, {
+          box_2d: panel.box_2d,
+          label: panel.label || '',
+          imageRef: s3Url,
+          storyboard: panel.storyboard,
+        });
+      }
+    } catch (error) {
+      console.error('[ImageSplitter] Failed to re-crop panel image:', error);
+    }
+  }, [cropPanelFromSource, currentProjectId, notifySplitterCropSaved]);
+
   // Update panel storyboard
   const updatePanelStoryboard = useCallback((panelId: string, text: string) => {
     if (!state.activePageId) return;
@@ -1459,6 +1519,7 @@ export function useImageSplitter() {
     addPanel,
     deletePanel,
     updatePanel,
+    cropAndUpdatePanelImage,
     updatePanelStoryboard,
     applyPaddingToActivePage,
     downloadZip,

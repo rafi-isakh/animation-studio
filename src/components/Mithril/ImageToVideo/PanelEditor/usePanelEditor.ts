@@ -40,7 +40,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   const sessionIdRef = useRef<string>('');
 
   // Use the global API key from MithrilContext (same field shown in the top-right key input)
-  const { customApiKey } = useMithril();
+  const { customApiKey, splitterCropUpdates } = useMithril();
 
   // Provider selection
   const [provider, setProvider] = useState<'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev'>('gemini');
@@ -196,7 +196,83 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     loadSplitterPanels();
   }, [projectId]);
 
-  // ── Persist panel to Firestore + upload original to S3 (background) ──
+  // ── Refresh workspace panels when ImageSplitter saves a re-crop ──────
+  const processedCropTsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    console.log('[CropDebug] PanelEditor crop effect triggered. splitterCropUpdates.length:', splitterCropUpdates.length, '| isLoadingPanels:', isLoadingPanels, '| isMounted:', isMountedRef.current, '| panelCount:', stateRef.current.panels.length);
+    // Wait until panels have finished loading from Firestore before processing
+    if (!splitterCropUpdates.length || !isMountedRef.current || isLoadingPanels) return;
+
+    const process = async () => {
+      for (const update of splitterCropUpdates) {
+        if (processedCropTsRef.current.has(update.ts)) {
+          console.log('[CropDebug] Skipping already-processed event ts:', update.ts);
+          continue;
+        }
+        console.log('[CropDebug] Processing crop event:', update);
+
+        // If panels haven't loaded yet, skip without marking as processed so we retry
+        if (stateRef.current.panels.length === 0) {
+          console.warn('[CropDebug] Panels not loaded yet, will retry on next effect trigger.');
+          continue;
+        }
+
+        // Mark as processed only once we have panels to match against
+        processedCropTsRef.current.add(update.ts);
+
+        // Find workspace panels by filename (page{N}_panel{N}.*) — more reliable
+        // than matching by URL since originalImageRef may be CloudFront while
+        // the crop event carries a direct S3 URL for the same object.
+        const expectedFilePrefix = `page${update.pageIndex + 1}_panel${update.panelIndex + 1}.`;
+        const allRefs = stateRef.current.panels.map(p => ({ id: p.id, fileName: p.fileName, originalImageRef: p.originalImageRef }));
+        console.log('[CropDebug] Current workspace panels:', allRefs);
+        console.log('[CropDebug] Looking for fileName prefix:', expectedFilePrefix);
+
+        const matches = stateRef.current.panels.filter(
+          (p) => p.fileName.startsWith(expectedFilePrefix)
+        );
+        console.log('[CropDebug] Matching panels:', matches.map(p => p.id));
+        if (matches.length === 0) {
+          console.warn('[CropDebug] No workspace panel matched fileName prefix:', expectedFilePrefix);
+          continue;
+        }
+
+        try {
+          // Re-fetch the new cropped image through S3 proxy
+          const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(update.s3Url)}&t=${update.ts}`;
+          console.log('[CropDebug] Fetching fresh image via proxy:', proxyUrl);
+          const response = await fetch(proxyUrl);
+          console.log('[CropDebug] Proxy response status:', response.status, response.ok);
+          if (!response.ok) continue;
+
+          const blob = await response.blob();
+          const mimeType = blob.type || 'image/jpeg';
+
+          for (const panel of matches) {
+            if (!isMountedRef.current) return;
+            // Revoke stale blob URL
+            if (panel.previewUrl?.startsWith('blob:')) {
+              URL.revokeObjectURL(panel.previewUrl);
+            }
+            const newFile = new File([blob], panel.fileName, { type: mimeType });
+            const newPreviewUrl = URL.createObjectURL(newFile);
+            console.log('[CropDebug] Dispatching UPDATE_PANEL for panel:', panel.id);
+            dispatch({
+              type: 'UPDATE_PANEL',
+              id: panel.id,
+              updates: { file: newFile, previewUrl: newPreviewUrl },
+            });
+          }
+        } catch (err) {
+          console.error('[CropDebug] Proxy fetch failed:', err);
+        }
+      }
+    };
+
+    process();
+  // isLoadingPanels in deps: when Firestore load completes, re-run and process
+  // any crop events that arrived before panels were ready
+  }, [splitterCropUpdates, isLoadingPanels]);
   const persistNewPanel = useCallback(async (panel: PanelData) => {
     if (!projectId) return;
 

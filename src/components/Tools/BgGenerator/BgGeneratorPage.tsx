@@ -7,16 +7,23 @@ import { useBgGenerator } from "./hooks/useBgGenerator";
 import InputView from "./components/InputView";
 import GalleryView from "./components/GalleryView";
 import EditPromptDialog from "./components/EditPromptDialog";
+import type { WorkspaceImage } from "@/components/Tools/AnimeBgStudio/types";
 
-export default function BgGeneratorPage() {
+interface BgGeneratorPageProps {
+  embedded?: boolean;
+  onImagesReady?: (images: WorkspaceImage[]) => void;
+}
+
+export default function BgGeneratorPage({ embedded = false }: BgGeneratorPageProps) {
   const bg = useBgGenerator();
   const [showApiKey, setShowApiKey] = useState(false);
   const [showWorldLabsKey, setShowWorldLabsKey] = useState(false);
 
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-[#DB2777]/30">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-10">
+    <div className={`${embedded ? "h-full overflow-y-auto" : "min-h-screen"} bg-zinc-950 text-zinc-100 font-sans selection:bg-[#DB2777]/30`}>
+      {/* Header — hidden when embedded */}
+      {!embedded && <header className="border-b border-zinc-800 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div
             className="flex items-center gap-2 cursor-pointer"
@@ -39,7 +46,7 @@ export default function BgGeneratorPage() {
                   value={bg.apiKey}
                   onChange={(e) => bg.setApiKey(e.target.value)}
                   placeholder="Gemini API Key"
-                  className="w-40 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 pr-8 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DB2777]"
+                  className="w-40 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 pr-8 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:outline-none"
                 />
                 <button
                   onClick={() => setShowApiKey(!showApiKey)}
@@ -63,7 +70,7 @@ export default function BgGeneratorPage() {
                   value={bg.worldLabsApiKey}
                   onChange={(e) => bg.setWorldLabsApiKey(e.target.value)}
                   placeholder="WorldLabs Key"
-                  className="w-36 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 pr-8 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500"
+                  className="w-36 h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2 pr-8 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:outline-none"
                 />
                 <button
                   onClick={() => setShowWorldLabsKey(!showWorldLabsKey)}
@@ -109,7 +116,7 @@ export default function BgGeneratorPage() {
             )}
           </div>
         </div>
-      </header>
+      </header>}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, MouseEvent } from "react";
-import { Upload, Check, Download, Trash2, X } from "lucide-react";
+import { Upload, Check, Download, Trash2, X, Crop } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 import type { MangaPanel } from "./types";
 
@@ -52,6 +52,7 @@ export default function ImageSplitter() {
     addPanel,
     deletePanel,
     updatePanel,
+    cropAndUpdatePanelImage,
     updatePanelStoryboard,
     downloadZip,
     saveToStageResult,
@@ -68,6 +69,9 @@ export default function ImageSplitter() {
   // For Drawing New Box
   const [newBoxStart, setNewBoxStart] = useState<Point | null>(null);
   const [currentRect, setCurrentRect] = useState<number[] | null>(null); // [top, left, height, width] %
+
+  // Track which panel is currently being re-cropped (for button loading state)
+  const [croppingPanelId, setCroppingPanelId] = useState<string | null>(null);
 
   // Save results when processing completes
   useEffect(() => {
@@ -251,6 +255,12 @@ export default function ImageSplitter() {
     setNewBoxStart(null);
     setCurrentRect(null);
     setActivePanelId(null);
+  };
+
+  const handleSaveCrop = async (panelId: string) => {
+    setCroppingPanelId(panelId);
+    await cropAndUpdatePanelImage(panelId);
+    setCroppingPanelId(null);
   };
 
   const errorCount = pages.filter(p => p.status === 'error').length;
@@ -508,6 +518,25 @@ export default function ImageSplitter() {
                         className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow border border-white transition-opacity z-30 cursor-pointer"
                       >
                         <X className="w-3 h-3" />
+                      </button>
+
+                      {/* Save Crop Button */}
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveCrop(panel.id);
+                        }}
+                        disabled={croppingPanelId === panel.id}
+                        title="Save crop"
+                        className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 px-2 rounded-full flex items-center gap-1 opacity-0 group-hover:opacity-100 hover:bg-blue-600 disabled:bg-blue-400 shadow border border-white transition-opacity z-30 cursor-pointer text-[10px] font-bold whitespace-nowrap"
+                      >
+                        {croppingPanelId === panel.id ? (
+                          <SpinnerIcon className="w-3 h-3" />
+                        ) : (
+                          <Crop className="w-3 h-3" />
+                        )}
+                        Save Crop
                       </button>
 
                       {/* Resize Handles */}

@@ -58,6 +58,23 @@ export function parseCSV(text: string): string[][] {
 }
 
 /**
+ * Normalize a raw CSV "Video API" cell value to a recognized provider ID.
+ * Handles display names like "Wan 2.2", "Grok", "Sora", "Veo 3", etc.
+ */
+export function normalizeVideoApiValue(raw: string): string | undefined {
+  const s = raw.trim().toLowerCase().replace(/[\s.\-]/g, '');
+  if (!s) return undefined;
+  if (s === 'sora')                                   return 'sora';
+  if (s === 'veo3' || s === 'veo')                    return 'veo3';
+  if (s === 'wan22i2v' || s === 'wan22')              return 'wan22_i2v';
+  if (s === 'wani2v' || s === 'wan' || s === 'wan1')  return 'wan_i2v';
+  if (s === 'grokimaginei2v' || s === 'grokimagine')  return 'grok_imagine_i2v';
+  if (s === 'groki2v' || s === 'grok')                return 'grok_i2v';
+  // Already a valid provider ID — pass through
+  return raw.trim() || undefined;
+}
+
+/**
  * Auto-detect column mapping from CSV headers using reference-app default indices.
  * Default template layout:
  *   B (1)  = Frame Number
@@ -68,6 +85,11 @@ export function parseCSV(text: string): string[][] {
  *   Q (16) = Reference Filename
  */
 export function autoDetectMapping(headers: string[]): CsvColumnMapping {
+  // Prefer name-based matching for videoApi since its position varies
+  const videoApiIndex = headers.findIndex((h) =>
+    h.trim().toLowerCase().replace(/\s+/g, '') === 'videoapi'
+  );
+
   return {
     frameNumber:       headers[1]  ?? '',
     clipLength:        headers[2]  ?? '',
@@ -75,7 +97,7 @@ export function autoDetectMapping(headers: string[]): CsvColumnMapping {
     dialogue:          headers[11] ?? '',
     sfx:               headers[13] ?? '',
     referenceFilename: headers[16] ?? '',
-    videoApi:          '',
+    videoApi:          videoApiIndex > -1 ? (headers[videoApiIndex] ?? '') : '',
   };
 }
 
@@ -110,7 +132,7 @@ export function applyMapping(
       dialogue:           dialogueIdx > -1 ? (row[dialogueIdx] ?? '').trim() : undefined,
       sfx:                sfxIdx     > -1 ? (row[sfxIdx]     ?? '').trim() : undefined,
       clipLength:         lengthIdx  > -1 ? (row[lengthIdx]  ?? '').trim() : undefined,
-      videoApi:           videoApiIdx > -1 ? (row[videoApiIdx] ?? '').trim() || undefined : undefined,
+      videoApi:           videoApiIdx > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined,
       imageData:          null,
       endFrameData:       null,
       imageUrl:           filenameIdx > -1 && (row[filenameIdx] ?? '').trim().startsWith('http') ? (row[filenameIdx] ?? '').trim() : null,

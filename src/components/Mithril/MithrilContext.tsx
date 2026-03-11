@@ -241,6 +241,11 @@ interface MithrilContextProps {
 
   // Reload data from Firestore
   reloadFromFirestore: () => Promise<void>;
+
+  // Splitter crop event bus: ImageSplitter fires this after saving a re-crop;
+  // PanelEditor listens and refreshes the affected workspace panel in-place.
+  splitterCropUpdates: Array<{ pageIndex: number; panelIndex: number; s3Url: string; ts: number }>;
+  notifySplitterCropSaved: (pageIndex: number, panelIndex: number, s3Url: string) => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -1855,6 +1860,21 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     await loadFromFirestore();
   }, [loadFromFirestore]);
 
+  // Splitter crop event bus
+  const [splitterCropUpdates, setSplitterCropUpdates] = useState<
+    Array<{ pageIndex: number; panelIndex: number; s3Url: string; ts: number }>
+  >([]);
+  const notifySplitterCropSaved = useCallback(
+    (pageIndex: number, panelIndex: number, s3Url: string) => {
+      console.log('[CropDebug] MithrilContext.notifySplitterCropSaved fired:', { pageIndex, panelIndex, s3Url });
+      setSplitterCropUpdates((prev) => [
+        ...prev,
+        { pageIndex, panelIndex, s3Url, ts: Date.now() },
+      ]);
+    },
+    []
+  );
+
   return (
     <MithrilContext.Provider
       value={{
@@ -1918,6 +1938,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         isStageSkipped,
         // Reload
         reloadFromFirestore,
+        // Splitter crop event bus
+        splitterCropUpdates,
+        notifySplitterCropSaved,
       }}
     >
       {children}

@@ -20,7 +20,7 @@ interface SubmitPanelColorizerJobParams {
   globalPrompt: string;
   targetAspectRatio: AspectRatio;
   apiKey?: string;
-  provider?: 'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev';
+  provider?: 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev';
   timeOfDay?: string;
   mode?: 'colorize' | 'remix';
 }

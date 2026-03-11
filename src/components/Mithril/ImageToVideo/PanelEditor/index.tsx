@@ -88,22 +88,10 @@ export default function PanelEditor() {
     const zip = new JSZip();
     const usedNames = new Set<string>();
 
-    for (const panel of successfulPanels) {
-      // Logic to preserve original filename
-      let originalName = panel.fileName;
-      const lastDotIndex = originalName.lastIndexOf('.');
-      let baseName =
-        lastDotIndex !== -1
-          ? originalName.substring(0, lastDotIndex)
-          : originalName;
-
-      // Ensure unique filenames in zip
-      let fileName = `${baseName}-edited.png`;
-      let counter = 1;
-      while (usedNames.has(fileName)) {
-        fileName = `${baseName}-edited-${counter}.png`;
-        counter++;
-      }
+    for (let i = 0; i < successfulPanels.length; i++) {
+      const panel = successfulPanels[i];
+      const globalIndex = panels.indexOf(panel);
+      const fileName = `${String(globalIndex + 1).padStart(3, '0')}.jpg`;
       usedNames.add(fileName);
 
       // resultUrl can be data:image/png;base64,..., blob:, or https:// (S3)
@@ -241,7 +229,7 @@ export default function PanelEditor() {
           </label>
           <Select
             value={provider}
-            onValueChange={(v) => setProvider(v as 'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev')}
+            onValueChange={(v) => setProvider(v as 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev')}
             disabled={state.isProcessing}
           >
             <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -250,8 +238,14 @@ export default function PanelEditor() {
             <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
               <SelectItem value="gemini" className="cursor-pointer">
                 <div className="flex flex-col">
-                  <span className="font-medium">Gemini <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-2.0-flash-exp)</span></span>
+                  <span className="font-medium">Nano Banana Pro <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3-pro-image-preview)</span></span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">Google — image editing with source image</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="gemini_flash" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Nano Banana 2 <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3.1-flash-image-preview)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Google — fast image generation at low latency</span>
                 </div>
               </SelectItem>
               <SelectItem value="grok" className="cursor-pointer">
@@ -327,10 +321,11 @@ export default function PanelEditor() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
-            {panels.map((panel) => (
+            {panels.map((panel, index) => (
               <PanelCard
                 key={panel.id}
                 panel={panel}
+                index={index}
                 onRemove={removePanel}
                 onRetry={retryPanel}
                 onRefine={refinePanel}

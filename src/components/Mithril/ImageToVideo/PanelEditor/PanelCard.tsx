@@ -15,6 +15,7 @@ import { InteractiveCanvas, InteractiveCanvasHandle } from './InteractiveCanvas'
 
 interface PanelCardProps {
   panel: PanelData;
+  index: number;
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
   onRefine: (id: string, mode: 'zoom' | 'expand') => void;
@@ -23,6 +24,7 @@ interface PanelCardProps {
 
 export const PanelCard: React.FC<PanelCardProps> = ({
   panel,
+  index,
   onRemove,
   onRetry,
   onRefine,
@@ -36,19 +38,14 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
 
   const handleDownload = () => {
-    if (canvasRef.current && panel.resultUrl) {
-      // Construct filename: original-name-edited.png
-      const nameParts = panel.fileName.split('.');
-      if (nameParts.length > 1) nameParts.pop(); // remove ext
-      const baseName = nameParts.join('.');
-      const fileName = `${baseName}-edited.png`;
+    const fileName = `${String(index + 1).padStart(3, '0')}.jpg`;
 
+    if (canvasRef.current && panel.resultUrl) {
       canvasRef.current.download(fileName);
     } else if (panel.resultUrl) {
-      // Fallback
       const link = document.createElement('a');
       link.href = panel.resultUrl;
-      link.download = `panel-editor-${panel.id}.png`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

@@ -597,7 +597,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   characterInfo: clip.characterInfo,
-                dialogue: clip.dialogue,
+                  dialogue: clip.dialogue,
                   dialogueEn: clip.dialogueEn,
                   narration: clip.narration || "",
                   narrationEn: clip.narrationEn || "",
@@ -1866,7 +1866,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   >([]);
   const notifySplitterCropSaved = useCallback(
     (pageIndex: number, panelIndex: number, s3Url: string) => {
-      console.log('[CropDebug] MithrilContext.notifySplitterCropSaved fired:', { pageIndex, panelIndex, s3Url });
       setSplitterCropUpdates((prev) => [
         ...prev,
         { pageIndex, panelIndex, s3Url, ts: Date.now() },

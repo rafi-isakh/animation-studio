@@ -1252,7 +1252,6 @@ export function useImageSplitter() {
 
       // 4. Upload to S3 and persist to Firestore (if the page has been saved)
       if (currentProjectId && page.pageIndex !== undefined) {
-        console.log('[CropDebug] Uploading cropped image to S3:', { pageIndex: page.pageIndex, panelIndex, currentProjectId });
         const s3Url = await uploadI2VPanelImage(
           currentProjectId,
           page.pageIndex,
@@ -1260,17 +1259,14 @@ export function useImageSplitter() {
           base64,
           'image/jpeg'
         );
-        console.log('[CropDebug] S3 upload complete. New URL:', s3Url);
 
         // Update in-memory imageUrl with the canonical S3 URL
         dispatch({ type: 'UPDATE_PANEL', pageId: page.id, panelId, panel: { imageUrl: s3Url } });
 
         // Notify PanelEditor so it can refresh the workspace panel in-place
-        console.log('[CropDebug] Calling notifySplitterCropSaved with:', { pageIndex: page.pageIndex, panelIndex, s3Url });
         notifySplitterCropSaved(page.pageIndex, panelIndex, s3Url);
 
         // Persist updated imageRef + box_2d to Firestore
-        console.log('[CropDebug] Persisting updated imageRef to Firestore...');
         await saveMangaPanel(currentProjectId, page.pageIndex, panelIndex, {
           box_2d: panel.box_2d,
           label: panel.label || '',

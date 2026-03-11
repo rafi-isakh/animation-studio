@@ -204,13 +204,13 @@ export default function PanelColorizer() {
             <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
               <SelectItem value="gemini" className="cursor-pointer">
                 <div className="flex flex-col">
-                  <span className="font-medium">Gemini <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3-pro-image-preview)</span></span>
+                  <span className="font-medium">Nano Banana Pro <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3-pro-image-preview)</span></span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">Google — supports reference images for color extraction</span>
                 </div>
               </SelectItem>
               <SelectItem value="gemini_flash" className="cursor-pointer">
                 <div className="flex flex-col">
-                  <span className="font-medium">Gemini Flash <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3.1-flash-image-preview)</span></span>
+                  <span className="font-medium">Nano Banana 2 <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3.1-flash-image-preview)</span></span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">Google — fast generation, supports reference images</span>
                 </div>
               </SelectItem>

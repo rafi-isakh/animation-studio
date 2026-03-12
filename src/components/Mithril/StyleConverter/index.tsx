@@ -28,7 +28,7 @@ import {
 } from '@/components/Mithril/services/s3/images';
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const DEBUG = true;
+const DEBUG = false;
 const log = (...args: unknown[]) => DEBUG && console.log('[StyleConverter]', ...args);
 const warn = (...args: unknown[]) => DEBUG && console.warn('[StyleConverter:WARN]', ...args);
 const normalizePanelFileName = (value?: string) => (value || '').trim().toLowerCase();
@@ -58,8 +58,6 @@ function mapBackendStatus(status: string): ProcessingStatus {
     default: return ProcessingStatus.Pending; // pending, preparing, generating, uploading, retrying
   }
 }
-
-// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function StyleConverter() {
   const { currentProjectId } = useMithril();

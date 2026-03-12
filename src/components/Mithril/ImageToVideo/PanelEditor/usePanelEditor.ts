@@ -43,7 +43,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   const { customApiKey, splitterCropUpdates } = useMithril();
 
   // Provider selection
-  const [provider, setProvider] = useState<'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev'>('gemini');
+  const [provider, setProvider] = useState<'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev'>('gemini');
 
   // Loading state for pre-populating file library from ImageSplitter results
   const [isLoadingSplitterPanels, setIsLoadingSplitterPanels] = useState(false);
@@ -80,7 +80,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
             dispatch({ type: 'SET_CONFIG', config: { targetAspectRatio: meta.targetAspectRatio as AspectRatio } });
           }
           if (meta.provider) {
-            setProvider(meta.provider as 'gemini' | 'grok' | 'z_image_turbo' | 'flux2_dev');
+            setProvider(meta.provider as 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev');
           }
         } else {
           sid = uuidv4();

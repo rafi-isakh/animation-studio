@@ -1269,6 +1269,33 @@ export async function uploadI2VPanelEditorImage(
   return result.url;
 }
 
+/**
+ * Delete a panel editor original image from S3
+ */
+export async function deleteI2VPanelEditorImage(
+  projectId: string,
+  panelEditorId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel-editor',
+    panelEditorId,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete panel editor image');
+  }
+}
+
 // ============================================================================
 // URL Generators (for reference, primarily used server-side)
 // ============================================================================

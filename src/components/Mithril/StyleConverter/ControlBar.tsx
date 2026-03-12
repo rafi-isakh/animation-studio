@@ -9,6 +9,7 @@ interface ControlBarProps {
   onConfigChange: (newConfig: Partial<AppConfig>) => void;
   onProcessAll: () => void;
   onCancel: () => void;
+  onClearAll: () => void;
   onDownloadAll: () => void;
   onSaveProject: () => void;
   onLoadProject: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,6 +23,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onConfigChange,
   onProcessAll,
   onCancel,
+  onClearAll,
   onDownloadAll,
   onSaveProject,
   onLoadProject,
@@ -51,6 +53,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
             >
               <FolderOpenIcon />
             </button>
+            <button
+              onClick={onClearAll}
+              disabled={panelCount === 0 || isProcessing}
+              className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-red-400 border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Clear Workspace"
+            >
+              <XMarkIcon />
+            </button>
           </div>
         </div>
 
@@ -73,6 +83,15 @@ export const ControlBar: React.FC<ControlBarProps> = ({
             >
               <FolderOpenIcon className="w-4 h-4" />
               Load
+            </button>
+            <button
+              onClick={onClearAll}
+              disabled={panelCount === 0 || isProcessing}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-red-950/40 rounded-lg text-gray-400 hover:text-red-400 border border-gray-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Clear Workspace"
+            >
+              <XMarkIcon className="w-4 h-4" />
+              Clear
             </button>
             <input
               type="file"

@@ -32,13 +32,18 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const isError = panel.status === ProcessingStatus.Error;
 
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
+  const resultSrc = panel.resultUrl
+    ? panel.resultUrl.startsWith('http')
+      ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+      : panel.resultUrl
+    : undefined;
 
   const handleDownload = () => {
-    if (canvasRef.current && panel.resultUrl) {
+    if (canvasRef.current && resultSrc) {
       canvasRef.current.download(panel.file.name);
-    } else if (panel.resultUrl) {
+    } else if (resultSrc) {
       const link = document.createElement('a');
-      link.href = panel.resultUrl;
+      link.href = resultSrc;
       link.download = panel.file.name;
       document.body.appendChild(link);
       link.click();
@@ -134,7 +139,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
               <div className="w-full h-full flex flex-col relative items-center justify-center">
                 <InteractiveCanvas
                   ref={canvasRef}
-                  src={panel.resultUrl}
+                  src={resultSrc || panel.resultUrl}
                   targetRatio={targetRatio}
                   className="w-full"
                   maxHeight={400}

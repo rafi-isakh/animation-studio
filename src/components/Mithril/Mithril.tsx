@@ -21,6 +21,7 @@ import StoryboardEditor from "./ImageToVideo/StoryboardEditor";
 import I2VVideoGenerator from "./ImageToVideo/VideoGenerator";
 import CsvVideoGenerator from "./ImageToVideo/CsvVideoGenerator";
 import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
+import StyleConverter from "./StyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
@@ -48,6 +49,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'I2VVideoGenerator': I2VVideoGenerator,
   'CsvVideoGenerator': CsvVideoGenerator,
   'NsfwVideoGenerator': NsfwVideoGenerator,
+  'StyleConverter': StyleConverter,
   'AnimeBgStudio': AnimeBgStudio,
 };
 

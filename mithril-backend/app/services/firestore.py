@@ -31,6 +31,7 @@ from app.models.job import (
     StorySplitterJobSubmitRequest,
     I2VStoryboardJobSubmitRequest,
     StoryboardEditorJobSubmitRequest,
+    StyleConverterJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -399,6 +400,53 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created panel colorizer job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_style_converter_job(
+        self,
+        request: "StyleConverterJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new style converter (pixAI) job in the queue.
+
+        Args:
+            request: Style converter job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.STYLE_CONVERTER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="pixai",
+            prompt="",
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Reuses panel-editor fields for session/panel tracking
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            # Style converter-specific
+            pixai_prompts=request.prompts,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
         return job
 
     async def create_id_converter_glossary_job(

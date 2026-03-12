@@ -23,6 +23,7 @@ class JobType(str, Enum):
     I2V_STORYBOARD = "i2v_storyboard"
     STORYBOARD_EDITOR = "storyboard_editor"
     PANEL_COLORIZER = "panel_colorizer"
+    STYLE_CONVERTER = "style_converter"
 
 
 class JobStatus(str, Enum):
@@ -145,6 +146,9 @@ class JobDocument(BaseModel):
     reference_image_count: int | None = None  # Number of reference images provided
     time_of_day: str | None = None  # Lighting: "Morning", "Daylight", "Evening", "Night"
     colorizer_mode: str | None = None  # "colorize" (default) or "remix" (no master prompt)
+
+    # Style converter-specific fields (for type=STYLE_CONVERTER)
+    pixai_prompts: str | None = None  # PixAI prompt text
 
     # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
     original_text: str | None = None  # Full text for glossary analysis
@@ -472,6 +476,41 @@ class PanelColorizerJobSubmitRequest(BaseModel):
 
 class PanelColorizerJobStatusResponse(BaseModel):
     """Response model for panel colorizer job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Style Converter (PixAI) Job Models
+# ============================================================================
+
+
+class StyleConverterJobSubmitRequest(BaseModel):
+    """Request model for submitting a style converter (pixAI img2img) job."""
+
+    project_id: str       # Project ID for S3 storage
+    session_id: str       # Session ID for real-time Firestore tracking
+    panel_id: str         # Panel ID within session
+    file_name: str        # Original filename
+    image_base64: str     # Base64 encoded source image
+    mime_type: str = "image/jpeg"
+    prompts: str          # PixAI prompt text
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "9:16"
+    api_key: str | None = None  # Custom PixAI key (optional, falls back to server key)
+
+
+class StyleConverterJobStatusResponse(BaseModel):
+    """Response model for style converter job status queries."""
 
     job_id: str
     panel_id: str

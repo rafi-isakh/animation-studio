@@ -145,6 +145,7 @@ export default function ProjectListPage() {
       'mithril_i2v_stage2_colorizer': 'Panel Colorizer',
       'mithril_i2v_stage3': 'Script Writer',
       'mithril_i2v_stage4': 'Storyboard Editor',
+      'mithril_i2v_stage_style_converter': 'Style Converter',
       'mithril_i2v_stage5': 'Video Generation',
     };
 

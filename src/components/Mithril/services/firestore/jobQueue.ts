@@ -12,7 +12,7 @@ import { db } from '@/lib/firestore';
 /**
  * Job type (video, image, background, prop_design_sheet, panel, id_converter, story_splitter, or panel_splitter)
  */
-export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'panel_colorizer' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor';
+export type JobType = 'video' | 'image' | 'background' | 'prop_design_sheet' | 'panel' | 'panel_colorizer' | 'id_converter_glossary' | 'id_converter_batch' | 'story_splitter' | 'panel_splitter' | 'storyboard' | 'i2v_storyboard' | 'storyboard_editor' | 'style_converter';
 
 /**
  * Job status from the orchestrator
@@ -1885,6 +1885,138 @@ function mapJobStatusToStoryboardEditorStatus(
   jobStatus: JobStatus,
   retryCount: number = 0
 ): StoryboardEditorJobStatus {
+  switch (jobStatus) {
+    case 'pending':
+      return retryCount > 0 ? 'retrying' : 'pending';
+    case 'preparing':
+      return 'preparing';
+    case 'generating':
+      return 'generating';
+    case 'uploading':
+      return 'uploading';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+
+// ============================================================================
+// Style Converter Job Functions
+// ============================================================================
+
+/**
+ * Style converter job status
+ */
+export type StyleConverterJobStatus =
+  | 'pending'
+  | 'preparing'
+  | 'generating'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+/**
+ * Style converter update object
+ */
+export interface StyleConverterUpdate {
+  panelId: string;
+  sessionId: string;
+  fileName: string;
+  jobId: string;
+  status: StyleConverterJobStatus;
+  imageUrl: string | null;
+  s3FileName: string | null;
+  error?: string;
+  progress: number;
+}
+
+/**
+ * Callback for style converter job updates
+ */
+export type StyleConverterUpdateCallback = (update: StyleConverterUpdate) => void;
+
+/**
+ * Subscribe to style converter jobs for a session
+ *
+ * @param sessionId - The session ID
+ * @param callback - Called whenever any style converter job in the session changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToSessionStyleConverterJobs(
+  sessionId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'style_converter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
+ * Get all active (non-terminal) style converter jobs for a session (one-time fetch)
+ */
+export async function getActiveSessionStyleConverterJobs(
+  sessionId: string
+): Promise<JobQueueDocument[]> {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'style_converter')
+  );
+
+  const snapshot = await getDocs(jobsQuery);
+  const terminalStatuses: JobStatus[] = ['completed', 'failed', 'cancelled'];
+
+  return snapshot.docs
+    .map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument))
+    .filter((job) => !terminalStatuses.includes(job.status));
+}
+
+/**
+ * Map JobQueueDocument to StyleConverterUpdate
+ */
+export function mapStyleConverterJobToUpdate(job: JobQueueDocument): StyleConverterUpdate {
+  return {
+    panelId: job.panel_id || '',
+    sessionId: job.session_id || '',
+    fileName: job.file_name || '',
+    jobId: job.id,
+    status: mapJobStatusToStyleConverterStatus(job.status, job.retry_count),
+    imageUrl: job.image_url || null,
+    s3FileName: job.s3_file_name || null,
+    error: job.error_message,
+    progress: job.progress,
+  };
+}
+
+/**
+ * Map job status to style converter status
+ */
+function mapJobStatusToStyleConverterStatus(
+  jobStatus: JobStatus,
+  retryCount: number = 0
+): StyleConverterJobStatus {
   switch (jobStatus) {
     case 'pending':
       return retryCount > 0 ? 'retrying' : 'pending';

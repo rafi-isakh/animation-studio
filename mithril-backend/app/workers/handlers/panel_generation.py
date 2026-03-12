@@ -180,7 +180,7 @@ async def _generate_panel_image_grok(
     aspect_ratio: str,
     api_key: str,
 ) -> bytes:
-    """Generate panel image using xAI grok-imagine-image-pro.
+    """Generate panel image using xAI grok-imagine-image.
 
     xAI SDK accepts the source image as a base64 data URI directly —
     no S3 upload required.

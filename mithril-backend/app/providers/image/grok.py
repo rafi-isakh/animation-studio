@@ -9,7 +9,7 @@ from app.core.rate_limiter import distributed_rate_limit
 
 logger = logging.getLogger(__name__)
 
-XAI_MODEL = "grok-imagine-image-pro"
+XAI_MODEL = "grok-imagine-image"
 
 
 async def generate_grok_panel(
@@ -20,7 +20,7 @@ async def generate_grok_panel(
     api_key: str,
 ) -> bytes:
     """
-    Generate a panel image using xAI's grok-imagine-image-pro model.
+    Generate a panel image using xAI's grok-imagine-image model.
 
     Args:
         image_base64: Base64-encoded source panel image.

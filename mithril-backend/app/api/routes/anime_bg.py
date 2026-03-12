@@ -132,7 +132,7 @@ async def _generate_grok(
     import xai_sdk
 
     client = xai_sdk.Client(api_key=api_key)
-    model = "grok-imagine-image-pro"
+    model = "grok-imagine-image"
 
     # Build image URLs as data URIs with correct mime type
     def _detect_mime(data: bytes) -> str:

@@ -12,10 +12,10 @@ export type { ProcessingStatus, ReadingDirection, MangaPanel, MangaPage } from "
 interface Point { x: number; y: number; }
 type DragMode = 'draw' | 'move' | 'resize-nw' | 'resize-ne' | 'resize-sw' | 'resize-se' | 'resize-n' | 'resize-s' | 'resize-w' | 'resize-e';
 
-const MIN_ZOOM = 0.75;
-const MAX_ZOOM = 3;
-const DEFAULT_ZOOM = 1.2;
-const ZOOM_FACTOR = 1.08;
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 4;
+const DEFAULT_ZOOM = 1;
+const ZOOM_STEP = 0.1;
 
 // -- Icons --
 const MagicWandIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -40,7 +40,6 @@ const PlusIcon: React.FC<{className?: string}> = ({ className }) => (
 export default function ImageSplitter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const workspaceViewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -83,7 +82,6 @@ export default function ImageSplitter() {
   const [croppingPanelId, setCroppingPanelId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [isWorkspaceFocused, setIsWorkspaceFocused] = useState(false);
-  const [workspaceViewportSize, setWorkspaceViewportSize] = useState({ width: 0, height: 0 });
 
   // Save results when processing completes
   useEffect(() => {
@@ -101,42 +99,9 @@ export default function ImageSplitter() {
     setZoom(DEFAULT_ZOOM);
   }, [activePage?.id]);
 
-  useEffect(() => {
-    const viewport = workspaceViewportRef.current;
-    if (!viewport) return;
-
-    const updateViewportSize = () => {
-      setWorkspaceViewportSize({
-        width: viewport.clientWidth,
-        height: viewport.clientHeight,
-      });
-    };
-
-    updateViewportSize();
-
-    const observer = new ResizeObserver(() => {
-      updateViewportSize();
-    });
-
-    observer.observe(viewport);
-    window.addEventListener('resize', updateViewportSize);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateViewportSize);
-    };
-  }, [activePage?.id]);
-
   const clampZoom = (nextZoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(nextZoom.toFixed(2))));
 
-  const changeZoom = (direction: 'in' | 'out') => {
-    setZoom((currentZoom) => {
-      const nextZoom = direction === 'in'
-        ? currentZoom * ZOOM_FACTOR
-        : currentZoom / ZOOM_FACTOR;
-      return clampZoom(nextZoom);
-    });
-  };
+  const getStepZoom = (nextZoom: number) => clampZoom(Math.round(nextZoom / ZOOM_STEP) * ZOOM_STEP);
 
   const isEditableTarget = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false;
@@ -148,15 +113,26 @@ export default function ImageSplitter() {
       return { width: 0, height: 0 };
     }
 
-    const availableWidth = Math.max(workspaceViewportSize.width - 64, 320);
-    const availableHeight = Math.max(workspaceViewportSize.height - 64, 320);
-    const fitScale = Math.min(availableWidth / activePage.width, availableHeight / activePage.height);
-
     return {
-      width: Math.max(activePage.width * fitScale, 1),
-      height: Math.max(activePage.height * fitScale, 1),
+      width: Math.max(activePage.width * zoom, 1),
+      height: Math.max(activePage.height * zoom, 1),
     };
-  }, [activePage?.height, activePage?.width, workspaceViewportSize.height, workspaceViewportSize.width]);
+  }, [activePage?.height, activePage?.width, zoom]);
+
+  const changeZoom = (direction: 'in' | 'out') => {
+    setZoom((currentZoom) => {
+      const nextZoom = direction === 'in'
+        ? currentZoom + ZOOM_STEP
+        : currentZoom - ZOOM_STEP;
+      return getStepZoom(nextZoom);
+    });
+  };
+
+  const resetZoom = () => {
+    setZoom(DEFAULT_ZOOM);
+  };
+
+  const zoomPercentageLabel = `${Math.round(zoom * 100)}%`;
 
   // Handle file input change
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,13 +322,13 @@ export default function ImageSplitter() {
   const handleWorkspaceKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isEditableTarget(e.target)) return;
 
-    if (e.key === '=' || e.key === '+') {
+    if (e.key === '=' || e.key === '+' || e.code === 'NumpadAdd') {
       e.preventDefault();
       changeZoom('in');
       return;
     }
 
-    if (e.key === '-' || e.key === '_') {
+    if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
       e.preventDefault();
       changeZoom('out');
     }
@@ -569,11 +545,11 @@ export default function ImageSplitter() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            <div ref={workspaceViewportRef} className="flex min-h-full w-full items-start justify-center overflow-visible">
+            <div className="flex min-h-full w-full items-start justify-center overflow-visible">
               <div
                 className="relative pt-12"
                 style={{
-                  width: `${displaySize.width * zoom}px`,
+                  width: `${displaySize.width}px`,
                 }}
               >
                 <div className="absolute top-0 right-0 z-[60] flex items-center gap-2">
@@ -596,18 +572,33 @@ export default function ImageSplitter() {
                     <button
                       type="button"
                       onClick={() => changeZoom('out')}
+                      disabled={zoom <= MIN_ZOOM}
                       title="Zoom out"
                       aria-label="Zoom out"
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
                     >
                       <ZoomOut className="h-4 w-4" />
+                    </button>
+                    <div className="min-w-[3.5rem] text-center text-[11px] font-semibold text-gray-100">
+                      {zoomPercentageLabel}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetZoom}
+                      disabled={zoom === DEFAULT_ZOOM}
+                      title="Reset zoom"
+                      aria-label="Reset zoom"
+                      className="rounded-full border border-gray-700 px-3 py-1 text-[11px] font-semibold text-gray-200 transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:border-gray-800 disabled:text-gray-500"
+                    >
+                      100%
                     </button>
                     <button
                       type="button"
                       onClick={() => changeZoom('in')}
+                      disabled={zoom >= MAX_ZOOM}
                       title="Zoom in"
                       aria-label="Zoom in"
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
                     >
                       <ZoomIn className="h-4 w-4" />
                     </button>
@@ -618,8 +609,8 @@ export default function ImageSplitter() {
                   ref={containerRef}
                   className="relative overflow-visible shadow-2xl border border-gray-700 select-none group/canvas"
                   style={{
-                    width: `${displaySize.width * zoom}px`,
-                    height: `${displaySize.height * zoom}px`,
+                    width: `${displaySize.width}px`,
+                    height: `${displaySize.height}px`,
                   }}
                 >
                 <img 

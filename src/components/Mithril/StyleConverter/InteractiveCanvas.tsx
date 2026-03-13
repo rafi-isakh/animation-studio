@@ -39,6 +39,18 @@ export const InteractiveCanvas = forwardRef<InteractiveCanvasHandle, Interactive
       return { ratioStyle, maxWidth };
     }, [targetRatio, maxHeight]);
 
+    const resolvedSrc = useMemo(() => {
+      if (!src) return src;
+      if (
+        src.startsWith('blob:') ||
+        src.startsWith('data:') ||
+        src.startsWith('/')
+      ) {
+        return src;
+      }
+      return `/api/mithril/s3/proxy?url=${encodeURIComponent(src)}`;
+    }, [src]);
+
     useImperativeHandle(ref, () => ({
       download: (filename: string) => {
         const container = containerRef.current;
@@ -145,7 +157,8 @@ export const InteractiveCanvas = forwardRef<InteractiveCanvasHandle, Interactive
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <img
               ref={imageRef}
-              src={src}
+              src={resolvedSrc}
+              crossOrigin="anonymous"
               alt="Result"
               className="pointer-events-none select-none max-w-full max-h-full object-contain"
               style={{

@@ -17,6 +17,7 @@ export interface PanelData {
   id: string;
   file: File;
   previewUrl: string;
+  fileName?: string;
   status: ProcessingStatus;
   resultUrl?: string;
   error?: string;
@@ -24,6 +25,8 @@ export interface PanelData {
   category?: string;
   jobId?: string;
   progress?: number;
+  originalImageRef?: string;
+  _fromStorage?: boolean; // Internal flag: true if loaded from persisted storage (prevents re-persist on mount)
 }
 
 export interface AppConfig {

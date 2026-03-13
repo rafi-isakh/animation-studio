@@ -21,7 +21,10 @@ import {
   deletePanelEditorPanel,
   clearPanelEditorData,
 } from '../../services/firestore/panelEditor';
-import { uploadI2VPanelEditorImage } from '../../services/s3/images';
+import {
+  uploadI2VPanelEditorImage,
+  deleteI2VPanelEditorImage,
+} from '../../services/s3/images';
 
 interface UsePanelEditorOptions {
   projectId: string;  // Project ID from MithrilContext for S3 storage
@@ -383,6 +386,11 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
   }, []);
 
+  // ── Clear Data Storage (file library only) ──────────────────────────
+  const clearFileLibrary = useCallback(() => {
+    dispatch({ type: 'CLEAR_FILE_LIBRARY' });
+  }, []);
+
   // ── Import all files from library to workspace ───────────────────────
   const importAllFromLibrary = useCallback(() => {
     const libraryFiles = Object.values(state.fileLibrary) as (File & { _s3Url?: string })[];
@@ -441,7 +449,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       await clearPanelEditorData(projectId).catch(console.error);
     }
 
-    dispatch({ type: 'CLEAR_PANELS' });
+    dispatch({ type: 'CLEAR_ALL_DATA' });
     if (config) dispatch({ type: 'SET_CONFIG', config });
     dispatch({ type: 'ADD_PANELS', panels });
     panels.forEach((p) => persistNewPanel(p));
@@ -641,6 +649,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
 
   // ── Clear all panels ─────────────────────────────────────────────────
   const clearPanels = useCallback(async () => {
+    const panelsToDelete = [...stateRef.current.panels];
+
     // Cancel all active jobs first
     const cancelPromises: Promise<void>[] = [];
     activeJobsRef.current.forEach((jobId) => {
@@ -649,7 +659,18 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     await Promise.all(cancelPromises);
     activeJobsRef.current.clear();
 
-    dispatch({ type: 'CLEAR_PANELS' });
+    dispatch({ type: 'CLEAR_ALL_DATA' });
+
+    // Delete panel editor originals from S3 (best-effort)
+    if (projectId && panelsToDelete.length > 0) {
+      await Promise.all(
+        panelsToDelete.map((panel) =>
+          deleteI2VPanelEditorImage(projectId, panel.id).catch((err) =>
+            console.warn(`Failed to delete panel editor image ${panel.id} from S3:`, err)
+          )
+        )
+      );
+    }
 
     // Clear Firestore data
     if (projectId) {
@@ -672,6 +693,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     isLoadingSplitterPanels,
     isLoadingPanels,
     addFilesToLibrary,
+    clearFileLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,

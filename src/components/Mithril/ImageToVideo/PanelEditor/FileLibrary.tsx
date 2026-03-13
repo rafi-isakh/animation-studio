@@ -7,6 +7,7 @@ interface FileLibraryProps {
   files: Record<string, File>;
   isLoading?: boolean;
   onFilesAdded: (files: File[]) => void;
+  onClearStorage: () => void;
   onImportAll: () => void;
   onManifestLoaded: (filesToProcess: File[]) => void;
 }
@@ -15,6 +16,7 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
   isLoading = false,
   onFilesAdded,
+  onClearStorage,
   onImportAll,
   onManifestLoaded,
 }) => {
@@ -150,6 +152,14 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
             )}
           </h2>
           <div className="flex gap-2">
+            {fileList.length > 0 && (
+              <button
+                onClick={onClearStorage}
+                className="text-xs bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-300 px-3 py-1.5 rounded-lg transition-colors border border-red-300/60 dark:border-red-700/60"
+              >
+                Clear Storage
+              </button>
+            )}
             {fileList.length > 0 && (
               <button
                 onClick={onImportAll}

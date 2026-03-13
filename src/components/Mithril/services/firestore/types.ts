@@ -753,6 +753,9 @@ export interface I2VClipDocument {
   clipIndex: number;
   referenceImageIndex: number; // Reference to source panel
   referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image
+  refFileName?: string;
+  pixAiPrompt?: string;
+  facePresent?: boolean;
   // Story content
   story: string;
   // Prompts
@@ -800,6 +803,9 @@ export interface SaveI2VSceneInput {
 export interface SaveI2VClipInput {
   referenceImageIndex: number;
   referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image
+  refFileName?: string;
+  pixAiPrompt?: string;
+  facePresent?: boolean;
   story: string;
   imagePrompt: string;
   imagePromptEnd?: string; // Optional end frame prompt for split frames

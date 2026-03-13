@@ -1713,6 +1713,9 @@ class I2VScriptService:
                 clip_data = {
                     "clipIndex": clip_index,
                     "referenceImageIndex": clip.get("referenceImageIndex", 0),
+                    "refFileName": clip.get("refFileName", ""),
+                    "pixAiPrompt": clip.get("pixAiPrompt", ""),
+                    "facePresent": clip.get("facePresent"),
                     "story": clip.get("story", ""),
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "imagePromptEnd": clip.get("imagePromptEnd", ""),

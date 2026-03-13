@@ -187,7 +187,7 @@ export default function PropDesigner() {
         sfxEn: getIdx(["SFX (En)"]),
         bgm: getIdx(["BGM (Ko)"]),
         bgmEn: getIdx(["BGM (En)"]),
-        refFileName: getIdx(["Reference Image", "Ref Image", "참조 이미지"]),
+        refFileName: getIdx(["Reference Filename", "Reference Image", "Ref Image", "참조 이미지"]),
       };
 
 

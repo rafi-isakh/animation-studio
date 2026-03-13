@@ -118,6 +118,9 @@ export interface JobQueueDocument {
         length: string;
         accumulatedTime: string;
         referenceImageIndex?: number;
+        refFileName?: string;
+        pixAiPrompt?: string;
+        facePresent?: boolean;
       }>;
     }>;
     voicePrompts: Array<{
@@ -1542,6 +1545,9 @@ export interface StoryboardScene {
     length: string;
     accumulatedTime: string;
     referenceImageIndex?: number;
+    refFileName?: string;
+    pixAiPrompt?: string;
+    facePresent?: boolean;
   }>;
 }
 

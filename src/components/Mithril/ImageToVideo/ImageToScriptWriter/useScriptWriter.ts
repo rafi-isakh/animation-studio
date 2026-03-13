@@ -167,6 +167,7 @@ export function useScriptWriter() {
             imagePrompt: c.imagePrompt || '',
             imagePromptEnd: c.imagePromptEnd,
             videoPrompt: c.videoPrompt || '',
+            pixAiPrompt: c.pixAiPrompt || '',
             soraVideoPrompt: c.soraVideoPrompt || '',
             dialogue: c.dialogue || '',
             dialogueEn: c.dialogueEn || '',
@@ -180,6 +181,8 @@ export function useScriptWriter() {
             backgroundId: c.backgroundId || '',
             referenceImageIndex: c.referenceImageIndex,
             referenceImageUrl: c.referenceImageUrl,
+            refFileName: c.refFileName || '',
+            facePresent: c.facePresent,
             // If a custom reference image URL was saved, use it directly (skip panel index lookup)
             referenceImage: c.referenceImageUrl || undefined,
           }));
@@ -542,6 +545,9 @@ export function useScriptWriter() {
         await saveI2VClip(projectId, sceneIndex, clipIndex, {
           referenceImageIndex: clip.referenceImageIndex ?? 0,
           referenceImageUrl: clip.referenceImageUrl,
+          refFileName: clip.refFileName,
+          pixAiPrompt: clip.pixAiPrompt,
+          facePresent: clip.facePresent,
           story: clip.story || '',
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
@@ -760,6 +766,9 @@ export function useScriptWriter() {
         await saveI2VClip(currentProjectId, sceneIndex, clipIndex, {
           referenceImageIndex: clip.referenceImageIndex ?? 0,
           referenceImageUrl: url,
+          refFileName: clip.refFileName,
+          pixAiPrompt: clip.pixAiPrompt,
+          facePresent: clip.facePresent,
           story: clip.story || '',
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
@@ -845,11 +854,12 @@ export function useScriptWriter() {
         'Accumulated Time',
         'Background ID',
         'Background Prompt',
-        ...(textOnly ? [] : ['Reference Image']),
+        ...(textOnly ? [] : ['Reference Filename']),
         'Story',
         'Image Prompt (Start)',
         ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
         'Video Prompt',
+        'Pix AI',
         'Dialogue (Ko)',
         'Dialogue (En)',
         'SFX (Ko)',
@@ -870,8 +880,7 @@ export function useScriptWriter() {
           ];
 
           if (!textOnly) {
-            const ref = clip.referenceImage || '';
-            row.push(escapeCSV(ref.startsWith('blob:') ? '[Image Blob]' : ref));
+            row.push(escapeCSV(clip.refFileName || ''));
           }
 
           row.push(escapeCSV(clip.story), escapeCSV(clip.imagePrompt));
@@ -880,6 +889,7 @@ export function useScriptWriter() {
 
           row.push(
             escapeCSV(clip.videoPrompt),
+            escapeCSV(clip.pixAiPrompt || ''),
             escapeCSV(clip.dialogue),
             escapeCSV(clip.dialogueEn),
             escapeCSV(clip.sfx),

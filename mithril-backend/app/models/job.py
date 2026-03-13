@@ -747,6 +747,9 @@ class StoryboardClip(BaseModel):
     length: str
     accumulatedTime: str
     referenceImageIndex: int = 0
+    refFileName: str = ""
+    pixAiPrompt: str = ""
+    facePresent: bool | None = None
 
 
 class StoryboardScene(BaseModel):

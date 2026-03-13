@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useState, MouseEvent } from "react";
-import { Upload, Check, Download, Trash2, X, Crop } from "lucide-react";
+import React, { useRef, useEffect, useState, useMemo, MouseEvent } from "react";
+import { Upload, Check, Download, Trash2, X, Crop, ZoomIn, ZoomOut } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 import type { MangaPanel } from "./types";
 
@@ -11,6 +11,11 @@ export type { ProcessingStatus, ReadingDirection, MangaPanel, MangaPage } from "
 // -- Types --
 interface Point { x: number; y: number; }
 type DragMode = 'draw' | 'move' | 'resize-nw' | 'resize-ne' | 'resize-sw' | 'resize-se' | 'resize-n' | 'resize-s' | 'resize-w' | 'resize-e';
+
+const MIN_ZOOM = 0.75;
+const MAX_ZOOM = 3;
+const DEFAULT_ZOOM = 1.2;
+const ZOOM_FACTOR = 1.08;
 
 // -- Icons --
 const MagicWandIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -34,6 +39,8 @@ const PlusIcon: React.FC<{className?: string}> = ({ className }) => (
 
 export default function ImageSplitter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const workspaceViewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -57,6 +64,8 @@ export default function ImageSplitter() {
     downloadZip,
     saveToStageResult,
     analyzeScriptAll,
+    resetAnalyzedData,
+    clearActivePagePanels,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
@@ -72,6 +81,9 @@ export default function ImageSplitter() {
 
   // Track which panel is currently being re-cropped (for button loading state)
   const [croppingPanelId, setCroppingPanelId] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [isWorkspaceFocused, setIsWorkspaceFocused] = useState(false);
+  const [workspaceViewportSize, setWorkspaceViewportSize] = useState({ width: 0, height: 0 });
 
   // Save results when processing completes
   useEffect(() => {
@@ -84,6 +96,67 @@ export default function ImageSplitter() {
     if (activePage) {
     }
   }, [activePage]);
+
+  useEffect(() => {
+    setZoom(DEFAULT_ZOOM);
+  }, [activePage?.id]);
+
+  useEffect(() => {
+    const viewport = workspaceViewportRef.current;
+    if (!viewport) return;
+
+    const updateViewportSize = () => {
+      setWorkspaceViewportSize({
+        width: viewport.clientWidth,
+        height: viewport.clientHeight,
+      });
+    };
+
+    updateViewportSize();
+
+    const observer = new ResizeObserver(() => {
+      updateViewportSize();
+    });
+
+    observer.observe(viewport);
+    window.addEventListener('resize', updateViewportSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateViewportSize);
+    };
+  }, [activePage?.id]);
+
+  const clampZoom = (nextZoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(nextZoom.toFixed(2))));
+
+  const changeZoom = (direction: 'in' | 'out') => {
+    setZoom((currentZoom) => {
+      const nextZoom = direction === 'in'
+        ? currentZoom * ZOOM_FACTOR
+        : currentZoom / ZOOM_FACTOR;
+      return clampZoom(nextZoom);
+    });
+  };
+
+  const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    return Boolean(target.closest('textarea, input, [contenteditable="true"]'));
+  };
+
+  const displaySize = useMemo(() => {
+    if (!activePage?.width || !activePage?.height) {
+      return { width: 0, height: 0 };
+    }
+
+    const availableWidth = Math.max(workspaceViewportSize.width - 64, 320);
+    const availableHeight = Math.max(workspaceViewportSize.height - 64, 320);
+    const fitScale = Math.min(availableWidth / activePage.width, availableHeight / activePage.height);
+
+    return {
+      width: Math.max(activePage.width * fitScale, 1),
+      height: Math.max(activePage.height * fitScale, 1),
+    };
+  }, [activePage?.height, activePage?.width, workspaceViewportSize.height, workspaceViewportSize.width]);
 
   // Handle file input change
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +180,10 @@ export default function ImageSplitter() {
   const handleMouseDown = (e: MouseEvent, panelId?: string, mode?: DragMode) => {
     if (!activePage) return;
     e.stopPropagation();
+
+    if (!isEditableTarget(e.target) && !(e.target instanceof HTMLElement && e.target.closest('button'))) {
+      workspaceRef.current?.focus();
+    }
 
     // If clicking inside a text area, do NOT trigger drag
     if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') {
@@ -257,6 +334,30 @@ export default function ImageSplitter() {
     setActivePanelId(null);
   };
 
+  const handleWorkspaceFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    setIsWorkspaceFocused(!isEditableTarget(e.target));
+  };
+
+  const handleWorkspaceBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setIsWorkspaceFocused(false);
+  };
+
+  const handleWorkspaceKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isEditableTarget(e.target)) return;
+
+    if (e.key === '=' || e.key === '+') {
+      e.preventDefault();
+      changeZoom('in');
+      return;
+    }
+
+    if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      changeZoom('out');
+    }
+  };
+
   const handleSaveCrop = async (panelId: string) => {
     setCroppingPanelId(panelId);
     await cropAndUpdatePanelImage(panelId);
@@ -403,6 +504,19 @@ export default function ImageSplitter() {
           </button>
 
           <button
+            onClick={() => {
+              if (confirm('Delete all analyzed panel/transcription data and start again? Uploaded pages will be kept.')) {
+                resetAnalyzedData();
+              }
+            }}
+            disabled={pages.length === 0 || isProcessing || isAnalyzingScript}
+            className="w-full flex items-center justify-center bg-amber-600 hover:bg-amber-700 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded font-bold shadow transition-colors text-sm"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Reset Analysis
+          </button>
+
+          <button
             onClick={downloadZip}
             disabled={!hasResults}
             className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded font-bold shadow transition-colors text-sm"
@@ -443,192 +557,251 @@ export default function ImageSplitter() {
       <div className="flex-1 bg-gray-900 flex flex-col overflow-hidden relative select-none">
         {activePage ? (
           <div 
-            className="flex-1 overflow-auto flex items-start justify-center p-8 relative"
+            ref={workspaceRef}
+            tabIndex={0}
+            className={`flex-1 overflow-auto flex items-start justify-center p-6 relative outline-none transition-shadow ${isWorkspaceFocused ? 'ring-2 ring-inset ring-pink-500/70' : ''}`}
             style={{ cursor: dragMode === 'draw' ? 'crosshair' : 'default' }}
+            onFocus={handleWorkspaceFocus}
+            onBlur={handleWorkspaceBlur}
+            onKeyDown={handleWorkspaceKeyDown}
             onMouseDown={(e) => handleMouseDown(e)}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            <div 
-              ref={containerRef}
-              className="relative shadow-2xl border border-gray-700 select-none group/canvas"
-              style={{ maxWidth: '90%' }} 
-            >
-              <img 
-                src={activePage.previewUrl} 
-                className={`block max-w-full select-none pointer-events-none transition-opacity ${activePage.status === 'processing' ? 'opacity-70' : 'opacity-100'}`}
-                draggable={false}
-                style={{ maxHeight: 'calc(100vh - 350px)' }}
-                alt="Work area" 
-              />
+            <div ref={workspaceViewportRef} className="flex min-h-full w-full items-start justify-center overflow-visible">
+              <div
+                className="relative pt-12"
+                style={{
+                  width: `${displaySize.width * zoom}px`,
+                }}
+              >
+                <div className="absolute top-0 right-0 z-[60] flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Clear all crop panels for ${activePage.fileName} and start this page again?`)) {
+                        clearActivePagePanels();
+                      }
+                    }}
+                    disabled={activePage.panels.length === 0 || isProcessing || isAnalyzingScript}
+                    title="Clear all panels on this page"
+                    aria-label="Clear all panels on this page"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-500/40 bg-amber-600/20 text-amber-100 shadow-lg backdrop-blur-sm transition-colors hover:bg-amber-600/30 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
 
-              {/* Page Processing Overlay */}
-              {activePage.status === 'processing' && (
-                <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-                  <div className="bg-gray-900/80 p-4 rounded-xl flex flex-col items-center shadow-2xl border border-[#DB2777]/50 backdrop-blur-sm">
-                    <SpinnerIcon className="h-8 w-8 text-[#DB2777] mb-2" />
-                    <p className="text-sm font-bold text-pink-200">Detecting Panels...</p>
+                  <div className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950/85 px-2 py-2 text-xs text-gray-200 shadow-lg backdrop-blur-sm">
+                    <button
+                      type="button"
+                      onClick={() => changeZoom('out')}
+                      title="Zoom out"
+                      aria-label="Zoom out"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeZoom('in')}
+                      title="Zoom in"
+                      aria-label="Zoom in"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-              )}
-              
-              {/* Render Panels with Transform Handles */}
-              {activePage.panels.map((panel, panelIndex) => {
-                const top = (panel.box_2d[0] / 1000) * 100;
-                const left = (panel.box_2d[1] / 1000) * 100;
-                const height = ((panel.box_2d[2] - panel.box_2d[0]) / 1000) * 100;
-                const width = ((panel.box_2d[3] - panel.box_2d[1]) / 1000) * 100;
 
-                const isInteracting = activePanelId === panel.id;
-                const panelNumber = panelIndex + 1;
-                const showTranscription = !!panel.storyboard;
+                <div
+                  ref={containerRef}
+                  className="relative overflow-visible shadow-2xl border border-gray-700 select-none group/canvas"
+                  style={{
+                    width: `${displaySize.width * zoom}px`,
+                    height: `${displaySize.height * zoom}px`,
+                  }}
+                >
+                <img 
+                  src={activePage.previewUrl} 
+                  className={`block h-full w-full select-none pointer-events-none transition-opacity ${activePage.status === 'processing' ? 'opacity-70' : 'opacity-100'}`}
+                  draggable={false}
+                  alt="Work area" 
+                />
 
-                if (panel.storyboard) {
-                }
-
-                return (
-                  <React.Fragment key={panel.id}>
-                    <div
-                      className={`absolute group border-2 z-20 ${isInteracting ? 'border-yellow-400 z-50' : 'border-green-400 hover:border-yellow-200'}`}
-                      style={{
-                        top: `${top}%`,
-                        left: `${left}%`,
-                        width: `${width}%`,
-                        height: `${height}%`,
-                        cursor: 'move'
-                      }}
-                      onMouseDown={(e) => handleMouseDown(e, panel.id, 'move')}
-                    >
-                      {/* Panel Body BG */}
-                      <div className={`absolute inset-0 transition-colors overflow-hidden ${isInteracting ? 'bg-yellow-500/10' : 'bg-green-500/10 group-hover:bg-green-500/20'}`} />
-
-                      {/* Label Badge - Shows panel number only */}
-                      <div className="absolute -top-3 -left-3 bg-green-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow border border-white pointer-events-none z-30">
-                        {panelNumber}
-                      </div>
-
-                      {/* Delete Button */}
-                      <button
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePanel(panel.id);
-                        }}
-                        className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow border border-white transition-opacity z-30 cursor-pointer"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-
-                      {/* Save Crop Button */}
-                      <button
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSaveCrop(panel.id);
-                        }}
-                        disabled={croppingPanelId === panel.id}
-                        title="Save crop"
-                        className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 px-2 rounded-full flex items-center gap-1 opacity-0 group-hover:opacity-100 hover:bg-blue-600 disabled:bg-blue-400 shadow border border-white transition-opacity z-30 cursor-pointer text-[10px] font-bold whitespace-nowrap"
-                      >
-                        {croppingPanelId === panel.id ? (
-                          <SpinnerIcon className="w-3 h-3" />
-                        ) : (
-                          <Crop className="w-3 h-3" />
-                        )}
-                        Save Crop
-                      </button>
-
-                      {/* Resize Handles */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* NW Corner */}
-                        <div
-                          className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-nw-resize z-40"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-nw')}
-                        />
-                        {/* NE Corner */}
-                        <div
-                          className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-ne-resize z-40"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-ne')}
-                        />
-                        {/* SW Corner */}
-                        <div
-                          className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-sw-resize z-40"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-sw')}
-                        />
-                        {/* SE Corner */}
-                        <div
-                          className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-se-resize z-40"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-se')}
-                        />
-
-                        {/* Edge Handles */}
-                        <div
-                          className="absolute -top-1 left-2 right-2 h-2 cursor-ns-resize z-35"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-n')}
-                        />
-                        <div
-                          className="absolute -bottom-1 left-2 right-2 h-2 cursor-ns-resize z-35"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-s')}
-                        />
-                        <div
-                          className="absolute top-2 bottom-2 -left-1 w-2 cursor-ew-resize z-35"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-w')}
-                        />
-                        <div
-                          className="absolute top-2 bottom-2 -right-1 w-2 cursor-ew-resize z-35"
-                          onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-e')}
-                        />
-                      </div>
+                {/* Page Processing Overlay */}
+                {activePage.status === 'processing' && (
+                  <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+                    <div className="bg-gray-900/80 p-4 rounded-xl flex flex-col items-center shadow-2xl border border-[#DB2777]/50 backdrop-blur-sm">
+                      <SpinnerIcon className="h-8 w-8 text-[#DB2777] mb-2" />
+                      <p className="text-sm font-bold text-pink-200">Detecting Panels...</p>
                     </div>
+                  </div>
+                )}
+              
+                {/* Render Panels with Transform Handles */}
+                {activePage.panels.map((panel, panelIndex) => {
+                  const top = (panel.box_2d[0] / 1000) * 100;
+                  const left = (panel.box_2d[1] / 1000) * 100;
+                  const height = ((panel.box_2d[2] - panel.box_2d[0]) / 1000) * 100;
+                  const width = ((panel.box_2d[3] - panel.box_2d[1]) / 1000) * 100;
 
-                    {/* Transcription Box - Floats to the right of panel, always visible when exists */}
-                    {showTranscription && (
+                  const isInteracting = activePanelId === panel.id;
+                  const panelNumber = panel.label || String(panelIndex + 1);
+                  const showTranscription = !!panel.storyboard;
+
+                  if (panel.storyboard) {
+                  }
+
+                  return (
+                    <React.Fragment key={panel.id}>
                       <div
-                        className="absolute bg-gray-800/90 border border-gray-600 rounded shadow-xl z-40 overflow-y-auto backdrop-blur-sm"
+                        className={`absolute group border-2 z-20 ${isInteracting ? 'border-yellow-400 z-50' : 'border-green-400 hover:border-yellow-200'}`}
                         style={{
                           top: `${top}%`,
-                          left: `${left + width}%`,
-                          width: '280px',
-                          maxHeight: '300px',
-                          marginLeft: '8px'
+                          left: `${left}%`,
+                          width: `${width}%`,
+                          height: `${height}%`,
+                          cursor: 'move'
                         }}
-                        onMouseDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => handleMouseDown(e, panel.id, 'move')}
                       >
-                        <div className="p-2 space-y-1">
-                          <div className="flex justify-between items-center pb-1 border-b border-gray-700 mb-2">
-                            <span className="text-[10px] font-bold text-gray-400">RAW SCRIPT</span>
-                          </div>
-                          <textarea
-                            value={panel.storyboard?.text || ''}
-                            onChange={(e) => updatePanelStoryboard(panel.id, e.target.value)}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 h-48 resize-y text-xs font-mono leading-relaxed focus:border-[#DB2777] outline-none"
-                            placeholder="VISUAL: ...&#10;DIALOGUE: ...&#10;SFX: ..."
+                        {/* Panel Body BG */}
+                        <div className={`absolute inset-0 transition-colors overflow-hidden ${isInteracting ? 'bg-yellow-500/10' : 'bg-green-500/10 group-hover:bg-green-500/20'}`} />
+
+                        {/* Label Badge - Shows panel number only */}
+                        <div className="absolute -top-3 -left-3 bg-green-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow border border-white pointer-events-none z-30">
+                          {panelNumber}
+                        </div>
+
+                        {/* Delete Button */}
+                        <button
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deletePanel(panel.id);
+                          }}
+                          title={`Delete panel ${panelNumber}`}
+                          className={`absolute -top-3.5 -right-3.5 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow border-2 border-white transition-all z-30 cursor-pointer ${isInteracting ? 'opacity-100 scale-100' : 'opacity-80 group-hover:opacity-100 hover:bg-red-600 hover:scale-105'}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+
+                        {/* Save Crop Button */}
+                        <button
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSaveCrop(panel.id);
+                          }}
+                          disabled={croppingPanelId === panel.id}
+                          title="Save crop"
+                          className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 px-2 rounded-full flex items-center gap-1 opacity-0 group-hover:opacity-100 hover:bg-blue-600 disabled:bg-blue-400 shadow border border-white transition-opacity z-30 cursor-pointer text-[10px] font-bold whitespace-nowrap"
+                        >
+                          {croppingPanelId === panel.id ? (
+                            <SpinnerIcon className="w-3 h-3" />
+                          ) : (
+                            <Crop className="w-3 h-3" />
+                          )}
+                          Save Crop
+                        </button>
+
+                        {/* Resize Handles */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* NW Corner */}
+                          <div
+                            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-nw-resize z-40"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-nw')}
+                          />
+                          {/* NE Corner */}
+                          <div
+                            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-ne-resize z-40"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-ne')}
+                          />
+                          {/* SW Corner */}
+                          <div
+                            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-gray-500 cursor-sw-resize z-40"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-sw')}
+                          />
+                          {/* SE Corner */}
+                          <div
+                            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-gray-500 cursor-se-resize z-40"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-se')}
+                          />
+
+                          {/* Edge Handles */}
+                          <div
+                            className="absolute -top-1 left-2 right-2 h-2 cursor-ns-resize z-35"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-n')}
+                          />
+                          <div
+                            className="absolute -bottom-1 left-2 right-2 h-2 cursor-ns-resize z-35"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-s')}
+                          />
+                          <div
+                            className="absolute top-2 bottom-2 -left-1 w-2 cursor-ew-resize z-35"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-w')}
+                          />
+                          <div
+                            className="absolute top-2 bottom-2 -right-1 w-2 cursor-ew-resize z-35"
+                            onMouseDown={(e) => handleMouseDown(e, panel.id, 'resize-e')}
                           />
                         </div>
                       </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
 
-              {/* Render New Drawing Rect */}
-              {dragMode === 'draw' && currentRect && (
-                <div
-                  className="absolute border-2 border-white bg-white/20 z-30 pointer-events-none"
-                  style={{
-                    top: `${currentRect[0]}%`,
-                    left: `${currentRect[1]}%`,
-                    height: `${currentRect[2]}%`,
-                    width: `${currentRect[3]}%`,
-                    borderStyle: 'dashed'
-                  }}
-                >
-                  <div className="absolute top-0 right-0 bg-white text-black text-[10px] px-1 font-bold">
-                    New
+                      {/* Transcription Box - Floats to the right of panel, always visible when exists */}
+                      {showTranscription && (
+                        <div
+                          className="absolute bg-gray-800/90 border border-gray-600 rounded shadow-xl z-40 overflow-y-auto backdrop-blur-sm"
+                          style={{
+                            top: `${top}%`,
+                            left: `${left + width}%`,
+                            width: '280px',
+                            maxHeight: '300px',
+                            marginLeft: '8px'
+                          }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <div className="p-2 space-y-1">
+                            <div className="flex justify-between items-center pb-1 border-b border-gray-700 mb-2">
+                              <span className="text-[10px] font-bold text-gray-400">RAW SCRIPT</span>
+                            </div>
+                            <textarea
+                              value={panel.storyboard?.text || ''}
+                              onChange={(e) => updatePanelStoryboard(panel.id, e.target.value)}
+                              className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 h-48 resize-y text-xs font-mono leading-relaxed focus:border-[#DB2777] outline-none"
+                              placeholder="VISUAL: ...&#10;DIALOGUE: ...&#10;SFX: ..."
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+
+                {/* Render New Drawing Rect */}
+                {dragMode === 'draw' && currentRect && (
+                  <div
+                    className="absolute border-2 border-white bg-white/20 z-30 pointer-events-none"
+                    style={{
+                      top: `${currentRect[0]}%`,
+                      left: `${currentRect[1]}%`,
+                      height: `${currentRect[2]}%`,
+                      width: `${currentRect[3]}%`,
+                      borderStyle: 'dashed'
+                    }}
+                  >
+                    <div className="absolute top-0 right-0 bg-white text-black text-[10px] px-1 font-bold">
+                      New
+                    </div>
                   </div>
+                )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ) : (

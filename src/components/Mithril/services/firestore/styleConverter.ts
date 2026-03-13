@@ -28,6 +28,7 @@ export interface StyleConverterPanelDocument {
   panelIndex: number;
   fileName: string;
   originalImageRef: string;
+  imageWeight?: number;
   resultImageRef?: string;
   status: string;
   error?: string;

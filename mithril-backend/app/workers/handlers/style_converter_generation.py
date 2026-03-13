@@ -17,6 +17,8 @@ from app.services.s3 import generate_panel_filename, upload_image
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+DEFAULT_IMAGE_WEIGHT = 0.26
+
 PIXAI_API_BASE = "https://api.pixai.art/v1"
 
 # Haruka v2 (PixAI XL)
@@ -77,7 +79,13 @@ async def _upload_source_to_s3(image_base64: str, mime_type: str) -> str:
     return f"{_settings.cloudfront_url}/{key}"
 
 
-async def _submit_task(api_key: str, media_url: str, prompts: str, target_aspect_ratio: str) -> str:
+async def _submit_task(
+    api_key: str,
+    media_url: str,
+    prompts: str,
+    target_aspect_ratio: str,
+    image_weight: float,
+) -> str:
     res = RESOLUTION_MAP.get(target_aspect_ratio, {"width": 768, "height": 1280})
     payload = {
         "parameters": {
@@ -91,7 +99,7 @@ async def _submit_task(api_key: str, media_url: str, prompts: str, target_aspect
             "sampler": "DPM++ 2M Karras",
             "seed": -1,
             "mediaId": None,
-            "mediaWeight": 0.65,
+            "mediaWeight": max(0.0, min(1.0, image_weight)),
             "mediaUrl": media_url,
             "loraVersionIds": [LORA_VERSION_ID],
             "loraWeights": [LORA_WEIGHT],
@@ -194,6 +202,7 @@ async def process_style_converter_generation(
                 media_url,
                 job.pixai_prompts or "masterpiece, best quality, detailed illustration, anime style",
                 job.aspect_ratio or "9:16",
+                job.pixai_image_weight if job.pixai_image_weight is not None else DEFAULT_IMAGE_WEIGHT,
             )
             await svc.update_job_status(job_id, JobStatus.GENERATING, progress=0.5)
             media_id = await _poll_task(resolved_key, task_id, job_id)

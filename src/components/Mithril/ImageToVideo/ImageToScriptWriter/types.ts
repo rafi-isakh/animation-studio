@@ -1,9 +1,13 @@
 // Continuity data for each clip in the storyboard
 export interface Continuity {
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;
+  pixAiPrompt?: string;
   soraVideoPrompt: string;
   dialogue: string;
   dialogueEn: string;
@@ -18,6 +22,8 @@ export interface Continuity {
   referenceImage?: string;
   referenceImageIndex?: number;
   referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image (persisted)
+  refFileName?: string;
+  facePresent?: boolean;
   panelCoordinates?: number[];
 }
 

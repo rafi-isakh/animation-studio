@@ -28,6 +28,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
     "Image Prompt (Start)",
     ...(hasEndPrompt ? ["Image Prompt (End)"] : []),
     "Video Prompt",
+    "Pix AI",
     "Dialogue (Ko)", "Dialogue (En)",
     "SFX (Ko)", "SFX (En)",
     "BGM (Ko)", "BGM (En)"
@@ -205,6 +206,11 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                           <span className="text-[10px] text-gray-600">No Image</span>
                         </div>
                       )}
+                      {clip.refFileName && (
+                        <div className="mt-2 text-[10px] text-center text-gray-400 break-all">
+                          {clip.refFileName}
+                        </div>
+                      )}
                       {(onUpdateClip || onReplaceReferenceImage) && (
                         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/cell:opacity-100 flex items-center justify-center gap-2 transition-opacity duration-100 z-10">
                           {uploadingCell === `${sceneIndex}-${clipIndex}` ? (
@@ -238,6 +244,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                     <td className="px-3 py-3 text-[11px] text-gray-500 italic min-w-[180px] border-r border-gray-800">{clip.imagePrompt}</td>
                     {hasEndPrompt && <td className="px-3 py-3 text-[11px] text-orange-400/80 italic min-w-[180px] border-r border-gray-800">{clip.imagePromptEnd || "-"}</td>}
                     <td className="px-3 py-3 text-[11px] text-gray-500 min-w-[180px] border-r border-gray-800">{clip.videoPrompt}</td>
+                    <td className="px-3 py-3 text-[11px] text-cyan-200/80 min-w-[180px] border-r border-gray-800">{clip.pixAiPrompt || "-"}</td>
                     <td className="px-3 py-3 text-[12px] text-gray-200 min-w-[120px] border-r border-gray-800">{clip.dialogue}</td>
                     <td className="px-3 py-3 text-[11px] text-gray-400 min-w-[120px] border-r border-gray-800 italic">{clip.dialogueEn}</td>
                     <td className="px-3 py-3 text-[11px] text-orange-200/60 min-w-[100px] border-r border-gray-800">{clip.sfx}</td>

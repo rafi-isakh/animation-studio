@@ -4,26 +4,32 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette, Copy } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
-import { listProjects, deleteProject, ProjectMetadata } from './services/firestore';
-import { clearAllProjectFiles } from './services/s3';
+import { listProjects, deleteProject, copyProject, ProjectMetadata } from './services/firestore';
+import { clearAllProjectFiles, copyAllProjectFiles } from './services/s3';
 import CreateProjectModal from './CreateProjectModal';
 import RenameProjectModal from './RenameProjectModal';
+import CopyProjectModal from './CopyProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
 import { ProjectType, getProjectTypeConfig, getStageConfig } from './config/projectTypes';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectListPage() {
   const router = useRouter();
   const { setCurrentProject } = useProject();
   const { user } = useMithrilAuth();
+  const { toast } = useToast();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [projectToRename, setProjectToRename] = useState<ProjectMetadata | null>(null);
+  const [projectToCopy, setProjectToCopy] = useState<ProjectMetadata | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -74,7 +80,7 @@ export default function ProjectListPage() {
       // 2. Delete Firestore data (project + subcollections)
       await deleteProject(projectId, { id: user.id, role: user.role });
 
-      setProjects(projects.filter(p => p.id !== projectId));
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
     } catch (error) {
       console.error('Failed to delete project:', error);
       alert('Failed to delete project. Please try again.');
@@ -84,7 +90,7 @@ export default function ProjectListPage() {
   }
 
   function handleProjectCreated(newProject: ProjectMetadata) {
-    setProjects([newProject, ...projects]);
+    setProjects((prev) => [newProject, ...prev]);
     setIsCreateModalOpen(false);
   }
 
@@ -95,11 +101,60 @@ export default function ProjectListPage() {
   }
 
   function handleProjectRenamed(renamedProject: ProjectMetadata) {
-    setProjects(projects.map(p =>
+    setProjects((prev) => prev.map(p =>
       p.id === renamedProject.id ? renamedProject : p
     ));
     setIsRenameModalOpen(false);
     setProjectToRename(null);
+  }
+
+  function handleCopyClick(e: React.MouseEvent, project: ProjectMetadata) {
+    e.stopPropagation();
+    setProjectToCopy(project);
+    setIsCopyModalOpen(true);
+  }
+
+  async function handleProjectCopied(newName: string) {
+    if (!user || !projectToCopy) return;
+
+    const sourceProjectId = projectToCopy.id;
+
+    try {
+      setCopyingId(sourceProjectId);
+
+      const copiedProject = await copyProject(sourceProjectId, newName, {
+        id: user.id,
+        role: user.role,
+      });
+
+      try {
+        await copyAllProjectFiles(sourceProjectId, copiedProject.id);
+      } catch (s3Error) {
+        console.error('Failed to copy S3 files:', s3Error);
+        await clearAllProjectFiles(copiedProject.id).catch(() => {});
+        await deleteProject(copiedProject.id, { id: user.id, role: user.role }).catch(() => {});
+        throw new Error('Failed to copy project files. Copy was rolled back.');
+      }
+
+      setProjects((prev) => [copiedProject, ...prev]);
+      setIsCopyModalOpen(false);
+      setProjectToCopy(null);
+
+      toast({
+        variant: 'success',
+        title: 'Project copied',
+        description: `"${copiedProject.name}" is ready.`,
+      });
+    } catch (error) {
+      console.error('Failed to copy project:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Copy failed',
+        description: error instanceof Error ? error.message : 'Failed to copy project. Please try again.',
+      });
+    } finally {
+      setCopyingId(null);
+    }
   }
 
   function formatDate(timestamp: any) {
@@ -258,6 +313,15 @@ export default function ProjectListPage() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={(e) => handleCopyClick(e, project)}
+                      disabled={copyingId === project.id}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
                       onClick={(e) => handleDeleteProject(e, project.id)}
                       disabled={deletingId === project.id}
@@ -313,6 +377,14 @@ export default function ProjectListPage() {
         onOpenChange={setIsRenameModalOpen}
         project={projectToRename}
         onProjectRenamed={handleProjectRenamed}
+      />
+
+      <CopyProjectModal
+        open={isCopyModalOpen}
+        onOpenChange={setIsCopyModalOpen}
+        project={projectToCopy}
+        loading={!!copyingId}
+        onConfirm={handleProjectCopied}
       />
       </div>
     </div>

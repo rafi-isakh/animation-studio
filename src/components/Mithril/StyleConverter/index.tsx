@@ -27,6 +27,40 @@ import {
   uploadI2VPanelEditorImage,
 } from '@/components/Mithril/services/s3/images';
 
+const DEFAULT_IMAGE_WEIGHT = 0.26;
+const MIN_IMAGE_WEIGHT = 0;
+const MAX_IMAGE_WEIGHT = 1;
+
+function clampImageWeight(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_IMAGE_WEIGHT;
+  return Math.min(MAX_IMAGE_WEIGHT, Math.max(MIN_IMAGE_WEIGHT, Number(value.toFixed(2))));
+}
+
+function getLatestJobsByPanel(
+  jobs: Parameters<typeof mapStyleConverterJobToUpdate>[0][],
+) {
+  const latestJobs = new Map<string, typeof jobs[number]>();
+
+  for (const job of jobs) {
+    const panelId = job.panel_id || '';
+    if (!panelId) continue;
+
+    const current = latestJobs.get(panelId);
+    if (!current) {
+      latestJobs.set(panelId, job);
+      continue;
+    }
+
+    const currentTime = Date.parse(current.updated_at || current.created_at || '');
+    const nextTime = Date.parse(job.updated_at || job.created_at || '');
+    if (Number.isNaN(currentTime) || nextTime >= currentTime) {
+      latestJobs.set(panelId, job);
+    }
+  }
+
+  return Array.from(latestJobs.values());
+}
+
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DEBUG = false;
 const log = (...args: unknown[]) => DEBUG && console.log('[StyleConverter]', ...args);
@@ -123,6 +157,7 @@ export default function StyleConverter() {
       panelIndex,
       fileName: panel.fileName || panel.file.name,
       originalImageRef,
+      imageWeight: panel.imageWeight,
       resultImageRef: panel.resultUrl,
       status: panel.status,
       error: panel.error,
@@ -229,6 +264,7 @@ export default function StyleConverter() {
               fileName: savedPanel.fileName,
               previewUrl: URL.createObjectURL(file),
               status: (savedPanel.status as ProcessingStatus) || ProcessingStatus.Idle,
+              imageWeight: clampImageWeight(savedPanel.imageWeight ?? DEFAULT_IMAGE_WEIGHT),
               resultUrl: savedPanel.resultImageRef,
               error: savedPanel.error,
               prompt: savedPanel.prompt,
@@ -259,8 +295,9 @@ export default function StyleConverter() {
     if (!sessionId) return;
     log(`JOB SUBSCRIPTION: subscribing to jobs for sessionId=${sessionId.slice(0, 8)}...`);
     const unsubscribe = subscribeToSessionStyleConverterJobs(sessionId, (jobs) => {
-      log(`JOB UPDATE: received ${jobs.length} jobs`);
-      jobs.forEach((job) => {
+      const latestJobs = getLatestJobsByPanel(jobs);
+      log(`JOB UPDATE: received ${jobs.length} jobs, latest=${latestJobs.length}`);
+      latestJobs.forEach((job) => {
         const update = mapStyleConverterJobToUpdate(job);
         const uiStatus = mapBackendStatus(update.status);
         log(`  job panelId=${update.panelId.slice(0,8)}... status=${update.status} uiStatus=${uiStatus}`);
@@ -282,9 +319,13 @@ export default function StyleConverter() {
             };
             if (uiStatus === ProcessingStatus.Success && update.imageUrl) {
               result.resultUrl = update.imageUrl;
+              result.error = undefined;
             }
             if (uiStatus === ProcessingStatus.Error && update.error) {
               result.error = update.error;
+            }
+            if (uiStatus !== ProcessingStatus.Success) {
+              result.resultUrl = undefined;
             }
             return result;
           })
@@ -302,7 +343,7 @@ export default function StyleConverter() {
 
       // If no jobs are active (all terminal), clear globalProcessing
       const activeStatuses = ['pending', 'preparing', 'generating', 'uploading', 'retrying'];
-      const hasActive = jobs.some((j) => activeStatuses.includes(j.status));
+      const hasActive = latestJobs.some((j) => activeStatuses.includes(j.status));
       if (!hasActive) {
         setGlobalProcessing(false);
       }
@@ -349,6 +390,7 @@ export default function StyleConverter() {
         fileName: file.name,
         previewUrl: URL.createObjectURL(file),
         status: ProcessingStatus.Idle,
+        imageWeight: DEFAULT_IMAGE_WEIGHT,
         // Don't set _fromStorage for newly added files - they need to be persisted
       }));
       
@@ -405,6 +447,16 @@ export default function StyleConverter() {
     }
   }, [currentProjectId]);
 
+  const handleUpdateImageWeight = useCallback((id: string, imageWeight: number) => {
+    const nextImageWeight = clampImageWeight(imageWeight);
+    setPanels((prev) => prev.map((p) => (
+      p.id === id ? { ...p, imageWeight: nextImageWeight, _fromStorage: false } : p
+    )));
+    if (currentProjectId) {
+      void updateStyleConverterPanel(currentProjectId, id, { imageWeight: nextImageWeight });
+    }
+  }, [currentProjectId]);
+
   // â”€â”€ Processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const submitSinglePanel = useCallback(
@@ -413,8 +465,24 @@ export default function StyleConverter() {
       if (!panel) return;
 
       setPanels((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, status: ProcessingStatus.Pending, error: undefined, progress: 0 } : p)),
+        prev.map((p) => (p.id === id ? {
+          ...p,
+          status: ProcessingStatus.Pending,
+          resultUrl: undefined,
+          error: undefined,
+          progress: 0,
+          jobId: undefined,
+          _fromStorage: false,
+        } : p)),
       );
+
+      if (currentProjectId) {
+        void updateStyleConverterPanel(currentProjectId, id, {
+          status: ProcessingStatus.Pending,
+          resultImageRef: undefined,
+          error: undefined,
+        });
+      }
 
       try {
         const dataUri = await fileToBase64DataUri(panel.file);
@@ -433,6 +501,7 @@ export default function StyleConverter() {
             imageBase64,
             mimeType,
             prompts,
+            imageWeight: clampImageWeight(panel.imageWeight),
             targetAspectRatio: config.targetAspectRatio,
           }),
         });
@@ -450,6 +519,7 @@ export default function StyleConverter() {
         if (currentProjectId) {
           void updateStyleConverterPanel(currentProjectId, id, {
             status: ProcessingStatus.Pending,
+            resultImageRef: undefined,
             error: undefined,
           });
         }
@@ -611,6 +681,7 @@ export default function StyleConverter() {
         panels.map(async (p) => ({
           id: p.id,
           status: p.status,
+          imageWeight: p.imageWeight,
           resultUrl: p.resultUrl,
           error: p.error,
           prompt: p.prompt,
@@ -655,6 +726,7 @@ export default function StyleConverter() {
             originalName: string;
             originalType: string;
             status: ProcessingStatus;
+            imageWeight?: number;
             resultUrl?: string;
             error?: string;
             prompt?: string;
@@ -667,6 +739,7 @@ export default function StyleConverter() {
               fileName: f.name,
               previewUrl: URL.createObjectURL(f),
               status: p.status,
+              imageWeight: clampImageWeight(p.imageWeight ?? DEFAULT_IMAGE_WEIGHT),
               resultUrl: p.resultUrl,
               error: p.error,
               prompt: p.prompt,
@@ -758,6 +831,7 @@ export default function StyleConverter() {
                   onRemove={removePanel}
                   onRetry={handleRetry}
                   onUpdatePrompt={handleUpdatePrompt}
+                  onUpdateImageWeight={handleUpdateImageWeight}
                   targetRatio={config.targetAspectRatio}
                 />
               ))}

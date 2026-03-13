@@ -19,6 +19,7 @@ export interface PanelData {
   previewUrl: string;
   fileName?: string;
   status: ProcessingStatus;
+  imageWeight: number;
   resultUrl?: string;
   error?: string;
   prompt?: string;

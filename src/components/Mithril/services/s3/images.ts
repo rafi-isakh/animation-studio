@@ -21,6 +21,8 @@ import {
   DeleteVideoResponse,
   ClearProjectRequest,
   ClearProjectResponse,
+  CopyProjectFilesRequest,
+  CopyProjectFilesResponse,
   CharacterImageSubtype,
   ImageGenImageSubtype,
   I2VImageSubtype,
@@ -43,6 +45,7 @@ import {
 const IMAGE_API_URL = '/api/mithril/s3/image';
 const VIDEO_API_URL = '/api/mithril/s3/video';
 const CLEAR_PROJECT_API_URL = '/api/mithril/s3/clear-project';
+const COPY_PROJECT_API_URL = '/api/mithril/s3/copy-project';
 
 // ============================================================================
 // Character Images
@@ -414,6 +417,34 @@ export async function clearAllProjectFiles(projectId: string): Promise<number> {
   }
 
   return result.deletedCount;
+}
+
+/**
+ * Copy all S3 files from one project to another across image/video buckets.
+ * Used by project duplication to keep generated assets independent.
+ */
+export async function copyAllProjectFiles(
+  sourceProjectId: string,
+  destinationProjectId: string
+): Promise<number> {
+  const request: CopyProjectFilesRequest = {
+    sourceProjectId,
+    destinationProjectId,
+  };
+
+  const response = await fetch(COPY_PROJECT_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: CopyProjectFilesResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to copy project files');
+  }
+
+  return result.copiedCount;
 }
 
 // ============================================================================

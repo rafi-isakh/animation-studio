@@ -149,6 +149,7 @@ class JobDocument(BaseModel):
 
     # Style converter-specific fields (for type=STYLE_CONVERTER)
     pixai_prompts: str | None = None  # PixAI prompt text
+    pixai_image_weight: float | None = None  # PixAI media weight
 
     # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
     original_text: str | None = None  # Full text for glossary analysis
@@ -505,6 +506,7 @@ class StyleConverterJobSubmitRequest(BaseModel):
     image_base64: str     # Base64 encoded source image
     mime_type: str = "image/jpeg"
     prompts: str          # PixAI prompt text
+    image_weight: float = 0.26
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "9:16"
     api_key: str | None = None  # Custom PixAI key (optional, falls back to server key)
 
@@ -747,6 +749,12 @@ class StoryboardClip(BaseModel):
     length: str
     accumulatedTime: str
     referenceImageIndex: int = 0
+    refFileName: str = ""
+    pixAiPrompt: str = ""
+    facePresent: bool | None = None
+    storyDetailKo: str = ""
+    storyGroupLabel: str = ""
+    storyGroupSize: int | None = None
 
 
 class StoryboardScene(BaseModel):

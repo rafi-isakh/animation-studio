@@ -1,9 +1,11 @@
 """I2V (Image-to-Video) storyboard generation task handler."""
 
 import asyncio
+import copy
 import json
 import logging
 import re
+from typing import Any
 
 import httpx
 from google import genai
@@ -97,6 +99,476 @@ def _extract_required_clip_count(text: str) -> int | None:
     if match:
         return int(match.group(1))
     return None
+
+
+_PANEL_HEADER_RE = re.compile(
+    r'^\s*(?:[#>*\-\[]\s*)?(?:panel|패널|컷|clip|frame|scene)\s*[:#\-]?\s*(\d+)\b',
+    re.IGNORECASE,
+)
+
+
+def _normalize_bool(value: str) -> bool | None:
+    normalized = re.sub(r'[^a-zA-Z가-힣0-9]+', '', value).lower()
+    if not normalized:
+        return None
+
+    truthy = {
+        'yes', 'true', 'y', '1', 'present', 'visible', '있음', '예', '유', '노출', '보임',
+    }
+    falsy = {
+        'no', 'false', 'n', '0', 'absent', 'hidden', '없음', '아니오', '무', '안보임', '미노출',
+    }
+
+    if normalized in truthy:
+        return True
+    if normalized in falsy:
+        return False
+    return None
+
+
+def _match_panel_field(line: str) -> tuple[str, str] | None:
+    field_patterns = {
+        'facePresent': [
+            r'face\s*present',
+        ],
+        'refFileName': [
+            r'reference\s*(?:image\s*)?(?:file(?:name)?|filename)',
+            r'ref(?:erence)?\s*(?:image\s*)?(?:file(?:name)?|filename)',
+        ],
+        'pixAiPrompt': [
+            r'(?:recommended\s*)?pix\s*ai(?:\s*(?:prompt|프롬프트))?',
+        ],
+        'nsfw': [
+            r'nsfw',
+        ],
+        'nudityVisible': [
+            r'(?:nudity|nude|naked)(?:\s*(?:visible|present))?',
+            r'알몸(?:\s*노출)?',
+            r'노출',
+        ],
+    }
+
+    for field_name, patterns in field_patterns.items():
+        for pattern in patterns:
+            match = re.match(rf'^\s*(?:[-*]\s*)?(?:{pattern})\s*[:：\-]\s*(.*)$', line, re.IGNORECASE)
+            if match:
+                return field_name, match.group(1).strip()
+    return None
+
+
+def _parse_panel_metadata(source_text: str) -> list[dict[str, Any]]:
+    if not source_text:
+        return []
+
+    lines = source_text.splitlines()
+    panels: list[dict[str, Any]] = []
+    current_panel: dict[str, Any] | None = None
+    current_field: str | None = None
+    current_buffer: list[str] = []
+
+    def ensure_panel(next_panel_index: int | None = None) -> dict[str, Any]:
+        nonlocal current_panel
+        if current_panel is None:
+            current_panel = {
+                'panelIndex': next_panel_index if next_panel_index is not None else len(panels),
+                'rawSection': '',
+            }
+        return current_panel
+
+    def flush_field() -> None:
+        nonlocal current_field, current_buffer
+        if current_panel is None or current_field is None:
+            current_field = None
+            current_buffer = []
+            return
+
+        value = '\n'.join(part for part in current_buffer if part is not None).strip()
+        if current_field in {'facePresent', 'nsfw', 'nudityVisible'}:
+            current_panel[current_field] = _normalize_bool(value)
+        elif value:
+            current_panel[current_field] = value
+
+        current_field = None
+        current_buffer = []
+
+    def flush_panel() -> None:
+        nonlocal current_panel
+        if current_panel is None:
+            return
+        flush_field()
+        raw_section = str(current_panel.get('rawSection', '')).strip()
+        if raw_section:
+            lowered = raw_section.lower()
+            if current_panel.get('nsfw') is None and 'nsfw' in lowered:
+                current_panel['nsfw'] = True
+            if current_panel.get('nudityVisible') is None and any(keyword in lowered for keyword in ('nudity', 'nude', 'naked', '알몸', '나체')):
+                current_panel['nudityVisible'] = True
+
+        has_content = any(
+            current_panel.get(key) not in (None, '', False)
+            for key in ('refFileName', 'pixAiPrompt', 'facePresent', 'nsfw', 'nudityVisible')
+        )
+        if has_content:
+            panels.append(current_panel)
+        current_panel = None
+
+    for line in lines:
+        header_match = _PANEL_HEADER_RE.match(line)
+        if header_match:
+            flush_panel()
+            current_panel = {
+                'panelIndex': max(int(header_match.group(1)) - 1, 0),
+                'rawSection': line.strip(),
+            }
+            continue
+
+        matched_field = _match_panel_field(line)
+        if matched_field:
+            field_name, value = matched_field
+            panel = ensure_panel()
+            if field_name in panel and panel.get(field_name) not in (None, '', False) and all(
+                panel.get(key) in (None, '', False) for key in ('pixAiPrompt', 'refFileName') if key != field_name
+            ):
+                flush_panel()
+                panel = ensure_panel()
+            flush_field()
+            current_field = field_name
+            current_buffer = [value] if value else []
+            panel['rawSection'] = f"{panel.get('rawSection', '')}\n{line.strip()}".strip()
+            continue
+
+        if current_panel is not None:
+            current_panel['rawSection'] = f"{current_panel.get('rawSection', '')}\n{line.strip()}".strip()
+        if current_field is not None:
+            current_buffer.append(line.strip())
+
+    flush_panel()
+
+    if not panels:
+        return []
+
+    panels.sort(key=lambda item: int(item.get('panelIndex', 0)))
+    for sequential_index, panel in enumerate(panels):
+        panel['panelIndex'] = sequential_index if panel.get('panelIndex') is None else int(panel['panelIndex'])
+    return panels
+
+
+def _split_prompt_segments(prompt: str) -> list[str]:
+    return [segment.strip() for segment in re.split(r'[\n,;]+', prompt) if segment.strip()]
+
+
+def _extract_location_key(background_id: str) -> str:
+    if not background_id:
+        return ''
+    parts = background_id.split('-')
+    return parts[0].strip() if parts else ''
+
+
+def _extract_character_ids(story_text: str) -> set[str]:
+    if not story_text:
+        return set()
+    return {match.group(0) for match in re.finditer(r'\b[A-Z][A-Z0-9_]{1,}\b', story_text)}
+
+
+def _extract_story_tokens(story_text: str) -> set[str]:
+    if not story_text:
+        return set()
+    raw_tokens = re.findall(r'[A-Za-z가-힣0-9_]{2,}', story_text)
+    stop_words = {
+        '장면', '그리고', '그러나', '또한', '있는', '없는', '대한', '에서', '으로', '하는',
+        '했다', '한다', '하고', '같은', '대한', '모습', '보인다', '있다', '없다',
+    }
+    normalized = {token.lower() for token in raw_tokens}
+    return {token for token in normalized if token not in stop_words}
+
+
+def _is_repetitive_visual_moment(story_text: str) -> bool:
+    if not story_text:
+        return False
+    lowered = story_text.lower()
+    visual_patterns = [
+        'blink', 'blinking', 'stare', 'staring', 'gaze', 'gazing',
+        '눈을 깜박', '깜박이', '주시', '응시', '쳐다보', '바라보',
+    ]
+    return any(pattern in lowered for pattern in visual_patterns)
+
+
+def _jaccard_similarity(left: set[str], right: set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    union = left.union(right)
+    if not union:
+        return 0.0
+    return len(left.intersection(right)) / len(union)
+
+
+def _should_merge_story_groups(prev_clip: dict[str, Any], current_clip: dict[str, Any]) -> bool:
+    prev_story = str(prev_clip.get('storyDetailKo') or prev_clip.get('story') or '').strip()
+    current_story = str(current_clip.get('storyDetailKo') or current_clip.get('story') or '').strip()
+    if not prev_story or not current_story:
+        return False
+
+    prev_bg_prompt = str(prev_clip.get('backgroundPrompt') or '').strip().lower()
+    current_bg_prompt = str(current_clip.get('backgroundPrompt') or '').strip().lower()
+    same_background_prompt = bool(prev_bg_prompt and prev_bg_prompt == current_bg_prompt)
+
+    prev_location = _extract_location_key(str(prev_clip.get('backgroundId') or ''))
+    current_location = _extract_location_key(str(current_clip.get('backgroundId') or ''))
+    same_location = bool(prev_location and prev_location == current_location)
+
+    prev_characters = _extract_character_ids(prev_story)
+    current_characters = _extract_character_ids(current_story)
+    shared_characters = bool(prev_characters.intersection(current_characters))
+
+    token_similarity = _jaccard_similarity(
+        _extract_story_tokens(prev_story),
+        _extract_story_tokens(current_story),
+    )
+    visually_repetitive = _is_repetitive_visual_moment(prev_story) and _is_repetitive_visual_moment(current_story)
+
+    if same_background_prompt and (token_similarity >= 0.2 or shared_characters or visually_repetitive):
+        return True
+
+    if same_location and (token_similarity >= 0.25 or shared_characters or visually_repetitive):
+        return True
+
+    if shared_characters and token_similarity >= 0.35:
+        return True
+
+    return False
+
+
+def _apply_grouped_story_labels(result: dict[str, Any]) -> dict[str, Any]:
+    scenes = result.get('scenes', [])
+    flattened: list[dict[str, Any]] = []
+    for scene in scenes:
+        for clip in scene.get('clips', []):
+            original_story = str(clip.get('story') or '').strip()
+            clip['storyDetailKo'] = original_story
+            flattened.append(clip)
+
+    if not flattened:
+        return result
+
+    grouped_ranges: list[tuple[int, int]] = []
+    group_start = 0
+
+    for idx in range(1, len(flattened)):
+        if not _should_merge_story_groups(flattened[idx - 1], flattened[idx]):
+            grouped_ranges.append((group_start, idx - 1))
+            group_start = idx
+    grouped_ranges.append((group_start, len(flattened) - 1))
+
+    for group_index, (start_idx, end_idx) in enumerate(grouped_ranges, start=1):
+        group_size = end_idx - start_idx + 1
+        group_label = f"Story{group_index}: {group_size}"
+        for clip_index in range(start_idx, end_idx + 1):
+            clip = flattened[clip_index]
+            clip['storyGroupLabel'] = group_label
+            clip['storyGroupSize'] = group_size
+
+    return result
+
+
+def _extract_primary_actor(text: str) -> str:
+    if not text:
+        return "인물"
+    match = re.search(r'\b([A-Z][A-Z0-9_]{1,})\b', text)
+    if match:
+        return match.group(1)
+    return "인물"
+
+
+def _build_korean_story_fallback(clip: dict[str, Any]) -> str:
+    actor = _extract_primary_actor(str(clip.get("story") or "") + " " + str(clip.get("dialogue") or ""))
+    bg_id = str(clip.get("backgroundId") or "")
+    bg_prompt = str(clip.get("backgroundPrompt") or "").strip()
+    dialogue = str(clip.get("dialogue") or "").strip()
+
+    if dialogue:
+        return f"배경 {bg_id} 장면에서 {actor}가 상황에 반응하며 대사를 전하는 순간으로, 인물의 행동과 감정 변화가 뚜렷하게 드러난다."
+
+    if bg_prompt:
+        return f"배경 {bg_id}의 {bg_prompt} 분위기 속에서 {actor}가 주변을 주시하며 다음 행동을 준비하는 장면으로, 장면의 맥락과 흐름이 명확하게 이어진다."
+
+    return f"배경 {bg_id} 장면에서 {actor}가 현재 상황에 맞는 행동을 수행하는 순간을 묘사하며, 누가 무엇을 하는지 분명하게 이해할 수 있도록 구성된 장면이다."
+
+
+def _ensure_story_quality(result: dict[str, Any]) -> dict[str, Any]:
+    for scene in result.get("scenes", []):
+        for clip in scene.get("clips", []):
+            story = str(clip.get("story") or "").strip()
+            has_korean = bool(re.search(r'[가-힣]', story))
+
+            if not story or not has_korean:
+                clip["story"] = _build_korean_story_fallback(clip)
+                continue
+
+            # Story must carry meaningful context about actor and action.
+            if len(story) < 28:
+                supplement = _build_korean_story_fallback(clip)
+                if supplement not in story:
+                    clip["story"] = f"{story} {supplement}".strip()
+
+    return result
+
+
+def _flatten_clips(result: dict[str, Any]) -> list[dict[str, Any]]:
+    flattened: list[dict[str, Any]] = []
+    for scene in result.get("scenes", []):
+        flattened.extend(scene.get("clips", []))
+    return flattened
+
+
+def _enforce_required_clip_count(result: dict[str, Any], required_clip_count: int, total_panels: int) -> dict[str, Any]:
+    scenes = result.get("scenes", [])
+    if not scenes:
+        result["scenes"] = [{"sceneTitle": "Scene 1", "clips": []}]
+        scenes = result["scenes"]
+
+    flattened = _flatten_clips(result)
+
+    if not flattened:
+        default_clip = {
+            "story": "배경 1-1 장면에서 인물이 상황을 인지하며 다음 행동을 준비하는 장면이다.",
+            "imagePrompt": "medium shot of CHARACTER_ID observing the surroundings",
+            "videoPrompt": "character maintains calm posture",
+            "dialogue": "",
+            "dialogueEn": "",
+            "sfx": "",
+            "sfxEn": "",
+            "bgm": "",
+            "bgmEn": "",
+            "length": "00:01",
+            "accumulatedTime": "00:01",
+            "backgroundPrompt": "",
+            "backgroundId": "1-1",
+            "referenceImageIndex": 0,
+        }
+        flattened = [default_clip]
+
+    current_count = len(flattened)
+    if current_count < required_clip_count:
+        seed_clip = flattened[-1]
+        for idx in range(current_count, required_clip_count):
+            new_clip = copy.deepcopy(seed_clip)
+            new_clip["referenceImageIndex"] = min(idx, max(total_panels - 1, 0))
+            new_clip["accumulatedTime"] = _format_time(idx + 1)
+            flattened.append(new_clip)
+    elif current_count > required_clip_count:
+        flattened = flattened[:required_clip_count]
+
+    # Rebuild scene clips: keep all clips in existing scene order; overflow goes to the last scene.
+    scene_lengths = [len(scene.get("clips", [])) for scene in scenes]
+    if not any(scene_lengths):
+        scene_lengths = [required_clip_count]
+    else:
+        base_sum = sum(scene_lengths[:-1])
+        scene_lengths[-1] = max(required_clip_count - base_sum, 0)
+
+    cursor = 0
+    rebuilt_scenes: list[dict[str, Any]] = []
+    for scene_idx, scene in enumerate(scenes):
+        take = scene_lengths[scene_idx] if scene_idx < len(scene_lengths) else 0
+        scene_clips = flattened[cursor:cursor + take]
+        cursor += take
+        rebuilt_scenes.append({
+            "sceneTitle": scene.get("sceneTitle", f"Scene {scene_idx + 1}"),
+            "clips": scene_clips,
+        })
+
+    if cursor < len(flattened):
+        rebuilt_scenes[-1]["clips"].extend(flattened[cursor:])
+
+    # Drop empty scenes created by truncation.
+    result["scenes"] = [scene for scene in rebuilt_scenes if scene.get("clips")]
+    if not result["scenes"]:
+        result["scenes"] = [{"sceneTitle": "Scene 1", "clips": flattened}]
+
+    return result
+
+
+def _sanitize_video_prompt(prompt: str, *, remove_speech: bool, remove_camera: bool) -> str:
+    if not prompt:
+        return ''
+
+    speech_pattern = re.compile(
+        r'\b(?:speak|speaks|speaking|talk|talks|talking|yell|yells|yelling|shout|shouts|shouting|whisper|whispers|whispering|say|says|saying|dialogue|lip\s*sync|mouth\s*(?:movement|visible)|head\s*(?:angle\s*)?stays?\s*still)\b',
+        re.IGNORECASE,
+    )
+    camera_pattern = re.compile(
+        r'\b(?:camera|shot|tracking|track|pan|panning|tilt|zoom|dolly|handheld|pedestal|crane|whip\s*pan|push\s*-?in|pull\s*-?back|follow|close\s*up|medium\s*shot|wide\s*shot|low\s*angle|high\s*angle|pov)\b',
+        re.IGNORECASE,
+    )
+
+    kept_segments: list[str] = []
+    for segment in _split_prompt_segments(prompt):
+        if remove_speech and speech_pattern.search(segment):
+            continue
+        if remove_camera and camera_pattern.search(segment):
+            continue
+        kept_segments.append(segment)
+
+    return ', '.join(kept_segments).strip(' ,')
+
+
+def _apply_panel_metadata_to_result(result: dict[str, Any], source_text: str) -> dict[str, Any]:
+    panel_metadata = _parse_panel_metadata(source_text)
+    if not panel_metadata:
+        for scene in result.get('scenes', []):
+            for clip in scene.get('clips', []):
+                clip['videoPrompt'] = _sanitize_video_prompt(
+                    clip.get('videoPrompt', ''),
+                    remove_speech=True,
+                    remove_camera=True,
+                )
+        return result
+
+    for scene in result.get('scenes', []):
+        for clip_index, clip in enumerate(scene.get('clips', [])):
+            panel_index = clip.get('referenceImageIndex', clip_index)
+            try:
+                panel_index = int(panel_index)
+            except (TypeError, ValueError):
+                panel_index = clip_index
+
+            metadata = panel_metadata[panel_index] if 0 <= panel_index < len(panel_metadata) else None
+            if metadata is None and clip_index < len(panel_metadata):
+                metadata = panel_metadata[clip_index]
+
+            if metadata:
+                ref_file_name = str(metadata.get('refFileName', '') or '').strip()
+                pix_ai_prompt = str(metadata.get('pixAiPrompt', '') or '').strip()
+                if ref_file_name:
+                    clip['refFileName'] = ref_file_name
+                if pix_ai_prompt:
+                    clip['pixAiPrompt'] = pix_ai_prompt
+
+                face_present = metadata.get('facePresent')
+                if face_present is not None:
+                    clip['facePresent'] = face_present
+
+                clip['videoPrompt'] = _sanitize_video_prompt(
+                    clip.get('videoPrompt', ''),
+                    remove_speech=True,
+                    remove_camera=True,
+                )
+
+                nsfw = metadata.get('nsfw') is True
+                nudity_visible = metadata.get('nudityVisible') is True
+                if nsfw and nudity_visible:
+                    addition = 'one or two sweat drops beautifully'
+                    current_prompt = clip.get('videoPrompt', '').strip()
+                    if addition.lower() not in current_prompt.lower():
+                        clip['videoPrompt'] = f"{current_prompt}, {addition}".strip(' ,')
+            else:
+                clip['videoPrompt'] = _sanitize_video_prompt(
+                    clip.get('videoPrompt', ''),
+                    remove_speech=True,
+                    remove_camera=True,
+                )
+
+    return result
 
 
 async def _download_panel_images(panel_urls: list[str]) -> list[bytes]:
@@ -360,10 +832,12 @@ async def _generate_i2v_storyboard_with_gemini(
 - 모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.**
 - 'accumulatedTime' 필드는 각 클립의 누적 시간을 MM:SS 형식으로 기록합니다 (총 시간 제한 없음).
 
-**[CRITICAL: 비디오 프롬프트 발화 규칙]**
-- 클립에 대사(dialogue)가 존재하거나 캐릭터가 말하는 상황이라면, `videoPrompt`에 반드시 해당 캐릭터가 말하는 동작(speaks, yells, shouts, whispers 등)을 포함하십시오.
-- 말하는 장면에는 항상 "(pronoun)'s head angle stays still"을 videoPrompt 끝에 추가하십시오.
-- 발화 장면에서 애매하거나 비유적 표현 금지. (잘못된 예: "delivers a warning" → 올바른 예: "speaks firmly")
+**[CRITICAL: 비디오 프롬프트 규칙]**
+- `videoPrompt`에서는 누가 어떤 말을 하는지, speaks / talking / yelling / shouting / whispering 같은 발화 표현을 절대 쓰지 마세요.
+- `videoPrompt`에서는 camera movement, tracking shot, pan, tilt, zoom, dolly, handheld, low angle, close-up 등 카메라 움직임/샷 용어를 절대 쓰지 마세요.
+- `videoPrompt`에서는 "head stays still", "head angle stays still" 같은 표현을 절대 쓰지 마세요.
+- 얼굴이 보이지 않는 패널(Face Present: No)에 대응하는 클립은 특히 발화/입모양/머리 고정 관련 표현을 완전히 제외하세요.
+- 대신 인물의 상태, 분위기, 표면 디테일만 간결하게 적으세요.
 
 **[사용자 특별 지시사항 (스토리 흐름)]**
 {custom_instruction if custom_instruction else "특별한 지시 없음"}
@@ -509,10 +983,15 @@ async def _generate_i2v_storyboard_with_gemini(
             result = json.loads(retry_json)  # Let it raise if still broken
             logger.info("[I2V-STORYBOARD] Retry succeeded")
 
-    # Post-process: append suffix to all imagePrompts
+    # Post-process: append suffix to all imagePrompts and apply TXT-derived clip metadata
     for scene in result.get("scenes", []):
         for clip in scene.get("clips", []):
             clip["imagePrompt"] = _append_suffix(clip.get("imagePrompt", ""))
+
+    result = _apply_panel_metadata_to_result(result, source_text)
+    result = _enforce_required_clip_count(result, required_clip_count, total_panels)
+    result = _ensure_story_quality(result)
+    result = _apply_grouped_story_labels(result)
 
     return result
 

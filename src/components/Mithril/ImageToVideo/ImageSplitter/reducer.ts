@@ -7,6 +7,13 @@ import type {
   ProcessingStats,
 } from './types';
 
+function normalizePanelLabels(panels: MangaPanel[]): MangaPanel[] {
+  return panels.map((panel, idx) => ({
+    ...panel,
+    label: String(idx + 1),
+  }));
+}
+
 // Action types
 export type ImageSplitterAction =
   | { type: 'ADD_PAGES'; pages: MangaPage[] }
@@ -25,6 +32,7 @@ export type ImageSplitterAction =
   | { type: 'INCREMENT_PROGRESS' }
   | { type: 'FINISH_PROCESSING'; stats: ProcessingStats }
   | { type: 'RESET_STATS' }
+  | { type: 'RESET_PAGE_ANALYSIS'; pageId: string }
   | { type: 'RESET_ANALYZED_DATA' }
   | { type: 'RESET' };
 
@@ -75,8 +83,8 @@ export function imageSplitterReducer(
           p.id === action.id
             ? {
                 ...p,
-                panels: action.panels,
-                status: 'completed' as ProcessingStatus,
+                panels: normalizePanelLabels(action.panels),
+                status: action.panels.length > 0 ? ('completed' as ProcessingStatus) : ('pending' as ProcessingStatus),
                 // Update previewUrl with S3 URL if provided (preserves blob URL if not)
                 ...(action.previewUrl ? { previewUrl: action.previewUrl } : {}),
               }
@@ -111,7 +119,11 @@ export function imageSplitterReducer(
         ...state,
         pages: state.pages.map((p) =>
           p.id === action.pageId
-            ? { ...p, panels: [...p.panels, action.panel] }
+            ? {
+                ...p,
+                panels: normalizePanelLabels([...p.panels, action.panel]),
+                status: 'completed' as ProcessingStatus,
+              }
             : p
         ),
       };
@@ -123,9 +135,25 @@ export function imageSplitterReducer(
           p.id === action.pageId
             ? {
                 ...p,
-                panels: p.panels
-                  .filter((panel) => panel.id !== action.panelId)
-                  .map((panel, idx) => ({ ...panel, label: String(idx + 1) })),
+                panels: normalizePanelLabels(
+                  p.panels.filter((panel) => panel.id !== action.panelId)
+                ),
+                status: p.panels.length > 1 ? ('completed' as ProcessingStatus) : ('pending' as ProcessingStatus),
+              }
+            : p
+        ),
+      };
+
+    case 'RESET_PAGE_ANALYSIS':
+      return {
+        ...state,
+        pages: state.pages.map((p) =>
+          p.id === action.pageId
+            ? {
+                ...p,
+                panels: [],
+                status: 'pending' as ProcessingStatus,
+                jobId: undefined,
               }
             : p
         ),

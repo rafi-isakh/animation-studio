@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useMemo, MouseEvent } from "react";
-import { Upload, Check, Download, Trash2, X, Crop } from "lucide-react";
+import { Upload, Check, Download, Trash2, X, Crop, ZoomIn, ZoomOut } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 import type { MangaPanel } from "./types";
 
@@ -65,6 +65,7 @@ export default function ImageSplitter() {
     saveToStageResult,
     analyzeScriptAll,
     resetAnalyzedData,
+    clearActivePagePanels,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
@@ -568,35 +569,59 @@ export default function ImageSplitter() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            <div className="absolute top-4 right-4 z-[60] flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950/85 px-3 py-2 text-xs text-gray-200 shadow-lg backdrop-blur-sm">
-              <button
-                type="button"
-                onClick={() => changeZoom('out')}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-sm font-bold transition-colors hover:bg-gray-700"
-                aria-label="Zoom out"
-              >
-                -
-              </button>
-              <button
-                type="button"
-                onClick={() => changeZoom('in')}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-sm font-bold transition-colors hover:bg-gray-700"
-                aria-label="Zoom in"
-              >
-                =
-              </button>
-              <span className="hidden text-[11px] text-gray-400 md:block">Focus canvas, then use = / -</span>
-            </div>
-
             <div ref={workspaceViewportRef} className="flex min-h-full w-full items-start justify-center overflow-visible">
               <div
-                ref={containerRef}
-                className="relative overflow-visible shadow-2xl border border-gray-700 select-none group/canvas"
+                className="relative pt-12"
                 style={{
                   width: `${displaySize.width * zoom}px`,
-                  height: `${displaySize.height * zoom}px`,
                 }}
               >
+                <div className="absolute top-0 right-0 z-[60] flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Clear all crop panels for ${activePage.fileName} and start this page again?`)) {
+                        clearActivePagePanels();
+                      }
+                    }}
+                    disabled={activePage.panels.length === 0 || isProcessing || isAnalyzingScript}
+                    title="Clear all panels on this page"
+                    aria-label="Clear all panels on this page"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-500/40 bg-amber-600/20 text-amber-100 shadow-lg backdrop-blur-sm transition-colors hover:bg-amber-600/30 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+
+                  <div className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950/85 px-2 py-2 text-xs text-gray-200 shadow-lg backdrop-blur-sm">
+                    <button
+                      type="button"
+                      onClick={() => changeZoom('out')}
+                      title="Zoom out"
+                      aria-label="Zoom out"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeZoom('in')}
+                      title="Zoom in"
+                      aria-label="Zoom in"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 transition-colors hover:bg-gray-700"
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={containerRef}
+                  className="relative overflow-visible shadow-2xl border border-gray-700 select-none group/canvas"
+                  style={{
+                    width: `${displaySize.width * zoom}px`,
+                    height: `${displaySize.height * zoom}px`,
+                  }}
+                >
                 <img 
                   src={activePage.previewUrl} 
                   className={`block h-full w-full select-none pointer-events-none transition-opacity ${activePage.status === 'processing' ? 'opacity-70' : 'opacity-100'}`}
@@ -622,7 +647,7 @@ export default function ImageSplitter() {
                   const width = ((panel.box_2d[3] - panel.box_2d[1]) / 1000) * 100;
 
                   const isInteracting = activePanelId === panel.id;
-                  const panelNumber = panelIndex + 1;
+                  const panelNumber = panel.label || String(panelIndex + 1);
                   const showTranscription = !!panel.storyboard;
 
                   if (panel.storyboard) {
@@ -651,12 +676,17 @@ export default function ImageSplitter() {
 
                         {/* Delete Button */}
                         <button
-                          onMouseDown={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             deletePanel(panel.id);
                           }}
-                          className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow border border-white transition-opacity z-30 cursor-pointer"
+                          title={`Delete panel ${panelNumber}`}
+                          className={`absolute -top-3.5 -right-3.5 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow border-2 border-white transition-all z-30 cursor-pointer ${isInteracting ? 'opacity-100 scale-100' : 'opacity-80 group-hover:opacity-100 hover:bg-red-600 hover:scale-105'}`}
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -770,7 +800,8 @@ export default function ImageSplitter() {
                     </div>
                   </div>
                 )}
-            </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

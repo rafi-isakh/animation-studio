@@ -12,6 +12,8 @@ import {
   getMangaPanels,
   clearImageSplitter,
   resetImageSplitterAnalysis,
+  resetMangaPageAnalysis,
+  replaceMangaPanels,
   deleteMangaPage,
   saveMangaPage,
   saveMangaPanel,
@@ -157,6 +159,13 @@ function mapOrchestratorStatus(status: PanelSplitterJobStatus): ProcessingStatus
   }
 }
 
+function normalizePanels(panels: MangaPanel[]): MangaPanel[] {
+  return panels.map((panel, idx) => ({
+    ...panel,
+    label: String(idx + 1),
+  }));
+}
+
 export function useImageSplitter() {
   const { setStageResult, currentProjectId, customApiKey, projectType, notifySplitterCropSaved } = useMithril();
   const isNsfw = projectType ? (projectType as string).includes('nsfw') : false;
@@ -283,6 +292,7 @@ export function useImageSplitter() {
         label: p.label,
         imageUrl: p.imageUrl, // S3 URL from backend
       }));
+      const normalizedPanels = normalizePanels(mappedPanels);
 
       // Keep the existing blob previewUrl during the current session — it already
       // shows the correct image. Only fall back to the S3 URL when there is no
@@ -293,12 +303,26 @@ export function useImageSplitter() {
       dispatch({
         type: 'SET_PAGE_PANELS',
         id: pageId,
-        panels: mappedPanels,
+        panels: normalizedPanels,
         previewUrl: newPreviewUrl,
       });
 
       // Persist results to Firestore (async, fire-and-forget)
-      persistPageResults(pageId, pageIndex, fileName, pageImageUrl, mappedPanels, page.readingDirection, page.width, page.height);
+      persistPageResults(
+        pageId,
+        pageIndex,
+        fileName,
+        pageImageUrl,
+        normalizedPanels.map((panel) => ({
+          id: panel.id,
+          box_2d: panel.box_2d,
+          label: panel.label || '',
+          imageUrl: panel.imageUrl,
+        })),
+        page.readingDirection,
+        page.width,
+        page.height
+      );
 
     } else if (localStatus === 'error') {
       dispatch({ type: 'UPDATE_PAGE_STATUS', id: pageId, status: 'error' });
@@ -1262,16 +1286,106 @@ export function useImageSplitter() {
   }, []);
 
   // Add panel manually
-  const addPanel = useCallback((panel: MangaPanel) => {
+  const addPanel = useCallback(async (panel: MangaPanel) => {
     if (!state.activePageId) return;
+
+    const page = stateRef.current.pages.find((p) => p.id === state.activePageId);
     dispatch({ type: 'ADD_PANEL', pageId: state.activePageId, panel });
-  }, [state.activePageId]);
+
+    if (!page || !currentProjectId || page.pageIndex === undefined) return;
+
+    const nextPanels = normalizePanels([...page.panels, panel]);
+    try {
+      await replaceMangaPanels(
+        currentProjectId,
+        page.pageIndex,
+        nextPanels.map((nextPanel) => ({
+          box_2d: nextPanel.box_2d,
+          label: nextPanel.label || '',
+          imageRef: nextPanel.imageUrl || '',
+          storyboard: nextPanel.storyboard,
+        }))
+      );
+    } catch (error) {
+      console.error('[ImageSplitter] Failed to persist added panel:', error);
+    }
+  }, [currentProjectId, state.activePageId]);
 
   // Delete panel
-  const deletePanel = useCallback((panelId: string) => {
+  const deletePanel = useCallback(async (panelId: string) => {
     if (!state.activePageId) return;
+
+    const page = stateRef.current.pages.find((p) => p.id === state.activePageId);
+    if (!page) return;
+
+    const removedPanelIndex = page.panels.findIndex((panel) => panel.id === panelId);
+    if (removedPanelIndex === -1) return;
+
     dispatch({ type: 'DELETE_PANEL', pageId: state.activePageId, panelId });
-  }, [state.activePageId]);
+
+    if (!currentProjectId || page.pageIndex === undefined) return;
+
+    const remainingPanels = normalizePanels(
+      page.panels.filter((panel) => panel.id !== panelId)
+    );
+
+    try {
+      await deleteI2VPanelImage(currentProjectId, page.pageIndex, removedPanelIndex).catch((error) => {
+        console.error('[ImageSplitter] Failed to delete removed panel image from S3:', error);
+      });
+
+      await replaceMangaPanels(
+        currentProjectId,
+        page.pageIndex,
+        remainingPanels.map((remainingPanel) => ({
+          box_2d: remainingPanel.box_2d,
+          label: remainingPanel.label || '',
+          imageRef: remainingPanel.imageUrl || '',
+          storyboard: remainingPanel.storyboard,
+        }))
+      );
+    } catch (error) {
+      console.error('[ImageSplitter] Failed to persist deleted panel state:', error);
+    }
+  }, [currentProjectId, state.activePageId]);
+
+  const clearActivePagePanels = useCallback(async () => {
+    const page = stateRef.current.pages.find((p) => p.id === stateRef.current.activePageId);
+    if (!page || page.panels.length === 0) return;
+
+    if (stateRef.current.isProcessing || isAnalyzingScript) {
+      toast({
+        variant: 'destructive',
+        title: 'Please wait',
+        description: 'Clear page panels is unavailable while processing or transcription is running.',
+      });
+      return;
+    }
+
+    if (currentProjectId && page.pageIndex !== undefined) {
+      await Promise.all(
+        page.panels.map((_, panelIndex) =>
+          deleteI2VPanelImage(currentProjectId, page.pageIndex as number, panelIndex).catch((error) => {
+            console.error(`[ImageSplitter] Failed to delete panel image ${panelIndex}:`, error);
+          })
+        )
+      );
+
+      try {
+        await resetMangaPageAnalysis(currentProjectId, page.pageIndex);
+      } catch (error) {
+        console.error('[ImageSplitter] Failed to reset page analysis:', error);
+      }
+    }
+
+    dispatch({ type: 'RESET_PAGE_ANALYSIS', pageId: page.id });
+    setStageResult(1, { pages: stateRef.current.pages.filter((p) => p.id !== page.id && p.status === 'completed') });
+
+    toast({
+      title: 'Page panels cleared',
+      description: `Removed all cropped panels from ${page.fileName}. You can detect this page again.`,
+    });
+  }, [currentProjectId, isAnalyzingScript, setStageResult, toast]);
 
   // Update panel
   const updatePanel = useCallback((panelId: string, updates: Partial<MangaPanel>) => {
@@ -1646,6 +1760,7 @@ export function useImageSplitter() {
     remove,
     clear,
     resetAnalyzedData,
+    clearActivePagePanels,
     setReadingDirection,
     setActivePage,
     addPanel,

@@ -1651,6 +1651,26 @@ export function useImageSplitter() {
           ? annotatedImageBase64.split(',')[1]
           : annotatedImageBase64;
 
+        const panelCrops = page.width && page.height
+          ? await Promise.all(
+              page.panels.map(async (panel, idx) => {
+                const croppedPanelBase64 = await cropPanelFromSource(
+                  page.previewUrl,
+                  panel.box_2d,
+                  page.width as number,
+                  page.height as number
+                );
+
+                return {
+                  label: String(idx + 1),
+                  image: croppedPanelBase64.includes(',')
+                    ? croppedPanelBase64.split(',')[1]
+                    : croppedPanelBase64,
+                };
+              })
+            )
+          : [];
+
         // Call API to analyze storyboard
         // Send numeric labels (1, 2, 3...) to match what AI returns
         const response = await fetch('/api/manga/analyze-storyboard', {
@@ -1659,6 +1679,7 @@ export function useImageSplitter() {
           body: JSON.stringify({
             image: base64Data,
             panels: page.panels.map((_, idx) => ({ label: String(idx + 1) })),
+            panelCrops,
             apiKey: customApiKey,
             isNsfw,
           }),

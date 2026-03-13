@@ -29,6 +29,24 @@ export interface UserContext {
 
 const PROJECTS_COLLECTION = 'projects';
 
+function getDocRefFromPath(pathSegments: string[]) {
+  const [firstSegment, ...remainingSegments] = pathSegments;
+  if (!firstSegment) {
+    throw new Error('Document path cannot be empty');
+  }
+
+  return doc(db, firstSegment, ...remainingSegments);
+}
+
+function getCollectionRefFromPath(pathSegments: string[]) {
+  const [firstSegment, ...remainingSegments] = pathSegments;
+  if (!firstSegment) {
+    throw new Error('Collection path cannot be empty');
+  }
+
+  return collection(db, firstSegment, ...remainingSegments);
+}
+
 /**
  * Create a new project
  */
@@ -220,14 +238,14 @@ async function copyDocumentIfExists(
   sourcePrefix: string,
   destinationPrefix: string
 ): Promise<void> {
-  const sourceRef = doc(db, ...sourcePath);
+  const sourceRef = getDocRefFromPath(sourcePath);
   const sourceSnapshot = await getDoc(sourceRef);
 
   if (!sourceSnapshot.exists()) {
     return;
   }
 
-  const destinationRef = doc(db, ...destinationPath);
+  const destinationRef = getDocRefFromPath(destinationPath);
   const sourceData = sourceSnapshot.data();
   const transformedData = transformCopiedValue(sourceData, sourcePrefix, destinationPrefix) as Record<string, unknown>;
 
@@ -241,12 +259,12 @@ async function copyCollectionWithNested(
   destinationPrefix: string,
   copyNested?: (sourceDocPath: string[], destinationDocPath: string[]) => Promise<void>
 ): Promise<void> {
-  const sourceCollectionRef = collection(db, ...sourcePath);
+  const sourceCollectionRef = getCollectionRefFromPath(sourcePath);
   const sourceSnapshot = await getDocs(sourceCollectionRef);
 
   for (const sourceDoc of sourceSnapshot.docs) {
     const destinationDocPath = [...destinationPath, sourceDoc.id];
-    const destinationRef = doc(db, ...destinationDocPath);
+    const destinationRef = getDocRefFromPath(destinationDocPath);
     const transformedData = transformCopiedValue(
       sourceDoc.data(),
       sourcePrefix,

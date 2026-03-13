@@ -153,6 +153,17 @@ export interface ClearProjectResponse {
   error?: string;
 }
 
+export interface CopyProjectFilesRequest {
+  sourceProjectId: string;
+  destinationProjectId: string;
+}
+
+export interface CopyProjectFilesResponse {
+  success: boolean;
+  copiedCount: number;
+  error?: string;
+}
+
 // S3 Key generators (used both client and server side)
 export const S3_BASE_PATH = 'mithril';
 

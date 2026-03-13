@@ -57,4 +57,5 @@ export {
   deleteVideo,
   // Project cleanup
   clearAllProjectFiles,
+  copyAllProjectFiles,
 } from './images';

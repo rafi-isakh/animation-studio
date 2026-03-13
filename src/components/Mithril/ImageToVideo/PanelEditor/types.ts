@@ -51,10 +51,12 @@ export interface PanelEditorState {
 export type PanelEditorAction =
   | { type: 'ADD_FILES_TO_LIBRARY'; files: File[] }
   | { type: 'ADD_PANELS'; panels: PanelData[] }
+  | { type: 'CLEAR_FILE_LIBRARY' }
   | { type: 'REMOVE_PANEL'; id: string }
   | { type: 'UPDATE_PANEL'; id: string; updates: Partial<PanelData> }
   | { type: 'SET_CONFIG'; config: Partial<PanelEditorConfig> }
   | { type: 'SET_PROCESSING'; isProcessing: boolean }
   | { type: 'SET_PROGRESS'; progress: ProcessingProgress }
+  | { type: 'CLEAR_ALL_DATA' }
   | { type: 'CLEAR_PANELS' }
   | { type: 'RESET_STATE' };

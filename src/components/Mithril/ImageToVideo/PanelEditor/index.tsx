@@ -62,6 +62,7 @@ export default function PanelEditor() {
     isLoadingSplitterPanels,
     isLoadingPanels,
     addFilesToLibrary,
+    clearFileLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
@@ -296,6 +297,7 @@ export default function PanelEditor() {
         files={fileLibrary}
         isLoading={isLoadingSplitterPanels}
         onFilesAdded={addFilesToLibrary}
+        onClearStorage={clearFileLibrary}
         onImportAll={importAllFromLibrary}
         onManifestLoaded={addPanelsFromManifest}
       />

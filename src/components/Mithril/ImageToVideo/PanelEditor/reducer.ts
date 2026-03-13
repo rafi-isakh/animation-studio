@@ -34,6 +34,10 @@ export function panelEditorReducer(
       return { ...state, panels: [...state.panels, ...action.panels] };
     }
 
+    case 'CLEAR_FILE_LIBRARY': {
+      return { ...state, fileLibrary: {} };
+    }
+
     case 'REMOVE_PANEL': {
       const removed = state.panels.find((p) => p.id === action.id);
       if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
@@ -62,6 +66,20 @@ export function panelEditorReducer(
 
     case 'SET_PROGRESS': {
       return { ...state, progress: action.progress };
+    }
+
+    case 'CLEAR_ALL_DATA': {
+      // Revoke object URLs
+      state.panels.forEach((p) => {
+        if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+      });
+      return {
+        ...state,
+        fileLibrary: {},
+        panels: [],
+        isProcessing: false,
+        progress: { current: 0, total: 0 },
+      };
     }
 
     case 'CLEAR_PANELS': {

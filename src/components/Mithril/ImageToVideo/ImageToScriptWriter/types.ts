@@ -7,6 +7,7 @@ export interface Continuity {
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;
+  videoApi?: string;
   pixAiPrompt?: string;
   soraVideoPrompt: string;
   dialogue: string;

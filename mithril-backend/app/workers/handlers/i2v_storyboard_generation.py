@@ -101,6 +101,21 @@ def _extract_required_clip_count(text: str) -> int | None:
     return None
 
 
+def _resolve_required_clip_count(source_text: str, total_panels: int) -> int:
+    """Resolve target clip count while preserving strict panel mapping semantics."""
+    parsed = _extract_required_clip_count(source_text)
+    if parsed is None:
+        return total_panels
+    if parsed != total_panels:
+        logger.warning(
+            "[I2V-STORYBOARD] Parsed clip count (%s) differs from panel count (%s); using panel count for 1:1 mapping",
+            parsed,
+            total_panels,
+        )
+        return total_panels
+    return parsed
+
+
 _PANEL_HEADER_RE = re.compile(
     r'^\s*(?:[#>*\-\[]\s*)?(?:panel|패널|컷|clip|frame|scene)\s*[:#\-]?\s*(\d+)\b',
     re.IGNORECASE,
@@ -134,6 +149,7 @@ def _match_panel_field(line: str) -> tuple[str, str] | None:
         'refFileName': [
             r'reference\s*(?:image\s*)?(?:file(?:name)?|filename)',
             r'ref(?:erence)?\s*(?:image\s*)?(?:file(?:name)?|filename)',
+            r'panel\s*file(?:name)?',
         ],
         'pixAiPrompt': [
             r'(?:recommended\s*)?pix\s*ai(?:\s*(?:prompt|프롬프트))?',
@@ -361,7 +377,7 @@ def _apply_grouped_story_labels(result: dict[str, Any]) -> dict[str, Any]:
 
     for group_index, (start_idx, end_idx) in enumerate(grouped_ranges, start=1):
         group_size = end_idx - start_idx + 1
-        group_label = f"Story{group_index}: {group_size}"
+        group_label = f"Story {group_index}:"
         for clip_index in range(start_idx, end_idx + 1):
             clip = flattened[clip_index]
             clip['storyGroupLabel'] = group_label
@@ -447,16 +463,31 @@ def _enforce_required_clip_count(result: dict[str, Any], required_clip_count: in
         }
         flattened = [default_clip]
 
-    current_count = len(flattened)
-    if current_count < required_clip_count:
-        seed_clip = flattened[-1]
-        for idx in range(current_count, required_clip_count):
-            new_clip = copy.deepcopy(seed_clip)
-            new_clip["referenceImageIndex"] = min(idx, max(total_panels - 1, 0))
-            new_clip["accumulatedTime"] = _format_time(idx + 1)
-            flattened.append(new_clip)
-    elif current_count > required_clip_count:
-        flattened = flattened[:required_clip_count]
+    # Deterministic 1:1 panel->clip mapping: every output index maps to exactly one clip.
+    # Prefer clips that already reference the same panel index; fallback to same-position clip;
+    # finally fallback to the last clip when source output is sparse.
+    by_reference_index: dict[int, dict[str, Any]] = {}
+    for fallback_idx, clip in enumerate(flattened):
+        try:
+            ref_idx = int(clip.get("referenceImageIndex", fallback_idx))
+        except (TypeError, ValueError):
+            ref_idx = fallback_idx
+        if ref_idx not in by_reference_index:
+            by_reference_index[ref_idx] = clip
+
+    normalized_flattened: list[dict[str, Any]] = []
+    seed_clip = flattened[-1]
+    for idx in range(required_clip_count):
+        source_clip = by_reference_index.get(idx)
+        if source_clip is None:
+            source_clip = flattened[idx] if idx < len(flattened) else seed_clip
+
+        new_clip = copy.deepcopy(source_clip)
+        new_clip["referenceImageIndex"] = idx
+        new_clip["accumulatedTime"] = _format_time(idx + 1)
+        normalized_flattened.append(new_clip)
+
+    flattened = normalized_flattened
 
     # Rebuild scene clips: keep all clips in existing scene order; overflow goes to the last scene.
     scene_lengths = [len(scene.get("clips", [])) for scene in scenes]
@@ -512,15 +543,104 @@ def _sanitize_video_prompt(prompt: str, *, remove_speech: bool, remove_camera: b
     return ', '.join(kept_segments).strip(' ,')
 
 
-def _apply_panel_metadata_to_result(result: dict[str, Any], source_text: str) -> dict[str, Any]:
+def _allows_video_prompt_terms(video_condition: str, video_instruction: str) -> tuple[bool, bool]:
+    """Infer whether camera/speech terms should be retained from user-provided rules."""
+    merged = f"{video_condition}\n{video_instruction}".lower()
+
+    allows_camera = any(keyword in merged for keyword in [
+        'camera', 'camera movement', 'tracking', 'pan', 'tilt', 'zoom', 'dolly', 'handheld',
+        '카메라', '앵글', '무빙',
+    ])
+    forbids_camera = any(keyword in merged for keyword in [
+        'no camera movement', 'without camera movement', '카메라 움직임 금지', '카메라 무빙 금지',
+    ])
+
+    allows_speech = any(keyword in merged for keyword in [
+        'speaks', 'talks', 'yells', 'shouts', 'dialogue keyword', '발화', '대사',
+    ])
+    forbids_speech = any(keyword in merged for keyword in [
+        'do not use speaks', 'no speech verbs', '발화 표현 금지', '대사 동사 금지',
+    ])
+
+    return (allows_camera and not forbids_camera), (allows_speech and not forbids_speech)
+
+
+def _normalize_clip_defaults(result: dict[str, Any], total_panels: int) -> dict[str, Any]:
+    for scene in result.get('scenes', []):
+        for clip_index, clip in enumerate(scene.get('clips', [])):
+            clip['videoApi'] = str(clip.get('videoApi') or 'Grok').strip() or 'Grok'
+            clip['soraVideoPrompt'] = str(clip.get('soraVideoPrompt') or clip.get('videoPrompt') or '').strip()
+
+            try:
+                ref_idx = int(clip.get('referenceImageIndex', clip_index))
+            except (TypeError, ValueError):
+                ref_idx = clip_index
+
+            max_index = max(total_panels - 1, 0)
+            clip['referenceImageIndex'] = min(max(ref_idx, 0), max_index)
+
+    return result
+
+
+def _dedupe_background_ids(result: dict[str, Any]) -> dict[str, Any]:
+    """Normalize background IDs to unique X-Y[-n] form across flattened clip order."""
+    seen_counts: dict[str, int] = {}
+
+    def to_base_id(raw_id: str) -> str:
+        parts = [part.strip() for part in str(raw_id).split('-') if part.strip()]
+        if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+            return f"{parts[0]}-{parts[1]}"
+        return "1-1"
+
+    for scene in result.get('scenes', []):
+        for clip in scene.get('clips', []):
+            base_id = to_base_id(str(clip.get('backgroundId') or ''))
+            current_count = seen_counts.get(base_id, 0)
+            clip['backgroundId'] = base_id if current_count == 0 else f"{base_id}-{current_count}"
+            seen_counts[base_id] = current_count + 1
+
+    return result
+
+
+def _apply_panel_label_fallback(result: dict[str, Any], panel_labels: list[str]) -> dict[str, Any]:
+    """Use panel labels as fallback reference filenames when refFileName is missing."""
+    if not panel_labels:
+        return result
+
+    for scene in result.get('scenes', []):
+        for clip_index, clip in enumerate(scene.get('clips', [])):
+            existing_ref_name = str(clip.get('refFileName') or '').strip()
+            if existing_ref_name:
+                continue
+
+            try:
+                ref_idx = int(clip.get('referenceImageIndex', clip_index))
+            except (TypeError, ValueError):
+                ref_idx = clip_index
+
+            if 0 <= ref_idx < len(panel_labels):
+                label = str(panel_labels[ref_idx] or '').strip()
+                if label:
+                    clip['refFileName'] = label
+
+    return result
+
+
+def _apply_panel_metadata_to_result(
+    result: dict[str, Any],
+    source_text: str,
+    *,
+    allow_camera_terms: bool,
+    allow_speech_terms: bool,
+) -> dict[str, Any]:
     panel_metadata = _parse_panel_metadata(source_text)
     if not panel_metadata:
         for scene in result.get('scenes', []):
             for clip in scene.get('clips', []):
                 clip['videoPrompt'] = _sanitize_video_prompt(
                     clip.get('videoPrompt', ''),
-                    remove_speech=True,
-                    remove_camera=True,
+                    remove_speech=not allow_speech_terms,
+                    remove_camera=not allow_camera_terms,
                 )
         return result
 
@@ -550,8 +670,8 @@ def _apply_panel_metadata_to_result(result: dict[str, Any], source_text: str) ->
 
                 clip['videoPrompt'] = _sanitize_video_prompt(
                     clip.get('videoPrompt', ''),
-                    remove_speech=True,
-                    remove_camera=True,
+                    remove_speech=not allow_speech_terms,
+                    remove_camera=not allow_camera_terms,
                 )
 
                 nsfw = metadata.get('nsfw') is True
@@ -564,8 +684,8 @@ def _apply_panel_metadata_to_result(result: dict[str, Any], source_text: str) ->
             else:
                 clip['videoPrompt'] = _sanitize_video_prompt(
                     clip.get('videoPrompt', ''),
-                    remove_speech=True,
-                    remove_camera=True,
+                    remove_speech=not allow_speech_terms,
+                    remove_camera=not allow_camera_terms,
                 )
 
     return result
@@ -762,7 +882,7 @@ async def _generate_i2v_storyboard_with_gemini(
 
     # Parse target duration
     total_panels = len(panel_images)
-    required_clip_count = _extract_required_clip_count(job.source_text or '') or total_panels
+    required_clip_count = _resolve_required_clip_count(job.source_text or '', total_panels)
 
     # Build conditions
     story_condition = job.story_condition or "원본 텍스트의 내용을 충실히 반영하되, 애니메이션의 특성에 맞게 시각적 서사를 강화한다."
@@ -822,6 +942,7 @@ async def _generate_i2v_storyboard_with_gemini(
   - **CRITICAL: 동일한 '장소-앵글' 조합이 두 번 이상 등장할 경우, 반드시 세 번째 숫자를 추가하여 각 클립을 고유하게 식별해야 합니다.**
     - 예: 4-2 (첫 번째 등장) -> 4-2-1 (두 번째 등장) -> 4-2-2 (세 번째 등장) 등.
     - **절대 ID가 중복되지 않도록 하세요.** 배경 이미지가 같더라도 샷이 다르면 ID 뒤에 고유 번호를 붙여야 합니다.
+- **videoApi**: 비디오 생성 API 추천값을 문자열로 반환하세요. 기본값은 **Grok**이며, 특수한 이유가 없다면 Grok을 사용하세요.
 
 **[CRITICAL: 대사(Dialogue) 형식 규칙]**
 - ElevenLabs 감정 반영을 위해: **[감정] 대사내용**
@@ -881,6 +1002,7 @@ async def _generate_i2v_storyboard_with_gemini(
                                     "story": {"type": "STRING"},
                                     "imagePrompt": {"type": "STRING"},
                                     "videoPrompt": {"type": "STRING"},
+                                    "videoApi": {"type": "STRING"},
                                     "dialogue": {"type": "STRING"},
                                     "dialogueEn": {"type": "STRING"},
                                     "sfx": {"type": "STRING"},
@@ -898,6 +1020,7 @@ async def _generate_i2v_storyboard_with_gemini(
                                 },
                                 "required": [
                                     "story", "imagePrompt", "videoPrompt",
+                                    "videoApi",
                                     "dialogue", "dialogueEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime",
@@ -988,8 +1111,17 @@ async def _generate_i2v_storyboard_with_gemini(
         for clip in scene.get("clips", []):
             clip["imagePrompt"] = _append_suffix(clip.get("imagePrompt", ""))
 
-    result = _apply_panel_metadata_to_result(result, source_text)
+    allow_camera_terms, allow_speech_terms = _allows_video_prompt_terms(video_condition, video_instruction)
+    result = _apply_panel_metadata_to_result(
+        result,
+        source_text,
+        allow_camera_terms=allow_camera_terms,
+        allow_speech_terms=allow_speech_terms,
+    )
     result = _enforce_required_clip_count(result, required_clip_count, total_panels)
+    result = _normalize_clip_defaults(result, total_panels)
+    result = _dedupe_background_ids(result)
+    result = _apply_panel_label_fallback(result, job.panel_labels or [])
     result = _ensure_story_quality(result)
     result = _apply_grouped_story_labels(result)
 

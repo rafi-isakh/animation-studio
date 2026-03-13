@@ -35,6 +35,10 @@ import {
 } from '../../services/firestore';
 import { uploadI2VPanelImage, uploadI2VStoryboardReferenceImage } from '../../services/s3/images';
 
+function getPanelSplitterStyleFileName(index: number): string {
+  return `${String(index + 1).padStart(3, '0')}.jpg`;
+}
+
 export function useScriptWriter() {
   const { getStageResult, setStageResult, currentProjectId, customApiKey } = useMithril();
   const [state, dispatch] = useReducer(scriptWriterReducer, initialState);
@@ -76,7 +80,7 @@ export function useScriptWriter() {
           ) {
             refImage = currentPanels[clip.referenceImageIndex].imageBase64;
           }
-          return { ...clip, referenceImage: refImage };
+          return { ...clip, referenceImage: refImage, videoApi: clip.videoApi || 'Grok' };
         }),
       }));
 
@@ -170,6 +174,7 @@ export function useScriptWriter() {
             imagePrompt: c.imagePrompt || '',
             imagePromptEnd: c.imagePromptEnd,
             videoPrompt: c.videoPrompt || '',
+            videoApi: c.videoApi || 'Grok',
             pixAiPrompt: c.pixAiPrompt || '',
             soraVideoPrompt: c.soraVideoPrompt || '',
             dialogue: c.dialogue || '',
@@ -558,6 +563,7 @@ export function useScriptWriter() {
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
           videoPrompt: clip.videoPrompt || '',
+          videoApi: clip.videoApi || 'Grok',
           soraVideoPrompt: clip.soraVideoPrompt || '',
           dialogue: clip.dialogue || '',
           dialogueEn: clip.dialogueEn || '',
@@ -596,9 +602,10 @@ export function useScriptWriter() {
       const panelLabels: string[] = [];
 
       for (const panel of allPanels) {
+        let panelUrl = '';
         if (isUrl(panel.imageBase64)) {
           // S3 URL - use directly
-          panelUrls.push(panel.imageBase64);
+          panelUrl = panel.imageBase64;
         } else {
           // Base64 panel (imported) - upload to S3 first
           let imageData = panel.imageBase64;
@@ -607,15 +614,17 @@ export function useScriptWriter() {
           }
 
           const idx = allPanels.indexOf(panel);
-          const url = await uploadI2VPanelImage(
+          panelUrl = await uploadI2VPanelImage(
             currentProjectId,
             0, // pageIndex — imported panels don't have pages
             idx,
             imageData,
           );
-          panelUrls.push(url);
         }
-        panelLabels.push(panel.label);
+
+        panelUrls.push(panelUrl);
+        const idx = allPanels.indexOf(panel);
+        panelLabels.push(getPanelSplitterStyleFileName(idx));
       }
 
       // Submit job to orchestrator
@@ -662,6 +671,7 @@ export function useScriptWriter() {
       const lightScenes = currentState.result.scenes.map((scene) => ({
         sceneTitle: scene.sceneTitle,
         clips: scene.clips.map((clip) => ({
+          story: clip.story,
           imagePrompt: clip.imagePrompt,
         })),
       }));
@@ -782,6 +792,7 @@ export function useScriptWriter() {
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
           videoPrompt: clip.videoPrompt || '',
+          videoApi: clip.videoApi || 'Grok',
           soraVideoPrompt: clip.soraVideoPrompt || '',
           dialogue: clip.dialogue || '',
           dialogueEn: clip.dialogueEn || '',
@@ -863,18 +874,20 @@ export function useScriptWriter() {
         'Accumulated Time',
         'Background ID',
         'Background Prompt',
-        ...(textOnly ? [] : ['Reference Filename']),
         'Story',
         'Image Prompt (Start)',
         ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
         'Video Prompt',
         'Pix AI',
+        'Video API',
+        'Sora Video Prompt',
         'Dialogue (Ko)',
         'Dialogue (En)',
         'SFX (Ko)',
         'SFX (En)',
         'BGM (Ko)',
         'BGM (En)',
+        ...(textOnly ? [] : ['Reference Image', 'Reference Image Source']),
       ];
 
       let globalClipCounter = 1;
@@ -887,19 +900,17 @@ export function useScriptWriter() {
             escapeCSV(clip.accumulatedTime),
             escapeCSV(clip.backgroundId),
             escapeCSV(clip.backgroundPrompt),
+            escapeCSV(clip.story),
+            escapeCSV(clip.imagePrompt),
           ];
-
-          if (!textOnly) {
-            row.push(escapeCSV(clip.refFileName || ''));
-          }
-
-          row.push(escapeCSV(clip.story), escapeCSV(clip.imagePrompt));
 
           if (hasEndPrompts) row.push(escapeCSV(clip.imagePromptEnd || ''));
 
           row.push(
             escapeCSV(clip.videoPrompt),
             escapeCSV(clip.pixAiPrompt || ''),
+            escapeCSV(clip.videoApi || 'Grok'),
+            escapeCSV(clip.soraVideoPrompt || ''),
             escapeCSV(clip.dialogue),
             escapeCSV(clip.dialogueEn),
             escapeCSV(clip.sfx),
@@ -907,6 +918,18 @@ export function useScriptWriter() {
             escapeCSV(clip.bgm),
             escapeCSV(clip.bgmEn)
           );
+
+          if (!textOnly) {
+            row.push(
+              escapeCSV(
+                clip.referenceImageIndex !== undefined
+                  ? getPanelSplitterStyleFileName(clip.referenceImageIndex)
+                  : ''
+              ),
+              escapeCSV(clip.referenceImageUrl || clip.referenceImage || '')
+            );
+          }
+
           return row.join(',');
         })
       );
@@ -933,6 +956,52 @@ export function useScriptWriter() {
   }, [state.result]);
 
   const hasResults = !!state.result?.scenes.length;
+
+  const exportJSON = useCallback(() => {
+    const currentState = stateRef.current;
+    if (!currentState.result?.scenes.length) return;
+
+    const payload = {
+      scenes: currentState.result.scenes,
+      voicePrompts: currentState.result.voicePrompts,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'storyboard.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const importJSON = useCallback(async (file: File) => {
+    const raw = await file.text();
+    const parsed = JSON.parse(raw);
+
+    const scenes: Scene[] = Array.isArray(parsed?.scenes)
+      ? parsed.scenes.map((scene: Scene) => ({
+          sceneTitle: scene.sceneTitle || 'Scene',
+          clips: Array.isArray(scene.clips)
+            ? scene.clips.map((clip: Continuity) => ({
+                ...clip,
+                videoApi: clip.videoApi || 'Grok',
+              }))
+            : [],
+        }))
+      : [];
+
+    const voicePrompts: VoicePrompt[] = Array.isArray(parsed?.voicePrompts)
+      ? parsed.voicePrompts
+      : [];
+
+    dispatch({ type: 'FINISH_GENERATING', result: { scenes, voicePrompts } });
+    setStageResult(2, { scenes, voicePrompts });
+
+    if (currentProjectId) {
+      await saveToFirestore(currentProjectId, stateRef.current.config, scenes, voicePrompts);
+    }
+  }, [currentProjectId, setStageResult]);
 
   return {
     // State
@@ -971,5 +1040,7 @@ export function useScriptWriter() {
     cancel,
     clear,
     exportCSV,
+    exportJSON,
+    importJSON,
   };
 }

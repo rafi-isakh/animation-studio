@@ -11,6 +11,7 @@ import {
   getMangaPages,
   getMangaPanels,
   clearImageSplitter,
+  resetImageSplitterAnalysis,
   deleteMangaPage,
   saveMangaPage,
   saveMangaPanel,
@@ -945,6 +946,60 @@ export function useImageSplitter() {
     isClearingRef.current = false;
   }, [currentProjectId]);
 
+  // Reset analyzed data while keeping uploaded pages
+  const resetAnalyzedData = useCallback(async () => {
+    if (stateRef.current.isProcessing || isAnalyzingScript) {
+      toast({
+        variant: 'destructive',
+        title: 'Please wait',
+        description: 'Reset is unavailable while processing or transcription is running.',
+      });
+      return;
+    }
+
+    // Stop active jobs first so stale updates do not repopulate state
+    const jobIds = Object.values(activeJobsRef.current);
+    if (jobIds.length > 0) {
+      await cancelAllJobs(jobIds);
+    }
+    setActiveJobs({});
+
+    setIsAnalyzingScript(false);
+    setScriptProgress('');
+
+    const currentPages = stateRef.current.pages;
+    if (currentPages.length === 0) return;
+
+    if (currentProjectId) {
+      // Delete persisted panel images from S3 (best effort)
+      await Promise.all(
+        currentPages
+          .filter((page) => page.pageIndex !== undefined && page.panels.length > 0)
+          .flatMap((page) =>
+            page.panels.map((_, panelIndex) =>
+              deleteI2VPanelImage(currentProjectId, page.pageIndex as number, panelIndex).catch((err) =>
+                console.error(`[ImageSplitter] Error deleting panel image ${panelIndex}:`, err)
+              )
+            )
+          )
+      );
+
+      try {
+        await resetImageSplitterAnalysis(currentProjectId, stateRef.current.readingDirection);
+      } catch (error) {
+        console.error('[ImageSplitter] Failed to reset analysis in Firestore:', error);
+      }
+    }
+
+    dispatch({ type: 'RESET_ANALYZED_DATA' });
+    setStageResult(1, { pages: [] });
+
+    toast({
+      title: 'Analysis cleared',
+      description: 'Detected panels and transcripts were removed. You can run Auto-Detect again.',
+    });
+  }, [cancelAllJobs, currentProjectId, isAnalyzingScript, setStageResult, toast]);
+
   // Set reading direction
   const setReadingDirection = useCallback((direction: ReadingDirection) => {
     dispatch({ type: 'SET_READING_DIRECTION', direction });
@@ -1590,6 +1645,7 @@ export function useImageSplitter() {
     cancelProcessing,
     remove,
     clear,
+    resetAnalyzedData,
     setReadingDirection,
     setActivePage,
     addPanel,

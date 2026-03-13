@@ -231,6 +231,51 @@ export async function clearImageSplitter(projectId: string): Promise<void> {
 }
 
 /**
+ * Reset analyzed ImageSplitter data while keeping uploaded page entries.
+ * Clears all panel documents and resets each page to pending with panelCount = 0.
+ */
+export async function resetImageSplitterAnalysis(
+  projectId: string,
+  readingDirection: ReadingDirection
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  const pages = await getMangaPages(projectId);
+
+  for (const page of pages) {
+    const panels = await getMangaPanels(projectId, page.pageIndex);
+    for (const panel of panels) {
+      const panelRef = getPanelRef(projectId, page.pageIndex, panel.panelIndex);
+      batch.delete(panelRef);
+    }
+
+    const pageRef = getPageRef(projectId, page.pageIndex);
+    batch.set(
+      pageRef,
+      {
+        status: 'pending',
+        panelCount: 0,
+      },
+      { merge: true }
+    );
+  }
+
+  const imageSplitterRef = getImageSplitterRef(projectId);
+  batch.set(
+    imageSplitterRef,
+    {
+      readingDirection,
+      totalPages: pages.length,
+      totalPanels: 0,
+      generatedAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
+
+  await batch.commit();
+}
+
+/**
  * Delete a single manga page and its panels
  */
 export async function deleteMangaPage(

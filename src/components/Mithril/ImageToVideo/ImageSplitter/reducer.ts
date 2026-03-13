@@ -25,6 +25,7 @@ export type ImageSplitterAction =
   | { type: 'INCREMENT_PROGRESS' }
   | { type: 'FINISH_PROCESSING'; stats: ProcessingStats }
   | { type: 'RESET_STATS' }
+  | { type: 'RESET_ANALYZED_DATA' }
   | { type: 'RESET' };
 
 // Initial state
@@ -195,6 +196,20 @@ export function imageSplitterReducer(
     case 'RESET_STATS':
       return {
         ...state,
+        processingStats: null,
+      };
+
+    case 'RESET_ANALYZED_DATA':
+      return {
+        ...state,
+        pages: state.pages.map((p) => ({
+          ...p,
+          panels: [],
+          status: 'pending' as ProcessingStatus,
+          jobId: undefined,
+        })),
+        isProcessing: false,
+        progress: { current: 0, total: 0 },
         processingStats: null,
       };
 

@@ -64,6 +64,7 @@ export default function ImageSplitter() {
     downloadZip,
     saveToStageResult,
     analyzeScriptAll,
+    resetAnalyzedData,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
@@ -499,6 +500,19 @@ export default function ImageSplitter() {
                 Analyze & Transcribe
               </>
             )}
+          </button>
+
+          <button
+            onClick={() => {
+              if (confirm('Delete all analyzed panel/transcription data and start again? Uploaded pages will be kept.')) {
+                resetAnalyzedData();
+              }
+            }}
+            disabled={pages.length === 0 || isProcessing || isAnalyzingScript}
+            className="w-full flex items-center justify-center bg-amber-600 hover:bg-amber-700 disabled:bg-gray-700 disabled:text-gray-500 text-white py-2 rounded font-bold shadow transition-colors text-sm"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Reset Analysis
           </button>
 
           <button

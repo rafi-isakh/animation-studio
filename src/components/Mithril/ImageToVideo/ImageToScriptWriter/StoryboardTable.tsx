@@ -28,6 +28,7 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
     "Image Prompt (Start)",
     ...(hasEndPrompt ? ["Image Prompt (End)"] : []),
     "Video Prompt",
+    "Video API",
     "Pix AI",
     "Dialogue (Ko)", "Dialogue (En)",
     "SFX (Ko)", "SFX (En)",
@@ -240,10 +241,32 @@ export const StoryboardTable: React.FC<StoryboardTableProps> = ({ data, voicePro
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-[12px] text-gray-300 min-w-[200px] leading-relaxed border-r border-gray-800">{clip.story}</td>
+                    <td className="px-3 py-3 text-[12px] text-gray-300 min-w-[200px] leading-relaxed border-r border-gray-800">
+                      {clip.storyGroupLabel && (
+                        <div className="text-[10px] uppercase tracking-wide text-cyan-300/80 mb-1">{clip.storyGroupLabel}</div>
+                      )}
+                      {clip.story}
+                    </td>
+
                     <td className="px-3 py-3 text-[11px] text-gray-500 italic min-w-[180px] border-r border-gray-800">{clip.imagePrompt}</td>
                     {hasEndPrompt && <td className="px-3 py-3 text-[11px] text-orange-400/80 italic min-w-[180px] border-r border-gray-800">{clip.imagePromptEnd || "-"}</td>}
                     <td className="px-3 py-3 text-[11px] text-gray-500 min-w-[180px] border-r border-gray-800">{clip.videoPrompt}</td>
+                    <td className="px-3 py-3 min-w-[120px] border-r border-gray-800">
+                      {onUpdateClip ? (
+                        <select
+                          value={clip.videoApi || 'Grok'}
+                          onChange={(e) => onUpdateClip(sceneIndex, clipIndex, { videoApi: e.target.value })}
+                          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded px-2 py-1 text-[11px]"
+                        >
+                          <option value="Grok">Grok</option>
+                          <option value="Wan 2.2">Wan 2.2</option>
+                          <option value="Sora">Sora</option>
+                          <option value="Veo 3">Veo 3</option>
+                        </select>
+                      ) : (
+                        <span className="text-[11px] text-gray-300">{clip.videoApi || 'Grok'}</span>
+                      )}
+                    </td>
                     <td className="px-3 py-3 text-[11px] text-cyan-200/80 min-w-[180px] border-r border-gray-800">{clip.pixAiPrompt || "-"}</td>
                     <td className="px-3 py-3 text-[12px] text-gray-200 min-w-[120px] border-r border-gray-800">{clip.dialogue}</td>
                     <td className="px-3 py-3 text-[11px] text-gray-400 min-w-[120px] border-r border-gray-800 italic">{clip.dialogueEn}</td>

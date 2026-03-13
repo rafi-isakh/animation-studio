@@ -1724,6 +1724,7 @@ class I2VScriptService:
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "imagePromptEnd": clip.get("imagePromptEnd", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
+                    "videoApi": clip.get("videoApi", "Grok"),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),

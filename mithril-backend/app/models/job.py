@@ -734,6 +734,7 @@ class StoryboardClip(BaseModel):
     imagePrompt: str
     imagePromptEnd: str | None = None
     videoPrompt: str
+    videoApi: str = "Grok"
     soraVideoPrompt: str
     veoVideoPrompt: str = ""
     backgroundPrompt: str

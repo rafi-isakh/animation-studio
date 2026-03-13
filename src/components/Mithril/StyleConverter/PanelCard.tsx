@@ -16,6 +16,7 @@ interface PanelCardProps {
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
   onUpdatePrompt: (id: string, newPrompt: string) => void;
+  onUpdateImageWeight: (id: string, imageWeight: number) => void;
   targetRatio: AspectRatio;
 }
 
@@ -24,6 +25,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   onRemove,
   onRetry,
   onUpdatePrompt,
+  onUpdateImageWeight,
   targetRatio,
 }) => {
   const isIdle = panel.status === ProcessingStatus.Idle;
@@ -113,6 +115,29 @@ export const PanelCard: React.FC<PanelCardProps> = ({
               onChange={(e) => onUpdatePrompt(panel.id, e.target.value)}
               placeholder="e.g. 1girl, masterpiece, best quality, anime style..."
               className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 placeholder-gray-600 focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition-all resize-none h-20"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-xs font-medium text-gray-400">이미지 가중치</label>
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.01}
+                value={panel.imageWeight.toFixed(2)}
+                onChange={(e) => onUpdateImageWeight(panel.id, Number.parseFloat(e.target.value || '0'))}
+                className="w-20 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 text-sm text-gray-200 focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition-all"
+              />
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={panel.imageWeight}
+              onChange={(e) => onUpdateImageWeight(panel.id, Number.parseFloat(e.target.value))}
+              className="accent-pink-600"
             />
           </div>
         </div>

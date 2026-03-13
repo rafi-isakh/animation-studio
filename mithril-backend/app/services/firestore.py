@@ -441,6 +441,7 @@ class JobQueueService:
             source_mime_type=request.mime_type,
             # Style converter-specific
             pixai_prompts=request.prompts,
+            pixai_image_weight=request.image_weight,
             max_retries=2,
         )
 
@@ -1717,6 +1718,9 @@ class I2VScriptService:
                     "pixAiPrompt": clip.get("pixAiPrompt", ""),
                     "facePresent": clip.get("facePresent"),
                     "story": clip.get("story", ""),
+                    "storyDetailKo": clip.get("storyDetailKo", ""),
+                    "storyGroupLabel": clip.get("storyGroupLabel", ""),
+                    "storyGroupSize": clip.get("storyGroupSize"),
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "imagePromptEnd": clip.get("imagePromptEnd", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),

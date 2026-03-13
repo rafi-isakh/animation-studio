@@ -1,6 +1,9 @@
 // Continuity data for each clip in the storyboard
 export interface Continuity {
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;

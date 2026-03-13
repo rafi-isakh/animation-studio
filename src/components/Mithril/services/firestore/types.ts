@@ -758,6 +758,9 @@ export interface I2VClipDocument {
   facePresent?: boolean;
   // Story content
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   // Prompts
   imagePrompt: string;
   imagePromptEnd?: string; // Optional end frame prompt for split frames
@@ -807,6 +810,9 @@ export interface SaveI2VClipInput {
   pixAiPrompt?: string;
   facePresent?: boolean;
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   imagePrompt: string;
   imagePromptEnd?: string; // Optional end frame prompt for split frames
   videoPrompt: string;

@@ -164,6 +164,9 @@ export function useScriptWriter() {
           const firestoreClips = await getI2VClips(currentProjectId, scene.sceneIndex);
           const clips: Continuity[] = firestoreClips.map((c) => ({
             story: c.story || '',
+            storyDetailKo: c.storyDetailKo || '',
+            storyGroupLabel: c.storyGroupLabel || '',
+            storyGroupSize: c.storyGroupSize,
             imagePrompt: c.imagePrompt || '',
             imagePromptEnd: c.imagePromptEnd,
             videoPrompt: c.videoPrompt || '',
@@ -549,6 +552,9 @@ export function useScriptWriter() {
           pixAiPrompt: clip.pixAiPrompt,
           facePresent: clip.facePresent,
           story: clip.story || '',
+          storyDetailKo: clip.storyDetailKo,
+          storyGroupLabel: clip.storyGroupLabel,
+          storyGroupSize: clip.storyGroupSize,
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
           videoPrompt: clip.videoPrompt || '',
@@ -770,6 +776,9 @@ export function useScriptWriter() {
           pixAiPrompt: clip.pixAiPrompt,
           facePresent: clip.facePresent,
           story: clip.story || '',
+          storyDetailKo: clip.storyDetailKo,
+          storyGroupLabel: clip.storyGroupLabel,
+          storyGroupSize: clip.storyGroupSize,
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
           videoPrompt: clip.videoPrompt || '',
@@ -868,11 +877,12 @@ export function useScriptWriter() {
         'BGM (En)',
       ];
 
+      let globalClipCounter = 1;
       const rows = scenes.flatMap((scene, sIdx) =>
-        scene.clips.map((clip, cIdx) => {
+        scene.clips.map((clip) => {
           const row = [
             escapeCSV(`Scene ${sIdx + 1}: ${scene.sceneTitle}`),
-            escapeCSV(`${sIdx + 1}-${cIdx + 1}`),
+            escapeCSV(String(globalClipCounter++).padStart(3, '0')),
             escapeCSV(clip.length),
             escapeCSV(clip.accumulatedTime),
             escapeCSV(clip.backgroundId),

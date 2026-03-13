@@ -100,6 +100,9 @@ export interface JobQueueDocument {
       sceneTitle: string;
       clips: Array<{
         story: string;
+        storyDetailKo?: string;
+        storyGroupLabel?: string;
+        storyGroupSize?: number;
         imagePrompt: string;
         imagePromptEnd?: string;
         videoPrompt: string;
@@ -1527,6 +1530,9 @@ export interface StoryboardScene {
   sceneTitle: string;
   clips: Array<{
     story: string;
+    storyDetailKo?: string;
+    storyGroupLabel?: string;
+    storyGroupSize?: number;
     imagePrompt: string;
     imagePromptEnd?: string;
     videoPrompt: string;

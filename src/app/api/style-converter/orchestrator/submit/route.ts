@@ -14,6 +14,7 @@ interface StyleConverterJobSubmitRequest {
   imageBase64: string;
   mimeType: string;
   prompts: string;
+  imageWeight: number;
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   apiKey?: string;
 }
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
         image_base64: body.imageBase64,
         mime_type: body.mimeType,
         prompts: body.prompts,
+        image_weight: body.imageWeight,
         target_aspect_ratio: body.targetAspectRatio,
         api_key: body.apiKey ?? null,
       }),

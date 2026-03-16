@@ -182,7 +182,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
                 <div className="w-full max-w-[120px] h-1 bg-gray-700 rounded-full overflow-hidden">
                   <div className="h-full bg-pink-600 rounded-full animate-[loading_1.5s_ease-in-out_infinite] w-1/2" />
                 </div>
-                <span className="text-xs text-gray-500 animate-pulse">Generating with pixAI…</span>
+                <span className="text-xs text-gray-500 animate-pulse">Generating…</span>
               </div>
             ) : isError ? (
               <div className="p-4 text-center">

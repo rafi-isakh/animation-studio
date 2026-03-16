@@ -6,7 +6,7 @@ import { UploadIcon, DocumentTextIcon } from './Icons';
 interface FileLibraryProps {
   files: Record<string, File>;
   onFilesAdded: (files: File[]) => void;
-  onApplyPrompts: (prompts: { filename: string; prompt: string; category?: string }[]) => void;
+  onApplyPrompts: (prompts: { filename: string; prompt: string; category?: string }[]) => number;
 }
 
 export const FileLibrary: React.FC<FileLibraryProps> = ({
@@ -52,30 +52,39 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
 
     try {
       const text = await file.text();
-      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      if (lines.length === 0) { setCsvError('CSV is empty'); return; }
 
-      const parseCSVLine = (line: string): string[] => {
-        const result: string[] = [];
+      // Parse the whole document to correctly handle multi-line quoted fields
+      const parseCSV = (src: string): string[][] => {
+        const result: string[][] = [];
+        let row: string[] = [];
         let current = '';
         let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
+        for (let i = 0; i < src.length; i++) {
+          const char = src[i];
           if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+            if (inQuotes && src[i + 1] === '"') { current += '"'; i++; }
             else inQuotes = !inQuotes;
           } else if (char === ',' && !inQuotes) {
-            result.push(current); current = '';
+            row.push(current); current = '';
+          } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && src[i + 1] === '\n') i++;
+            row.push(current); current = '';
+            if (row.some((c) => c.trim())) result.push(row);
+            row = [];
           } else {
             current += char;
           }
         }
-        result.push(current);
+        row.push(current);
+        if (row.some((c) => c.trim())) result.push(row);
         return result;
       };
 
-      const headers = parseCSVLine(lines[0]);
-      const rows = lines.slice(1).map(parseCSVLine);
+      const allRows = parseCSV(text);
+      if (allRows.length === 0) { setCsvError('CSV is empty'); return; }
+
+      const headers = allRows[0];
+      const rows = allRows.slice(1);
 
       const lower = headers.map((h) => h.trim().toLowerCase());
       let fnIdx = lower.findIndex((h) => h.includes('file') || h.includes('name') || h.includes('image'));
@@ -98,18 +107,38 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
   const handleApplyCSV = () => {
     if (promptColIdx === -1) { setCsvError('Please select a prompt column'); return; }
 
-    const promptsData = csvRows
-      .map((row) => ({
-        filename: row[filenameColIdx]?.trim(),
-        prompt: row[promptColIdx]?.trim(),
-        category: categoryColIdx !== -1 ? row[categoryColIdx]?.trim() : undefined,
-      }))
-      .filter((p) => p.filename && p.prompt);
+    const allMapped = csvRows.map((row, i) => ({
+      rowIndex: i + 2, // +2: 1-based + header row
+      filename: row[filenameColIdx]?.trim(),
+      prompt: row[promptColIdx]?.trim(),
+      category: categoryColIdx !== -1 ? row[categoryColIdx]?.trim() : undefined,
+      rawFilename: row[filenameColIdx],
+      rawPrompt: row[promptColIdx],
+    }));
+
+    const skipped = allMapped.filter((p) => !p.filename || !p.prompt);
+    if (skipped.length > 0) {
+      console.group(`[CSV Import] ${skipped.length} skipped row(s)`);
+      skipped.forEach((p, i) => {
+        const raw = csvRows[p.rowIndex - 2];
+        console.log(
+          `Row ${p.rowIndex}: filename=${JSON.stringify(p.rawFilename)} → trimmed=${JSON.stringify(p.filename)} | prompt=${JSON.stringify(p.rawPrompt)} → trimmed=${JSON.stringify(p.prompt)}`,
+        );
+        console.log(`  → parsed columns (${raw.length}):`, raw);
+      });
+      console.groupEnd();
+    }
+
+    const promptsData = allMapped.filter((p) => p.filename && p.prompt);
 
     if (promptsData.length === 0) { setCsvError('No valid prompt rows found'); return; }
 
-    onApplyPrompts(promptsData);
-    setAppliedCount(promptsData.length);
+    const matchedCount = onApplyPrompts(promptsData);
+    const skippedCount = csvRows.length - promptsData.length;
+    setAppliedCount(matchedCount);
+    if (skippedCount > 0) {
+      setCsvError(`${skippedCount} row(s) skipped (missing filename or prompt).`);
+    }
     setCsvHeaders([]);
     setCsvRows([]);
   };

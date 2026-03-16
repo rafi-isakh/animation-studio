@@ -32,6 +32,7 @@ from app.models.job import (
     I2VStoryboardJobSubmitRequest,
     StoryboardEditorJobSubmitRequest,
     StyleConverterJobSubmitRequest,
+    KreaStyleConverterJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -448,6 +449,42 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_krea_style_converter_job(
+        self,
+        request: "KreaStyleConverterJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """Create a new Krea AI style converter job in the queue."""
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.KREA_STYLE_CONVERTER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="krea",
+            prompt="",
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            krea_prompts=request.prompts,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created Krea style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
         return job
 
     async def create_id_converter_glossary_job(

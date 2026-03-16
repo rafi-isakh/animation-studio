@@ -53,6 +53,7 @@ export default function ImageToScriptWriter() {
     updateClip,
     replaceReferenceImage,
     exportCSV,
+    exportXLSX,
     exportJSON,
     importJSON,
   } = useScriptWriter();
@@ -592,6 +593,14 @@ export default function ImageToScriptWriter() {
             </button>
 
             <button
+              onClick={() => exportXLSX(false)}
+              className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Export XLSX
+            </button>
+
+            <button
               onClick={exportJSON}
               className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg flex items-center gap-2 text-sm"
             >
@@ -621,6 +630,7 @@ export default function ImageToScriptWriter() {
               <Download className="w-4 h-4" />
               CSV (Text Only)
             </button>
+
 
             <button
               onClick={clear}

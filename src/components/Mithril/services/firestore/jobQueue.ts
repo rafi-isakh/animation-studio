@@ -1958,6 +1958,33 @@ export interface StyleConverterUpdate {
 export type StyleConverterUpdateCallback = (update: StyleConverterUpdate) => void;
 
 /**
+ * Subscribe to Krea style converter jobs for a session
+ *
+ * @param sessionId - The session ID
+ * @param callback - Called whenever any Krea style converter job in the session changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToSessionKreaStyleConverterJobs(
+  sessionId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'krea_style_converter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
  * Subscribe to style converter jobs for a session
  *
  * @param sessionId - The session ID

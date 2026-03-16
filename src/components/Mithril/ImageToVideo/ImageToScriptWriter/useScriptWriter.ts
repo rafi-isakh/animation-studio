@@ -2,6 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import JSZip from 'jszip';
+import * as XLSX from 'xlsx';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
 import { blobToBase64, compressBase64Image, isUrl } from './utils/imageCompression';
@@ -946,6 +947,91 @@ export function useScriptWriter() {
     []
   );
 
+  // Export XLSX
+  const exportXLSX = useCallback(
+    (textOnly: boolean = false) => {
+      const currentState = stateRef.current;
+      if (!currentState.result?.scenes.length) return;
+
+      const { scenes } = currentState.result;
+      const hasEndPrompts = scenes.some((scene) =>
+        scene.clips.some((clip) => !!clip.imagePromptEnd)
+      );
+
+      const headers = [
+        'Scene',
+        'Clip',
+        'Length',
+        'Accumulated Time',
+        'Background ID',
+        'Background Prompt',
+        'Story',
+        'Image Prompt (Start)',
+        ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
+        'Video Prompt',
+        'Pix AI',
+        'Video API',
+        'Sora Video Prompt',
+        'Dialogue (Ko)',
+        'Dialogue (En)',
+        'SFX (Ko)',
+        'SFX (En)',
+        'BGM (Ko)',
+        'BGM (En)',
+        ...(textOnly ? [] : ['Reference Image', 'Reference Image Source']),
+      ];
+
+      let globalClipCounter = 1;
+      const rows = scenes.flatMap((scene, sIdx) =>
+        scene.clips.map((clip) => {
+          const row: (string | number)[] = [
+            `Scene ${sIdx + 1}: ${scene.sceneTitle}`,
+            String(globalClipCounter++).padStart(3, '0'),
+            clip.length ?? '',
+            clip.accumulatedTime ?? '',
+            clip.backgroundId ?? '',
+            clip.backgroundPrompt ?? '',
+            clip.story ?? '',
+            clip.imagePrompt ?? '',
+          ];
+
+          if (hasEndPrompts) row.push(clip.imagePromptEnd || '');
+
+          row.push(
+            clip.videoPrompt ?? '',
+            clip.pixAiPrompt || '',
+            clip.videoApi || 'Grok',
+            clip.soraVideoPrompt || '',
+            clip.dialogue ?? '',
+            clip.dialogueEn ?? '',
+            clip.sfx ?? '',
+            clip.sfxEn ?? '',
+            clip.bgm ?? '',
+            clip.bgmEn ?? ''
+          );
+
+          if (!textOnly) {
+            row.push(
+              clip.referenceImageIndex !== undefined
+                ? getPanelSplitterStyleFileName(clip.referenceImageIndex)
+                : '',
+              clip.referenceImageUrl || clip.referenceImage || ''
+            );
+          }
+
+          return row;
+        })
+      );
+
+      const wsData = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Storyboard');
+      XLSX.writeFile(wb, textOnly ? 'storyboard_text_only.xlsx' : 'storyboard_full.xlsx');
+    },
+    []
+  );
+
   // Derived state
   const hasEndPrompts = useMemo(() => {
     return (
@@ -1040,6 +1126,7 @@ export function useScriptWriter() {
     cancel,
     clear,
     exportCSV,
+    exportXLSX,
     exportJSON,
     importJSON,
   };

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -405,13 +405,16 @@ export default function StyleConverter() {
   }, [config, persistMeta, persistPanel]);
 
   const handleApplyPrompts = useCallback(
-    (promptsData: { filename: string; prompt: string; category?: string }[]) => {
-      setPanels((prev) =>
-        prev.map((panel) => {
+    (promptsData: { filename: string; prompt: string; category?: string }[]): number => {
+      let matchCount = 0;
+      setPanels((prev) => {
+        matchCount = 0;
+        return prev.map((panel) => {
           const match = promptsData.find(
             (p) => p.filename.toLowerCase() === panel.file.name.toLowerCase(),
           );
           if (!match) return panel;
+          matchCount++;
           const updatedPanel = { ...panel, prompt: match.prompt, category: match.category, _fromStorage: false };
           if (currentProjectId) {
             void updateStyleConverterPanel(currentProjectId, panel.id, {
@@ -420,8 +423,9 @@ export default function StyleConverter() {
             });
           }
           return updatedPanel;
-        }),
-      );
+        });
+      });
+      return matchCount;
     },
     [currentProjectId],
   );

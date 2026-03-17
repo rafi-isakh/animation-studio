@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import admin, anime_bg, bg_jobs, health, i2v_storyboard_jobs, id_converter_jobs, image_jobs, jobs, krea_style_converter_jobs, panel_colorizer_jobs, panel_jobs, panel_splitter_jobs, panorama, prop_design_jobs, render_3d, story_splitter_jobs, storyboard_editor_jobs, storyboard_jobs, style_converter_jobs
+from app.api.routes import admin, anime_bg, bg_jobs, credits, health, i2v_storyboard_jobs, id_converter_jobs, image_jobs, jobs, krea_style_converter_jobs, panel_colorizer_jobs, panel_jobs, panel_splitter_jobs, panorama, prop_design_jobs, render_3d, story_splitter_jobs, storyboard_editor_jobs, storyboard_jobs, style_converter_jobs
 from app.config import get_settings
 
 settings = get_settings()

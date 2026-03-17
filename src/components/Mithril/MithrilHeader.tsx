@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Wand2, FolderOpen, Shield, Globe, LogOut } from "lucide-react";
 import { useMithrilAuth } from "@/components/Mithril/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useProject } from "@/contexts/ProjectContext";
 import { phrase, langPairList } from "@/utils/phrases";
 import type { Language } from "@/components/Types";
 import {
@@ -19,8 +20,18 @@ import { Button } from "@/components/shadcnUI/Button";
 export default function MithrilHeader() {
   const { user, logout, isAuthenticated, isAdmin } = useMithrilAuth();
   const { language, dictionary, setLanguageOverride } = useLanguage();
+  const { currentProject } = useProject();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
+
+  useEffect(() => {
+    if (currentProject?.name && pathname.startsWith('/mithril')) {
+      document.title = `${currentProject.name} | Mithril`;
+    } else {
+      document.title = 'Mithril';
+    }
+  }, [currentProject?.name, pathname, searchParams]);
 
   const handleLanguageChange = (lang: Language) => {
     setLanguageOverride(lang);
@@ -37,6 +48,11 @@ export default function MithrilHeader() {
           <Wand2 size={18} className="text-[#DB2777] shrink-0" />
           <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">Mithril</span>
         </Link>
+        {currentProject?.name && pathname.startsWith('/mithril') && (
+          <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[240px] hidden sm:block">
+            {currentProject.name}
+          </span>
+        )}
         <div className="flex items-center gap-1">
           {isAuthenticated && user && (
             <span className="text-xs text-gray-400 dark:text-gray-500 mr-2 hidden sm:block truncate max-w-[180px]">

@@ -200,6 +200,18 @@ async def _stage_submit(
     except Exception as e:
         raise classify_exception(e)
 
+    # Track credit usage
+    try:
+        from app.services.credits import get_credit_cost, get_credits_service
+        _cost = get_credit_cost(job.type.value, job.provider_id)
+        await get_credits_service().record_credit(
+            user_id=job.user_id, project_id=job.project_id,
+            job_id=job.id, job_type=job.type.value,
+            provider_id=job.provider_id, cost_usd=_cost,
+        )
+    except Exception:
+        logger.warning(f"Failed to record credit for job {job.id}", exc_info=True)
+
     # Update state
     state_machine.transition_to(JobStatus.SUBMITTED)
     await job_queue_service.update_job_status(

@@ -414,6 +414,17 @@ async def _process_panel_splitter_impl(
         )
         logger.info(f"[PANEL-SPLITTER] {job_id} - Detected {len(panels)} panels")
 
+        try:
+            from app.services.credits import get_credit_cost, get_credits_service
+            _cost = get_credit_cost(job.type.value, "gemini")
+            await get_credits_service().record_credit(
+                user_id=job.user_id, project_id=job.project_id,
+                job_id=job.id, job_type=job.type.value,
+                provider_id="gemini", cost_usd=_cost,
+            )
+        except Exception:
+            logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+
         # Check for cancellation after AI call
         await check_cancellation(job_id)
 

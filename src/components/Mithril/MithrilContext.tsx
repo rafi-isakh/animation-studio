@@ -272,6 +272,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (stageConfig && !isPipelineStage(stageConfig)) {
       return 5;
     }
+    // If the stage no longer exists (e.g. removed stage), fall back to the last pipeline stage.
+    if (!stageConfig) {
+      const pipelineStages = getPipelineStages(projectType);
+      return pipelineStages[pipelineStages.length - 1]?.id ?? 1;
+    }
     return stage;
   }, [projectType]);
 

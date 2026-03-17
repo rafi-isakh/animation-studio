@@ -415,6 +415,62 @@ async def retry_failed_style_converter_job(
 
 
 # ============================================================================
+# Krea Style Converter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_krea_style_converter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main Krea AI style converter task (img2img).
+
+    Pipeline:
+    1. Submit Krea AI img2img task with base64 image
+    2. Poll until completed
+    3. Download result image
+    4. Upload result to S3
+    5. Update Firestore with CloudFront URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (not stored in Firestore to avoid 1 MB limit)
+        api_key: Optional custom Krea key (falls back to KREA_API_KEY env var)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.krea_style_converter_generation import process_krea_style_converter_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing Krea style converter job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_krea_style_converter_generation(job_id, image_base64, worker_id, api_key)
+        logger.info(f"[{worker_id}] Krea style converter job {job_id} finished with status: {result.get('status')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in Krea style converter job {job_id}")
+        return {"job_id": job_id, "status": "error", "error": str(e)}
+
+
+@broker.task
+async def retry_failed_krea_style_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    api_key: str | None = None,
+) -> dict:
+    import asyncio
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
+    return await process_krea_style_converter_job(job_id, image_base64, api_key)
+
+
+# ============================================================================
 # ID Converter Tasks
 # ============================================================================
 

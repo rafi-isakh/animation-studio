@@ -3,14 +3,14 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
-import { ControlBar } from './ControlBar';
-import { FileLibrary } from './FileLibrary';
-import { PanelCard } from './PanelCard';
-import { PanelData, AppConfig, AspectRatio, ProcessingStatus } from './types';
+import { ControlBar } from '../StyleConverter/ControlBar';
+import { FileLibrary } from '../StyleConverter/FileLibrary';
+import { PanelCard } from '../StyleConverter/PanelCard';
+import { PanelData, AppConfig, AspectRatio, ProcessingStatus } from '../StyleConverter/types';
 import { useMithril } from '@/components/Mithril/MithrilContext';
 import { useMithrilAuth } from '@/components/Mithril/auth/MithrilAuthContext';
 import {
-  subscribeToSessionStyleConverterJobs,
+  subscribeToSessionKreaStyleConverterJobs,
   mapStyleConverterJobToUpdate,
 } from '@/components/Mithril/services/firestore/jobQueue';
 import {
@@ -61,10 +61,10 @@ function getLatestJobsByPanel(
   return Array.from(latestJobs.values());
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const DEBUG = false;
-const log = (...args: unknown[]) => DEBUG && console.log('[StyleConverter]', ...args);
-const warn = (...args: unknown[]) => DEBUG && console.warn('[StyleConverter:WARN]', ...args);
+const log = (...args: unknown[]) => DEBUG && console.log('[KreaStyleConverter]', ...args);
+const warn = (...args: unknown[]) => DEBUG && console.warn('[KreaStyleConverter:WARN]', ...args);
 const normalizePanelFileName = (value?: string) => (value || '').trim().toLowerCase();
 const fileToBase64DataUri = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -93,7 +93,7 @@ function mapBackendStatus(status: string): ProcessingStatus {
   }
 }
 
-export default function StyleConverter() {
+export default function KreaStyleConverter() {
   const { currentProjectId } = useMithril();
   const { refreshSession } = useMithrilAuth();
 
@@ -105,7 +105,7 @@ export default function StyleConverter() {
 
   // Stable session ID restored from Firestore when available
   const sessionIdRef = useRef<string>('');
-  // Map panelId â†’ jobId for cancellation
+  // Map panelId → jobId for cancellation
   const activeJobsRef = useRef<Map<string, string>>(new Map());
   // Stable ref for reading current panels in callbacks without stale closures
   const panelsRef = useRef<PanelData[]>(panels);
@@ -127,13 +127,13 @@ export default function StyleConverter() {
 
   const persistPanel = useCallback(async (panel: PanelData, panelIndex: number) => {
     if (!currentProjectId) return;
-    
+
     // Skip persisting panels that were loaded from storage - they're already persisted
     if (panel._fromStorage && panel.originalImageRef) {
       log(`SKIP persistPanel: panel="${panel.file.name}" (id=${panel.id.slice(0, 8)}...) - already in storage`);
       return;
     }
-    
+
     log(`START persistPanel: panel="${panel.file.name}" (id=${panel.id.slice(0, 8)}...) _fromStorage=${panel._fromStorage} hasImageRef=${!!panel.originalImageRef}`);
 
     let originalImageRef = panel.originalImageRef;
@@ -289,12 +289,12 @@ export default function StyleConverter() {
     load();
   }, [currentProjectId]);
 
-  // â”€â”€ Firestore subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Firestore subscription ──────────────────────────────────────────────────
 
   useEffect(() => {
     if (!sessionId) return;
     log(`JOB SUBSCRIPTION: subscribing to jobs for sessionId=${sessionId.slice(0, 8)}...`);
-    const unsubscribe = subscribeToSessionStyleConverterJobs(sessionId, (jobs) => {
+    const unsubscribe = subscribeToSessionKreaStyleConverterJobs(sessionId, (jobs) => {
       const latestJobs = getLatestJobsByPanel(jobs);
       log(`JOB UPDATE: received ${jobs.length} jobs, latest=${latestJobs.length}`);
       latestJobs.forEach((job) => {
@@ -352,11 +352,11 @@ export default function StyleConverter() {
     return () => unsubscribe();
   }, [currentProjectId, sessionId]);
 
-  // â”€â”€ Library / panel management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Library / panel management ──────────────────────────────────────────────
 
   const handleFilesAddedToLibrary = useCallback((files: File[]) => {
     log(`handleFilesAddedToLibrary: ${files.length} files added`, files.map(f => f.name));
-    
+
     setFileLibrary((prev) => {
       const next = { ...prev };
       files.forEach((f) => { next[f.name] = f; });
@@ -379,11 +379,11 @@ export default function StyleConverter() {
         incomingSeenNames.add(normalized);
         newFiles.push(file);
       }
-      
+
       if (duplicateFiles.length > 0) {
         log(`  skipping ${duplicateFiles.length} duplicates:`, duplicateFiles.map(f => f.name));
       }
-      
+
       const newPanels: PanelData[] = newFiles.map((file) => ({
         id: uuidv4(),
         file,
@@ -393,7 +393,7 @@ export default function StyleConverter() {
         imageWeight: DEFAULT_IMAGE_WEIGHT,
         // Don't set _fromStorage for newly added files - they need to be persisted
       }));
-      
+
       log(`  creating ${newPanels.length} new panels:`, newPanels.map(p => `"${p.file.name}"`));
       newPanels.forEach((panel, index) => {
         log(`  persisting panel ${index}: "${panel.file.name}"`);
@@ -461,7 +461,7 @@ export default function StyleConverter() {
     }
   }, [currentProjectId]);
 
-  // â”€â”€ Processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Processing ─────────────────────────────────────────────────────────────
 
   const submitSinglePanel = useCallback(
     async (id: string) => {
@@ -494,7 +494,7 @@ export default function StyleConverter() {
         const mimeType = panel.file.type || 'image/jpeg';
         const prompts = panel.prompt?.trim() || 'masterpiece, best quality, detailed illustration, anime style';
 
-        const response = await fetch('/api/style-converter/orchestrator/submit', {
+        const response = await fetch('/api/krea-style-converter/orchestrator/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -505,7 +505,6 @@ export default function StyleConverter() {
             imageBase64,
             mimeType,
             prompts,
-            imageWeight: clampImageWeight(panel.imageWeight),
             targetAspectRatio: config.targetAspectRatio,
           }),
         });
@@ -559,7 +558,7 @@ export default function StyleConverter() {
     const cancelPromises: Promise<void>[] = [];
     activeJobsRef.current.forEach((jobId) => {
       cancelPromises.push(
-        fetch('/api/style-converter/orchestrator/cancel', {
+        fetch('/api/krea-style-converter/orchestrator/cancel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jobId }),
@@ -582,7 +581,7 @@ export default function StyleConverter() {
       return;
     }
 
-    const confirmed = window.confirm('Clear the Style Converter workspace? This removes all local and persisted panel data for this project.');
+    const confirmed = window.confirm('Clear the Krea Style Converter workspace? This removes all local and persisted panel data for this project.');
     if (!confirmed) {
       return;
     }
@@ -590,7 +589,7 @@ export default function StyleConverter() {
     const cancelPromises: Promise<void>[] = [];
     activeJobsRef.current.forEach((jobId) => {
       cancelPromises.push(
-        fetch('/api/style-converter/orchestrator/cancel', {
+        fetch('/api/krea-style-converter/orchestrator/cancel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jobId }),
@@ -623,7 +622,7 @@ export default function StyleConverter() {
     [submitSinglePanel],
   );
 
-  // â”€â”€ Download ZIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Download ZIP ───────────────────────────────────────────────────────────
 
   const handleDownloadAll = useCallback(async () => {
     const successful = panelsRef.current.filter(
@@ -652,7 +651,7 @@ export default function StyleConverter() {
           const base64Data = url.split(',')[1];
           zip.file(fileName, base64Data, { base64: true });
         } else {
-          // CloudFront / S3 URL â€” fetch via proxy to avoid CORS
+          // CloudFront / S3 URL – fetch via proxy to avoid CORS
           const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(url)}`;
           const res = await fetch(proxyUrl);
           const blob = await res.blob();
@@ -666,7 +665,7 @@ export default function StyleConverter() {
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `style-converter-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.download = `krea-style-converter-${new Date().toISOString().slice(0, 10)}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -676,7 +675,7 @@ export default function StyleConverter() {
     }
   }, []);
 
-  // â”€â”€ Save / Load project JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Save / Load project JSON ───────────────────────────────────────────────
 
   const handleSaveProject = async () => {
     if (panels.length === 0) return;
@@ -703,7 +702,7 @@ export default function StyleConverter() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `style-converter-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `krea-style-converter-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -774,7 +773,7 @@ export default function StyleConverter() {
     e.target.value = '';
   };
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   const successCount = panels.filter((p) => p.status === ProcessingStatus.Success).length;
 

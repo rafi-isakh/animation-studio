@@ -14,7 +14,7 @@ type DragMode = 'draw' | 'move' | 'resize-nw' | 'resize-ne' | 'resize-sw' | 'res
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
-const DEFAULT_ZOOM = 1;
+const DEFAULT_ZOOM = 0.1;
 const ZOOM_STEP = 0.1;
 
 // -- Icons --

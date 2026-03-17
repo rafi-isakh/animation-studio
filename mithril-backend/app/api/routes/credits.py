@@ -14,20 +14,28 @@ router = APIRouter(prefix="/credits", tags=["credits"])
 
 
 @router.get("/me")
-async def get_my_usage(user: AuthenticatedUser) -> dict:
+async def get_my_usage(
+    user: AuthenticatedUser,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
     """Return total credit usage summary for the authenticated user."""
     credits_service = get_credits_service()
-    return await credits_service.get_user_summary(user.uid)
+    return await credits_service.get_user_summary(user.uid, start_date=start_date, end_date=end_date)
 
 
 @router.get("/project/{project_id}")
 async def get_project_usage(
     project_id: str,
     user: AuthenticatedUser,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
 ) -> dict:
     """Return credit transactions for a specific project."""
     credits_service = get_credits_service()
-    transactions = await credits_service.get_project_usage(user.uid, project_id)
+    transactions = await credits_service.get_project_usage(
+        user.uid, project_id, start_date=start_date, end_date=end_date
+    )
 
     total_usd = sum(t.get("cost_usd", 0.0) for t in transactions)
     by_provider: dict[str, float] = {}
@@ -48,9 +56,76 @@ async def get_project_usage(
     }
 
 
+@router.get("/me/stages")
+async def get_my_stage_breakdown(
+    user: AuthenticatedUser,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Return credit usage grouped by stage (job_type) for the authenticated user."""
+    credits_service = get_credits_service()
+    stages = await credits_service.get_stage_breakdown(
+        user_id=user.uid, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(s["total_usd"] for s in stages)
+    return {"stages": stages, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/project/{project_id}/stages")
+async def get_project_stage_breakdown(
+    project_id: str,
+    user: AuthenticatedUser,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Return credit usage grouped by stage (job_type) for a specific project."""
+    credits_service = get_credits_service()
+    stages = await credits_service.get_stage_breakdown(
+        user_id=user.uid, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(s["total_usd"] for s in stages)
+    return {"project_id": project_id, "stages": stages, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/me/providers")
+async def get_my_provider_breakdown(
+    user: AuthenticatedUser,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Return credit usage grouped by provider for the authenticated user."""
+    credits_service = get_credits_service()
+    providers = await credits_service.get_provider_breakdown(
+        user_id=user.uid, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(p["total_usd"] for p in providers)
+    return {"providers": providers, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/usage/stages")
+async def get_usage_stage_breakdown(
+    user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Admin: cross-user stage breakdown with optional filters."""
+    credits_service = get_credits_service()
+    stages = await credits_service.get_stage_breakdown(
+        user_id=user_id,
+        project_id=project_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    total_usd = sum(s["total_usd"] for s in stages)
+    return {"stages": stages, "total_usd": round(total_usd, 6)}
+
+
 @router.get("/usage")
 async def get_usage_breakdown(
     user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
     provider_id: Annotated[str | None, Query()] = None,
     job_type: Annotated[str | None, Query()] = None,
     start_date: Annotated[str | None, Query()] = None,
@@ -60,6 +135,7 @@ async def get_usage_breakdown(
     """Admin: filterable usage breakdown across all users."""
     credits_service = get_credits_service()
     transactions = await credits_service.get_usage_breakdown(
+        user_id=user_id,
         provider_id=provider_id,
         job_type=job_type,
         start_date=start_date,

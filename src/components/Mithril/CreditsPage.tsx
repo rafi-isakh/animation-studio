@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useMithrilAuth } from "./auth/MithrilAuthContext";
+import { listProjects } from "./services/firestore/projects";
+import type { ProjectMetadata } from "./services/firestore/types";
+import MithrilHeader from "./MithrilHeader";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,6 +109,10 @@ async function fetchCredits(type: string, params: Record<string, string> = {}) {
 // ---------------------------------------------------------------------------
 
 export default function CreditsPage() {
+  const { user } = useMithrilAuth();
+  const [projects, setProjects] = useState<ProjectMetadata[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+
   const [summary, setSummary] = useState<UserSummary | null>(null);
   const [stages, setStages] = useState<StageEntry[]>([]);
   const [providers, setProviders] = useState<ProviderEntry[]>([]);
@@ -122,6 +130,12 @@ export default function CreditsPage() {
   // Committed custom range (null = not active)
   const [customRange, setCustomRange] = useState<{ from: string; to: string } | null>(null);
 
+  // Load projects for filter dropdown
+  useEffect(() => {
+    if (!user) return;
+    listProjects({ id: user.id, role: user.role }).then(setProjects).catch(() => {});
+  }, [user]);
+
   const fromRef = useRef<HTMLInputElement>(null);
 
   function applyCustomRange() {
@@ -138,13 +152,15 @@ export default function CreditsPage() {
 
   // Build date params for fetch — custom range takes priority over preset
   function buildDateParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (selectedProjectId) params.project_id = selectedProjectId;
     if (customRange) {
-      return {
-        start_date: localDateToStartIso(customRange.from),
-        end_date: localDateToEndIso(customRange.to),
-      };
+      params.start_date = localDateToStartIso(customRange.from);
+      params.end_date = localDateToEndIso(customRange.to);
+      return params;
     }
-    return activeDays > 0 ? { start_date: startOfDayUtc(activeDays) } : {};
+    if (activeDays > 0) params.start_date = startOfDayUtc(activeDays);
+    return params;
   }
 
   const isFirstFetch = useRef(true);
@@ -185,7 +201,7 @@ export default function CreditsPage() {
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeDays, customRange]);
+  }, [activeDays, customRange, selectedProjectId]);
 
   // Derived category totals
   const videoUsd = providers
@@ -216,14 +232,29 @@ export default function CreditsPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#0F0F0F] text-[#E8E8E8] flex flex-col transition-opacity duration-200 ${refetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-      {/* Header */}
+    <div className="min-h-screen bg-[#0F0F0F] text-[#E8E8E8] flex flex-col">
+      <MithrilHeader />
+      <div className={`flex flex-col flex-1 pt-16 transition-opacity duration-200 ${refetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+      {/* Page header */}
       <div className="flex items-center justify-between px-12 py-6">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight">Credits Usage</h1>
           <p className="text-sm text-gray-500">Track your AI provider costs across all projects</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Project filter */}
+          {projects.length > 0 && (
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="px-3 py-1.5 bg-[#211F21] border border-[#272727] rounded-lg text-sm text-[#E8E8E8] outline-none cursor-pointer"
+            >
+              <option value="">All projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
           {/* Preset pills */}
           <div className="flex items-center gap-1 p-1 bg-[#211F21] border border-[#272727] rounded-lg">
             {PRESETS.map((p) => (
@@ -387,6 +418,7 @@ export default function CreditsPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

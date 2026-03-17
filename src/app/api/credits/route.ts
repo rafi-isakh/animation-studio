@@ -27,10 +27,12 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") ?? "summary";
   const start_date = searchParams.get("start_date");
   const end_date = searchParams.get("end_date");
+  const project_id = searchParams.get("project_id");
 
   const dateQs = new URLSearchParams();
   if (start_date) dateQs.set("start_date", start_date);
   if (end_date) dateQs.set("end_date", end_date);
+  if (project_id) dateQs.set("project_id", project_id);
   const dateSuffix = dateQs.toString() ? `?${dateQs}` : "";
 
   const pathMap: Record<string, string> = {

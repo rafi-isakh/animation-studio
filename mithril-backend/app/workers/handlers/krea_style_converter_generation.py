@@ -18,7 +18,7 @@ settings = get_settings()
 
 KREA_API_BASE = "https://api.krea.ai"
 KREA_PROVIDER = "bfl"
-KREA_MODEL = "flux-1-dev"
+KREA_MODEL = "flux-1-kontext-dev"
 
 RESOLUTION_MAP: dict[str, dict[str, int]] = {
     "9:16": {"width": 768,  "height": 1344},

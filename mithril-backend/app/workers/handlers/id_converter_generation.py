@@ -126,6 +126,17 @@ async def process_glossary_analysis(
         )
         logger.info(f"[ID-CONV-GLOSSARY] {job_id} - ✓ Extracted {len(entities)} entities")
 
+        try:
+            from app.services.credits import get_credit_cost, get_credits_service
+            _cost = get_credit_cost(job.type.value, "gemini")
+            await get_credits_service().record_credit(
+                user_id=job.user_id, project_id=job.project_id,
+                job_id=job.id, job_type=job.type.value,
+                provider_id="gemini", cost_usd=_cost,
+            )
+        except Exception:
+            logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+
         # Save to project's idConverter document
         logger.debug(f"[ID-CONV-GLOSSARY] {job_id} - Updating idConverter document in project")
         await id_converter_service.update_glossary(
@@ -462,6 +473,17 @@ async def process_batch_conversion(
                 logger.error(f"[ID-CONV-BATCH] {job_id} - ✗ Chunk {i + 1} failed: {e}")
                 chunks_data[i]["status"] = "error"
                 raise
+
+            try:
+                from app.services.credits import get_credit_cost, get_credits_service
+                _cost = get_credit_cost(job.type.value, "gemini")
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
             # Update chunk data
             chunks_data[i]["translatedText"] = translated_text

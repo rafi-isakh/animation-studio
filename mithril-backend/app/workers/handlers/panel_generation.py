@@ -470,6 +470,17 @@ async def _stage_generate(
         logger.error(f"[PANEL-GEN] {job.id} - {provider_id} API error: {type(e).__name__}: {str(e)}")
         raise classify_exception(e)
 
+    try:
+        from app.services.credits import get_credit_cost, get_credits_service
+        _cost = get_credit_cost(job.type.value, provider_id)
+        await get_credits_service().record_credit(
+            user_id=job.user_id, project_id=job.project_id,
+            job_id=job.id, job_type=job.type.value,
+            provider_id=provider_id, cost_usd=_cost,
+        )
+    except Exception:
+        logger.warning(f"Failed to record credit for job {job.id}", exc_info=True)
+
     # No intermediate progress write here — UPLOADING stage will set progress=0.8
     return image_bytes
 

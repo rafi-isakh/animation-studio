@@ -204,6 +204,18 @@ async def process_style_converter_generation(
                 job.aspect_ratio or "9:16",
                 job.pixai_image_weight if job.pixai_image_weight is not None else DEFAULT_IMAGE_WEIGHT,
             )
+
+            try:
+                from app.services.credits import get_credit_cost, get_credits_service
+                _cost = get_credit_cost(job.type.value, "pixai")
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="pixai", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+
             await svc.update_job_status(job_id, JobStatus.GENERATING, progress=0.5)
             media_id = await _poll_task(resolved_key, task_id, job_id)
 

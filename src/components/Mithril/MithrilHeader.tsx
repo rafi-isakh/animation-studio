@@ -33,10 +33,10 @@ export default function MithrilHeader() {
                          bg-white dark:bg-gray-900
                          border-b border-gray-200 dark:border-gray-800
                          flex items-center justify-between px-4 shadow-sm">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Wand2 size={18} className="text-[#DB2777] shrink-0" />
           <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">Mithril</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
           {isAuthenticated && user && (
             <span className="text-xs text-gray-400 dark:text-gray-500 mr-2 hidden sm:block truncate max-w-[180px]">

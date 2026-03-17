@@ -107,27 +107,11 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
   const handleApplyCSV = () => {
     if (promptColIdx === -1) { setCsvError('Please select a prompt column'); return; }
 
-    const allMapped = csvRows.map((row, i) => ({
-      rowIndex: i + 2, // +2: 1-based + header row
+    const allMapped = csvRows.map((row) => ({
       filename: row[filenameColIdx]?.trim(),
       prompt: row[promptColIdx]?.trim(),
       category: categoryColIdx !== -1 ? row[categoryColIdx]?.trim() : undefined,
-      rawFilename: row[filenameColIdx],
-      rawPrompt: row[promptColIdx],
     }));
-
-    const skipped = allMapped.filter((p) => !p.filename || !p.prompt);
-    if (skipped.length > 0) {
-      console.group(`[CSV Import] ${skipped.length} skipped row(s)`);
-      skipped.forEach((p, i) => {
-        const raw = csvRows[p.rowIndex - 2];
-        console.log(
-          `Row ${p.rowIndex}: filename=${JSON.stringify(p.rawFilename)} → trimmed=${JSON.stringify(p.filename)} | prompt=${JSON.stringify(p.rawPrompt)} → trimmed=${JSON.stringify(p.prompt)}`,
-        );
-        console.log(`  → parsed columns (${raw.length}):`, raw);
-      });
-      console.groupEnd();
-    }
 
     const promptsData = allMapped.filter((p) => p.filename && p.prompt);
 

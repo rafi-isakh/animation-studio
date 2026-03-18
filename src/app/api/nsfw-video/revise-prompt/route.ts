@@ -51,7 +51,7 @@ Rules:
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
-      systemInstruction,
+      config: { systemInstruction },
       contents: [
         {
           role: "user",

@@ -38,7 +38,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
 
   const handleDownload = () => {
-    const fileName = `${String(index + 1).padStart(3, '0')}.jpg`;
+    const fileName = `${String(index + 1).padStart(3, '0')}.png`;
 
     if (canvasRef.current && panel.resultUrl) {
       canvasRef.current.download(fileName);

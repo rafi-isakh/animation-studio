@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 KREA_API_BASE = "https://api.krea.ai"
-KREA_PROVIDER = "openai"
-KREA_MODEL = "gpt-image"
+KREA_PROVIDER = "bfl"
+KREA_MODEL = "flux-1-dev"
 
 RESOLUTION_MAP: dict[str, dict[str, int]] = {
     "9:16": {"width": 768,  "height": 1344},

@@ -138,10 +138,13 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
               {fileList.length} files
             </span>
           </h2>
-          <label className="cursor-pointer text-xs bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-lg transition-colors">
-            + Add Images
-            <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageInput} />
-          </label>
+          <div className="flex flex-col items-end gap-1">
+            <label className="cursor-pointer text-xs bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-lg transition-colors">
+              + Add Images
+              <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageInput} />
+            </label>
+            <span className="text-[10px] text-gray-500">Please upload in PNG format</span>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0">
@@ -159,6 +162,7 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
               <UploadIcon />
               <p className="mt-2 text-sm font-medium">Drag & drop panel images here</p>
               <p className="text-xs opacity-60">Panels are auto-added to the workspace</p>
+              <p className="mt-1 text-xs text-yellow-500/80 font-medium">Please upload images in PNG format</p>
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto p-2">

@@ -282,7 +282,6 @@ export function useImageSplitter() {
 
     // Only process updates for pages that are still processing
     if (page.status !== 'processing') {
-      console.warn('[ImageSplitter] handlePageUpdate: SKIPPED — page.status is', page.status, '(not "processing")');
       return;
     }
 

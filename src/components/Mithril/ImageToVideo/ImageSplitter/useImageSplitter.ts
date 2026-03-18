@@ -2,6 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
 import JSZip from 'jszip';
+import * as pdfjsLib from 'pdfjs-dist';
 import { useToast } from '@/hooks/use-toast';
 import { useMithril } from '../../MithrilContext';
 import { imageSplitterReducer, initialState } from './reducer';
@@ -34,6 +35,9 @@ import {
   getAllProjectPanelSplitterJobs,
   mapPanelSplitterJobToUpdate,
 } from '../../services/firestore/jobQueue';
+
+// Configure pdf.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 // Image file extensions we support
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
@@ -175,6 +179,7 @@ export function useImageSplitter() {
   const processingStartTimeRef = useRef<number | null>(null);
   // Guard against race condition: upload-time persist loop aborts if Clear All is in progress
   const isClearingRef = useRef(false);
+  const [pdfParseProgress, setPdfParseProgress] = useState<{ current: number; total: number } | null>(null);
 
   // Track active jobs: pageId -> jobId
   const [activeJobs, setActiveJobs] = useState<Record<string, string>>({});
@@ -616,6 +621,79 @@ export function useImageSplitter() {
     []
   );
 
+  // Extract pages from PDF file — each PDF page becomes one MangaPage
+  const extractPagesFromPdf = useCallback(
+    async (
+      pdfFile: File,
+      readingDirection: ReadingDirection,
+      onProgress: (current: number, total: number) => void
+    ): Promise<MangaPage[]> => {
+      console.log('[PDF] Starting extraction. file:', pdfFile.name, 'size:', pdfFile.size, 'type:', pdfFile.type);
+      console.log('[PDF] pdfjs version:', pdfjsLib.version, 'workerSrc:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      console.log('[PDF] ArrayBuffer loaded. byteLength:', arrayBuffer.byteLength);
+
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      console.log('[PDF] Document loaded. numPages:', pdf.numPages);
+      onProgress(0, pdf.numPages);
+
+      const pages: MangaPage[] = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        console.log(`[PDF] Rendering page ${pageNum}/${pdf.numPages}...`);
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2 }); // 2x for crisp panel detection
+        console.log(`[PDF] Page ${pageNum} viewport: ${viewport.width}x${viewport.height}`);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          console.error(`[PDF] Failed to get 2D context for page ${pageNum}`);
+          continue;
+        }
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        console.log(`[PDF] Page ${pageNum} rendered to canvas.`);
+
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92)
+        );
+
+        if (!blob) {
+          console.error(`[PDF] canvas.toBlob returned null for page ${pageNum}`);
+          continue;
+        }
+        console.log(`[PDF] Page ${pageNum} blob created. size:`, blob.size, 'type:', blob.type);
+
+        const fileName = `${pdfFile.name.replace(/\.pdf$/i, '')}_p${pageNum}.jpg`;
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
+        const previewUrl = URL.createObjectURL(blob);
+        console.log(`[PDF] Page ${pageNum} previewUrl:`, previewUrl);
+
+        pages.push({
+          id: generateId(),
+          file,
+          previewUrl,
+          fileName: file.name,
+          panels: [],
+          status: 'pending',
+          readingDirection,
+          width: viewport.width,
+          height: viewport.height,
+        });
+
+        onProgress(pageNum, pdf.numPages);
+      }
+
+      console.log('[PDF] Extraction complete. pages extracted:', pages.length);
+      return pages;
+    },
+    []
+  );
+
   // Handle file upload
   const upload = useCallback(
     async (files: FileList | File[]) => {
@@ -639,6 +717,28 @@ export function useImageSplitter() {
               title: 'Failed to extract ZIP file',
               description: 'The ZIP file may be corrupted or use an unsupported compression format. Try re-creating it with standard ZIP compression.',
             });
+          }
+          continue;
+        }
+
+        // Handle PDF files
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          try {
+            const extractedPages = await extractPagesFromPdf(
+              file,
+              state.readingDirection,
+              (current, total) => setPdfParseProgress({ current, total })
+            );
+            newPages.push(...extractedPages);
+          } catch (error) {
+            console.error('Failed to extract PDF file:', error);
+            toast({
+              variant: 'destructive',
+              title: 'Failed to read PDF file',
+              description: 'The PDF may be password-protected or corrupted.',
+            });
+          } finally {
+            setPdfParseProgress(null);
           }
           continue;
         }
@@ -1769,6 +1869,9 @@ export function useImageSplitter() {
     // Transcription state
     isAnalyzingScript,
     scriptProgress,
+
+    // PDF parsing state
+    pdfParseProgress,
 
     // Padding state
     panelPadding,

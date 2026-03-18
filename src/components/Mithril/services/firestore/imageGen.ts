@@ -146,6 +146,9 @@ export async function saveImageGenFrame(
     remixPrompt: input.remixPrompt || '',
     remixImageRef: input.remixImageRef || null,
     editedImageRef: input.editedImageRef || null,
+    ...(input.promptVariant !== undefined && { promptVariant: input.promptVariant }),
+    ...(input.clipNumber !== undefined && { clipNumber: input.clipNumber }),
+    ...(input.isFinalized !== undefined && { isFinalized: input.isFinalized }),
   });
 }
 
@@ -175,6 +178,9 @@ export async function saveImageGenFrames(
       remixPrompt: input.remixPrompt || '',
       remixImageRef: input.remixImageRef || null,
       editedImageRef: input.editedImageRef || null,
+      ...(input.promptVariant !== undefined && { promptVariant: input.promptVariant }),
+      ...(input.clipNumber !== undefined && { clipNumber: input.clipNumber }),
+      ...(input.isFinalized !== undefined && { isFinalized: input.isFinalized }),
     });
   }
 

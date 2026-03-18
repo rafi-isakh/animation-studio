@@ -61,8 +61,8 @@ const TEXT_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
   { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'NsfwStoryboardGenerator' },
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
-  { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
-  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
+  { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'NsfwImageGenerator' },
+  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'NsfwTextToVideoGenerator' },
 ];
 
 // Stage configurations for Text-to-Video with 3D BG (replaces BgSheetGenerator with AnimeBgStudio)

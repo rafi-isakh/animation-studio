@@ -12,6 +12,7 @@ import StoryboardGenerator from "./StoryboardGenerator";
 import PropDesigner from "./PropDesigner";
 import BgSheetGenerator from "./BgSheetGenerator";
 import ImageGeneratorWrapper from "./ImageGenerator/ImageGeneratorWrapper";
+import NsfwImageGeneratorWrapper from "./NsfwImageGenerator/NsfwImageGeneratorWrapper";
 import VideoGeneratorWrapper from "./VideoGenerator/VideoGeneratorWrapper";
 import ImageSplitter from "./ImageToVideo/ImageSplitter";
 import ImageToScriptWriter from "./ImageToVideo/ImageToScriptWriter";
@@ -25,6 +26,7 @@ import StyleConverter from "./StyleConverter";
 import KreaStyleConverter from "./KreaStyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
 import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
+import NsfwTextToVideoGenerator from "./NsfwTextToVideoGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
@@ -42,6 +44,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'PropDesigner': PropDesigner,
   'BgSheetGenerator': BgSheetGenerator,
   'ImageGenerator': ImageGeneratorWrapper,
+  'NsfwImageGenerator': NsfwImageGeneratorWrapper,
   'VideoGenerator': VideoGeneratorWrapper,
   'ImageSplitter': ImageSplitter,
   'ImageToScriptWriter': ImageToScriptWriter,
@@ -55,6 +58,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'KreaStyleConverter': KreaStyleConverter,
   'AnimeBgStudio': AnimeBgStudio,
   'NsfwStoryboardGenerator': NsfwStoryboardGenerator,
+  'NsfwTextToVideoGenerator': NsfwTextToVideoGenerator,
 };
 
 // Cost Tracker Dashboard Component

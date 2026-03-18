@@ -644,6 +644,10 @@ def _apply_panel_metadata_to_result(
                 )
         return result
 
+    # Build a lookup by panelIndex (the actual panel number from source text) so that
+    # sparse lists (only panels with content are included) are matched correctly.
+    panel_lookup: dict[int, dict[str, Any]] = {pm['panelIndex']: pm for pm in panel_metadata}
+
     for scene in result.get('scenes', []):
         for clip_index, clip in enumerate(scene.get('clips', [])):
             panel_index = clip.get('referenceImageIndex', clip_index)
@@ -652,9 +656,7 @@ def _apply_panel_metadata_to_result(
             except (TypeError, ValueError):
                 panel_index = clip_index
 
-            metadata = panel_metadata[panel_index] if 0 <= panel_index < len(panel_metadata) else None
-            if metadata is None and clip_index < len(panel_metadata):
-                metadata = panel_metadata[clip_index]
+            metadata = panel_lookup.get(panel_index) or panel_lookup.get(clip_index)
 
             if metadata:
                 ref_file_name = str(metadata.get('refFileName', '') or '').strip()

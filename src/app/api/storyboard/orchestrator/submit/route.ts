@@ -20,10 +20,12 @@ interface StoryboardSubmitRequest {
   videoGuide?: string;
   // New configuration
   targetTime?: string;
+  clipCount?: number;
   customInstruction?: string;
   backgroundInstruction?: string;
   negativeInstruction?: string;
   videoInstruction?: string;
+  imageInstruction?: string;
   // API key
   apiKey?: string;
 }
@@ -63,10 +65,12 @@ export async function POST(request: NextRequest) {
       video_guide: body.videoGuide || "",
       // New configuration
       target_time: body.targetTime || "03:00",
+      clip_count: body.clipCount ?? null,
       custom_instruction: body.customInstruction || "",
       background_instruction: body.backgroundInstruction || "",
       negative_instruction: body.negativeInstruction || "",
       video_instruction: body.videoInstruction || "",
+      image_instruction: body.imageInstruction || "",
       // API key
       api_key: body.apiKey,
     };

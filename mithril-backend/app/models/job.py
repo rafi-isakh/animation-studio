@@ -192,7 +192,8 @@ class JobDocument(BaseModel):
     # Storyboard-specific fields (for type=STORYBOARD)
     source_text: str | None = None  # Source text for storyboard generation
     part_index: int | None = None  # Part index from story splitter
-    target_time: str | None = None  # Target duration (MM:SS format)
+    target_time: str | None = None  # Target duration (MM:SS format) — legacy, prefer clip_count
+    clip_count: int | None = None  # Exact number of clips to generate
     story_condition: str | None = None  # Story generation conditions
     image_condition: str | None = None  # Image prompt conditions
     video_condition: str | None = None  # Video prompt conditions
@@ -203,6 +204,7 @@ class JobDocument(BaseModel):
     background_instruction: str | None = None  # Background ID rules
     negative_instruction: str | None = None  # Negative prompts
     video_instruction: str | None = None  # Video prompt rules
+    image_instruction: str | None = None  # Image prompt package instructions
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -748,7 +750,8 @@ class StoryboardJobSubmitRequest(BaseModel):
     project_id: str
     source_text: str  # Source text for storyboard generation
     part_index: int = 0  # Part index from story splitter
-    target_time: str = "03:00"  # Target duration (MM:SS format)
+    target_time: str = "03:00"  # Legacy — prefer clip_count
+    clip_count: int | None = None  # Exact number of clips to generate
     # Conditions
     story_condition: str = ""
     image_condition: str = ""
@@ -762,6 +765,7 @@ class StoryboardJobSubmitRequest(BaseModel):
     background_instruction: str = ""
     negative_instruction: str = ""
     video_instruction: str = ""
+    image_instruction: str = ""  # Image prompt package instructions
     # API key
     api_key: str | None = None
 

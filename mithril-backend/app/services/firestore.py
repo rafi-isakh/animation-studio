@@ -784,6 +784,7 @@ class JobQueueService:
             source_text=request.source_text,
             part_index=request.part_index,
             target_time=request.target_time,
+            clip_count=request.clip_count,
             story_condition=request.story_condition,
             image_condition=request.image_condition,
             video_condition=request.video_condition,
@@ -794,6 +795,7 @@ class JobQueueService:
             background_instruction=request.background_instruction,
             negative_instruction=request.negative_instruction,
             video_instruction=request.video_instruction,
+            image_instruction=request.image_instruction,
             max_retries=3,
         )
 

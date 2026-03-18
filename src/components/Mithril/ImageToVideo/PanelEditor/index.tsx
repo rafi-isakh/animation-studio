@@ -92,7 +92,7 @@ export default function PanelEditor() {
     for (let i = 0; i < successfulPanels.length; i++) {
       const panel = successfulPanels[i];
       const globalIndex = panels.indexOf(panel);
-      const fileName = `${String(globalIndex + 1).padStart(3, '0')}.jpg`;
+      const fileName = `${String(globalIndex + 1).padStart(3, '0')}.png`;
       usedNames.add(fileName);
 
       // resultUrl can be data:image/png;base64,..., blob:, or https:// (S3)

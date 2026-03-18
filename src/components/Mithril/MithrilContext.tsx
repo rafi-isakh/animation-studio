@@ -163,6 +163,9 @@ interface GenerateStoryboardParams {
   backgroundInstruction?: string;
   negativeInstruction?: string;
   videoInstruction?: string;
+  // NSFW storyboard extra params
+  imageInstruction?: string;
+  clipCount?: string;
 }
 
 // Types for shared state
@@ -1283,6 +1286,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           backgroundInstruction: params.backgroundInstruction,
           negativeInstruction: params.negativeInstruction,
           videoInstruction: params.videoInstruction,
+          imageInstruction: params.imageInstruction,
+          clipCount: params.clipCount,
           // API key
           apiKey: customApiKey,
         }),

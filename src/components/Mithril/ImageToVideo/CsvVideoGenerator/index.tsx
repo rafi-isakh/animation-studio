@@ -217,6 +217,7 @@ function StoryboardItemCard({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   <span className="text-xs font-medium">Add Start Image</span>
+                  <span className="text-[10px] text-yellow-500/80 mt-0.5">Please upload in PNG format</span>
                 </label>
               )}
             </div>
@@ -255,6 +256,7 @@ function StoryboardItemCard({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   <span className="text-xs font-medium">Add End Frame</span>
+                  <span className="text-[10px] text-yellow-500/80 mt-0.5">Please upload in PNG format</span>
                 </label>
               )}
             </div>

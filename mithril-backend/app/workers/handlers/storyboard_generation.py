@@ -112,7 +112,7 @@ async def process_storyboard(
 
     logger.info(f"[STORYBOARD] Job {job_id} loaded: project={job.project_id}, status={job.status}")
     logger.info(f"[STORYBOARD] Text length: {len(job.source_text or '')} chars")
-    logger.info(f"[STORYBOARD] Target time: {job.target_time}")
+    logger.info(f"[STORYBOARD] Clip count: {job.clip_count}, Target time: {job.target_time}")
 
     # Initialize state machine
     state_machine = JobStateMachine(job_id, job.status)
@@ -232,13 +232,17 @@ async def _generate_storyboard_with_gemini(
     """
     client = genai.Client(api_key=api_key)
 
-    # Parse target time
-    target_time = job.target_time or "03:00"
-    parts = target_time.split(":")
-    minutes = int(parts[0]) if len(parts) > 0 else 3
-    seconds = int(parts[1]) if len(parts) > 1 else 0
-    total_seconds = minutes * 60 + seconds
-    estimated_clip_count = round(total_seconds / 1.8)  # ~1.8 seconds per clip average
+    # Determine exact clip count — clip_count takes priority over target_time
+    if job.clip_count and job.clip_count > 0:
+        exact_clip_count = job.clip_count
+    else:
+        # Fall back to target_time-based estimate for legacy jobs
+        target_time = job.target_time or "03:00"
+        parts = target_time.split(":")
+        minutes = int(parts[0]) if len(parts) > 0 else 3
+        seconds = int(parts[1]) if len(parts) > 1 else 0
+        total_seconds = minutes * 60 + seconds
+        exact_clip_count = round(total_seconds / 1.8)
 
     # Build conditions
     story_condition = job.story_condition or ""
@@ -251,14 +255,16 @@ async def _generate_storyboard_with_gemini(
     background_instruction = job.background_instruction or ""
     negative_instruction = job.negative_instruction or ""
     video_instruction = job.video_instruction or ""
+    image_instruction = job.image_instruction or ""
     source_text = job.source_text or ""
 
     prompt = f"""
-    다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 {estimated_clip_count}개의 클립으로 구성된, 정확히 {total_seconds}초({target_time}) 분량의 애니메이션 콘티를 제작해 주세요.
-    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다.
+    다음 원본 텍스트를 기반으로 애니메이션 콘티를 제작해 주세요.
+    전체 클립의 수는 **정확히 {exact_clip_count}개**여야 합니다. 이 숫자는 절대적인 요구사항입니다 — 누적 시간에 관계없이 반드시 {exact_clip_count}개의 클립을 생성해야 합니다. 적게 생성하는 것은 허용되지 않습니다.
+    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다.
 
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
-    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오. 대사가 있는 경우, "1~2초 역동성 규칙"은 **무시**하고 아래 규칙이 **최우선**입니다.
+    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오.
 
     | dialogueEn 단어 수 | 할당 시간 | 비고 |
     | :--- | :--- | :--- |
@@ -344,6 +350,11 @@ async def _generate_storyboard_with_gemini(
     **[비디오 프롬프트 규칙]**
     {video_instruction}
     ''' if video_instruction else ''}
+
+    {f'''
+    **[이미지 프롬프트 패키지 지시사항]**
+    {image_instruction}
+    ''' if image_instruction else ''}
 
     원본 텍스트:
     ---

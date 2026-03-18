@@ -110,7 +110,8 @@ export default function StyleConverter() {
   // Stable ref for reading current panels in callbacks without stale closures
   const panelsRef = useRef<PanelData[]>(panels);
   panelsRef.current = panels;
-  const isLoadingRef = useRef(false);
+  // Tracks which projectId is currently being loaded to prevent stale/duplicate loads
+  const loadingProjectIdRef = useRef<string | null>(null);
 
   const persistMeta = useCallback(async (
     nextSessionId: string = sessionIdRef.current,
@@ -180,8 +181,8 @@ export default function StyleConverter() {
   }, [currentProjectId]);
 
   useEffect(() => {
-    if (!currentProjectId || isLoadingRef.current) return;
-    isLoadingRef.current = true;
+    if (!currentProjectId || loadingProjectIdRef.current === currentProjectId) return;
+    loadingProjectIdRef.current = currentProjectId;
 
     const load = async () => {
       try {
@@ -282,7 +283,9 @@ export default function StyleConverter() {
         setFileLibrary(nextFileLibrary);
         setPanels(loadedPanels);
       } finally {
-        isLoadingRef.current = false;
+        if (loadingProjectIdRef.current === currentProjectId) {
+          loadingProjectIdRef.current = null;
+        }
       }
     };
 

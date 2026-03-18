@@ -374,6 +374,10 @@ export interface ImageGenFrameDocument {
   remixPrompt: string;
   remixImageRef: string | null;
   editedImageRef: string | null;
+  // NSFW variant fields
+  promptVariant?: 'A' | 'B' | 'C';
+  clipNumber?: number;
+  isFinalized?: boolean;
 }
 
 export interface SaveImageGenFrameInput {
@@ -391,6 +395,10 @@ export interface SaveImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  // NSFW variant fields
+  promptVariant?: 'A' | 'B' | 'C';
+  clipNumber?: number;
+  isFinalized?: boolean;
 }
 
 export interface UpdateImageGenFrameInput {
@@ -403,6 +411,7 @@ export interface UpdateImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  isFinalized?: boolean;
 }
 
 // ============================================

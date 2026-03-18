@@ -24,6 +24,7 @@ import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
 import StyleConverter from "./StyleConverter";
 import KreaStyleConverter from "./KreaStyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
+import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
@@ -53,6 +54,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'StyleConverter': StyleConverter,
   'KreaStyleConverter': KreaStyleConverter,
   'AnimeBgStudio': AnimeBgStudio,
+  'NsfwStoryboardGenerator': NsfwStoryboardGenerator,
 };
 
 // Cost Tracker Dashboard Component

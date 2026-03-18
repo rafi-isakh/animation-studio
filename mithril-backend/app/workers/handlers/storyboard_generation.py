@@ -134,12 +134,12 @@ async def process_storyboard(
 
         # Call Gemini for storyboard generation
         logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
-        result = await _generate_storyboard_with_gemini(job, api_key)
+        result, _usage = await _generate_storyboard_with_gemini(job, api_key)
         logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
 
         try:
-            from app.services.credits import get_credit_cost, get_credits_service
-            _cost = get_credit_cost(job.type.value, "gemini")
+            from app.services.credits import get_credits_service, get_text_cost
+            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
             await get_credits_service().record_credit(
                 user_id=job.user_id, project_id=job.project_id,
                 job_id=job.id, job_type=job.type.value,
@@ -480,7 +480,7 @@ async def _generate_storyboard_with_gemini(
             if bg_id and bg_id.strip():
                 clip["imagePrompt"] = f"{clip['imagePrompt']}\n\nBackground ID: {bg_id}"
 
-    return result
+    return result, response.usage_metadata
 
 
 async def _save_storyboard(

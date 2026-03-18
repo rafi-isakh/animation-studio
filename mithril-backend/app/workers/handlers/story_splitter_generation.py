@@ -116,7 +116,7 @@ async def process_story_splitter(
 
         # Call Gemini for story splitting
         logger.info(f"[STORY-SPLITTER] {job_id} - Calling Gemini API for story splitting...")
-        parts = await _split_story_with_gemini(
+        parts, _usage = await _split_story_with_gemini(
             job.story_text or "",
             job.guidelines or "",
             job.num_parts or 8,
@@ -125,8 +125,8 @@ async def process_story_splitter(
         logger.info(f"[STORY-SPLITTER] {job_id} - Split into {len(parts)} parts")
 
         try:
-            from app.services.credits import get_credit_cost, get_credits_service
-            _cost = get_credit_cost(job.type.value, "gemini")
+            from app.services.credits import get_credits_service, get_text_cost
+            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
             await get_credits_service().record_credit(
                 user_id=job.user_id, project_id=job.project_id,
                 job_id=job.id, job_type=job.type.value,
@@ -373,7 +373,7 @@ async def _split_story_with_gemini(
             "cliffhangers": analysis.get("cliffhangers", []),
         })
 
-    return parts_with_analysis
+    return parts_with_analysis, response.usage_metadata
 
 
 async def _save_story_splits(

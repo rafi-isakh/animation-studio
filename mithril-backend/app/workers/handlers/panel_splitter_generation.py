@@ -235,7 +235,7 @@ Exclude:
                 "label": panel.get("label", "")
             })
 
-    return valid_panels
+    return valid_panels, response.usage_metadata
 
 
 async def _handle_error(
@@ -407,7 +407,7 @@ async def _process_panel_splitter_impl(
         # Check for cancellation before AI call
         await check_cancellation(job_id)
 
-        panels = await detect_panels_with_gemini(
+        panels, _usage = await detect_panels_with_gemini(
             optimized_image,
             job.reading_direction or "rtl",
             api_key,
@@ -415,8 +415,8 @@ async def _process_panel_splitter_impl(
         logger.info(f"[PANEL-SPLITTER] {job_id} - Detected {len(panels)} panels")
 
         try:
-            from app.services.credits import get_credit_cost, get_credits_service
-            _cost = get_credit_cost(job.type.value, "gemini")
+            from app.services.credits import get_credits_service, get_text_cost
+            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
             await get_credits_service().record_credit(
                 user_id=job.user_id, project_id=job.project_id,
                 job_id=job.id, job_type=job.type.value,

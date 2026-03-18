@@ -10,44 +10,63 @@ from app.services.firestore import get_db
 
 logger = logging.getLogger(__name__)
 
-# Cost table: (job_type, provider_id) -> USD per API call
-# Prices are approximate and should be updated as provider pricing changes.
-CREDIT_COST_TABLE: dict[tuple[str, str], float] = {
-    # Video generation
-    ("video", "sora"): 0.20,
-    ("video", "veo3"): 0.35,
-    ("video", "grok_i2v"): 0.15,
-    ("video", "grok_imagine_i2v"): 0.15,
-    ("video", "wan_i2v"): 0.05,
-    ("video", "wan22_i2v"): 0.05,
-    # Image generation (gemini image model per image)
-    ("image", "gemini"): 0.04,
-    ("background", "gemini"): 0.04,
-    ("prop_design_sheet", "gemini"): 0.04,
-    ("panel", "gemini"): 0.04,
-    ("panel", "grok"): 0.04,
-    ("panel", "z_image_turbo"): 0.02,
-    ("panel_colorizer", "gemini"): 0.04,
-    ("panel_colorizer", "grok"): 0.04,
-    ("panel_colorizer", "z_image_turbo"): 0.02,
-    # Style converter (PixAI)
-    ("style_converter", "pixai"): 0.01,
-    # Gemini text/multimodal calls
-    ("storyboard", "gemini"): 0.02,
-    ("i2v_storyboard", "gemini"): 0.02,
-    ("storyboard_editor", "gemini"): 0.04,
-    ("story_splitter", "gemini"): 0.02,
-    ("id_converter_glossary", "gemini"): 0.02,
-    ("id_converter_batch", "gemini"): 0.01,
-    ("panel_splitter", "gemini"): 0.01,
+# Flat per-image costs: (job_type, provider_id) -> USD per image
+IMAGE_COST_TABLE: dict[tuple[str, str], float] = {
+    # Gemini image-output models
+    ("image", "gemini"): 0.039,
+    ("background", "gemini"): 0.039,
+    ("prop_design_sheet", "gemini"): 0.039,
+    ("panel", "gemini"): 0.134,
+    ("panel_colorizer", "gemini"): 0.134,
+    ("storyboard_editor", "gemini"): 0.039,
+    # xAI Grok image
+    ("panel", "grok"): 0.02,
+    ("panel_colorizer", "grok"): 0.02,
+    # ModelsLab z_image_turbo
+    ("panel", "z_image_turbo"): 0.0047,
+    ("panel_colorizer", "z_image_turbo"): 0.0047,
+    # PixAI style converter
+    ("style_converter", "pixai"): 0.09,
+}
+
+# Token-based pricing for Gemini text/multimodal models: model -> (input $/1M, output $/1M)
+TOKEN_PRICING: dict[str, tuple[float, float]] = {
+    "gemini-2.5-pro": (1.25, 10.00),
+    "gemini-2.5-flash": (0.30, 2.50),
+    "gemini-3-pro-preview": (2.00, 12.00),
+}
+
+# Video pricing: provider_id -> USD per second of generated video
+VIDEO_COST_PER_SECOND: dict[str, float] = {
+    "sora": 0.10,
+    "veo3": 0.15,
+    "grok_i2v": 0.05,
+    "grok_imagine_i2v": 0.05,
+    "wan_i2v": 0.15,
+    "wan22_i2v": 0.15,
 }
 
 DEFAULT_COST_USD = 0.01
 
 
 def get_credit_cost(job_type: str, provider_id: str) -> float:
-    """Look up cost for a given job type and provider, falling back to default."""
-    return CREDIT_COST_TABLE.get((job_type, provider_id), DEFAULT_COST_USD)
+    """Look up flat per-image cost for a given job type and provider."""
+    return IMAGE_COST_TABLE.get((job_type, provider_id), DEFAULT_COST_USD)
+
+
+def get_text_cost(model: str, input_tokens: int, output_tokens: int) -> float:
+    """Calculate cost for a Gemini generate_content call based on token usage."""
+    pricing = TOKEN_PRICING.get(model)
+    if not pricing:
+        return DEFAULT_COST_USD
+    input_price, output_price = pricing
+    return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
+
+
+def get_video_cost(provider_id: str, duration_seconds: int) -> float:
+    """Calculate cost for a video generation job based on duration."""
+    rate = VIDEO_COST_PER_SECOND.get(provider_id, DEFAULT_COST_USD)
+    return rate * duration_seconds
 
 
 class CreditsService:

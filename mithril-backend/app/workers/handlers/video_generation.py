@@ -202,8 +202,8 @@ async def _stage_submit(
 
     # Track credit usage
     try:
-        from app.services.credits import get_credit_cost, get_credits_service
-        _cost = get_credit_cost(job.type.value, job.provider_id)
+        from app.services.credits import get_credits_service, get_video_cost
+        _cost = get_video_cost(job.provider_id, job.duration)
         await get_credits_service().record_credit(
             user_id=job.user_id, project_id=job.project_id,
             job_id=job.id, job_type=job.type.value,

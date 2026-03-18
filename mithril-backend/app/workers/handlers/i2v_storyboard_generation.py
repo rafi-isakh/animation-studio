@@ -774,12 +774,12 @@ async def process_i2v_storyboard(
             await check_cancellation(job_id)
 
             # Call Gemini for storyboard generation
-            result = await _generate_i2v_storyboard_with_gemini(job, api_key, panel_images)
+            result, _usage = await _generate_i2v_storyboard_with_gemini(job, api_key, panel_images)
             logger.info(f"[I2V-STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
 
             try:
-                from app.services.credits import get_credit_cost, get_credits_service
-                _cost = get_credit_cost(job.type.value, "gemini")
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
                 await get_credits_service().record_credit(
                     user_id=job.user_id, project_id=job.project_id,
                     job_id=job.id, job_type=job.type.value,
@@ -1138,7 +1138,7 @@ async def _generate_i2v_storyboard_with_gemini(
     result = _ensure_story_quality(result)
     result = _apply_grouped_story_labels(result)
 
-    return result
+    return result, response.usage_metadata
 
 
 async def _save_i2v_storyboard(

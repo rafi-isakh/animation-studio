@@ -65,6 +65,7 @@ export default function ImageSplitter() {
     analyzeScriptAll,
     resetAnalyzedData,
     clearActivePagePanels,
+    pdfParseProgress,
   } = useImageSplitter();
 
   const { pages, isProcessing, readingDirection, processingStats } = state;
@@ -350,7 +351,7 @@ export default function ImageSplitter() {
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*,.zip,application/zip"
+        accept="image/*,.zip,application/zip,.pdf,application/pdf"
         onChange={handleFileUpload}
         className="hidden"
       />
@@ -358,12 +359,21 @@ export default function ImageSplitter() {
       {/* -- Left Sidebar -- */}
       <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 z-10">
         <div className="p-4 border-b border-gray-700 bg-gray-800 space-y-3 flex-shrink-0">
-          <label 
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center w-full p-3 bg-[#DB2777] hover:bg-[#BE185D] text-white rounded cursor-pointer transition-colors shadow-md font-bold text-sm"
+          <label
+            onClick={() => !pdfParseProgress && fileInputRef.current?.click()}
+            className={`flex items-center justify-center w-full p-3 text-white rounded shadow-md font-bold text-sm transition-colors ${pdfParseProgress ? 'bg-[#BE185D] cursor-not-allowed' : 'bg-[#DB2777] hover:bg-[#BE185D] cursor-pointer'}`}
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Upload Pages
+            {pdfParseProgress ? (
+              <>
+                <SpinnerIcon className="w-4 h-4 mr-2 animate-spin" />
+                Reading PDF… {pdfParseProgress.current}/{pdfParseProgress.total}
+              </>
+            ) : (
+              <>
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Upload Pages
+              </>
+            )}
           </label>
           
           <button 

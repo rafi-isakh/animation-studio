@@ -24,6 +24,7 @@ import CsvVideoGenerator from "./ImageToVideo/CsvVideoGenerator";
 import NsfwVideoGenerator from "./ImageToVideo/NsfwVideoGenerator";
 import StyleConverter from "./StyleConverter";
 import KreaStyleConverter from "./KreaStyleConverter";
+import ModelsLabStyleConverter from "./ModelsLabStyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
 import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
 import NsfwTextToVideoGenerator from "./NsfwTextToVideoGenerator";
@@ -56,6 +57,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'NsfwVideoGenerator': NsfwVideoGenerator,
   'StyleConverter': StyleConverter,
   'KreaStyleConverter': KreaStyleConverter,
+  'ModelsLabStyleConverter': ModelsLabStyleConverter,
   'AnimeBgStudio': AnimeBgStudio,
   'NsfwStoryboardGenerator': NsfwStoryboardGenerator,
   'NsfwTextToVideoGenerator': NsfwTextToVideoGenerator,

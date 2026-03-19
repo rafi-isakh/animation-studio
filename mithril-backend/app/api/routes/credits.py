@@ -116,6 +116,38 @@ async def get_my_provider_breakdown(
     return {"providers": providers, "total_usd": round(total_usd, 6)}
 
 
+@router.get("/usage/summary")
+async def get_usage_summary(
+    user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Admin: aggregate usage summary across all users, with optional filters."""
+    credits_service = get_credits_service()
+    return await credits_service.get_all_summary(
+        user_id=user_id, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+
+
+@router.get("/usage/providers")
+async def get_usage_provider_breakdown(
+    user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Admin: cross-user provider breakdown with optional filters."""
+    credits_service = get_credits_service()
+    providers = await credits_service.get_provider_breakdown(
+        user_id=user_id, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(p["total_usd"] for p in providers)
+    return {"providers": providers, "total_usd": round(total_usd, 6)}
+
+
 @router.get("/usage/stages")
 async def get_usage_stage_breakdown(
     user: AuthenticatedUser,

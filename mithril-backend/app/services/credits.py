@@ -1,14 +1,44 @@
 """Credits tracking service for recording AI provider API usage costs."""
 
 import logging
+import time
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
 
 from google.cloud import firestore
 
 from app.services.firestore import get_db
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Simple in-memory TTL cache for date-filtered queries
+# ---------------------------------------------------------------------------
+
+_CACHE_TTL_SECONDS = 300  # 5 minutes
+
+
+@dataclass
+class _CacheEntry:
+    data: Any
+    expires_at: float
+
+
+_query_cache: dict[str, _CacheEntry] = {}
+
+
+def _cache_get(key: str) -> Any | None:
+    entry = _query_cache.get(key)
+    if entry and time.monotonic() < entry.expires_at:
+        return entry.data
+    _query_cache.pop(key, None)
+    return None
+
+
+def _cache_set(key: str, data: Any) -> None:
+    _query_cache[key] = _CacheEntry(data=data, expires_at=time.monotonic() + _CACHE_TTL_SECONDS)
 
 # Flat per-image costs: (job_type, provider_id) -> USD per image
 IMAGE_COST_TABLE: dict[tuple[str, str], float] = {
@@ -76,6 +106,8 @@ class CreditsService:
 
     TRANSACTIONS_COLLECTION = "credit_transactions"
     USER_CREDITS_COLLECTION = "user_credits"
+    CREDIT_STATS_COLLECTION = "credit_stats"
+    GLOBAL_STATS_DOC = "__global__"
 
     def __init__(self) -> None:
         self.db = get_db()
@@ -129,6 +161,22 @@ class CreditsService:
             merge=True,
         )
 
+        # 3. Upsert global aggregate stats (avoids full collection scans on admin dashboard)
+        global_ref = self.db.collection(self.CREDIT_STATS_COLLECTION).document(self.GLOBAL_STATS_DOC)
+        batch.set(
+            global_ref,
+            {
+                "total_used_usd": firestore.Increment(cost_usd),
+                "transaction_count": firestore.Increment(1),
+                f"providers.{provider_id}.total_usd": firestore.Increment(cost_usd),
+                f"providers.{provider_id}.call_count": firestore.Increment(1),
+                f"stages.{job_type}.total_usd": firestore.Increment(cost_usd),
+                f"stages.{job_type}.call_count": firestore.Increment(1),
+                "last_updated": now,
+            },
+            merge=True,
+        )
+
         await batch.commit()
 
         # 3. Update job document with cost (outside batch — job_queue is separate)
@@ -152,6 +200,9 @@ class CreditsService:
         the pre-computed summary document.
         """
         if start_date or end_date:
+            cache_key = f"user_summary:{user_id}:{start_date}:{end_date}"
+            if cached := _cache_get(cache_key):
+                return cached
             query = self.db.collection(self.TRANSACTIONS_COLLECTION).where("user_id", "==", user_id)
             if start_date:
                 query = query.where("created_at", ">=", start_date)
@@ -159,11 +210,13 @@ class CreditsService:
                 query = query.where("created_at", "<=", end_date)
             docs = await query.get()
             total_usd = sum((d.to_dict() or {}).get("cost_usd", 0.0) for d in docs)
-            return {
+            result = {
                 "user_id": user_id,
                 "total_used_usd": round(total_usd, 6),
                 "transaction_count": len(docs),
             }
+            _cache_set(cache_key, result)
+            return result
 
         doc = await self.db.collection(self.USER_CREDITS_COLLECTION).document(user_id).get()
         if not doc.exists:
@@ -199,8 +252,26 @@ class CreditsService:
         end_date: str | None = None,
     ) -> list[dict]:
         """Aggregate credit transactions grouped by job_type (stage), sorted by cost desc."""
-        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
+        # Fast path: use pre-aggregated global doc for unfiltered all-time admin queries
+        if not user_id and not project_id and not start_date and not end_date:
+            doc = await self.db.collection(self.CREDIT_STATS_COLLECTION).document(self.GLOBAL_STATS_DOC).get()
+            if doc.exists:
+                stages_map = (doc.to_dict() or {}).get("stages", {})
+                return sorted(
+                    [
+                        {"job_type": k, "total_usd": round(v.get("total_usd", 0.0), 6), "call_count": v.get("call_count", 0)}
+                        for k, v in stages_map.items()
+                    ],
+                    key=lambda x: x["total_usd"],
+                    reverse=True,
+                )
+            return []
 
+        cache_key = f"stages:{user_id}:{project_id}:{start_date}:{end_date}"
+        if cached := _cache_get(cache_key):
+            return cached
+
+        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
         if user_id:
             query = query.where("user_id", "==", user_id)
         if project_id:
@@ -211,7 +282,6 @@ class CreditsService:
             query = query.where("created_at", "<=", end_date)
 
         docs = await query.get()
-
         aggregated: dict[str, dict] = {}
         for doc in docs:
             data = doc.to_dict() or {}
@@ -221,11 +291,12 @@ class CreditsService:
             aggregated[stage]["total_usd"] += data.get("cost_usd", 0.0)
             aggregated[stage]["call_count"] += 1
 
-        stages = [
+        result = [
             {**v, "total_usd": round(v["total_usd"], 6)}
             for v in sorted(aggregated.values(), key=lambda x: x["total_usd"], reverse=True)
         ]
-        return stages
+        _cache_set(cache_key, result)
+        return result
 
     async def get_provider_breakdown(
         self,
@@ -235,8 +306,26 @@ class CreditsService:
         end_date: str | None = None,
     ) -> list[dict]:
         """Aggregate credit transactions grouped by provider_id, sorted by cost desc."""
-        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
+        # Fast path: use pre-aggregated global doc for unfiltered all-time admin queries
+        if not user_id and not project_id and not start_date and not end_date:
+            doc = await self.db.collection(self.CREDIT_STATS_COLLECTION).document(self.GLOBAL_STATS_DOC).get()
+            if doc.exists:
+                providers_map = (doc.to_dict() or {}).get("providers", {})
+                return sorted(
+                    [
+                        {"provider_id": k, "total_usd": round(v.get("total_usd", 0.0), 6), "call_count": v.get("call_count", 0)}
+                        for k, v in providers_map.items()
+                    ],
+                    key=lambda x: x["total_usd"],
+                    reverse=True,
+                )
+            return []
 
+        cache_key = f"providers:{user_id}:{project_id}:{start_date}:{end_date}"
+        if cached := _cache_get(cache_key):
+            return cached
+
+        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
         if user_id:
             query = query.where("user_id", "==", user_id)
         if project_id:
@@ -247,7 +336,6 @@ class CreditsService:
             query = query.where("created_at", "<=", end_date)
 
         docs = await query.get()
-
         aggregated: dict[str, dict] = {}
         for doc in docs:
             data = doc.to_dict() or {}
@@ -257,10 +345,51 @@ class CreditsService:
             aggregated[provider]["total_usd"] += data.get("cost_usd", 0.0)
             aggregated[provider]["call_count"] += 1
 
-        return [
+        result = [
             {**v, "total_usd": round(v["total_usd"], 6)}
             for v in sorted(aggregated.values(), key=lambda x: x["total_usd"], reverse=True)
         ]
+        _cache_set(cache_key, result)
+        return result
+
+    async def get_all_summary(
+        self,
+        user_id: str | None = None,
+        project_id: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> dict:
+        """Return aggregate usage summary across all users, or a specific user when user_id given."""
+        # Fast path: use pre-aggregated global doc for unfiltered all-time admin queries
+        if not user_id and not project_id and not start_date and not end_date:
+            doc = await self.db.collection(self.CREDIT_STATS_COLLECTION).document(self.GLOBAL_STATS_DOC).get()
+            if doc.exists:
+                data = doc.to_dict() or {}
+                return {
+                    "total_used_usd": round(data.get("total_used_usd", 0.0), 6),
+                    "transaction_count": data.get("transaction_count", 0),
+                }
+            return {"total_used_usd": 0.0, "transaction_count": 0}
+
+        cache_key = f"summary:{user_id}:{project_id}:{start_date}:{end_date}"
+        if cached := _cache_get(cache_key):
+            return cached
+
+        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
+        if user_id:
+            query = query.where("user_id", "==", user_id)
+        if project_id:
+            query = query.where("project_id", "==", project_id)
+        if start_date:
+            query = query.where("created_at", ">=", start_date)
+        if end_date:
+            query = query.where("created_at", "<=", end_date)
+
+        docs = await query.get()
+        total_usd = sum((d.to_dict() or {}).get("cost_usd", 0.0) for d in docs)
+        result = {"total_used_usd": round(total_usd, 6), "transaction_count": len(docs)}
+        _cache_set(cache_key, result)
+        return result
 
     async def get_usage_breakdown(
         self,

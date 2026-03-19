@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "@/utils/s3";
 
 const VIDEOS_CLOUDFRONT = process.env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT;
 
@@ -44,18 +46,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "URL domain not allowed" }, { status: 403 });
     }
 
-    // Fetch the resource from S3/CloudFront
-    const response = await fetch(url);
+    // For direct S3 URLs (private bucket), use the SDK; for CloudFront, plain fetch is fine
+    const isDirectS3 = parsedUrl.hostname.endsWith(".amazonaws.com") &&
+      parsedUrl.hostname.includes(".s3.");
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `Failed to fetch resource: ${response.status}` },
-        { status: response.status }
-      );
+    let contentType: string;
+    let buffer: ArrayBuffer;
+
+    if (isDirectS3) {
+      // URL format: https://<bucket>.s3.<region>.amazonaws.com/<key>
+      // Extract bucket from hostname and key from pathname
+      const bucket = parsedUrl.hostname.split(".")[0];
+      const s3Key = parsedUrl.pathname.slice(1);
+      console.log(`[s3-proxy] Fetching private S3 object: bucket=${bucket} key=${s3Key}`);
+      const cmd = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
+      const s3Response = await s3Client.send(cmd);
+      const bytes = await s3Response.Body!.transformToByteArray();
+      contentType = s3Response.ContentType || "application/octet-stream";
+      buffer = bytes.buffer as ArrayBuffer;
+    } else {
+      const response = await fetch(url);
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: `Failed to fetch resource: ${response.status}` },
+          { status: response.status }
+        );
+      }
+      contentType = response.headers.get("content-type") || "application/octet-stream";
+      buffer = await response.arrayBuffer();
     }
-
-    const contentType = response.headers.get("content-type") || "application/octet-stream";
-    const buffer = await response.arrayBuffer();
 
     // Return the resource with proper headers
     return new NextResponse(buffer, {
@@ -74,9 +93,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Proxy fetch error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[s3-proxy] Error:", message);
     return NextResponse.json(
-      { error: "Failed to fetch resource" },
+      { error: message },
       { status: 500 }
     );
   }

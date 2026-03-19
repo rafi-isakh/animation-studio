@@ -91,7 +91,7 @@ const IMAGE_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
   { id: 2, key: 'panel-colorizer', labelKey: 'mithril_i2v_stage2_colorizer', component: 'PanelColorizer' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
-  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'KreaStyleConverter' },
+  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'ModelsLabStyleConverter' },
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
@@ -100,7 +100,7 @@ const IMAGE_TO_VIDEO_WEBTOON_NSFW_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
   { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',   component: 'PanelEditor' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
-  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'KreaStyleConverter' },
+  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'ModelsLabStyleConverter' },
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
@@ -109,7 +109,7 @@ const IMAGE_TO_VIDEO_CSV_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
   { id: 2, key: 'panel-colorizer', labelKey: 'mithril_i2v_stage2_colorizer', component: 'PanelColorizer' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
-  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'KreaStyleConverter' },
+  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'ModelsLabStyleConverter' },
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
@@ -118,7 +118,7 @@ const IMAGE_TO_VIDEO_WEBTOON_STAGES: StageDefinition[] = [
   { id: 1, key: 'image-splitter',  labelKey: 'mithril_i2v_stage1',  component: 'ImageSplitter' },
   { id: 2, key: 'panel-editor',    labelKey: 'mithril_i2v_stage2',   component: 'PanelEditor' },
   { id: 3, key: 'image-to-script', labelKey: 'mithril_i2v_stage3',  component: 'ImageToScriptWriter' },
-  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'KreaStyleConverter' },
+  { id: 4, key: 'style-converter', labelKey: 'mithril_i2v_stage_style_converter', component: 'ModelsLabStyleConverter' },
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 

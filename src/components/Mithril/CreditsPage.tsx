@@ -98,8 +98,9 @@ function fmt(n: number) {
   return `$${n.toFixed(2)}`;
 }
 
-async function fetchCredits(type: string, params: Record<string, string> = {}) {
+async function fetchCredits(type: string, params: Record<string, string> = {}, admin = false) {
   const qs = new URLSearchParams({ type, ...params });
+  if (admin) qs.set("admin", "true");
   const res = await fetch(`/api/credits?${qs}`);
   if (!res.ok) throw new Error(`Credits fetch failed (${type}): ${res.status}`);
   return res.json();
@@ -109,7 +110,7 @@ async function fetchCredits(type: string, params: Record<string, string> = {}) {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function CreditsPage({ hideHeader }: { hideHeader?: boolean } = {}) {
+export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: boolean; adminMode?: boolean } = {}) {
   const { user } = useMithrilAuth();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -179,9 +180,9 @@ export default function CreditsPage({ hideHeader }: { hideHeader?: boolean } = {
     const dateParams = buildDateParams();
 
     Promise.all([
-      fetchCredits("summary", dateParams),
-      fetchCredits("stages", dateParams),
-      fetchCredits("providers", dateParams),
+      fetchCredits("summary", dateParams, adminMode),
+      fetchCredits("stages", dateParams, adminMode),
+      fetchCredits("providers", dateParams, adminMode),
     ])
       .then(([summaryData, stagesData, providersData]) => {
         if (cancelled) return;

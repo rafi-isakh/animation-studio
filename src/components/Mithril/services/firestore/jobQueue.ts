@@ -1985,6 +1985,33 @@ export function subscribeToSessionKreaStyleConverterJobs(
 }
 
 /**
+ * Subscribe to ModelsLab style converter jobs for a session
+ *
+ * @param sessionId - The session ID
+ * @param callback - Called whenever any ModelsLab style converter job in the session changes
+ * @returns Unsubscribe function
+ */
+export function subscribeToSessionModelsLabStyleConverterJobs(
+  sessionId: string,
+  callback: JobsStatusCallback
+): Unsubscribe {
+  const jobsQuery = query(
+    collection(db, 'job_queue'),
+    where('session_id', '==', sessionId),
+    where('type', '==', 'modelslab_style_converter')
+  );
+
+  return onSnapshot(jobsQuery, (snapshot) => {
+    const jobs = snapshot.docs.map((docSnapshot) => ({
+      ...docSnapshot.data(),
+      id: docSnapshot.id,
+    } as JobQueueDocument));
+
+    callback(jobs);
+  });
+}
+
+/**
  * Subscribe to style converter jobs for a session
  *
  * @param sessionId - The session ID

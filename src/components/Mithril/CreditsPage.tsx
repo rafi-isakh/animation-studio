@@ -61,10 +61,11 @@ function providerMeta(id: string) {
 // ---------------------------------------------------------------------------
 
 const PRESETS = [
-  { label: "7d",  days: 7 },
-  { label: "30d", days: 30 },
-  { label: "90d", days: 90 },
-  { label: "All", days: 0 },
+  { label: "Today", days: 1 },
+  { label: "7d",    days: 7 },
+  { label: "30d",   days: 30 },
+  { label: "90d",   days: 90 },
+  { label: "All",   days: 0 },
 ] as const;
 
 function startOfDayUtc(daysAgo: number): string {
@@ -108,7 +109,7 @@ async function fetchCredits(type: string, params: Record<string, string> = {}) {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function CreditsPage() {
+export default function CreditsPage({ hideHeader }: { hideHeader?: boolean } = {}) {
   const { user } = useMithrilAuth();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -159,7 +160,7 @@ export default function CreditsPage() {
       params.end_date = localDateToEndIso(customRange.to);
       return params;
     }
-    if (activeDays > 0) params.start_date = startOfDayUtc(activeDays);
+    if (activeDays > 0) params.start_date = startOfDayUtc(activeDays - 1);
     return params;
   }
 
@@ -233,8 +234,8 @@ export default function CreditsPage() {
 
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-[#E8E8E8] flex flex-col">
-      <MithrilHeader />
-      <div className={`flex flex-col flex-1 pt-16 transition-opacity duration-200 ${refetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+      {!hideHeader && <MithrilHeader />}
+      <div className={`flex flex-col flex-1 ${!hideHeader ? "pt-16" : ""} transition-opacity duration-200 ${refetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
       {/* Page header */}
       <div className="flex items-center justify-between px-12 py-6">
         <div className="flex flex-col gap-1">

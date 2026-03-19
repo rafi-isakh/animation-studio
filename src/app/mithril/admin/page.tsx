@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import CreditsPage from '@/components/Mithril/CreditsPage';
 import {
   Card,
   CardContent,
@@ -42,6 +43,7 @@ import {
   Key,
   Shield,
   User as UserIcon,
+  CreditCard,
 } from 'lucide-react';
 import { AdminAuthGate } from '@/components/Mithril/auth';
 import { useMithrilAuth } from '@/components/Mithril/auth';
@@ -63,11 +65,58 @@ function formatDate(isoString: string | null): string {
   return new Date(isoString).toLocaleDateString();
 }
 
+type AdminTab = 'users' | 'credits';
+
 export default function AdminPage() {
   return (
     <AdminAuthGate>
-      <UserManagementContent />
+      <AdminContent />
     </AdminAuthGate>
+  );
+}
+
+function AdminContent() {
+  const [activeTab, setActiveTab] = useState<AdminTab>('users');
+
+  return (
+    <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
+      <MithrilHeader />
+      <div className="px-12 pt-20 pb-2">
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 mb-6">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              activeTab === 'users'
+                ? 'border-[#DB2777] text-[#DB2777]'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <Shield className="w-4 h-4" />
+            User Management
+          </button>
+          <button
+            onClick={() => setActiveTab('credits')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              activeTab === 'credits'
+                ? 'border-[#DB2777] text-[#DB2777]'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            Credits
+          </button>
+        </div>
+      </div>
+      {activeTab === 'users' ? (
+        <div className="px-12 pb-8">
+          <UserManagementContent />
+        </div>
+      ) : (
+        <Suspense fallback={<div className="p-8 text-gray-400">Loading...</div>}>
+          <CreditsPage hideHeader />
+        </Suspense>
+      )}
+    </div>
   );
 }
 
@@ -277,9 +326,7 @@ function UserManagementContent() {
   const isSelf = (userId: string) => currentUser?.id === userId;
 
   return (
-    <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
-      <MithrilHeader />
-      <div className="max-w-7xl mx-auto p-8 pt-20">
+    <>
         <Card className="dark:bg-[#211F21] dark:border-gray-800">
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -420,7 +467,6 @@ function UserManagementContent() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Create User Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -624,6 +670,6 @@ function UserManagementContent() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

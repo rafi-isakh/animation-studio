@@ -65,7 +65,8 @@ async def _submit_task(
         "prompt": prompt,
         "init_image": source_url,
         "samples": "1",
-        "strength": "0.25"
+        "enhance_prompt": False,
+        "strength": "0.1"
     }
 
     async with distributed_rate_limit("modelslab"):

@@ -113,7 +113,7 @@ function AdminContent() {
         </div>
       ) : (
         <Suspense fallback={<div className="p-8 text-gray-400">Loading...</div>}>
-          <CreditsPage hideHeader />
+          <CreditsPage hideHeader adminMode />
         </Suspense>
       )}
     </div>

@@ -28,6 +28,11 @@ export async function GET(request: NextRequest) {
   const start_date = searchParams.get("start_date");
   const end_date = searchParams.get("end_date");
   const project_id = searchParams.get("project_id");
+  const adminMode = searchParams.get("admin") === "true";
+
+  if (adminMode && session.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const dateQs = new URLSearchParams();
   if (start_date) dateQs.set("start_date", start_date);
@@ -35,11 +40,17 @@ export async function GET(request: NextRequest) {
   if (project_id) dateQs.set("project_id", project_id);
   const dateSuffix = dateQs.toString() ? `?${dateQs}` : "";
 
-  const pathMap: Record<string, string> = {
-    summary: `/credits/me${dateSuffix}`,
-    stages: `/credits/me/stages${dateSuffix}`,
-    providers: `/credits/me/providers${dateSuffix}`,
-  };
+  const pathMap: Record<string, string> = adminMode
+    ? {
+        summary: `/credits/usage/summary${dateSuffix}`,
+        stages: `/credits/usage/stages${dateSuffix}`,
+        providers: `/credits/usage/providers${dateSuffix}`,
+      }
+    : {
+        summary: `/credits/me${dateSuffix}`,
+        stages: `/credits/me/stages${dateSuffix}`,
+        providers: `/credits/me/providers${dateSuffix}`,
+      };
 
   const backendPath = pathMap[type];
   if (!backendPath) {

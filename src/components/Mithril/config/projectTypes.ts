@@ -224,7 +224,7 @@ export function isPipelineStage(stage: StageDefinition): boolean {
 }
 
 export function getPipelineStages(type: ProjectType): StageDefinition[] {
-  return PROJECT_TYPE_CONFIGS[type].stages.filter(isPipelineStage);
+  return PROJECT_TYPE_CONFIGS[type]?.stages.filter(isPipelineStage) ?? [];
 }
 
 /**
@@ -239,7 +239,7 @@ export function getTotalStages(type: ProjectType): number {
  * Get a specific stage configuration
  */
 export function getStageConfig(type: ProjectType, stageId: number): StageDefinition | undefined {
-  return PROJECT_TYPE_CONFIGS[type].stages.find(s => s.id === stageId);
+  return PROJECT_TYPE_CONFIGS[type]?.stages.find(s => s.id === stageId);
 }
 
 /**

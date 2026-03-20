@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from google import genai
@@ -23,6 +24,8 @@ settings = get_settings()
 MODEL_NAME = "gemini-2.5-pro"
 
 IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
+
+BATCH_SIZE = 200  # Max panels per Gemini call; above this, batch automatically
 
 
 class CancellationRequested(Exception):
@@ -79,6 +82,75 @@ def _append_suffix(prompt: str) -> str:
     return f"{trimmed}{connector}{IMAGE_PROMPT_SUFFIX}"
 
 
+def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
+    """Split source text into batches of at most batch_size [PANEL XXX] blocks."""
+    parts = re.split(r'(?=\[PANEL \d+\])', source_text)
+    if parts and not re.match(r'\[PANEL \d+\]', parts[0].strip()):
+        header = parts[0]
+        panel_parts = parts[1:]
+    else:
+        header = ""
+        panel_parts = parts
+
+    batches = []
+    for i in range(0, len(panel_parts), batch_size):
+        group = panel_parts[i : i + batch_size]
+        batch_header = re.sub(
+            r'총 분석된 패널 수:\s*\d+개',
+            f'총 분석된 패널 수: {len(group)}개',
+            header,
+        )
+        batches.append(batch_header + "".join(group))
+    return batches
+
+
+def _extract_continuation_context(result: dict) -> dict:
+    """Extract state from a completed batch result needed by the next batch."""
+    scenes = result.get("scenes", [])
+    last_background_id = ""
+    last_accumulated_time = "00:00"
+    last_scene_title = ""
+
+    for scene in scenes:
+        if scene.get("sceneTitle"):
+            last_scene_title = scene["sceneTitle"]
+        for clip in scene.get("clips", []):
+            if clip.get("backgroundId", "").strip():
+                last_background_id = clip["backgroundId"].strip()
+            if clip.get("accumulatedTime", "").strip():
+                last_accumulated_time = clip["accumulatedTime"].strip()
+
+    return {
+        "last_background_id": last_background_id,
+        "last_accumulated_time": last_accumulated_time,
+        "last_scene_title": last_scene_title,
+        "scene_count": len(scenes),
+        "character_id_summary": result.get("characterIdSummary", []),
+    }
+
+
+def _merge_batch_results(batch_results: list[dict]) -> dict:
+    """Merge multiple batch results into a single storyboard result dict."""
+    merged_scenes: list[dict] = []
+    seen_voice_prompts: set[str] = set()
+    merged_voice_prompts: list[dict] = []
+
+    for batch_result in batch_results:
+        merged_scenes.extend(batch_result.get("scenes", []))
+        for vp in batch_result.get("voicePrompts", []):
+            key = vp.get("promptKo", "")
+            if key and key not in seen_voice_prompts:
+                seen_voice_prompts.add(key)
+                merged_voice_prompts.append(vp)
+
+    return {
+        "scenes": merged_scenes,
+        "voicePrompts": merged_voice_prompts,
+        "characterIdSummary": batch_results[-1].get("characterIdSummary", []),
+        "genre": batch_results[0].get("genre", ""),
+    }
+
+
 async def process_storyboard(
     job_id: str,
     custom_api_key: str | None = None,
@@ -132,21 +204,74 @@ async def process_storyboard(
         # Check for cancellation before AI call
         await check_cancellation(job_id)
 
-        # Call Gemini for storyboard generation
-        logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
-        result, _usage = await _generate_storyboard_with_gemini(job, api_key)
-        logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
+        # Detect panel count to decide batching
+        source_text = job.source_text or ""
+        panel_count = len(re.findall(r'\[PANEL \d+\]', source_text))
+        logger.info(f"[STORYBOARD] {job_id} - Detected {panel_count} panels in source text")
 
-        try:
-            from app.services.credits import get_credits_service, get_text_cost
-            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
-            await get_credits_service().record_credit(
-                user_id=job.user_id, project_id=job.project_id,
-                job_id=job.id, job_type=job.type.value,
-                provider_id="gemini", cost_usd=_cost,
-            )
-        except Exception:
-            logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+        if panel_count > BATCH_SIZE:
+            # Batched path: split into chunks, run sequential Gemini calls
+            batches = _split_source_into_batches(source_text, BATCH_SIZE)
+            total_batches = len(batches)
+            logger.info(f"[STORYBOARD] {job_id} - Batching into {total_batches} calls (BATCH_SIZE={BATCH_SIZE})")
+
+            batch_results = []
+            total_usage_input = 0
+            total_usage_output = 0
+            continuation_context = None
+
+            for batch_idx, batch_text in enumerate(batches):
+                await check_cancellation(job_id)
+                batch_progress = 0.2 + (0.7 * (batch_idx / total_batches))
+                await job_queue_service.update_job_status(
+                    job_id, JobStatus.GENERATING, progress=round(batch_progress, 2)
+                )
+                logger.info(f"[STORYBOARD] {job_id} - Batch {batch_idx + 1}/{total_batches}")
+
+                batch_result, batch_usage = await _generate_storyboard_with_gemini(
+                    job, api_key,
+                    source_text_override=batch_text,
+                    continuation_context=continuation_context,
+                )
+                total_usage_input += batch_usage.prompt_token_count or 0
+                total_usage_output += batch_usage.candidates_token_count or 0
+                batch_results.append(batch_result)
+                continuation_context = _extract_continuation_context(batch_result)
+                logger.info(
+                    f"[STORYBOARD] {job_id} - Batch {batch_idx + 1} done: "
+                    f"{sum(len(s.get('clips', [])) for s in batch_result.get('scenes', []))} clips"
+                )
+
+            try:
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, total_usage_input, total_usage_output)
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+
+            result = _merge_batch_results(batch_results)
+            logger.info(f"[STORYBOARD] {job_id} - Merged: {len(result.get('scenes', []))} scenes total")
+
+        else:
+            # Single-call path (original behavior)
+            logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
+            result, _usage = await _generate_storyboard_with_gemini(job, api_key)
+            logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
+
+            try:
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
         # Check for cancellation after AI call
         await check_cancellation(job_id)
@@ -219,6 +344,8 @@ async def process_storyboard(
 async def _generate_storyboard_with_gemini(
     job: JobDocument,
     api_key: str,
+    source_text_override: str | None = None,
+    continuation_context: dict | None = None,
 ) -> dict:
     """
     Call Gemini API to generate storyboard.
@@ -226,6 +353,8 @@ async def _generate_storyboard_with_gemini(
     Args:
         job: Job document with all parameters
         api_key: Gemini API key
+        source_text_override: If provided, replaces job.source_text (used for batching)
+        continuation_context: If provided, injects continuation state into the prompt
 
     Returns:
         dict with scenes and voicePrompts
@@ -256,7 +385,25 @@ async def _generate_storyboard_with_gemini(
     negative_instruction = job.negative_instruction or ""
     video_instruction = job.video_instruction or ""
     image_instruction = job.image_instruction or ""
-    source_text = job.source_text or ""
+    source_text = source_text_override if source_text_override is not None else (job.source_text or "")
+
+    continuation_block = ""
+    if continuation_context:
+        char_summary_text = json.dumps(
+            continuation_context.get("character_id_summary", []),
+            ensure_ascii=False, indent=2
+        )
+        continuation_block = f"""
+**[이전 배치에서 이어지는 콘티입니다 - 연속성 필수 유지]**
+이 텍스트는 전체 원본의 일부입니다. 아래 이전 배치의 마지막 상태에서 자연스럽게 이어가야 합니다.
+
+- **backgroundId 시작점**: "{continuation_context.get('last_background_id', '')}" 다음 번호부터 시작하십시오.
+- **accumulatedTime 시작점**: "{continuation_context.get('last_accumulated_time', '00:00')}" 이후부터 누적 시간을 계산하십시오.
+- **이전 마지막 씬 제목**: "{continuation_context.get('last_scene_title', '')}"
+- **이전 씬 수**: {continuation_context.get('scene_count', 0)}개
+- **캐릭터 ID 요약 (일관성 유지)**:
+{char_summary_text}
+"""
 
     prompt = f"""
     다음 원본 텍스트를 기반으로 애니메이션 콘티를 제작해 주세요.
@@ -356,6 +503,8 @@ async def _generate_storyboard_with_gemini(
     {image_instruction}
     ''' if image_instruction else ''}
 
+    {continuation_block}
+
     원본 텍스트:
     ---
     {source_text}
@@ -450,6 +599,7 @@ async def _generate_storyboard_with_gemini(
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=response_schema,
+                    max_output_tokens=65536,
                 ),
             )
             break

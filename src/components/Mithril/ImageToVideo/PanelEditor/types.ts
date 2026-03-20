@@ -50,6 +50,7 @@ export interface PanelEditorState {
 // Action types for reducer
 export type PanelEditorAction =
   | { type: 'ADD_FILES_TO_LIBRARY'; files: File[] }
+  | { type: 'REMOVE_FILE_FROM_LIBRARY'; fileName: string }
   | { type: 'ADD_PANELS'; panels: PanelData[] }
   | { type: 'CLEAR_FILE_LIBRARY' }
   | { type: 'REMOVE_PANEL'; id: string }

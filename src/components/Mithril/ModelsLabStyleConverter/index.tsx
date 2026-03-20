@@ -538,17 +538,29 @@ export default function ModelsLabStyleConverter() {
     [config.targetAspectRatio, currentProjectId, refreshSession],
   );
 
+  const cancelBatchRef = useRef(false);
+
   const handleProcessAll = useCallback(async () => {
+    cancelBatchRef.current = false;
     setGlobalProcessing(true);
 
-    const pending = panelsRef.current.filter(
-      (p) => p.status === ProcessingStatus.Idle || p.status === ProcessingStatus.Error,
-    );
+    const BATCH_LIMIT = 10;
+    const DELAY_MS = 3000;
 
-    await Promise.all(pending.map((p) => submitSinglePanel(p.id)));
+    const pending = panelsRef.current
+      .filter((p) => p.status === ProcessingStatus.Idle || p.status === ProcessingStatus.Error)
+      .slice(0, BATCH_LIMIT);
+
+    for (const panel of pending) {
+      if (cancelBatchRef.current) break;
+      await submitSinglePanel(panel.id);
+      await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+    }
   }, [submitSinglePanel]);
 
   const handleCancelAll = useCallback(async () => {
+    cancelBatchRef.current = true;
+
     const cancelPromises: Promise<void>[] = [];
     activeJobsRef.current.forEach((jobId) => {
       cancelPromises.push(
@@ -615,6 +627,18 @@ export default function ModelsLabStyleConverter() {
     },
     [submitSinglePanel],
   );
+
+  const handleRemoveFileFromLibrary = useCallback((fileName: string) => {
+    setFileLibrary((prev) => {
+      const next = { ...prev };
+      delete next[fileName];
+      return next;
+    });
+    const panel = panelsRef.current.find(
+      (p) => normalizePanelFileName(p.file.name) === normalizePanelFileName(fileName),
+    );
+    if (panel) removePanel(panel.id);
+  }, [removePanel]);
 
   // ── Download ZIP ───────────────────────────────────────────────────────────
 
@@ -767,6 +791,7 @@ export default function ModelsLabStyleConverter() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const topRef = useRef<HTMLDivElement>(null);
   const successCount = panels.filter((p) => p.status === ProcessingStatus.Success).length;
 
   return (
@@ -789,6 +814,7 @@ export default function ModelsLabStyleConverter() {
         successCount={successCount}
       />
 
+      <div ref={topRef} />
       <main className="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 flex flex-col gap-8">
         {/* Data Storage + CSV import */}
         <section>
@@ -796,6 +822,8 @@ export default function ModelsLabStyleConverter() {
             files={fileLibrary}
             onFilesAdded={handleFilesAddedToLibrary}
             onApplyPrompts={handleApplyPrompts}
+            onRemoveFile={handleRemoveFileFromLibrary}
+            onClearStorage={handleClearAll}
           />
         </section>
 
@@ -832,6 +860,17 @@ export default function ModelsLabStyleConverter() {
               ))}
             </div>
           )}
+          <div className="sticky bottom-2 flex justify-end">
+            <button
+              onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+              </svg>
+              Top
+            </button>
+          </div>
         </section>
       </main>
     </div>

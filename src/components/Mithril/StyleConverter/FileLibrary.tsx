@@ -7,12 +7,16 @@ interface FileLibraryProps {
   files: Record<string, File>;
   onFilesAdded: (files: File[]) => void;
   onApplyPrompts: (prompts: { filename: string; prompt: string; category?: string }[]) => number;
+  onRemoveFile?: (fileName: string) => void;
+  onClearStorage?: () => void;
 }
 
 export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
   onFilesAdded,
   onApplyPrompts,
+  onRemoveFile,
+  onClearStorage,
 }) => {
   const [isDraggingImages, setIsDraggingImages] = useState(false);
   const [isDraggingCsv, setIsDraggingCsv] = useState(false);
@@ -139,10 +143,12 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
             </span>
           </h2>
           <div className="flex flex-col items-end gap-1">
-            <label className="cursor-pointer text-xs bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-lg transition-colors">
-              + Add Images
-              <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageInput} />
-            </label>
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer text-xs bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-lg transition-colors">
+                + Add Images
+                <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageInput} />
+              </label>
+            </div>
             <span className="text-[10px] text-gray-500">Please upload in PNG format</span>
           </div>
         </div>
@@ -172,10 +178,23 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
                     key={`${filename}-${idx}`}
                     className="px-3 py-2 bg-gray-900/50 hover:bg-gray-700/50 rounded flex items-center justify-between group transition-colors"
                   >
-                    <span className="text-sm font-mono text-gray-300 truncate select-all">{filename}</span>
-                    <span className="text-xs text-gray-600 group-hover:text-gray-400">
-                      {(files[filename].size / 1024).toFixed(0)}KB
-                    </span>
+                    <span className="text-sm font-mono text-gray-300 truncate select-all flex-1 min-w-0 mr-2">{filename}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-gray-600 group-hover:text-gray-400">
+                        {(files[filename].size / 1024).toFixed(0)}KB
+                      </span>
+                      {onRemoveFile && (
+                        <button
+                          onClick={() => onRemoveFile(filename)}
+                          className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-0.5 rounded"
+                          title="Remove from library"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>

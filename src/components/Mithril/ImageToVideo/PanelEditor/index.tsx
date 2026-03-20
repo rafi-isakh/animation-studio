@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
 import { ControlBar } from './ControlBar';
@@ -80,6 +80,7 @@ export default function PanelEditor() {
   } = usePanelEditor({ projectId: currentProjectId || '' });
 
   const { fileLibrary, panels, config, isProcessing } = state;
+  const workspaceRef = useRef<HTMLDivElement>(null);
 
   // Bulk Download ZIP
   const handleDownloadAll = useCallback(async () => {
@@ -308,7 +309,7 @@ export default function PanelEditor() {
 
       {/* Workspace / Processing Section */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <div ref={workspaceRef} className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Workspace</h3>
           <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
             {panels.length} items
@@ -326,21 +327,36 @@ export default function PanelEditor() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {panels.map((panel, index) => (
-              <PanelCard
-                key={panel.id}
-                panel={panel}
-                index={index}
-                onRemove={removePanel}
-                onRetry={retryPanel}
-                onRefine={refinePanel}
-                targetRatio={config.targetAspectRatio}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-6">
+              {panels.map((panel, index) => (
+                <PanelCard
+                  key={panel.id}
+                  panel={panel}
+                  index={index}
+                  onRemove={removePanel}
+                  onRetry={retryPanel}
+                  onRefine={refinePanel}
+                  targetRatio={config.targetAspectRatio}
+                />
+              ))}
+            </div>
+            <div className="sticky bottom-2 flex justify-end">
+              <button
+                onClick={() => workspaceRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                </svg>
+                Top
+              </button>
+            </div>
+          </>
         )}
       </div>
+
+
     </div>
   );
 }

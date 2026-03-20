@@ -584,7 +584,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     const concurrency = isModelsLab ? 1 : 2;
     // ModelsLab rate limit is ~0.5 req/s — wait longer between submissions
     const delayMs = isModelsLab ? 3000 : 500;
-    const queue = [...pendingPanels];
+    const BATCH_LIMIT = 10;
+    const queue = [...pendingPanels].slice(0, BATCH_LIMIT);
 
     const worker = async () => {
       while (queue.length > 0) {

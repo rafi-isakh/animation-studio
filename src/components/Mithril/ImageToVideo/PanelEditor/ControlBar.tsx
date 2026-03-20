@@ -130,7 +130,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
             }`}
           >
             <SparklesIcon className="w-4 h-4" />
-            Convert All ({panelCount})
+            Batch Convert (10)
           </button>
         )}
       </div>

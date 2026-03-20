@@ -3163,7 +3163,7 @@ export default function BgSheetGenerator() {
                                   {(img.imageBase64 || img.imageUrl) && (
                                     <button
                                       onClick={() => {
-                                        const filename = `${bg.name}_${img.angle}.jpg`;
+                                        const filename = `${bg.name}.jpg`;
                                         if (img.imageBase64) {
                                           downloadImage(img.imageBase64, filename);
                                         } else if (img.imageUrl) {

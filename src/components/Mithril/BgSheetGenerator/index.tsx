@@ -179,6 +179,18 @@ const downloadImage = (base64: string, filename: string): void => {
   document.body.removeChild(link);
 };
 
+const downloadImageFromUrl = async (url: string, filename: string): Promise<void> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+};
+
 // === Phase 7: Import/Export Utilities ===
 
 // CSV Import data structure - one view per CSV row (storyboard style)
@@ -429,6 +441,9 @@ export default function BgSheetGenerator() {
   // Track active jobs: Map<`${bgId}-${angle}`, jobId>
   const activeJobsRef = useRef<Map<string, string>>(new Map());
   const isMountedRef = useRef(true);
+  // Mirror backgrounds state for use in callbacks without stale closures
+  const backgroundsRef = useRef<Background[]>([]);
+  useEffect(() => { backgroundsRef.current = backgrounds; }, [backgrounds]);
 
   // Handle angle updates from orchestrator
   const handleAngleUpdate = useCallback((update: AngleUpdate) => {
@@ -476,6 +491,22 @@ export default function BgSheetGenerator() {
 
       updatedBgs[bgIndex] = { ...bg, images: updatedImages };
 
+      // Persist to Firestore when job completes so hard refresh loads images correctly
+      if (update.status === "completed" && hasNewImageUrl && currentProjectId) {
+        const baseUrl = update.imageUrl!.split('?')[0];
+        const bgData = backgroundsRef.current.find(b => b.id === update.bgId);
+        const imgData = bgData?.images.find(i => i.angle === update.angle);
+        updateBackgroundAngleImage(
+          currentProjectId,
+          update.bgId,
+          update.angle,
+          baseUrl,
+          imgData?.prompt || "",
+          update.bgName,
+          bgData?.description,
+        ).catch(console.error);
+      }
+
       // Sync to MithrilContext when job completes successfully (so navigation preserves new image)
       if (update.status === "completed" && hasNewImageUrl) {
         const metadata: BgSheetResultMetadata = {
@@ -513,7 +544,7 @@ export default function BgSheetGenerator() {
       });
       activeJobsRef.current.delete(angleKey);
     }
-  }, [toast, setBgSheetResult, setStageResult]);
+  }, [toast, setBgSheetResult, setStageResult, currentProjectId]);
 
   // Initialize orchestrator hook
   const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob, pendingUpdates: bgPendingUpdates, clearPendingUpdates: clearBgPendingUpdates } = useBgOrchestrator({
@@ -2874,13 +2905,44 @@ export default function BgSheetGenerator() {
                   {(bg.referenceImageBase64 || bg.referenceImageUrl) ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Column: Image */}
-                      <div>
+                      <div className="flex flex-col gap-2">
                         <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                           <img
                             src={bg.referenceImageBase64 ? `data:image/jpeg;base64,${bg.referenceImageBase64}` : bg.referenceImageUrl}
                             alt="Master Reference"
                             className="w-full h-full object-cover"
                           />
+                        </div>
+                        {/* Replace reference buttons */}
+                        <div className="flex gap-2">
+                          <label className="flex-1 cursor-pointer">
+                            <div className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg border border-dashed border-gray-300 dark:border-gray-500 transition-colors">
+                              <Upload className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {phrase(dictionary, "bgsheet_upload_reference", language) || "Upload"}
+                              </span>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleUploadReference(bg.id, e)}
+                              className="hidden"
+                            />
+                          </label>
+                          <button
+                            onClick={() => handleGenerateMasterRef(bg.id)}
+                            disabled={isGeneratingMaster[bg.id]}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[#DB2777]/10 hover:bg-[#DB2777]/20 text-[#DB2777] rounded-lg border border-[#DB2777]/20 transition-colors disabled:opacity-50"
+                          >
+                            {isGeneratingMaster[bg.id] ? (
+                              <div className="w-3 h-3 border-2 border-[#DB2777]/30 border-t-[#DB2777] rounded-full animate-spin" />
+                            ) : (
+                              <Sparkles className="w-3 h-3" />
+                            )}
+                            <span className="text-xs">
+                              {phrase(dictionary, "bgsheet_generate_reference", language) || "Regenerate"}
+                            </span>
+                          </button>
                         </div>
                       </div>
 
@@ -3098,14 +3160,16 @@ export default function BgSheetGenerator() {
                               {/* Hover overlay for edit/download/set-as-ref */}
                               {!img.isGenerating && !isFinalized && (
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                                  {img.imageBase64 && (
+                                  {(img.imageBase64 || img.imageUrl) && (
                                     <button
-                                      onClick={() =>
-                                        downloadImage(
-                                          img.imageBase64,
-                                          `${bg.name}_${img.angle}.jpg`
-                                        )
-                                      }
+                                      onClick={() => {
+                                        const filename = `${bg.name}.jpg`;
+                                        if (img.imageBase64) {
+                                          downloadImage(img.imageBase64, filename);
+                                        } else if (img.imageUrl) {
+                                          downloadImageFromUrl(img.imageUrl, filename);
+                                        }
+                                      }}
                                       className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
                                       title={phrase(dictionary, "download", language)}
                                     >

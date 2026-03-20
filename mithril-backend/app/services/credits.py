@@ -107,7 +107,7 @@ class CreditsService:
     TRANSACTIONS_COLLECTION = "credit_transactions"
     USER_CREDITS_COLLECTION = "user_credits"
     CREDIT_STATS_COLLECTION = "credit_stats"
-    GLOBAL_STATS_DOC = "__global__"
+    GLOBAL_STATS_DOC = "global_stats"
 
     def __init__(self) -> None:
         self.db = get_db()

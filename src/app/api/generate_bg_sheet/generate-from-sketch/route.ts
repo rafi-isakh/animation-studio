@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       config: {
         imageConfig: {
           aspectRatio: "16:9",
-          imageSize: "2K",
+          imageSize: "1K",
         },
       },
     });

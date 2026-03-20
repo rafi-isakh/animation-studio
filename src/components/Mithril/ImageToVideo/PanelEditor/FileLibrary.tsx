@@ -7,6 +7,8 @@ interface FileLibraryProps {
   files: Record<string, File>;
   isLoading?: boolean;
   onFilesAdded: (files: File[]) => void;
+  onRemoveFile: (fileName: string) => void;
+  onImportFile: (fileName: string) => void;
   onClearStorage: () => void;
   onImportAll: () => void;
   onManifestLoaded: (filesToProcess: File[]) => void;
@@ -16,6 +18,8 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
   isLoading = false,
   onFilesAdded,
+  onRemoveFile,
+  onImportFile,
   onClearStorage,
   onImportAll,
   onManifestLoaded,
@@ -211,12 +215,32 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
                     key={`${filename}-${idx}`}
                     className="px-3 py-2 bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded flex items-center justify-between group transition-colors"
                   >
-                    <span className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate select-all">
+                    <span className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate select-all flex-1 min-w-0 mr-2">
                       {filename}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                      {(files[filename].size / 1024).toFixed(0)}KB
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-gray-500 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                        {(files[filename].size / 1024).toFixed(0)}KB
+                      </span>
+                      <button
+                        onClick={() => onImportFile(filename)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#DB2777] dark:hover:text-[#DB2777] transition-all p-0.5 rounded"
+                        title="Push to workspace"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => onRemoveFile(filename)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all p-0.5 rounded"
+                        title="Remove from library"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

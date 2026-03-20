@@ -37,7 +37,7 @@ import {
 import { uploadI2VPanelImage, uploadI2VStoryboardReferenceImage } from '../../services/s3/images';
 
 function getPanelSplitterStyleFileName(index: number): string {
-  return `${String(index + 1).padStart(3, '0')}.jpg`;
+  return `${String(index + 1).padStart(3, '0')}.png`;
 }
 
 export function useScriptWriter() {

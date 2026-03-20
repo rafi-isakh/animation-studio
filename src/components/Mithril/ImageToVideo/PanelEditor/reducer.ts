@@ -34,6 +34,12 @@ export function panelEditorReducer(
       return { ...state, panels: [...state.panels, ...action.panels] };
     }
 
+    case 'REMOVE_FILE_FROM_LIBRARY': {
+      const newLib = { ...state.fileLibrary };
+      delete newLib[action.fileName];
+      return { ...state, fileLibrary: newLib };
+    }
+
     case 'CLEAR_FILE_LIBRARY': {
       return { ...state, fileLibrary: {} };
     }

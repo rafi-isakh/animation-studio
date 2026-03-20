@@ -128,6 +128,53 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           if (panels.length > 0 && isMountedRef.current) {
             dispatch({ type: 'ADD_PANELS', panels });
           }
+        } else {
+          // No saved panels yet — pre-populate file library from ImageSplitter results
+          setIsLoadingSplitterPanels(true);
+          try {
+            const pages = await getMangaPages(projectId);
+
+            if (pages.length > 0) {
+              const files: File[] = [];
+
+              const sortedPages = [...pages].sort((a, b) => a.pageIndex - b.pageIndex);
+              for (const page of sortedPages) {
+                const panels = await getMangaPanels(projectId, page.pageIndex);
+                const sortedPanels = [...panels].sort((a, b) => a.panelIndex - b.panelIndex);
+
+                for (const panel of sortedPanels) {
+                  if (!panel.imageRef) continue;
+
+                  try {
+                    const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageRef)}`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) continue;
+
+                    const blob = await response.blob();
+                    const mimeType = blob.type || 'image/jpeg';
+                    const ext = mimeType.split('/')[1] || 'jpg';
+                    const fileName = `page${page.pageIndex + 1}_panel${panel.panelIndex + 1}.${ext}`;
+                    // Attach the S3 URL as a custom property so we can use it as originalImageRef
+                    const file = new File([blob], fileName, { type: mimeType });
+                    (file as File & { _s3Url?: string })._s3Url = panel.imageRef;
+                    files.push(file);
+                  } catch {
+                    // Skip panels that fail to load
+                  }
+                }
+              }
+
+              if (files.length > 0 && isMountedRef.current) {
+                dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
+              }
+            }
+          } catch {
+            // Silently skip if no ImageSplitter data exists for this project
+          } finally {
+            if (isMountedRef.current) {
+              setIsLoadingSplitterPanels(false);
+            }
+          }
         }
       } catch {
         // First visit — no data yet, generate fresh sessionId
@@ -143,60 +190,6 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     };
 
     load();
-  }, [projectId]);
-
-  // ── Pre-populate file library with panels from ImageSplitter ─────────
-  useEffect(() => {
-    if (!projectId) return;
-
-    const loadSplitterPanels = async () => {
-      setIsLoadingSplitterPanels(true);
-      try {
-        const pages = await getMangaPages(projectId);
-        if (!pages.length) return;
-
-        const files: File[] = [];
-
-        const sortedPages = [...pages].sort((a, b) => a.pageIndex - b.pageIndex);
-        for (const page of sortedPages) {
-          const panels = await getMangaPanels(projectId, page.pageIndex);
-          const sortedPanels = [...panels].sort((a, b) => a.panelIndex - b.panelIndex);
-
-          for (const panel of sortedPanels) {
-            if (!panel.imageRef) continue;
-
-            try {
-              const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageRef)}`;
-              const response = await fetch(proxyUrl);
-              if (!response.ok) continue;
-
-              const blob = await response.blob();
-              const mimeType = blob.type || 'image/jpeg';
-              const ext = mimeType.split('/')[1] || 'jpg';
-              const fileName = `page${page.pageIndex + 1}_panel${panel.panelIndex + 1}.${ext}`;
-              // Attach the S3 URL as a custom property so we can use it as originalImageRef
-              const file = new File([blob], fileName, { type: mimeType });
-              (file as File & { _s3Url?: string })._s3Url = panel.imageRef;
-              files.push(file);
-            } catch {
-              // Skip panels that fail to load
-            }
-          }
-        }
-
-        if (files.length > 0 && isMountedRef.current) {
-          dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
-        }
-      } catch {
-        // Silently skip if no ImageSplitter data exists for this project
-      } finally {
-        if (isMountedRef.current) {
-          setIsLoadingSplitterPanels(false);
-        }
-      }
-    };
-
-    loadSplitterPanels();
   }, [projectId]);
 
   // ── Refresh workspace panels when ImageSplitter saves a re-crop ──────
@@ -386,10 +379,31 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     dispatch({ type: 'ADD_FILES_TO_LIBRARY', files });
   }, []);
 
+  // ── Remove a single file from library ────────────────────────────────
+  const removeFileFromLibrary = useCallback((fileName: string) => {
+    dispatch({ type: 'REMOVE_FILE_FROM_LIBRARY', fileName });
+  }, []);
+
   // ── Clear Data Storage (file library only) ──────────────────────────
   const clearFileLibrary = useCallback(() => {
     dispatch({ type: 'CLEAR_FILE_LIBRARY' });
   }, []);
+
+  // ── Import a single file from library to workspace ───────────────────
+  const importFileFromLibrary = useCallback((fileName: string) => {
+    const file = (state.fileLibrary[fileName]) as (File & { _s3Url?: string }) | undefined;
+    if (!file) return;
+    const panel: PanelData = {
+      id: uuidv4(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+      status: ProcessingStatus.Idle,
+      originalImageRef: file._s3Url,
+    };
+    dispatch({ type: 'ADD_PANELS', panels: [panel] });
+    persistNewPanel(panel);
+  }, [state.fileLibrary, persistNewPanel]);
 
   // ── Import all files from library to workspace ───────────────────────
   const importAllFromLibrary = useCallback(() => {
@@ -693,7 +707,9 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     isLoadingSplitterPanels,
     isLoadingPanels,
     addFilesToLibrary,
+    removeFileFromLibrary,
     clearFileLibrary,
+    importFileFromLibrary,
     importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,

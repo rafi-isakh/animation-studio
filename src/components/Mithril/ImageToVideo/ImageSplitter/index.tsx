@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useMemo, MouseEvent } from "react";
-import { Upload, Check, Download, Trash2, X, Crop, ZoomIn, ZoomOut } from "lucide-react";
+import { Upload, Check, Download, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useImageSplitter } from "./useImageSplitter";
 import type { MangaPanel } from "./types";
 
@@ -79,8 +79,8 @@ export default function ImageSplitter() {
   const [newBoxStart, setNewBoxStart] = useState<Point | null>(null);
   const [currentRect, setCurrentRect] = useState<number[] | null>(null); // [top, left, height, width] %
 
-  // Track which panel is currently being re-cropped (for button loading state)
-  const [croppingPanelId, setCroppingPanelId] = useState<string | null>(null);
+  const [autoSavingPanelId, setAutoSavingPanelId] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [isWorkspaceFocused, setIsWorkspaceFocused] = useState(false);
 
@@ -282,6 +282,9 @@ export default function ImageSplitter() {
   };
 
   const handleMouseUp = () => {
+    const wasResizeOrMove = dragMode && dragMode !== 'draw';
+    const panelToSave = activePanelId;
+
     if (dragMode === 'draw' && newBoxStart && currentRect && activePage) {
       // Commit new box if large enough
       if (currentRect[2] > 1 && currentRect[3] > 1) {
@@ -309,6 +312,16 @@ export default function ImageSplitter() {
     setNewBoxStart(null);
     setCurrentRect(null);
     setActivePanelId(null);
+
+    // Auto-save after resize/move (debounced)
+    if (wasResizeOrMove && panelToSave) {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(async () => {
+        setAutoSavingPanelId(panelToSave);
+        await cropAndUpdatePanelImage(panelToSave);
+        setAutoSavingPanelId(null);
+      }, 1200);
+    }
   };
 
   const handleWorkspaceFocus = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -335,11 +348,6 @@ export default function ImageSplitter() {
     }
   };
 
-  const handleSaveCrop = async (panelId: string) => {
-    setCroppingPanelId(panelId);
-    await cropAndUpdatePanelImage(panelId);
-    setCroppingPanelId(null);
-  };
 
   const errorCount = pages.filter(p => p.status === 'error').length;
   const processableCount = pendingCount + errorCount;
@@ -690,25 +698,6 @@ export default function ImageSplitter() {
                           className={`absolute -top-3.5 -right-3.5 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow border-2 border-white transition-all z-30 cursor-pointer ${isInteracting ? 'opacity-100 scale-100' : 'opacity-80 group-hover:opacity-100 hover:bg-red-600 hover:scale-105'}`}
                         >
                           <X className="w-3 h-3" />
-                        </button>
-
-                        {/* Save Crop Button */}
-                        <button
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSaveCrop(panel.id);
-                          }}
-                          disabled={croppingPanelId === panel.id}
-                          title="Save crop"
-                          className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 px-2 rounded-full flex items-center gap-1 opacity-0 group-hover:opacity-100 hover:bg-blue-600 disabled:bg-blue-400 shadow border border-white transition-opacity z-30 cursor-pointer text-[10px] font-bold whitespace-nowrap"
-                        >
-                          {croppingPanelId === panel.id ? (
-                            <SpinnerIcon className="w-3 h-3" />
-                          ) : (
-                            <Crop className="w-3 h-3" />
-                          )}
-                          Save Crop
                         </button>
 
                         {/* Resize Handles */}

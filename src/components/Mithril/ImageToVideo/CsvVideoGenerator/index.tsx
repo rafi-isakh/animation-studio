@@ -661,17 +661,53 @@ export default function CsvVideoGenerator() {
         )
       );
 
+      // Optimistically show base64 while S3 upload happens in background
+      const matchedFrames = frames.filter((f) => fileMap.has(f.referenceFilename.toLowerCase()));
       setFrames((prev) =>
         prev.map((f) => {
           const match = fileMap.get(f.referenceFilename.toLowerCase());
-          return match ? { ...f, imageData: match } : f;
+          return match ? { ...f, imageData: match, imageUrl: null } : f;
         })
       );
 
       // Reset input
       e.target.value = '';
+
+      if (!currentProjectId || matchedFrames.length === 0) return;
+
+      // Upload each matched image to S3 and swap base64 for CDN URL
+      await Promise.all(
+        matchedFrames.map(async (frame) => {
+          const data = fileMap.get(frame.referenceFilename.toLowerCase())!;
+          const clipId = `0_${frame.rowIndex}`;
+          try {
+            const mimeType = data.match(/data:(.*?);/)?.[1] || 'image/webp';
+            const base64 = data.split(',')[1];
+            const response = await fetch('/api/mithril/s3/image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                projectId: currentProjectId,
+                imageType: 'csv-frame',
+                csvFrameIndex: frame.rowIndex,
+                base64,
+                mimeType,
+              }),
+            });
+            const result: { success: boolean; url?: string } = await response.json();
+            if (result.success && result.url) {
+              setFrames((prev) =>
+                prev.map((f) => (f.id === frame.id ? { ...f, imageData: null, imageUrl: result.url! } : f))
+              );
+              await updateCsvVideoClipStatus(currentProjectId, clipId, { imageUrl: result.url });
+            }
+          } catch (err) {
+            console.error(`CsvVideoGenerator: failed to upload image for frame ${frame.rowIndex}`, err);
+          }
+        })
+      );
     },
-    []
+    [frames, currentProjectId]
   );
 
   // ── Frame updaters ───────────────────────────────────────

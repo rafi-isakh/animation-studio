@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import CreditsPage from '@/components/Mithril/CreditsPage';
+import DatabaseUsagePage from '@/components/Mithril/DatabaseUsagePage';
 import {
   Card,
   CardContent,
@@ -44,6 +45,7 @@ import {
   Shield,
   User as UserIcon,
   CreditCard,
+  Database,
 } from 'lucide-react';
 import { AdminAuthGate } from '@/components/Mithril/auth';
 import { useMithrilAuth } from '@/components/Mithril/auth';
@@ -65,7 +67,7 @@ function formatDate(isoString: string | null): string {
   return new Date(isoString).toLocaleDateString();
 }
 
-type AdminTab = 'users' | 'credits';
+type AdminTab = 'users' | 'credits' | 'database';
 
 export default function AdminPage() {
   return (
@@ -105,15 +107,30 @@ function AdminContent() {
             <CreditCard className="w-4 h-4" />
             Credits
           </button>
+          <button
+            onClick={() => setActiveTab('database')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              activeTab === 'database'
+                ? 'border-[#DB2777] text-[#DB2777]'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            Usage
+          </button>
         </div>
       </div>
       {activeTab === 'users' ? (
         <div className="px-12 pb-8">
           <UserManagementContent />
         </div>
-      ) : (
+      ) : activeTab === 'credits' ? (
         <Suspense fallback={<div className="p-8 text-gray-400">Loading...</div>}>
           <CreditsPage hideHeader adminMode />
+        </Suspense>
+      ) : (
+        <Suspense fallback={<div className="p-8 text-gray-400">Loading...</div>}>
+          <DatabaseUsagePage />
         </Suspense>
       )}
     </div>

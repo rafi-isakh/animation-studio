@@ -16,6 +16,9 @@ boto3>=1.35.0
 # Google AI
 google-genai>=1.0.0
 
+# Google Cloud Monitoring
+google-cloud-monitoring>=2.21.0
+
 # Image processing
 pillow>=10.4.0
 

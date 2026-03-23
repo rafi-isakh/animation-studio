@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown } from "lucide-react";
 import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../../VideoGenerator/providers";
+import { compressBase64Image } from "../ImageToScriptWriter/utils/imageCompression";
 import { ASPECT_RATIOS } from "../../VideoGenerator/types";
 import type { AspectRatio } from "../../VideoGenerator/providers/types";
 import {
@@ -681,8 +682,9 @@ export default function CsvVideoGenerator() {
           const data = fileMap.get(frame.referenceFilename.toLowerCase())!;
           const clipId = `0_${frame.rowIndex}`;
           try {
-            const mimeType = data.match(/data:(.*?);/)?.[1] || 'image/webp';
-            const base64 = data.split(',')[1];
+            const rawBase64 = data.split(',')[1];
+            const base64 = await compressBase64Image(rawBase64, 1500, 0.8);
+            const mimeType = 'image/jpeg';
             const response = await fetch('/api/mithril/s3/image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -840,12 +842,12 @@ export default function CsvVideoGenerator() {
         // Ensure start image is a CDN URL, not base64 (upload to S3 if needed)
         let resolvedStartImageUrl: string | undefined = frame.imageUrl || undefined;
         if (!resolvedStartImageUrl && frame.imageData) {
-          const mimeType = frame.imageData.match(/data:(.*?);/)?.[1] || 'image/webp';
-          const base64 = frame.imageData.split(',')[1];
+          const rawBase64 = frame.imageData.split(',')[1];
+          const base64 = await compressBase64Image(rawBase64, 1500, 0.8);
           const res = await fetch('/api/mithril/s3/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType }),
+            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType: 'image/jpeg' }),
           });
           const result: { success: boolean; url?: string } = await res.json();
           if (result.success && result.url) {
@@ -857,12 +859,12 @@ export default function CsvVideoGenerator() {
         // Ensure end frame is a CDN URL, not base64 (upload to S3 if needed)
         let resolvedEndImageUrl: string | undefined = undefined;
         if (frame.endFrameData) {
-          const mimeType = frame.endFrameData.match(/data:(.*?);/)?.[1] || 'image/webp';
-          const base64 = frame.endFrameData.split(',')[1];
+          const rawBase64 = frame.endFrameData.split(',')[1];
+          const base64 = await compressBase64Image(rawBase64, 1500, 0.8);
           const res = await fetch('/api/mithril/s3/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType }),
+            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType: 'image/jpeg' }),
           });
           const result: { success: boolean; url?: string } = await res.json();
           if (result.success && result.url) resolvedEndImageUrl = result.url;

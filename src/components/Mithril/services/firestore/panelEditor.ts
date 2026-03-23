@@ -80,10 +80,9 @@ export async function getPanelEditorPanels(
 ): Promise<PanelEditorPanelDocument[]> {
   const collectionRef = getPanelsCollection(projectId);
   const snapshot = await getDocs(collectionRef);
-  return snapshot.docs.map((d) => ({
-    ...d.data(),
-    id: d.id,
-  })) as PanelEditorPanelDocument[];
+  return snapshot.docs
+    .map((d) => ({ ...d.data(), id: d.id }) as PanelEditorPanelDocument)
+    .sort((a, b) => a.panelIndex - b.panelIndex);
 }
 
 /**

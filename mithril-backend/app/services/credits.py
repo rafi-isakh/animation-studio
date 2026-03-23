@@ -59,6 +59,8 @@ IMAGE_COST_TABLE: dict[tuple[str, str], float] = {
     ("panel_colorizer", "flux2_dev"): 0.0047,
     # PixAI style converter
     ("style_converter", "pixai"): 0.09,
+    # ModelsLab flux-klein style converter
+    ("style_converter", "modelslab"): 0.0047,
 }
 
 # Token-based pricing for Gemini text/multimodal models: model -> (input $/1M, output $/1M)

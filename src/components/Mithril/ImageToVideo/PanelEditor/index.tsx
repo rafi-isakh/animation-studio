@@ -140,7 +140,15 @@ export default function PanelEditor() {
     try {
       const serializablePanels = await Promise.all(
         panels.map(async (p) => {
-          const base64Original = await fileToBase64(p.file);
+          let file = p.file;
+          if (!file && p.originalImageRef) {
+            const res = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(p.originalImageRef)}`);
+            if (res.ok) {
+              const blob = await res.blob();
+              file = new File([blob], p.fileName, { type: blob.type || 'image/jpeg' });
+            }
+          }
+          const base64Original = file ? await fileToBase64(file) : '';
           return {
             id: p.id,
             status: p.status,
@@ -148,7 +156,7 @@ export default function PanelEditor() {
             error: p.error,
             originalData: base64Original,
             originalName: p.fileName,
-            originalType: p.file.type,
+            originalType: file?.type ?? 'image/jpeg',
           };
         })
       );

@@ -18,7 +18,7 @@ export enum ProcessingStatus {
 // Individual panel data structure
 export interface PanelData {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   fileName: string;
   status: ProcessingStatus;

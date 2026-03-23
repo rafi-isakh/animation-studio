@@ -42,11 +42,11 @@ export const PanelCard: React.FC<PanelCardProps> = ({
 
   const handleDownload = () => {
     if (canvasRef.current && resultSrc) {
-      canvasRef.current.download(panel.file.name);
+      canvasRef.current.download(panel.fileName ?? panel.file?.name ?? panel.id);
     } else if (resultSrc) {
       const link = document.createElement('a');
       link.href = resultSrc;
-      link.download = panel.file.name;
+      link.download = panel.fileName ?? panel.file?.name ?? panel.id;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -60,9 +60,9 @@ export const PanelCard: React.FC<PanelCardProps> = ({
         <div className="flex items-center gap-3">
           <span
             className="text-xs font-mono text-gray-400 truncate max-w-[200px]"
-            title={panel.file.name}
+            title={panel.fileName ?? panel.file?.name}
           >
-            {panel.file.name}
+            {panel.fileName ?? panel.file?.name}
           </span>
           {panel.category && (
             <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-600/20 text-pink-300 border border-pink-600/30">

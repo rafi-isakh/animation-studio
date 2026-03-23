@@ -132,14 +132,15 @@ export default function StyleConverter() {
     
     // Skip persisting panels that were loaded from storage - they're already persisted
     if (panel._fromStorage && panel.originalImageRef) {
-      log(`SKIP persistPanel: panel="${panel.file.name}" (id=${panel.id.slice(0, 8)}...) - already in storage`);
+      log(`SKIP persistPanel: panel="${panel.fileName}" (id=${panel.id.slice(0, 8)}...) - already in storage`);
       return;
     }
-    
-    log(`START persistPanel: panel="${panel.file.name}" (id=${panel.id.slice(0, 8)}...) _fromStorage=${panel._fromStorage} hasImageRef=${!!panel.originalImageRef}`);
+
+    log(`START persistPanel: panel="${panel.fileName}" (id=${panel.id.slice(0, 8)}...) _fromStorage=${panel._fromStorage} hasImageRef=${!!panel.originalImageRef}`);
 
     let originalImageRef = panel.originalImageRef;
     if (!originalImageRef) {
+      if (!panel.file) return;
       log(`  uploading to S3...`);
       const dataUri = await fileToBase64DataUri(panel.file);
       originalImageRef = await uploadI2VPanelEditorImage(
@@ -157,7 +158,7 @@ export default function StyleConverter() {
     log(`  saving to Firestore...`);
     await saveStyleConverterPanel(currentProjectId, panel.id, {
       panelIndex,
-      fileName: panel.fileName || panel.file.name,
+      fileName: panel.fileName ?? panel.file?.name ?? '',
       originalImageRef,
       imageWeight: panel.imageWeight,
       resultImageRef: panel.resultUrl,
@@ -166,7 +167,7 @@ export default function StyleConverter() {
       prompt: panel.prompt,
       category: panel.category,
     });
-    log(`DONE persistPanel: panel="${panel.file.name}"`);
+    log(`DONE persistPanel: panel="${panel.fileName ?? panel.file?.name}"`);
   }, [currentProjectId]);
 
   const clearPersistedWorkspace = useCallback(async () => {
@@ -238,50 +239,30 @@ export default function StyleConverter() {
         const dedupedPanels = Array.from(uniqueByFileName.values());
         log(`  deduped to ${dedupedPanels.length} unique panels by fileName`);
 
-        const loadedPanels: PanelData[] = [];
-        const nextFileLibrary: Record<string, File> = {};
-
-        for (const savedPanel of dedupedPanels) {
-          if (!savedPanel.originalImageRef) {
-            warn(`  skipping panel ${savedPanel.id}: no originalImageRef`);
-            continue;
-          }
-
-          try {
-            log(`  loading panel: "${savedPanel.fileName}" (id=${savedPanel.id.slice(0, 8)}...)`);
-            const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(savedPanel.originalImageRef)}`;
-            const response = await fetch(proxyUrl);
-            if (!response.ok) {
-              warn(`    fetch failed status=${response.status}`);
-              continue;
+        // Build panels immediately — File blobs are fetched lazily when processing starts
+        const loadedPanels: PanelData[] = dedupedPanels
+          .filter((savedPanel) => {
+            if (!savedPanel.originalImageRef) {
+              warn(`  skipping panel ${savedPanel.id}: no originalImageRef`);
+              return false;
             }
-
-            const blob = await response.blob();
-            const mimeType = blob.type || 'image/jpeg';
-            const file = new File([blob], savedPanel.fileName, { type: mimeType });
-            nextFileLibrary[file.name] = file;
-            loadedPanels.push({
-              id: savedPanel.id,
-              file,
-              fileName: savedPanel.fileName,
-              previewUrl: URL.createObjectURL(file),
-              status: (savedPanel.status as ProcessingStatus) || ProcessingStatus.Idle,
-              imageWeight: clampImageWeight(savedPanel.imageWeight ?? DEFAULT_IMAGE_WEIGHT),
-              resultUrl: savedPanel.resultImageRef,
-              error: savedPanel.error,
-              prompt: savedPanel.prompt,
-              category: savedPanel.category,
-              originalImageRef: savedPanel.originalImageRef,
-              _fromStorage: true, // Mark as loaded from storage to prevent re-persist
-            });
-            log(`    ✓ loaded: "${savedPanel.fileName}"`);
-          } catch (e) {
-            warn(`    failed to load: ${e instanceof Error ? e.message : String(e)}`);
-          }
-        }
+            return true;
+          })
+          .map((savedPanel) => ({
+            id: savedPanel.id,
+            fileName: savedPanel.fileName,
+            previewUrl: `/api/mithril/s3/proxy?url=${encodeURIComponent(savedPanel.originalImageRef)}`,
+            status: (savedPanel.status as ProcessingStatus) || ProcessingStatus.Idle,
+            imageWeight: clampImageWeight(savedPanel.imageWeight ?? DEFAULT_IMAGE_WEIGHT),
+            resultUrl: savedPanel.resultImageRef,
+            error: savedPanel.error,
+            prompt: savedPanel.prompt,
+            category: savedPanel.category,
+            originalImageRef: savedPanel.originalImageRef,
+            _fromStorage: true,
+          }));
 
         log(`MOUNT LOAD: setting ${loadedPanels.length} panels to state`);
-        setFileLibrary(nextFileLibrary);
         setPanels(loadedPanels);
       } finally {
         if (loadingProjectIdRef.current === currentProjectId) {
@@ -368,8 +349,8 @@ export default function StyleConverter() {
     });
 
     setPanels((prev) => {
-      log(`  current panels: ${prev.length}`, prev.map(p => `"${p.file.name}" (id=${p.id.slice(0,8)}... _fromStorage=${p._fromStorage})`));
-      const existingNames = new Set(prev.map((p) => normalizePanelFileName(p.file.name)));
+      log(`  current panels: ${prev.length}`, prev.map(p => `"${p.fileName ?? p.file?.name}" (id=${p.id.slice(0,8)}... _fromStorage=${p._fromStorage})`));
+      const existingNames = new Set(prev.map((p) => normalizePanelFileName(p.fileName ?? p.file?.name ?? '')));
       const incomingSeenNames = new Set<string>();
       const duplicateFiles: File[] = [];
       const newFiles: File[] = [];
@@ -398,9 +379,9 @@ export default function StyleConverter() {
         // Don't set _fromStorage for newly added files - they need to be persisted
       }));
       
-      log(`  creating ${newPanels.length} new panels:`, newPanels.map(p => `"${p.file.name}"`));
+      log(`  creating ${newPanels.length} new panels:`, newPanels.map(p => `"${p.fileName ?? p.file?.name}"`));
       newPanels.forEach((panel, index) => {
-        log(`  persisting panel ${index}: "${panel.file.name}"`);
+        log(`  persisting panel ${index}: "${panel.fileName ?? panel.file?.name}"`);
         void persistPanel(panel, prev.length + index);
       });
       void persistMeta(sessionIdRef.current || uuidv4(), config, prev.length + newPanels.length);
@@ -415,7 +396,7 @@ export default function StyleConverter() {
         matchCount = 0;
         return prev.map((panel) => {
           const match = promptsData.find(
-            (p) => p.filename.toLowerCase() === panel.file.name.toLowerCase(),
+            (p) => p.filename.toLowerCase() === (panel.fileName ?? panel.file?.name ?? '').toLowerCase(),
           );
           if (!match) return panel;
           matchCount++;
@@ -493,7 +474,18 @@ export default function StyleConverter() {
       }
 
       try {
-        const imageBase64 = await compressImage(panel.file, 1500, 0.8);
+        // Lazily fetch the File blob if not loaded at startup (restored panels skip blob fetch)
+        let file = panel.file;
+        if (!file) {
+          if (!panel.originalImageRef) return;
+          const res = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(panel.originalImageRef)}`);
+          if (!res.ok) throw new Error('Failed to fetch panel image');
+          const blob = await res.blob();
+          file = new File([blob], panel.fileName ?? '', { type: blob.type || 'image/jpeg' });
+          setPanels((prev) => prev.map((p) => p.id === id ? { ...p, file } : p));
+        }
+
+        const imageBase64 = await compressImage(file, 1500, 0.8);
         const mimeType = 'image/jpeg';
         const prompts = panel.prompt?.trim() || 'masterpiece, best quality, detailed illustration, anime style';
 
@@ -504,7 +496,7 @@ export default function StyleConverter() {
             projectId: currentProjectId || 'default',
             sessionId: sessionIdRef.current,
             panelId: id,
-            fileName: panel.file.name,
+            fileName: panel.fileName ?? file.name,
             imageBase64,
             mimeType,
             prompts,
@@ -645,7 +637,7 @@ export default function StyleConverter() {
 
     await Promise.all(
       successful.map(async (panel) => {
-        let fileName = panel.file.name;
+        let fileName = panel.fileName ?? panel.file?.name ?? panel.id;
         if (usedNames.has(fileName)) {
           const parts = fileName.split('.');
           const ext = parts.pop();
@@ -691,18 +683,28 @@ export default function StyleConverter() {
     if (panels.length === 0) return;
     try {
       const serializable = await Promise.all(
-        panels.map(async (p) => ({
-          id: p.id,
-          status: p.status,
-          imageWeight: p.imageWeight,
-          resultUrl: p.resultUrl,
-          error: p.error,
-          prompt: p.prompt,
-          category: p.category,
-          originalData: await fileToBase64DataUri(p.file),
-          originalName: p.file.name,
-          originalType: p.file.type,
-        })),
+        panels.map(async (p) => {
+          let file = p.file;
+          if (!file && p.originalImageRef) {
+            const res = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(p.originalImageRef)}`);
+            if (res.ok) {
+              const blob = await res.blob();
+              file = new File([blob], p.fileName ?? '', { type: blob.type || 'image/jpeg' });
+            }
+          }
+          return {
+            id: p.id,
+            status: p.status,
+            imageWeight: p.imageWeight,
+            resultUrl: p.resultUrl,
+            error: p.error,
+            prompt: p.prompt,
+            category: p.category,
+            originalData: file ? await fileToBase64DataUri(file) : '',
+            originalName: p.fileName ?? file?.name ?? '',
+            originalType: file?.type ?? 'image/jpeg',
+          };
+        }),
       );
 
       const blob = new Blob(
@@ -770,7 +772,7 @@ export default function StyleConverter() {
             await persistMeta(restoredSessionId, json.config || config, loaded.length);
             log(`  persisting meta done`);
           }
-          setFileLibrary(Object.fromEntries(loaded.map((panel) => [panel.file.name, panel.file])));
+          setFileLibrary(Object.fromEntries(loaded.filter((p) => p.file).map((panel) => [panel.file!.name, panel.file!])));
           setPanels(loaded);
           log(`handleLoadProject: complete`);
         }

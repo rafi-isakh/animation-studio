@@ -74,10 +74,9 @@ export async function getStyleConverterPanels(
 ): Promise<StyleConverterPanelDocument[]> {
   const collectionRef = getPanelsCollection(projectId);
   const snapshot = await getDocs(collectionRef);
-  return snapshot.docs.map((panelDoc) => ({
-    ...panelDoc.data(),
-    id: panelDoc.id,
-  })) as StyleConverterPanelDocument[];
+  return snapshot.docs
+    .map((panelDoc) => ({ ...panelDoc.data(), id: panelDoc.id }) as StyleConverterPanelDocument)
+    .sort((a, b) => a.panelIndex - b.panelIndex);
 }
 
 export async function saveStyleConverterPanel(

@@ -94,36 +94,18 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
         // 2. Load saved panels
         const savedPanels = await getPanelEditorPanels(projectId);
         if (savedPanels.length > 0 && isMountedRef.current) {
-          const panels: PanelData[] = [];
-
-          for (const saved of savedPanels) {
-            const imageUrl = saved.originalImageRef;
-            if (!imageUrl) continue;
-
-            try {
-              // Fetch original from S3 proxy to recreate File object
-              const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(imageUrl)}`;
-              const response = await fetch(proxyUrl);
-              if (!response.ok) continue;
-
-              const blob = await response.blob();
-              const mimeType = blob.type || 'image/jpeg';
-              const file = new File([blob], saved.fileName, { type: mimeType });
-
-              panels.push({
-                id: saved.id,
-                file,
-                previewUrl: URL.createObjectURL(file),
-                fileName: saved.fileName,
-                status: (saved.status as ProcessingStatus) || ProcessingStatus.Idle,
-                resultUrl: saved.resultImageRef,
-                error: saved.error,
-                originalImageRef: imageUrl,
-              });
-            } catch {
-              // Skip panels that fail to load
-            }
-          }
+          // Build panels immediately — File blobs are fetched lazily when processing starts
+          const panels: PanelData[] = savedPanels
+            .filter((saved) => !!saved.originalImageRef)
+            .map((saved) => ({
+              id: saved.id,
+              previewUrl: `/api/mithril/s3/proxy?url=${encodeURIComponent(saved.originalImageRef)}`,
+              fileName: saved.fileName,
+              status: (saved.status as ProcessingStatus) || ProcessingStatus.Idle,
+              resultUrl: saved.resultImageRef,
+              error: saved.error,
+              originalImageRef: saved.originalImageRef,
+            }));
 
           if (panels.length > 0 && isMountedRef.current) {
             dispatch({ type: 'ADD_PANELS', panels });
@@ -266,6 +248,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
 
       // If no S3 URL yet, upload original to S3
       if (!originalImageRef) {
+        if (!panel.file) return;
         const base64 = await compressImage(panel.file, 1500, 0.8);
         originalImageRef = await uploadI2VPanelEditorImage(projectId, panel.id, base64, 'image/jpeg');
         // Update in-memory panel with the S3 URL
@@ -523,8 +506,20 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       });
 
       try {
+        // Lazily fetch the File blob if it wasn't loaded at startup (restored panels skip blob fetch)
+        let file = panel.file;
+        if (!file) {
+          if (!panel.originalImageRef) return;
+          const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.originalImageRef)}`;
+          const res = await fetch(proxyUrl);
+          if (!res.ok) throw new Error('Failed to fetch panel image');
+          const blob = await res.blob();
+          file = new File([blob], panel.fileName, { type: blob.type || 'image/jpeg' });
+          dispatch({ type: 'UPDATE_PANEL', id, updates: { file } });
+        }
+
         // Compress image to stay within Firestore's ~1MB document size limit
-        const imageBase64 = await compressImage(panel.file, 1500, 0.8);
+        const imageBase64 = await compressImage(file, 1500, 0.8);
 
         // Submit job to orchestrator
         const response = await submitJob({

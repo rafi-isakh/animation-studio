@@ -15,7 +15,7 @@ export enum ProcessingStatus {
 
 export interface PanelData {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   fileName?: string;
   status: ProcessingStatus;

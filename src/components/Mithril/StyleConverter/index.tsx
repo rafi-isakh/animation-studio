@@ -26,6 +26,7 @@ import {
   deleteI2VPanelEditorImage,
   uploadI2VPanelEditorImage,
 } from '@/components/Mithril/services/s3/images';
+import { compressImage } from '@/components/Mithril/ImageToVideo/ImageToScriptWriter/utils/imageCompression';
 
 const DEFAULT_IMAGE_WEIGHT = 0.26;
 const MIN_IMAGE_WEIGHT = 0;
@@ -492,9 +493,8 @@ export default function StyleConverter() {
       }
 
       try {
-        const dataUri = await fileToBase64DataUri(panel.file);
-        const imageBase64 = dataUri.split(',')[1];
-        const mimeType = panel.file.type || 'image/jpeg';
+        const imageBase64 = await compressImage(panel.file, 1500, 0.8);
+        const mimeType = 'image/jpeg';
         const prompts = panel.prompt?.trim() || 'masterpiece, best quality, detailed illustration, anime style';
 
         const response = await fetch('/api/style-converter/orchestrator/submit', {
@@ -513,7 +513,13 @@ export default function StyleConverter() {
           }),
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data: { jobId?: string; error?: string };
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error(responseText || `Submit failed (${response.status})`);
+        }
         if (response.status === 401) {
           await refreshSession();
           throw new Error('Session expired. Please log in again.');

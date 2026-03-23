@@ -837,14 +837,45 @@ export default function CsvVideoGenerator() {
           Math.abs(curr - parsed) < Math.abs(prev - parsed) ? curr : prev
         );
 
+        // Ensure start image is a CDN URL, not base64 (upload to S3 if needed)
+        let resolvedStartImageUrl: string | undefined = frame.imageUrl || undefined;
+        if (!resolvedStartImageUrl && frame.imageData) {
+          const mimeType = frame.imageData.match(/data:(.*?);/)?.[1] || 'image/webp';
+          const base64 = frame.imageData.split(',')[1];
+          const res = await fetch('/api/mithril/s3/image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType }),
+          });
+          const result: { success: boolean; url?: string } = await res.json();
+          if (result.success && result.url) {
+            resolvedStartImageUrl = result.url;
+            setFrames((prev) => prev.map((f) => (f.id === frameId ? { ...f, imageData: null, imageUrl: result.url! } : f)));
+          }
+        }
+
+        // Ensure end frame is a CDN URL, not base64 (upload to S3 if needed)
+        let resolvedEndImageUrl: string | undefined = undefined;
+        if (frame.endFrameData) {
+          const mimeType = frame.endFrameData.match(/data:(.*?);/)?.[1] || 'image/webp';
+          const base64 = frame.endFrameData.split(',')[1];
+          const res = await fetch('/api/mithril/s3/image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: currentProjectId, imageType: 'csv-frame', csvFrameIndex: frame.rowIndex, base64, mimeType }),
+          });
+          const result: { success: boolean; url?: string } = await res.json();
+          if (result.success && result.url) resolvedEndImageUrl = result.url;
+        }
+
         const response = await submitJob({
           projectId:   currentProjectId,
           sceneIndex:  0,
           clipIndex:   frame.rowIndex,
           providerId:  effectiveProvider as 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v',
           prompt:      frame.veoPrompt,
-          imageUrl:    frame.imageUrl || frame.imageData || undefined,
-          imageEndUrl: frame.endFrameData || undefined,
+          imageUrl:    resolvedStartImageUrl,
+          imageEndUrl: resolvedEndImageUrl,
           duration,
           aspectRatio,
           apiKey:      videoApiKey || undefined,

@@ -9,6 +9,7 @@ from app.config import get_settings
 from app.core.errors import ErrorCode, VideoJobError, classify_exception
 from app.core.retry import RetryState
 from app.models.job import JobDocument, JobStatus
+from app.services.credits import get_credit_cost, get_credits_service
 from app.services.firestore import get_job_queue_service
 from app.services.s3 import generate_panel_filename, upload_image
 
@@ -221,6 +222,17 @@ async def process_modelslab_style_converter_generation(
                 image_bytes=result_bytes,
                 file_name=s3_key,
                 content_type="image/png",
+            )
+
+            # ── CREDITS ───────────────────────────────────────────────────
+            _cost = get_credit_cost(job.type.value, "modelslab")
+            await get_credits_service().record_credit(
+                user_id=job.user_id,
+                project_id=job.project_id,
+                job_id=job_id,
+                job_type=job.type.value,
+                provider_id="modelslab",
+                cost_usd=_cost,
             )
 
             # ── COMPLETED ─────────────────────────────────────────────────

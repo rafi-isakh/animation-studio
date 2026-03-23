@@ -40,6 +40,7 @@ const PROVIDER_META: Record<string, { label: string; abbr: string; color: string
   wan22_i2v:         { label: "Wan 2.2",  abbr: "W2", color: "#14B8A6" },
   pixai:             { label: "PixAI",    abbr: "Px", color: "#EC4899" },
   z_image_turbo:     { label: "Z-Turbo",  abbr: "ZT", color: "#A78BFA" },
+  modelslab:         { label: "Flux Klein", abbr: "FK", color: "#06B6D4" },
 };
 
 const STAGE_COLORS = [
@@ -210,7 +211,7 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
     .filter((p) => ["veo3", "sora", "grok_i2v", "grok_imagine_i2v", "wan_i2v", "wan22_i2v"].includes(p.provider_id))
     .reduce((s, p) => s + p.total_usd, 0);
   const imageUsd = providers
-    .filter((p) => ["gemini", "grok", "z_image_turbo", "pixai"].includes(p.provider_id))
+    .filter((p) => ["gemini", "grok", "z_image_turbo", "pixai", "modelslab"].includes(p.provider_id))
     .reduce((s, p) => s + p.total_usd, 0);
   const totalUsd = summary?.total_used_usd ?? 0;
   const textUsd = Math.max(0, totalUsd - videoUsd - imageUsd);

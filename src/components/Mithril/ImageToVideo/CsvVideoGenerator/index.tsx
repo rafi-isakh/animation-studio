@@ -306,8 +306,8 @@ function StoryboardItemCard({
               />
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <a
-                  href={frame.videoUrl!}
-                  download={`video_${frame.frameNumber}.mp4`}
+                  href={frame.s3FileName ? `/api/video/download?s3FileName=${encodeURIComponent(frame.s3FileName)}&downloadFileName=${encodeURIComponent(frame.referenceFilename ? `${frame.referenceFilename.replace(/\.[^.]+$/, '')}.mp4` : `video_${frame.frameNumber}.mp4`)}` : frame.videoUrl!}
+                  download
                   className="bg-gray-900/80 p-2 rounded-full text-white hover:bg-[#DB2777] block"
                   title="Download"
                 >
@@ -970,6 +970,9 @@ export default function CsvVideoGenerator() {
             s3FileName: f.s3FileName,
             sceneIndex: 0,
             clipIndex: f.rowIndex,
+            downloadFileName: f.referenceFilename
+              ? `${f.referenceFilename.replace(/\.[^.]+$/, '')}.mp4`
+              : undefined,
           })),
           zipFileName: `csv_videos_${Date.now()}.zip`,
         }),
@@ -1314,7 +1317,7 @@ export default function CsvVideoGenerator() {
       )}
 
       {/* ── Section 2: Image Matcher ── */}
-      {frames.length > 0 && (missingImagesCount > 0 || showImageUploader) && (
+      {frames.length > 0 && showImageUploader && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">

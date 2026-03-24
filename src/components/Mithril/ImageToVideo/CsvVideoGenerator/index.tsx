@@ -455,6 +455,8 @@ export default function CsvVideoGenerator() {
   const isMountedRef     = useRef(true);
   const activeJobsRef    = useRef<Set<string>>(new Set());
   const cancelledJobsRef = useRef<Set<string>>(new Set());
+  const framesRef = useRef<CsvFrame[]>([]);
+  framesRef.current = frames;
   const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const workspaceRef     = useRef<HTMLDivElement>(null);
 
@@ -909,8 +911,8 @@ export default function CsvVideoGenerator() {
           apiKey:      videoApiKey || undefined,
         });
 
-        // Check if frame was cancelled while submitJob was in-flight
-        const currentFrame = frames.find((f) => f.id === frameId);
+        // Check if frame was cancelled while submitJob was in-flight (use ref to avoid stale closure)
+        const currentFrame = framesRef.current.find((f) => f.id === frameId);
         if (currentFrame?.status === 'idle') {
           cancelledJobsRef.current.add(response.jobId);
           cancelJob({ jobId: response.jobId }).catch(console.error);

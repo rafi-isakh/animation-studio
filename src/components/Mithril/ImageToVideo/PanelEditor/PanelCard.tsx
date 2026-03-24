@@ -10,6 +10,7 @@ import {
   PlayIcon,
   ZoomInIcon,
   ArrowsExpandIcon,
+  XMarkIcon,
 } from './Icons';
 import { InteractiveCanvas, InteractiveCanvasHandle } from './InteractiveCanvas';
 
@@ -17,6 +18,7 @@ interface PanelCardProps {
   panel: PanelData;
   index: number;
   onRemove: (id: string) => void;
+  onCancel: (id: string) => void;
   onRetry: (id: string) => void;
   onRefine: (id: string, mode: 'zoom' | 'expand') => void;
   targetRatio: AspectRatio;
@@ -26,6 +28,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   panel,
   index,
   onRemove,
+  onCancel,
   onRetry,
   onRefine,
   targetRatio,
@@ -63,6 +66,16 @@ export const PanelCard: React.FC<PanelCardProps> = ({
           {panel.fileName}
         </span>
         <div className="flex items-center gap-2">
+          {isProcessing && (
+            <button
+              onClick={() => onCancel(panel.id)}
+              className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 border border-red-300 dark:border-red-500/50 rounded-lg transition-colors"
+              title="Cancel"
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+              Cancel
+            </button>
+          )}
           {isError && (
             <button
               onClick={() => onRetry(panel.id)}

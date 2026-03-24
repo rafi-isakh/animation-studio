@@ -108,6 +108,8 @@ export default function ModelsLabStyleConverter() {
   const sessionIdRef = useRef<string>('');
   // Map panelId → jobId for cancellation
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+  // Set of jobIds explicitly cancelled — suppresses all Firestore updates for those jobs
+  const cancelledJobsRef = useRef<Set<string>>(new Set());
   // Stable ref for reading current panels in callbacks without stale closures
   const panelsRef = useRef<PanelData[]>(panels);
   panelsRef.current = panels;
@@ -281,7 +283,19 @@ export default function ModelsLabStyleConverter() {
       latestJobs.forEach((job) => {
         const update = mapStyleConverterJobToUpdate(job);
         const uiStatus = mapBackendStatus(update.status);
+        const trackedJobId = activeJobsRef.current.get(update.panelId);
+        const isCancelled = cancelledJobsRef.current.has(update.jobId);
+        console.log('[ModelsLabStyleConverter] Firestore update:', { panelId: update.panelId, jobId: update.jobId, trackedJobId, status: update.status, uiStatus, isCancelled });
         log(`  job panelId=${update.panelId.slice(0,8)}... status=${update.status} uiStatus=${uiStatus}`);
+
+        // Guard: skip all updates for explicitly cancelled jobs
+        if (isCancelled) {
+          return;
+        }
+        // Guard: skip stale job updates (e.g., old job firing after a new job was submitted)
+        if (trackedJobId && trackedJobId !== update.jobId) {
+          return;
+        }
 
         if (update.panelId && update.jobId) {
           activeJobsRef.current.set(update.panelId, update.jobId);
@@ -511,6 +525,7 @@ export default function ModelsLabStyleConverter() {
         if (!response.ok) throw new Error(data.error || `Submit failed (${response.status})`);
 
         if (data.jobId) {
+          console.log('[ModelsLabStyleConverter] submitSinglePanel: tracking new jobId:', data.jobId, 'for panelId:', id);
           activeJobsRef.current.set(id, data.jobId);
         }
         if (currentProjectId) {
@@ -618,6 +633,23 @@ export default function ModelsLabStyleConverter() {
     setPanels([]);
     setGlobalProcessing(false);
   }, [clearPersistedWorkspace, fileLibrary]);
+
+  const handleCancelPanel = useCallback((id: string) => {
+    const jobId = activeJobsRef.current.get(id);
+    console.log('[ModelsLabStyleConverter] handleCancelPanel:', { id, jobId, hasJob: !!jobId });
+    if (jobId) {
+      cancelledJobsRef.current.add(jobId);
+      fetch('/api/modelslab-style-converter/orchestrator/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      }).catch(() => undefined);
+      activeJobsRef.current.delete(id);
+    }
+    setPanels((prev) =>
+      prev.map((p) => (p.id === id && p.status === ProcessingStatus.Pending ? { ...p, status: ProcessingStatus.Idle } : p)),
+    );
+  }, []);
 
   const handleRetry = useCallback(
     (id: string) => {
@@ -860,6 +892,7 @@ export default function ModelsLabStyleConverter() {
                   key={panel.id}
                   panel={panel}
                   onRemove={removePanel}
+                  onCancel={handleCancelPanel}
                   onRetry={handleRetry}
                   onUpdatePrompt={handleUpdatePrompt}
                   onUpdateImageWeight={handleUpdateImageWeight}

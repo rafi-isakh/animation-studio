@@ -204,7 +204,7 @@ export default function KreaStyleConverter() {
           return;
         }
 
-        const sortedPanels = [...savedPanels].sort((left, right) => left.panelIndex - right.panelIndex);
+        const sortedPanels = [...savedPanels].sort((left, right) => (left.fileName ?? '').localeCompare(right.fileName ?? '', undefined, { numeric: true, sensitivity: 'base' }));
         const uniqueByFileName = new Map<string, typeof sortedPanels[number]>();
         const duplicatePanels: typeof sortedPanels = [];
 

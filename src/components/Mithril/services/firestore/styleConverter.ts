@@ -76,7 +76,7 @@ export async function getStyleConverterPanels(
   const snapshot = await getDocs(collectionRef);
   return snapshot.docs
     .map((panelDoc) => ({ ...panelDoc.data(), id: panelDoc.id }) as StyleConverterPanelDocument)
-    .sort((a, b) => a.panelIndex - b.panelIndex);
+    .sort((a, b) => (a.fileName ?? '').localeCompare(b.fileName ?? '', undefined, { numeric: true, sensitivity: 'base' }));
 }
 
 export async function saveStyleConverterPanel(

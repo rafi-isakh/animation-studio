@@ -62,6 +62,8 @@ interface StoryboardItemCardProps {
   globalProvider: string;
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
+  onCancel: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
   onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateEndFrame: (id: string, data: string | null) => void;
@@ -74,6 +76,8 @@ function StoryboardItemCard({
   globalProvider,
   onGenerate,
   onRegenerate,
+  onCancel,
+  onDelete,
   onUpdatePrompt,
   onUpdateStartImage,
   onUpdateEndFrame,
@@ -131,6 +135,14 @@ function StoryboardItemCard({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Delete frame */}
+          <button
+            onClick={() => onDelete(frame.id)}
+            className="text-gray-600 hover:text-red-500 transition-colors p-0.5"
+            title="Delete this frame"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
           {/* Per-frame Provider Selector */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-gray-500 uppercase font-bold">API:</span>
@@ -376,7 +388,15 @@ function StoryboardItemCard({
           )}
         </div>
 
-        {!isProcessing && (
+        {isProcessing ? (
+          <button
+            onClick={() => onCancel(frame.id)}
+            className="text-xs font-bold py-1.5 px-4 rounded transition-colors bg-red-700 hover:bg-red-600 text-white flex items-center gap-1"
+          >
+            <StopCircle className="h-3.5 w-3.5" />
+            Cancel
+          </button>
+        ) : (
           <button
             onClick={() => (isDone ? onRegenerate(frame.id) : onGenerate(frame.id))}
             disabled={!canGenerate}
@@ -433,6 +453,7 @@ export default function CsvVideoGenerator() {
   const shouldStopRef    = useRef(false);
   const isMountedRef     = useRef(true);
   const activeJobsRef    = useRef<Set<string>>(new Set());
+  const cancelledJobsRef = useRef<Set<string>>(new Set());
   const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const workspaceRef     = useRef<HTMLDivElement>(null);
 
@@ -444,6 +465,9 @@ export default function CsvVideoGenerator() {
   // ── Orchestrator hook ────────────────────────────────────
   const handleClipUpdate = useCallback((update: ClipUpdate) => {
     if (!isMountedRef.current) return;
+
+    // Ignore stale updates for jobs that were explicitly cancelled
+    if (cancelledJobsRef.current.has(update.jobId)) return;
 
     setFrames((prev) =>
       prev.map((f) => {
@@ -884,6 +908,14 @@ export default function CsvVideoGenerator() {
           apiKey:      videoApiKey || undefined,
         });
 
+        // Check if frame was cancelled while submitJob was in-flight
+        const currentFrame = frames.find((f) => f.id === frameId);
+        if (currentFrame?.status === 'idle') {
+          cancelledJobsRef.current.add(response.jobId);
+          cancelJob({ jobId: response.jobId }).catch(console.error);
+          return;
+        }
+
         activeJobsRef.current.add(response.jobId);
 
         // Use the CDN URL returned by the submit route (base64 was uploaded to S3)
@@ -962,6 +994,7 @@ export default function CsvVideoGenerator() {
     setIsGeneratingAll(false);
 
     activeJobsRef.current.forEach((jobId) => {
+      cancelledJobsRef.current.add(jobId);
       cancelJob({ jobId }).catch(console.error);
     });
     activeJobsRef.current.clear();
@@ -973,6 +1006,32 @@ export default function CsvVideoGenerator() {
           : f
       )
     );
+  }, [cancelJob]);
+
+  const cancelFrame = useCallback((id: string) => {
+    setFrames((prev) => {
+      const frame = prev.find((f) => f.id === id);
+      if (!frame) return prev;
+      if (frame.jobId) {
+        cancelledJobsRef.current.add(frame.jobId);
+        activeJobsRef.current.delete(frame.jobId);
+        cancelJob({ jobId: frame.jobId }).catch(console.error);
+      }
+      return prev.map((f) =>
+        f.id === id ? { ...f, status: 'idle', jobId: null } : f
+      );
+    });
+  }, [cancelJob]);
+
+  const deleteFrame = useCallback((id: string) => {
+    setFrames((prev) => {
+      const frame = prev.find((f) => f.id === id);
+      if (frame?.jobId) {
+        activeJobsRef.current.delete(frame.jobId);
+        cancelJob({ jobId: frame.jobId }).catch(console.error);
+      }
+      return prev.filter((f) => f.id !== id);
+    });
   }, [cancelJob]);
 
   const handleSave = useCallback(async () => {
@@ -1557,6 +1616,8 @@ export default function CsvVideoGenerator() {
                 globalProvider={selectedProvider}
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
+                onCancel={cancelFrame}
+                onDelete={deleteFrame}
                 onUpdatePrompt={updatePrompt}
                 onUpdateStartImage={updateStartImage}
                 onUpdateEndFrame={updateEndFrame}

@@ -5,7 +5,7 @@ import { useMithril } from "../../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown } from "lucide-react";
+import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown, Plus } from "lucide-react";
 import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../../VideoGenerator/providers";
 import { compressBase64Image } from "../ImageToScriptWriter/utils/imageCompression";
 import { ASPECT_RATIOS } from "../../VideoGenerator/types";
@@ -62,6 +62,8 @@ interface StoryboardItemCardProps {
   globalProvider: string;
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
+  onCancel: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
   onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateEndFrame: (id: string, data: string | null) => void;
@@ -74,6 +76,8 @@ function StoryboardItemCard({
   globalProvider,
   onGenerate,
   onRegenerate,
+  onCancel,
+  onDelete,
   onUpdatePrompt,
   onUpdateStartImage,
   onUpdateEndFrame,
@@ -131,6 +135,14 @@ function StoryboardItemCard({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Delete frame */}
+          <button
+            onClick={() => onDelete(frame.id)}
+            className="text-gray-600 hover:text-red-500 transition-colors p-0.5"
+            title="Delete this frame"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
           {/* Per-frame Provider Selector */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-gray-500 uppercase font-bold">API:</span>
@@ -302,6 +314,7 @@ function StoryboardItemCard({
               <video
                 src={frame.videoUrl!}
                 controls
+                controlsList="nodownload"
                 className="w-full h-full object-contain rounded shadow-lg"
                 poster={startImageSrc || undefined}
               />
@@ -376,7 +389,15 @@ function StoryboardItemCard({
           )}
         </div>
 
-        {!isProcessing && (
+        {isProcessing ? (
+          <button
+            onClick={() => onCancel(frame.id)}
+            className="text-xs font-bold py-1.5 px-4 rounded transition-colors bg-red-700 hover:bg-red-600 text-white flex items-center gap-1"
+          >
+            <StopCircle className="h-3.5 w-3.5" />
+            Cancel
+          </button>
+        ) : (
           <button
             onClick={() => (isDone ? onRegenerate(frame.id) : onGenerate(frame.id))}
             disabled={!canGenerate}
@@ -433,7 +454,11 @@ export default function CsvVideoGenerator() {
   const shouldStopRef    = useRef(false);
   const isMountedRef     = useRef(true);
   const activeJobsRef    = useRef<Set<string>>(new Set());
+  const cancelledJobsRef = useRef<Set<string>>(new Set());
+  const framesRef = useRef<CsvFrame[]>([]);
+  framesRef.current = frames;
   const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const workspaceRef     = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -443,6 +468,9 @@ export default function CsvVideoGenerator() {
   // ── Orchestrator hook ────────────────────────────────────
   const handleClipUpdate = useCallback((update: ClipUpdate) => {
     if (!isMountedRef.current) return;
+
+    // Ignore stale updates for jobs that were explicitly cancelled
+    if (cancelledJobsRef.current.has(update.jobId)) return;
 
     setFrames((prev) =>
       prev.map((f) => {
@@ -883,6 +911,14 @@ export default function CsvVideoGenerator() {
           apiKey:      videoApiKey || undefined,
         });
 
+        // Check if frame was cancelled while submitJob was in-flight (use ref to avoid stale closure)
+        const currentFrame = framesRef.current.find((f) => f.id === frameId);
+        if (currentFrame?.status === 'idle') {
+          cancelledJobsRef.current.add(response.jobId);
+          cancelJob({ jobId: response.jobId }).catch(console.error);
+          return;
+        }
+
         activeJobsRef.current.add(response.jobId);
 
         // Use the CDN URL returned by the submit route (base64 was uploaded to S3)
@@ -961,6 +997,7 @@ export default function CsvVideoGenerator() {
     setIsGeneratingAll(false);
 
     activeJobsRef.current.forEach((jobId) => {
+      cancelledJobsRef.current.add(jobId);
       cancelJob({ jobId }).catch(console.error);
     });
     activeJobsRef.current.clear();
@@ -973,6 +1010,71 @@ export default function CsvVideoGenerator() {
       )
     );
   }, [cancelJob]);
+
+  const cancelFrame = useCallback((id: string) => {
+    setFrames((prev) => {
+      const frame = prev.find((f) => f.id === id);
+      if (!frame) return prev;
+      if (frame.jobId) {
+        cancelledJobsRef.current.add(frame.jobId);
+        activeJobsRef.current.delete(frame.jobId);
+        cancelJob({ jobId: frame.jobId }).catch(console.error);
+      }
+      return prev.map((f) =>
+        f.id === id ? { ...f, status: 'idle', jobId: null } : f
+      );
+    });
+  }, [cancelJob]);
+
+  const deleteFrame = useCallback((id: string) => {
+    setFrames((prev) => {
+      const frame = prev.find((f) => f.id === id);
+      if (frame?.jobId) {
+        activeJobsRef.current.delete(frame.jobId);
+        cancelJob({ jobId: frame.jobId }).catch(console.error);
+      }
+      return prev.filter((f) => f.id !== id);
+    });
+  }, [cancelJob]);
+
+  const handleAddFrame = useCallback(async () => {
+    if (!currentProjectId) return;
+    const newRowIndex = frames.length;
+    const newFrame: CsvFrame = {
+      id: `frame-${newRowIndex}-${Date.now()}`,
+      rowIndex: newRowIndex,
+      frameNumber: String(newRowIndex + 1),
+      veoPrompt: '',
+      referenceFilename: '',
+      dialogue: undefined,
+      sfx: undefined,
+      clipLength: '5',
+      videoApi: undefined,
+      imageData: null,
+      endFrameData: null,
+      imageUrl: null,
+      videoUrl: null,
+      jobId: null,
+      s3FileName: null,
+      status: 'idle',
+    };
+    setFrames((prev) => [...prev, newFrame]);
+    toast({ title: `Frame #${newFrame.frameNumber} added`, variant: 'success' });
+    try {
+      await saveCsvVideoClip(currentProjectId, `0_${newRowIndex}`, {
+        clipIndex: newRowIndex,
+        sceneIndex: 0,
+        sceneTitle: `Frame ${newFrame.frameNumber}`,
+        videoPrompt: '',
+        referenceFilename: '',
+        length: '5초',
+        videoApi: null,
+        imageUrl: null,
+      });
+    } catch (err) {
+      console.error('Failed to persist new frame', err);
+    }
+  }, [currentProjectId, frames.length, toast]);
 
   const handleSave = useCallback(async () => {
     if (!currentProjectId) return;
@@ -1191,7 +1293,7 @@ export default function CsvVideoGenerator() {
   // Render
   // ============================================================
   return (
-    <div className="space-y-6 pb-12">
+    <div ref={workspaceRef} className="space-y-6 pb-12">
       {/* ── Section 1: CSV Import (shown when no frames) ── */}
       {frames.length === 0 && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
@@ -1515,6 +1617,16 @@ export default function CsvVideoGenerator() {
                 <Trash2 className="h-4 w-4" />
               </button>
 
+              <button
+                onClick={handleAddFrame}
+                disabled={!currentProjectId}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                title="Add a blank frame"
+              >
+                <Plus className="h-4 w-4" />
+                Add Frame
+              </button>
+
               {isGeneratingAll ? (
                 <button
                   onClick={handleStop}
@@ -1556,6 +1668,8 @@ export default function CsvVideoGenerator() {
                 globalProvider={selectedProvider}
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
+                onCancel={cancelFrame}
+                onDelete={deleteFrame}
                 onUpdatePrompt={updatePrompt}
                 onUpdateStartImage={updateStartImage}
                 onUpdateEndFrame={updateEndFrame}
@@ -1564,6 +1678,21 @@ export default function CsvVideoGenerator() {
               />
             ))}
           </div>
+
+          {/* Scroll to top */}
+          {frames.length > 0 && (
+            <div className="sticky bottom-2 flex justify-end">
+              <button
+                onClick={() => workspaceRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                </svg>
+                Top
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

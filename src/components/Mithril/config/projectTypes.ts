@@ -270,12 +270,12 @@ export function getDefaultProjectType(): ProjectType {
  * Returns true for any Text-to-Video variant (general or NSFW)
  */
 export function isTextToVideoType(type: ProjectType): boolean {
-  return PROJECT_TYPE_CONFIGS[type].pipeline === 'text-to-video';
+  return PROJECT_TYPE_CONFIGS[type]?.pipeline === 'text-to-video';
 }
 
 /**
  * Returns true for any Image-to-Video variant (manga, webtoon, legacy, general or NSFW)
  */
 export function isImageToVideoType(type: ProjectType): boolean {
-  return PROJECT_TYPE_CONFIGS[type].pipeline === 'image-to-video';
+  return PROJECT_TYPE_CONFIGS[type]?.pipeline === 'image-to-video';
 }

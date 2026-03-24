@@ -82,7 +82,7 @@ export async function getPanelEditorPanels(
   const snapshot = await getDocs(collectionRef);
   return snapshot.docs
     .map((d) => ({ ...d.data(), id: d.id }) as PanelEditorPanelDocument)
-    .sort((a, b) => a.panelIndex - b.panelIndex);
+    .sort((a, b) => (a.fileName ?? '').localeCompare(b.fileName ?? '', undefined, { numeric: true, sensitivity: 'base' }));
 }
 
 /**

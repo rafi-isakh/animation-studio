@@ -73,6 +73,7 @@ export default function PanelEditor() {
     updateConfig,
     processAllPanels,
     cancelProcessing,
+    cancelPanel,
     retryPanel,
     refinePanel,
     clearPanels,
@@ -343,6 +344,7 @@ export default function PanelEditor() {
                   panel={panel}
                   index={index}
                   onRemove={removePanel}
+                  onCancel={cancelPanel}
                   onRetry={retryPanel}
                   onRefine={refinePanel}
                   targetRatio={config.targetAspectRatio}

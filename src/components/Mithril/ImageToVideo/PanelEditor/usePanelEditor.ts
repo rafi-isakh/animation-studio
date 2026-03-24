@@ -285,6 +285,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
 
     // Only process updates for panels we're tracking
     const trackedJobId = activeJobsRef.current.get(update.panelId);
+    console.log('[PanelEditor] handlePanelUpdate:', { panelId: update.panelId, jobId: update.jobId, trackedJobId, status: update.status, accepted: !!trackedJobId && trackedJobId === update.jobId });
     if (!trackedJobId || trackedJobId !== update.jobId) {
       return;
     }
@@ -536,6 +537,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
         });
 
         // Track this job
+        console.log('[PanelEditor] processSinglePanel: job submitted, tracking jobId:', response.jobId, 'for panelId:', id);
         activeJobsRef.current.set(id, response.jobId);
 
         // Status updates will come via Firestore subscription
@@ -642,6 +644,17 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     dispatch({ type: 'SET_PROCESSING', isProcessing: false });
   }, [cancelJob]);
 
+  // ── Cancel individual panel ──────────────────────────────────────────
+  const cancelPanel = useCallback((id: string) => {
+    const jobId = activeJobsRef.current.get(id);
+    console.log('[PanelEditor] cancelPanel:', { id, jobId, hasJob: !!jobId });
+    if (jobId) {
+      cancelJob({ jobId }).catch(console.error);
+      activeJobsRef.current.delete(id);
+    }
+    dispatch({ type: 'UPDATE_PANEL', id, updates: { status: ProcessingStatus.Idle } });
+  }, [cancelJob]);
+
   // ── Retry / Refine ───────────────────────────────────────────────────
   const retryPanel = useCallback(
     (id: string) => {
@@ -715,6 +728,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     processSinglePanel,
     processAllPanels,
     cancelProcessing,
+    cancelPanel,
     retryPanel,
     refinePanel,
     clearPanels,

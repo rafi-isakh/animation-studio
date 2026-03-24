@@ -5,7 +5,7 @@ import { useMithril } from "../../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown } from "lucide-react";
+import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown, Plus } from "lucide-react";
 import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../../VideoGenerator/providers";
 import { compressBase64Image } from "../ImageToScriptWriter/utils/imageCompression";
 import { ASPECT_RATIOS } from "../../VideoGenerator/types";
@@ -1034,6 +1034,45 @@ export default function CsvVideoGenerator() {
     });
   }, [cancelJob]);
 
+  const handleAddFrame = useCallback(async () => {
+    if (!currentProjectId) return;
+    const newRowIndex = frames.length;
+    const newFrame: CsvFrame = {
+      id: `frame-${newRowIndex}-${Date.now()}`,
+      rowIndex: newRowIndex,
+      frameNumber: String(newRowIndex + 1),
+      veoPrompt: '',
+      referenceFilename: '',
+      dialogue: undefined,
+      sfx: undefined,
+      clipLength: '5',
+      videoApi: undefined,
+      imageData: null,
+      endFrameData: null,
+      imageUrl: null,
+      videoUrl: null,
+      jobId: null,
+      s3FileName: null,
+      status: 'idle',
+    };
+    setFrames((prev) => [...prev, newFrame]);
+    toast({ title: `Frame #${newFrame.frameNumber} added`, variant: 'success' });
+    try {
+      await saveCsvVideoClip(currentProjectId, `0_${newRowIndex}`, {
+        clipIndex: newRowIndex,
+        sceneIndex: 0,
+        sceneTitle: `Frame ${newFrame.frameNumber}`,
+        videoPrompt: '',
+        referenceFilename: '',
+        length: '5초',
+        videoApi: null,
+        imageUrl: null,
+      });
+    } catch (err) {
+      console.error('Failed to persist new frame', err);
+    }
+  }, [currentProjectId, frames.length, toast]);
+
   const handleSave = useCallback(async () => {
     if (!currentProjectId) return;
     setIsSaving(true);
@@ -1573,6 +1612,16 @@ export default function CsvVideoGenerator() {
                 title="Clear all frames and start over"
               >
                 <Trash2 className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={handleAddFrame}
+                disabled={!currentProjectId}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                title="Add a blank frame"
+              >
+                <Plus className="h-4 w-4" />
+                Add Frame
               </button>
 
               {isGeneratingAll ? (

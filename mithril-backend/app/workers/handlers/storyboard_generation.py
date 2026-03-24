@@ -24,6 +24,8 @@ settings = get_settings()
 MODEL_NAME = "gemini-2.5-pro"
 
 IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
+PIXAI_PROMPT_SUFFIX = "Maintain the original eyes and hair color. Do not change cultural nuance, don't render random Japanese elements that didn't exist"
+VIDEO_PROMPT_SUFFIX = "Don't generate random Japanese element"
 
 BATCH_SIZE = 200  # Max panels per Gemini call; above this, batch automatically
 
@@ -433,6 +435,7 @@ async def _generate_storyboard_with_gemini(
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
 
     5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
+    스토리나 대사에서 캐릭터가 떨고있거나(shivering), 기침하거나(coughing), 눈물을 흘리거나(tears flowing) 등 신체적/감정적 상태가 암시되는 경우, 해당 키워드를 반드시 videoPrompt에 명시하십시오.
 
     6. **dialogue**: 한국어 대사. 규칙: {sound_condition}
 
@@ -456,6 +459,8 @@ async def _generate_storyboard_with_gemini(
       - **캐릭터 + 대사가 있는 클립**: `Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"`
       - **배경만 있는 클립 (캐릭터 없음)**: `Fixed lo-fi static background wallpaper, slow dolly-in`
       - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: `Static storybook lofi wallpaper, narration says "[narrationEn 내용]"`
+
+    20. **pixAiPrompt**: PixAI 애니메이션 스타일 이미지 생성 AI용 영어 프롬프트. imagePrompt의 핵심 시각 요소(캐릭터 ID, 동작, 카메라 앵글, 배경, 분위기)를 PixAI에 적합하게 간결하게 재작성합니다.
 
     13. **length**: "1초", "2초", "4초" 형식
 
@@ -531,6 +536,7 @@ async def _generate_storyboard_with_gemini(
                                     "videoPrompt": {"type": "STRING"},
                                     "soraVideoPrompt": {"type": "STRING"},
                                     "veoVideoPrompt": {"type": "STRING"},
+                                    "pixAiPrompt": {"type": "STRING"},
                                     "dialogue": {"type": "STRING"},
                                     "dialogueEn": {"type": "STRING"},
                                     "narration": {"type": "STRING"},
@@ -545,7 +551,7 @@ async def _generate_storyboard_with_gemini(
                                     "backgroundId": {"type": "STRING"},
                                 },
                                 "required": [
-                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt",
+                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
@@ -629,6 +635,18 @@ async def _generate_storyboard_with_gemini(
             bg_id = clip.get("backgroundId", "")
             if bg_id and bg_id.strip():
                 clip["imagePrompt"] = f"{clip['imagePrompt']}\n\nBackground ID: {bg_id}"
+
+            # Append VIDEO_PROMPT_SUFFIX to videoPrompt
+            vp = clip.get("videoPrompt", "").strip()
+            if vp:
+                connector = " " if (vp.endswith('.') or vp.endswith(',')) else ", "
+                clip["videoPrompt"] = f"{vp}{connector}{VIDEO_PROMPT_SUFFIX}"
+            else:
+                clip["videoPrompt"] = VIDEO_PROMPT_SUFFIX
+
+            # Append PIXAI_PROMPT_SUFFIX to pixAiPrompt
+            raw = clip.get("pixAiPrompt", "").strip()
+            clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
 
     return result, response.usage_metadata
 

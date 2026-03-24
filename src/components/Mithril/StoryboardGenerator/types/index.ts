@@ -30,6 +30,7 @@ export interface Continuity {
   videoPrompt: string;
   soraVideoPrompt: string;
   veoVideoPrompt: string;
+  pixAiPrompt: string;
   dialogue: string;
   dialogueEn: string;
   narration: string; // Narration text (Korean) - for clips without dialogue

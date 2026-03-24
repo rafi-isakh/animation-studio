@@ -602,6 +602,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   characterInfo: clip.characterInfo,
@@ -665,7 +666,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
@@ -674,6 +675,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   dialogue: clip.dialogue,
@@ -966,6 +968,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             videoPrompt: clip.videoPrompt,
             soraVideoPrompt: clip.soraVideoPrompt,
             veoVideoPrompt: clip.veoVideoPrompt || "",
+            pixAiPrompt: clip.pixAiPrompt || "",
             backgroundPrompt: clip.backgroundPrompt,
             backgroundId: clip.backgroundId,
             dialogue: clip.dialogue,
@@ -1030,6 +1033,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     videoPrompt: clip.videoPrompt || "",
                     soraVideoPrompt: clip.soraVideoPrompt || "",
                     veoVideoPrompt: clip.veoVideoPrompt || "",
+                    pixAiPrompt: clip.pixAiPrompt || "",
                     backgroundPrompt: clip.backgroundPrompt || "",
                     backgroundId: clip.backgroundId || "",
                     dialogue: clip.dialogue || "",
@@ -1411,6 +1415,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               videoPrompt: clip.videoPrompt || "",
               soraVideoPrompt: clip.soraVideoPrompt || "",
               veoVideoPrompt: clip.veoVideoPrompt || "",
+              pixAiPrompt: clip.pixAiPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
               characterInfo: clip.characterInfo || "",

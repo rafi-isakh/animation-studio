@@ -763,7 +763,7 @@ export default function WebnovelTrailer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId:     currentProjectId,
-          imageType:     'webnovel-trailer',
+          imageType:     'csv-frame',
           csvFrameIndex: frame.rowIndex,
           base64,
           mimeType,
@@ -840,7 +840,7 @@ export default function WebnovelTrailer() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               projectId:     currentProjectId,
-              imageType:     'webnovel-trailer',
+              imageType:     'csv-frame',
               csvFrameIndex: frame.rowIndex,
               base64,
               mimeType:      'image/jpeg',
@@ -850,7 +850,13 @@ export default function WebnovelTrailer() {
           if (result.success && result.url) {
             resolvedStartImageUrl = result.url;
             setFrames((prev) => prev.map((f) => (f.id === frameId ? { ...f, imageData: null, imageUrl: result.url! } : f)));
+          } else {
+            throw new Error('Failed to upload start image to storage');
           }
+        }
+
+        if (!resolvedStartImageUrl) {
+          throw new Error('No source image available. Please upload an image before generating.');
         }
 
         const response = await submitJob({

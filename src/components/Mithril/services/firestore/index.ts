@@ -71,3 +71,6 @@ export * from './csvVideo';
 
 // Image-to-Video: Stage 5 - NSFW Video Generator (manga/webtoon NSFW)
 export * from './nsfwVideo';
+
+// Webnovel Trailer
+export * from './webnovelTrailer';

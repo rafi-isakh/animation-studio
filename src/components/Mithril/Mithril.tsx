@@ -28,6 +28,7 @@ import ModelsLabStyleConverter from "./ModelsLabStyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
 import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
 import NsfwTextToVideoGenerator from "./NsfwTextToVideoGenerator";
+import WebnovelTrailer from "./WebnovelTrailer";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
@@ -61,6 +62,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'AnimeBgStudio': AnimeBgStudio,
   'NsfwStoryboardGenerator': NsfwStoryboardGenerator,
   'NsfwTextToVideoGenerator': NsfwTextToVideoGenerator,
+  'WebnovelTrailer': WebnovelTrailer,
 };
 
 // Cost Tracker Dashboard Component
@@ -271,7 +273,8 @@ function MithrilContent() {
 
   const isVideoStageComponent = currentStageConfig?.component === 'I2VVideoGenerator'
     || currentStageConfig?.component === 'CsvVideoGenerator'
-    || currentStageConfig?.component === 'NsfwVideoGenerator';
+    || currentStageConfig?.component === 'NsfwVideoGenerator'
+    || currentStageConfig?.component === 'WebnovelTrailer';
   const isAnimeBgStudio = currentStageConfig?.component === 'AnimeBgStudio';
   const needsImageApiKey = (
     (isTextToVideo && (currentStage === 1 || (currentStage >= 3 && currentStage <= 7)) && !isAnimeBgStudio) ||

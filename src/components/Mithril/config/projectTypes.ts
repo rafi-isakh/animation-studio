@@ -8,10 +8,11 @@ export type ProjectType =
   | 'manga-to-video-nsfw'
   | 'webtoon-to-video'
   | 'webtoon-to-video-nsfw'
-  | 'image-to-video';              // legacy — kept for backward compatibility only
+  | 'image-to-video'              // legacy — kept for backward compatibility only
+  | 'webnovel-trailer';           // placeholder — rename when project type is decided
 
 // Which underlying pipeline a project type uses
-export type ProjectPipeline = 'text-to-video' | 'image-to-video';
+export type ProjectPipeline = 'text-to-video' | 'image-to-video' | 'webnovel-trailer';
 
 // Stage definition structure
 export interface StageDefinition {
@@ -122,6 +123,12 @@ const IMAGE_TO_VIDEO_WEBTOON_STAGES: StageDefinition[] = [
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
+// Stage configurations for Webnovel Trailer pipeline
+// Project type key is a placeholder — rename once decided
+const WEBNOVEL_TRAILER_STAGES: StageDefinition[] = [
+  { id: 1, key: 'webnovel-trailer', labelKey: 'mithril_webnovel_trailer', component: 'WebnovelTrailer' },
+];
+
 // Project type configurations
 export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
   'text-to-video': {
@@ -195,6 +202,17 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     stages: IMAGE_TO_VIDEO_WEBTOON_NSFW_STAGES,
     pipeline: 'image-to-video',
     isNsfw: true,
+  },
+  // Webnovel Trailer — hidden until project type name is decided
+  'webnovel-trailer': {
+    type: 'webnovel-trailer',
+    labelKey: 'mithril_webnovel_trailer',
+    descriptionKey: 'mithril_webnovel_trailer_desc',
+    icon: 'Film',
+    stages: WEBNOVEL_TRAILER_STAGES,
+    pipeline: 'webnovel-trailer',
+    isNsfw: false,
+    deprecated: true,
   },
   // Legacy type — kept so existing projects load correctly; not shown in creation UI
   'image-to-video': {

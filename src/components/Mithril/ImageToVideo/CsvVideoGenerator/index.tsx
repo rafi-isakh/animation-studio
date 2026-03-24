@@ -434,6 +434,7 @@ export default function CsvVideoGenerator() {
   const isMountedRef     = useRef(true);
   const activeJobsRef    = useRef<Set<string>>(new Set());
   const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const workspaceRef     = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -1191,7 +1192,7 @@ export default function CsvVideoGenerator() {
   // Render
   // ============================================================
   return (
-    <div className="space-y-6 pb-12">
+    <div ref={workspaceRef} className="space-y-6 pb-12">
       {/* ── Section 1: CSV Import (shown when no frames) ── */}
       {frames.length === 0 && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
@@ -1564,6 +1565,21 @@ export default function CsvVideoGenerator() {
               />
             ))}
           </div>
+
+          {/* Scroll to top */}
+          {frames.length > 0 && (
+            <div className="sticky bottom-2 flex justify-end">
+              <button
+                onClick={() => workspaceRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                </svg>
+                Top
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

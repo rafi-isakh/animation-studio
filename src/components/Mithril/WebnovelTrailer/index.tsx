@@ -47,6 +47,7 @@ interface TrailerClipCardProps {
   globalProvider: string;
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
+  onCancel: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
   onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateDuration: (id: string, duration: string) => void;
@@ -58,6 +59,7 @@ function TrailerClipCard({
   globalProvider,
   onGenerate,
   onRegenerate,
+  onCancel,
   onUpdatePrompt,
   onUpdateStartImage,
   onUpdateDuration,
@@ -303,7 +305,14 @@ function TrailerClipCard({
           )}
         </div>
 
-        {!isProcessing && (
+        {isProcessing ? (
+          <button
+            onClick={() => onCancel(frame.id)}
+            className="text-xs font-bold py-1.5 px-4 rounded transition-colors bg-red-700 hover:bg-red-600 text-white"
+          >
+            Cancel
+          </button>
+        ) : (
           <button
             onClick={() => (isDone ? onRegenerate(frame.id) : onGenerate(frame.id))}
             disabled={!canGenerate}
@@ -356,10 +365,11 @@ export default function WebnovelTrailer() {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const shouldStopRef    = useRef(false);
-  const isMountedRef     = useRef(true);
-  const activeJobsRef    = useRef<Set<string>>(new Set());
-  const editDebounceRef  = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const shouldStopRef             = useRef(false);
+  const isMountedRef              = useRef(true);
+  const activeJobsRef             = useRef<Set<string>>(new Set());
+  const pendingCancellationsRef   = useRef<Set<string>>(new Set()); // frame IDs cancelled before jobId was known
+  const editDebounceRef           = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -871,6 +881,13 @@ export default function WebnovelTrailer() {
           apiKey:      videoApiKey || undefined,
         });
 
+        // If the user cancelled while submitJob was in-flight, cancel immediately and bail out
+        if (pendingCancellationsRef.current.has(frameId)) {
+          pendingCancellationsRef.current.delete(frameId);
+          cancelJob({ jobId: response.jobId }).catch(console.error);
+          return;
+        }
+
         activeJobsRef.current.add(response.jobId);
 
         const resolvedImageUrl = response.resolvedImageUrl || frame.imageUrl || null;
@@ -908,7 +925,7 @@ export default function WebnovelTrailer() {
         }
       }
     },
-    [frames, currentProjectId, selectedProvider, aspectRatio, videoApiKey, submitJob, toast, dictionary, language]
+    [frames, currentProjectId, selectedProvider, aspectRatio, videoApiKey, submitJob, cancelJob, toast, dictionary, language]
   );
 
   const regenerateFrame = useCallback(
@@ -940,6 +957,25 @@ export default function WebnovelTrailer() {
 
     if (isMountedRef.current) setIsGeneratingAll(false);
   }, [frames, generateFrame]);
+
+  const handleCancelClip = useCallback(async (id: string) => {
+    const frame = frames.find((f) => f.id === id);
+
+    // Always reset the frame immediately so the UI reflects cancellation
+    setFrames((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, status: 'idle', jobId: null } : f))
+    );
+
+    if (frame?.jobId) {
+      // Job already submitted — cancel it on the backend
+      cancelJob({ jobId: frame.jobId }).catch(console.error);
+      activeJobsRef.current.delete(frame.jobId);
+    } else {
+      // submitJob is still in-flight — mark for deferred cancellation
+      // generateFrame will check this ref and cancel as soon as jobId is known
+      pendingCancellationsRef.current.add(id);
+    }
+  }, [frames, cancelJob]);
 
   const handleStop = useCallback(() => {
     shouldStopRef.current = true;
@@ -1538,6 +1574,7 @@ export default function WebnovelTrailer() {
                 globalProvider={selectedProvider}
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
+                onCancel={handleCancelClip}
                 onUpdatePrompt={updatePrompt}
                 onUpdateStartImage={updateStartImage}
                 onUpdateDuration={updateDuration}

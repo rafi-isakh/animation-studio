@@ -314,6 +314,7 @@ function StoryboardItemCard({
               <video
                 src={frame.videoUrl!}
                 controls
+                controlsList="nodownload"
                 className="w-full h-full object-contain rounded shadow-lg"
                 poster={startImageSrc || undefined}
               />

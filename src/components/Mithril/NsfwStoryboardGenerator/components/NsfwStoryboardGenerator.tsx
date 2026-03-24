@@ -664,6 +664,7 @@ export default function NsfwStoryboardGenerator() {
             videoPrompt: getVal(idx.video),
             soraVideoPrompt: getVal(idx.sora),
             veoVideoPrompt: getVal(idx.veo),
+            pixAiPrompt: "",
             dialogue: getVal(idx.dialogue),
             dialogueEn: getVal(idx.dialogueEn),
             narration: getVal(idx.narration),

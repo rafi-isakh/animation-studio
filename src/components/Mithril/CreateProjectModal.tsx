@@ -14,7 +14,7 @@ import { Input } from '@/components/shadcnUI/Input';
 import { Label } from '@/components/shadcnUI/Label';
 import { createProject, getProject, ProjectMetadata } from './services/firestore';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
-import { Loader2, FileText, BookOpen, Palette } from 'lucide-react';
+import { Loader2, FileText, BookOpen, Palette, BookText } from 'lucide-react';
 import {
   ProjectType,
   getDefaultProjectType,
@@ -109,6 +109,25 @@ const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
         description: 'Adult content — age-restricted',
         isNsfw: true,
         icon: <Palette className="w-6 h-6" />,
+      },
+    ],
+  },
+  {
+    groupLabel: 'Webnovel Trailer',
+    options: [
+      {
+        type: 'webnovel-trailer',
+        label: 'General',
+        description: 'Create trailers from webnovel panels',
+        isNsfw: false,
+        icon: <BookText className="w-6 h-6" />,
+      },
+      {
+        type: 'webnovel-trailer-nsfw',
+        label: 'NSFW',
+        description: 'Adult content — age-restricted',
+        isNsfw: true,
+        icon: <BookText className="w-6 h-6" />,
       },
     ],
   },

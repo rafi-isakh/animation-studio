@@ -190,6 +190,17 @@ export async function updateBackgroundAngleImage(
 }
 
 /**
+ * Clear all generated angle images for a background (sets angles to empty array)
+ */
+export async function clearBackgroundAngles(
+  projectId: string,
+  bgId: string
+): Promise<void> {
+  const docRef = getBackgroundRef(projectId, bgId);
+  await updateDoc(docRef, { angles: [] });
+}
+
+/**
  * Update background reference data (master reference image, analysis, and planned prompts)
  * Creates the background document if it doesn't exist (upsert behavior)
  */

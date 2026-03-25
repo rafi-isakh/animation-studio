@@ -645,6 +645,7 @@ table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
 table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
 table_veo_video_prompt,Veo 비디오 프롬프트,,Veo Video Prompt
+table_pixai_prompt,PixAI 프롬프트,,PixAI Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
 table_dialogue_en,대사 (En),,Dialogue (En)
 table_narration_ko,나레이션 (Ko),,Narration (Ko)

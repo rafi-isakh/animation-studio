@@ -220,6 +220,10 @@ export default function ClipTableRow({
           {row.veoVideoPrompt}
         </td>
 
+        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-pink-600 dark:text-pink-300 min-w-[200px]">
+          {row.pixAiPrompt}
+        </td>
+
         {/* Editable Dialogue (Ko) */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell

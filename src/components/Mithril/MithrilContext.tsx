@@ -67,6 +67,7 @@ import {
   getMangaPanels,
 } from "./services/firestore";
 import type { UploadType } from "./services/firestore/types";
+import { deleteAllBackgroundImages } from "./services/s3";
 
 const TOTAL_STAGES = 8;
 
@@ -223,6 +224,7 @@ interface MithrilContextProps {
   // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
   startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
+  cancelBgSheetAnalysis: () => void;
   clearBgSheetAnalysis: () => void;
   setBgSheetResult: (result: BgSheetResultMetadata) => void;
 
@@ -378,6 +380,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     result: null,
   });
+  const bgSheetAnalysisAbortRef = useRef<AbortController | null>(null);
 
   // Character Sheet Generator state (Stage 3)
   const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
@@ -602,6 +605,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   characterInfo: clip.characterInfo,
@@ -665,7 +669,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
@@ -674,6 +678,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   dialogue: clip.dialogue,
@@ -966,6 +971,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             videoPrompt: clip.videoPrompt,
             soraVideoPrompt: clip.soraVideoPrompt,
             veoVideoPrompt: clip.veoVideoPrompt || "",
+            pixAiPrompt: clip.pixAiPrompt || "",
             backgroundPrompt: clip.backgroundPrompt,
             backgroundId: clip.backgroundId,
             dialogue: clip.dialogue,
@@ -1030,6 +1036,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     videoPrompt: clip.videoPrompt || "",
                     soraVideoPrompt: clip.soraVideoPrompt || "",
                     veoVideoPrompt: clip.veoVideoPrompt || "",
+                    pixAiPrompt: clip.pixAiPrompt || "",
                     backgroundPrompt: clip.backgroundPrompt || "",
                     backgroundId: clip.backgroundId || "",
                     dialogue: clip.dialogue || "",
@@ -1411,6 +1418,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               videoPrompt: clip.videoPrompt || "",
               soraVideoPrompt: clip.soraVideoPrompt || "",
               veoVideoPrompt: clip.veoVideoPrompt || "",
+              pixAiPrompt: clip.pixAiPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
               characterInfo: clip.characterInfo || "",
@@ -1561,6 +1569,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
+    bgSheetAnalysisAbortRef.current?.abort();
+    const abortController = new AbortController();
+    bgSheetAnalysisAbortRef.current = abortController;
+
     setBgSheetGenerator({
       isAnalyzing: true,
       error: null,
@@ -1572,6 +1584,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
+        signal: abortController.signal,
       });
 
       const data = await response.json();
@@ -1640,6 +1653,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       return backgroundsWithImages;
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return [];
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
       setBgSheetGenerator(prev => ({
         ...prev,
@@ -1659,14 +1673,24 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (currentProjectId) {
       try {
+        const backgrounds = await getBackgrounds(currentProjectId);
+        await Promise.allSettled(
+          backgrounds.map(bg => deleteAllBackgroundImages(currentProjectId, bg.id))
+        );
         await clearBgSheet(currentProjectId);
       } catch (error) {
-        console.error("Error clearing bg sheet from Firestore:", error);
+        console.error("Error clearing bg sheet:", error);
       }
     }
 
     clearStageResult(4);
   }, [currentProjectId, clearStageResult]);
+
+  const cancelBgSheetAnalysis = useCallback(() => {
+    bgSheetAnalysisAbortRef.current?.abort();
+    bgSheetAnalysisAbortRef.current = null;
+    setBgSheetGenerator(prev => ({ ...prev, isAnalyzing: false }));
+  }, []);
 
   const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
     setBgSheetGenerator(prev => ({ ...prev, result }));
@@ -1930,6 +1954,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,
+        cancelBgSheetAnalysis,
         clearBgSheetAnalysis,
         setBgSheetResult,
         // Character Sheet Generator

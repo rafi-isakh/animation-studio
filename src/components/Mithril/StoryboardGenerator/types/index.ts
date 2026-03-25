@@ -2,9 +2,35 @@ export interface Continuity {
   story: string;
   imagePrompt: string;
   imagePromptEnd?: string; // End frame prompt for Vidu (motion-heavy clips only)
+  // Webnovel-trailer A/B/C/D image prompt variations (4 types × 5 variations)
+  attentionDevice?: string;
+  imagePromptA1?: string;
+  imagePromptA2?: string;
+  imagePromptA3?: string;
+  imagePromptA4?: string;
+  imagePromptA5?: string;
+  attentionAction?: string;
+  imagePromptB1?: string;
+  imagePromptB2?: string;
+  imagePromptB3?: string;
+  imagePromptB4?: string;
+  imagePromptB5?: string;
+  attentionExpression?: string;
+  imagePromptC1?: string;
+  imagePromptC2?: string;
+  imagePromptC3?: string;
+  imagePromptC4?: string;
+  imagePromptC5?: string;
+  attentionMood?: string;
+  imagePromptD1?: string;
+  imagePromptD2?: string;
+  imagePromptD3?: string;
+  imagePromptD4?: string;
+  imagePromptD5?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
   veoVideoPrompt: string;
+  pixAiPrompt: string;
   dialogue: string;
   dialogueEn: string;
   narration: string; // Narration text (Korean) - for clips without dialogue

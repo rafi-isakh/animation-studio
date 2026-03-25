@@ -28,6 +28,10 @@ import ModelsLabStyleConverter from "./ModelsLabStyleConverter";
 import AnimeBgStudio from "./AnimeBgStudio";
 import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
 import NsfwTextToVideoGenerator from "./NsfwTextToVideoGenerator";
+import WebnovelTrailer from "./WebnovelTrailer";
+import WebnovelTrailerStoryboardGenerator from "./WebnovelTrailerStoryboardGenerator";
+import WebnovelTrailerBgSheetGenerator from "./WebnovelTrailerBgSheetGenerator";
+import WebnovelTrailerImageGeneratorWrapper from "./WebnovelTrailerImageGenerator/ImageGeneratorWrapper";
 import { MithrilProvider, useMithril } from "./MithrilContext";
 import { CostProvider, useCostTracker } from "./CostContext";
 import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
@@ -61,6 +65,10 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'AnimeBgStudio': AnimeBgStudio,
   'NsfwStoryboardGenerator': NsfwStoryboardGenerator,
   'NsfwTextToVideoGenerator': NsfwTextToVideoGenerator,
+  'WebnovelTrailer': WebnovelTrailer,
+  'WebnovelTrailerStoryboardGenerator': WebnovelTrailerStoryboardGenerator,
+  'WebnovelTrailerBgSheetGenerator': WebnovelTrailerBgSheetGenerator,
+  'WebnovelTrailerImageGenerator': WebnovelTrailerImageGeneratorWrapper,
 };
 
 // Cost Tracker Dashboard Component

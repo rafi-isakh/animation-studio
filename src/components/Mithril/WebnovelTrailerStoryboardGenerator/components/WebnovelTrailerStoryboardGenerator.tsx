@@ -101,33 +101,46 @@ const DEFAULT_VIDEO_INSTRUCTION = `Video Prompt Column.
  예: "the knight shouts during impact, the camera snap-zooms in, his head angle stays still"
  폭발·충돌 직전 발화: Low Angle → Backlighting → Shout → Head angle stays still`;
 
-const DEFAULT_IMAGE_INSTRUCTION = `You are a director working like a camera man, projecting a scene from three different perspectives. Each Clip must contain 3 variation of the same scene, divided into Image Prompt A, Image Prompt B, and Image Prompt C. Understand the pattern within the example prompts (what the prompt starts with, what is constantly emphasized and what is intentionally left out).
+const DEFAULT_IMAGE_INSTRUCTION = `You are a director working like a camera man, projecting a scene from four different perspectives. Each Clip must contain 4 Types of the same scene, divided into Image Prompt A, Image Prompt B, Image Prompt C, and Image Prompt D. Each type has 5 variations (A1-A5, B1-B5, C1-C5, D1-D5). Understand the pattern within the example prompts.
+
+A = attention_device, B = attention_action, C = attention_expression, D = attention_mood
 
 Example Source Text:
 It was raining outside, the cloud blocking off any hint of hope of sunlight despite being morning. ELISA_PAST threw the TELEPHONE on to the floor, breaking it to pieces. At this point, Tears were already flowing in her eyes, and there was no point of return.
 There was only despair at this point.
 
-Image Prompt A should be centered around the attention_device of an action taken by a person. Mark as recommended prompt if clips are placed around the start of a new scene, or an introductory phase of an action before rolling into B-roll clip.
+**Image Prompt A (attention_device)** — centered around the key prop/object in the scene.
+The first word must be camera-distance related (Full Shot, Wide Shot, Medium Close Up, Side Close Up, Back view, Bird's eye view), paired with Eye-level, low angle, or high angle.
 Examples:
-(1) Eye-level Full Shot of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
-(2) High angle Bird's eye view of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
-(3) Low angle Side close-up of ELISA_PAST tossing her TELEPHONE onto the floor. Her eyes are widened, and tears are flowing from her eyes.
-The first word of Prompt A must be camera-distance related, choose appropriately between Full Shot, Wide Shot, Medium Close Up, Side Close Up, Back view, Bird's eye view. Pair with Eye-level, low angle, or high angle.
+(A1) Eye-level Full Shot of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
+(A2) High angle Bird's eye view of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
+(A3) Low angle Side close-up of ELISA_PAST tossing her TELEPHONE onto the floor.
+(A4) Medium Close Up of ELISA_PAST gripping the TELEPHONE with trembling hands.
+(A5) Wide Shot of ELISA_PAST standing alone, TELEPHONE fragments scattered on the floor.
 
-
-Image Prompt B should be centered around the attention_device of an a central object, or extreme close-up of a hand, or extreme close-up of foot. Should not be a person's face or expression. Mark as recommended prompt clip is B-roll of the previous clip, or as insert clip.
+**Image Prompt B (attention_action)** — centered around the physical action of a character. Extreme close-up of hand, foot, or body movement. Should not be a person's face or expression.
 Examples:
-(1) Extreme close-up shot of ELISA_PAST's foot on the floor, as the TELEPHONE hits the floor and  shatters into pieces.
-(2) Extreme close-up of ELISA_PAST's hand tossing the TELEPHONE. The TELEPHONE is already Inches away in the air, and the background is rendered white, shallow depth of field.
-(3) Extreme close-up of puddle on the ground. It is raining, and the raindrops create ripples on the small body of water. Time of the day is morning, but cloudy and no sun.
+(B1) Extreme close-up shot of ELISA_PAST's foot on the floor, as the TELEPHONE hits the floor and shatters into pieces.
+(B2) Extreme close-up of ELISA_PAST's hand tossing the TELEPHONE. The TELEPHONE is already inches away in the air, shallow depth of field.
+(B3) Extreme close-up of ELISA_PAST's arm mid-swing, releasing the TELEPHONE.
+(B4) Low angle close-up of the TELEPHONE shattering on impact, debris flying outward.
+(B5) Extreme close-up of ELISA_PAST's clenched fist after throwing, knuckles white.
 
+**Image Prompt C (attention_expression)** — centered around extreme close-up of face, eyes, or pupils to exaggerate emotion. Background uses solid color for impact.
+Examples:
+(C1) Extreme close-up of ELISA_PAST's eyes widening in fear, as tears start flowing. Background is rendered black.
+(C2) Low angle close-up of ELISA_PAST's face turning pale as her eyes widen. Her eyes have no highlights. Background is rendered red.
+(C3) Extreme close-up of a single tear rolling down ELISA_PAST's cheek. Background is rendered dark grey.
+(C4) Side close-up of ELISA_PAST's trembling lips, eyes downcast. Background is rendered deep blue.
+(C5) Extreme close-up of ELISA_PAST's pupil reflecting a broken phone. Background is rendered black.
 
-Image Prompt C should be centered around the attention_device of an emotion. Examples will usually contain extreme close-up of eye or the pupils to exaggerate a dramatic emotion, with accompaniment of background of a solid color.
-Example:
-(1) Extreme close-up of ELISA_PAST's eyes widening in fear, as tears start flowing. Background is rendered black.
-(2) Low angle close-up of ELISA_PAST's face turning pale as her eyes widen. Her eyes have no highlights. Background is rendered red.
-Use image prompt C if the clip elaborates on the extreme peak of a character's expression.
-(3) Extreme close-up of ELISA_PAST's eyes widening in fear, as tears start flowing. Background is rendered black.`;
+**Image Prompt D (attention_mood)** — centered around the overall atmosphere/tone of the scene. Environment, lighting, color grading, weather as emotional device.
+Examples:
+(D1) Extreme close-up of puddle on the ground. It is raining, and the raindrops create ripples on the small body of water. Time of the day is morning, but cloudy and no sun.
+(D2) Wide shot of grey overcast sky through a window, rain streaking down the glass pane.
+(D3) Low angle shot of rain falling against dim interior light, silhouetting furniture.
+(D4) Extreme close-up of raindrops hitting a windowsill, cold morning light diffused through clouds.
+(D5) Bird's eye view of the empty room, broken phone on the floor, rain visible through the window.`;
 
 /**
  * Parse CSV text into a 2D array, handling quoted fields properly
@@ -185,7 +198,7 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   </div>
 );
 
-export default function NsfwStoryboardGenerator() {
+export default function WebnovelTrailerStoryboardGenerator() {
   const {
     setStageResult,
     getStageResult,
@@ -386,11 +399,34 @@ export default function NsfwStoryboardGenerator() {
       "Background ID",
       "Background Prompt",
       "Story",
-      "Image Prompt (Start)",
-      "Image Prompt (End)",
+      "attention_device(A)",
+      "Image Prompt A1",
+      "Image Prompt A2",
+      "Image Prompt A3",
+      "Image Prompt A4",
+      "Image Prompt A5",
+      "attention_action(B)",
+      "Image Prompt B1",
+      "Image Prompt B2",
+      "Image Prompt B3",
+      "Image Prompt B4",
+      "Image Prompt B5",
+      "attention_expression(C)",
+      "Image Prompt C1",
+      "Image Prompt C2",
+      "Image Prompt C3",
+      "Image Prompt C4",
+      "Image Prompt C5",
+      "attention_mood(D)",
+      "Image Prompt D1",
+      "Image Prompt D2",
+      "Image Prompt D3",
+      "Image Prompt D4",
+      "Image Prompt D5",
       "Video Prompt",
       "Sora Video Prompt",
       "Veo Video Prompt",
+      "PixAI Prompt",
       "Dialogue (Ko)",
       "Dialogue (En)",
       "Narration (Ko)",
@@ -401,29 +437,54 @@ export default function NsfwStoryboardGenerator() {
       "BGM (En)",
     ];
 
+    const q = (s: string) => `"${(s || "").replace(/"/g, '""')}"`;
+
     const clipRows = scenes.flatMap((scene, sceneIndex) =>
       scene.clips.map((clip, clipIndex) => {
         const row = [
-          `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+          q(`Scene ${sceneIndex + 1}: ${scene.sceneTitle}`),
           `${sceneIndex + 1}-${clipIndex + 1}`,
           clip.length,
           clip.accumulatedTime,
           clip.backgroundId,
-          `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
-          `"${clip.story.replace(/"/g, '""')}"`,
-          `"${clip.imagePrompt.replace(/"/g, '""')}"`,
-          `"${(clip.imagePromptEnd || "").replace(/"/g, '""')}"`,
-          `"${clip.videoPrompt.replace(/"/g, '""')}"`,
-          `"${clip.soraVideoPrompt.replace(/"/g, '""')}"`,
-          `"${clip.veoVideoPrompt.replace(/"/g, '""')}"`,
-          `"${clip.dialogue.replace(/"/g, '""')}"`,
-          `"${clip.dialogueEn.replace(/"/g, '""')}"`,
-          `"${(clip.narration || "").replace(/"/g, '""')}"`,
-          `"${(clip.narrationEn || "").replace(/"/g, '""')}"`,
-          `"${clip.sfx.replace(/"/g, '""')}"`,
-          `"${clip.sfxEn.replace(/"/g, '""')}"`,
-          `"${clip.bgm.replace(/"/g, '""')}"`,
-          `"${clip.bgmEn.replace(/"/g, '""')}"`,
+          q(clip.backgroundPrompt),
+          q(clip.story),
+          q(clip.attentionDevice || ""),
+          q(clip.imagePromptA1 || ""),
+          q(clip.imagePromptA2 || ""),
+          q(clip.imagePromptA3 || ""),
+          q(clip.imagePromptA4 || ""),
+          q(clip.imagePromptA5 || ""),
+          q(clip.attentionAction || ""),
+          q(clip.imagePromptB1 || ""),
+          q(clip.imagePromptB2 || ""),
+          q(clip.imagePromptB3 || ""),
+          q(clip.imagePromptB4 || ""),
+          q(clip.imagePromptB5 || ""),
+          q(clip.attentionExpression || ""),
+          q(clip.imagePromptC1 || ""),
+          q(clip.imagePromptC2 || ""),
+          q(clip.imagePromptC3 || ""),
+          q(clip.imagePromptC4 || ""),
+          q(clip.imagePromptC5 || ""),
+          q(clip.attentionMood || ""),
+          q(clip.imagePromptD1 || ""),
+          q(clip.imagePromptD2 || ""),
+          q(clip.imagePromptD3 || ""),
+          q(clip.imagePromptD4 || ""),
+          q(clip.imagePromptD5 || ""),
+          q(clip.videoPrompt),
+          q(clip.soraVideoPrompt),
+          q(clip.veoVideoPrompt),
+          q(clip.pixAiPrompt || ""),
+          q(clip.dialogue),
+          q(clip.dialogueEn),
+          q(clip.narration || ""),
+          q(clip.narrationEn || ""),
+          q(clip.sfx),
+          q(clip.sfxEn),
+          q(clip.bgm),
+          q(clip.bgmEn),
         ];
         return row.join(",");
       })
@@ -435,12 +496,12 @@ export default function NsfwStoryboardGenerator() {
       if (characterIdSummary && characterIdSummary.length > 0) {
         extraRows.push("Character ID,Description");
         for (const char of characterIdSummary) {
-          extraRows.push(`"${char.characterId.replace(/"/g, '""')}","${char.description.replace(/"/g, '""')}"`);
+          extraRows.push(`${q(char.characterId)},${q(char.description)}`);
         }
       }
       if (genre) {
         extraRows.push("");
-        extraRows.push(`Genre,"${genre.replace(/"/g, '""')}"`);
+        extraRows.push(`Genre,${q(genre)}`);
       }
     }
 
@@ -620,23 +681,51 @@ export default function NsfwStoryboardGenerator() {
           clip: findIdx(["Clip", "클립", "번호"]),
           length: findIdx(["Length", "길이", "시간"]),
           accTime: findIdx(["Accumulated", "누적"]),
-          bgId: findIdx(["Background ID", "배경 ID"]),
-          bgPrompt: findIdx(["Background Prompt", "배경 프롬프트"]),
+          bgId: findIdx(["Background ID", "배경 ID", "BG ID"]),
+          bgPrompt: findIdx(["Background Prompt", "배경 프롬프트", "BG Prompt"]),
           story: findIdx(["Story", "스토리", "내용"]),
           imgStart: findIdx(["Image Prompt (Start)", "이미지 프롬프트 (Start)", "Image Prompt", "이미지 프롬프트"]),
           imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
+          attentionDevice: findIdx(["attention_device(A)", "attention_device (A)", "attention_device"]),
+          imgA1: findIdx(["Image Prompt A1"]),
+          imgA2: findIdx(["Image Prompt A2"]),
+          imgA3: findIdx(["Image Prompt A3"]),
+          imgA4: findIdx(["Image Prompt A4"]),
+          imgA5: findIdx(["Image Prompt A5"]),
+          attentionAction: findIdx(["attention_action(B)", "attention_action (B)", "attention_action"]),
+          imgB1: findIdx(["Image Prompt B1"]),
+          imgB2: findIdx(["Image Prompt B2"]),
+          imgB3: findIdx(["Image Prompt B3"]),
+          imgB4: findIdx(["Image Prompt B4"]),
+          imgB5: findIdx(["Image Prompt B5"]),
+          attentionExpression: findIdx(["attention_expression(C)", "attention_expression (C)", "attention_expression"]),
+          imgC1: findIdx(["Image Prompt C1"]),
+          imgC2: findIdx(["Image Prompt C2"]),
+          imgC3: findIdx(["Image Prompt C3"]),
+          imgC4: findIdx(["Image Prompt C4"]),
+          imgC5: findIdx(["Image Prompt C5"]),
+          attentionMood: findIdx(["attention_mood(D)", "attention_mood (D)", "attention_mood"]),
+          imgD1: findIdx(["Image Prompt D1"]),
+          imgD2: findIdx(["Image Prompt D2"]),
+          imgD3: findIdx(["Image Prompt D3"]),
+          imgD4: findIdx(["Image Prompt D4"]),
+          imgD5: findIdx(["Image Prompt D5"]),
           video: findIdx(["Video Prompt", "비디오 프롬프트"]),
           sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
           veo: findIdx(["Veo", "Veo Video Prompt"]),
+          pixai: findIdx(["PixAI Prompt"]),
           dialogue: findIdx(["Dialogue (Ko)", "대사 (Ko)", "대사"]),
           dialogueEn: findIdx(["Dialogue (En)", "대사 (En)"]),
           narration: findIdx(["Narration (Ko)", "나레이션 (Ko)", "나레이션"]),
           narrationEn: findIdx(["Narration (En)", "나레이션 (En)"]),
-          sfx: findIdx(["SFX (Ko)", "효과음 (Ko)", "효과음"]),
+          sfx: findIdx(["SFX (Ko)", "효과음 (Ko)", "효과음", "SFX"]),
           sfxEn: findIdx(["SFX (En)", "효과음 (En)"]),
-          bgm: findIdx(["BGM (Ko)", "배경음악 (Ko)", "배경음악"]),
+          bgm: findIdx(["BGM (Ko)", "배경음악 (Ko)", "배경음악", "BGM"]),
           bgmEn: findIdx(["BGM (En)", "배경음악 (En)"]),
         };
+
+        // Detect if this is the new A/B/C/D format
+        const hasAbcdFormat = idx.imgA1 !== -1;
 
         const parsedScenes: Scene[] = [];
         let currentScene: Scene | null = null;
@@ -659,12 +748,36 @@ export default function NsfwStoryboardGenerator() {
             backgroundId: getVal(idx.bgId),
             backgroundPrompt: getVal(idx.bgPrompt),
             story: getVal(idx.story),
-            imagePrompt: getVal(idx.imgStart),
+            imagePrompt: hasAbcdFormat ? getVal(idx.imgA1) : getVal(idx.imgStart),
             imagePromptEnd: getVal(idx.imgEnd) || undefined,
+            attentionDevice: getVal(idx.attentionDevice) || undefined,
+            imagePromptA1: getVal(idx.imgA1) || undefined,
+            imagePromptA2: getVal(idx.imgA2) || undefined,
+            imagePromptA3: getVal(idx.imgA3) || undefined,
+            imagePromptA4: getVal(idx.imgA4) || undefined,
+            imagePromptA5: getVal(idx.imgA5) || undefined,
+            attentionAction: getVal(idx.attentionAction) || undefined,
+            imagePromptB1: getVal(idx.imgB1) || undefined,
+            imagePromptB2: getVal(idx.imgB2) || undefined,
+            imagePromptB3: getVal(idx.imgB3) || undefined,
+            imagePromptB4: getVal(idx.imgB4) || undefined,
+            imagePromptB5: getVal(idx.imgB5) || undefined,
+            attentionExpression: getVal(idx.attentionExpression) || undefined,
+            imagePromptC1: getVal(idx.imgC1) || undefined,
+            imagePromptC2: getVal(idx.imgC2) || undefined,
+            imagePromptC3: getVal(idx.imgC3) || undefined,
+            imagePromptC4: getVal(idx.imgC4) || undefined,
+            imagePromptC5: getVal(idx.imgC5) || undefined,
+            attentionMood: getVal(idx.attentionMood) || undefined,
+            imagePromptD1: getVal(idx.imgD1) || undefined,
+            imagePromptD2: getVal(idx.imgD2) || undefined,
+            imagePromptD3: getVal(idx.imgD3) || undefined,
+            imagePromptD4: getVal(idx.imgD4) || undefined,
+            imagePromptD5: getVal(idx.imgD5) || undefined,
             videoPrompt: getVal(idx.video),
             soraVideoPrompt: getVal(idx.sora),
             veoVideoPrompt: getVal(idx.veo),
-            pixAiPrompt: "",
+            pixAiPrompt: getVal(idx.pixai),
             dialogue: getVal(idx.dialogue),
             dialogueEn: getVal(idx.dialogueEn),
             narration: getVal(idx.narration),

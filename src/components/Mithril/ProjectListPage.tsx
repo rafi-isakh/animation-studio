@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette, Copy } from 'lucide-react';
+import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette, Copy, BookText } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, copyProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles, copyAllProjectFiles } from './services/s3';
@@ -232,6 +232,13 @@ export default function ProjectListPage() {
         label: `Webtoon to Video${nsfwSuffix}`,
         icon: <Palette className="w-3 h-3" />,
         color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+      };
+    }
+    if (projectType === 'webnovel-trailer' || projectType === 'webnovel-trailer-nsfw') {
+      return {
+        label: `Webnovel Trailer${nsfwSuffix}`,
+        icon: <BookText className="w-3 h-3" />,
+        color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
       };
     }
     return {

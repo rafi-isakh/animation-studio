@@ -32,33 +32,6 @@ import { useBgOrchestrator, type AngleUpdate } from "./useBgOrchestrator";
 import { getActiveProjectBgJobs, mapBgJobToAngleUpdate } from "../services/firestore/jobQueue";
 import type { Background, BgSheetResultMetadata, ReferenceAnalysis } from "./types";
 
-// Auto pilot session persistence (localStorage)
-interface AutoPilotSession {
-  bgIds: string[];
-  currentIndex: number;
-  startedAt: number;
-}
-const autoPilotStorageKey = (projectId: string) => `mithril:autopilot:${projectId}`;
-const AUTOPILOT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 h
-function readAutoPilotSession(projectId: string): AutoPilotSession | null {
-  try {
-    const raw = localStorage.getItem(autoPilotStorageKey(projectId));
-    if (!raw) return null;
-    const s: AutoPilotSession = JSON.parse(raw);
-    if (Date.now() - s.startedAt > AUTOPILOT_MAX_AGE_MS) {
-      localStorage.removeItem(autoPilotStorageKey(projectId));
-      return null;
-    }
-    return s;
-  } catch { return null; }
-}
-function writeAutoPilotSession(projectId: string, s: AutoPilotSession) {
-  try { localStorage.setItem(autoPilotStorageKey(projectId), JSON.stringify(s)); } catch {}
-}
-function clearAutoPilotSession(projectId: string) {
-  try { localStorage.removeItem(autoPilotStorageKey(projectId)); } catch {}
-}
-
 // 9 specialized camera angles matching storyboard production workflow
 const BACKGROUND_ANGLES = [
   "Front View",
@@ -225,7 +198,6 @@ const downloadImageFromUrl = async (url: string, filename: string): Promise<void
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
 };
 
 // === Phase 7: Import/Export Utilities ===
@@ -472,7 +444,6 @@ export default function BgSheetGenerator() {
   // Auto pilot state
   const [isAutoPiloting, setIsAutoPiloting] = useState(false);
   const autoPilotAbortRef = useRef(false);
-  const hasCheckedResumeRef = useRef(false);
 
   // Sequential generation stop control (per background)
   const stopGenerationRef = useRef<Record<string, boolean>>({});
@@ -662,14 +633,6 @@ export default function BgSheetGenerator() {
     };
   }, []);
 
-  // Cleanup: stop auto pilot loop on unmount WITHOUT clearing the localStorage session
-  // (so it can be resumed when the component remounts)
-  useEffect(() => {
-    return () => {
-      autoPilotAbortRef.current = true;
-    };
-  }, []);
-
   // Keep refs in sync with state for use in async callbacks
   useEffect(() => {
     styleKeywordRef.current = styleKeyword;
@@ -784,39 +747,6 @@ export default function BgSheetGenerator() {
 
     hydrateFromContext();
   }, [contextResult, currentProjectId]);
-
-  // Resume auto pilot if a session was in progress before navigation
-  useEffect(() => {
-    if (isLoadingData || backgrounds.length === 0 || !currentProjectId) return;
-    if (isAutoPiloting) return;
-    if (hasCheckedResumeRef.current) return;
-
-    const session = readAutoPilotSession(currentProjectId);
-    if (!session) {
-      hasCheckedResumeRef.current = true;
-      return;
-    }
-
-    if (session.currentIndex >= session.bgIds.length) {
-      clearAutoPilotSession(currentProjectId);
-      hasCheckedResumeRef.current = true;
-      return;
-    }
-
-    // Wait for backgrounds to have reference data before resuming.
-    // Don't mark as checked yet — retry when backgrounds update.
-    const eligible = backgrounds.filter(
-      bg => bg.referenceImageBase64 || bg.referenceImageUrl
-    );
-    if (eligible.length === 0) return;
-
-    hasCheckedResumeRef.current = true;
-    toast({
-      title: "Auto Pilot resuming",
-      description: `Continuing from background ${session.currentIndex + 1} of ${session.bgIds.length}…`,
-    });
-    handleAutoPilot(session);
-  }, [isLoadingData, backgrounds, currentProjectId, isAutoPiloting]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -1817,38 +1747,6 @@ export default function BgSheetGenerator() {
     setIsSaved(false);
   };
 
-  // Clear all generated images in a single panel
-  const handleClearPanelImages = async (bgId: string) => {
-    const bg = backgrounds.find(b => b.id === bgId);
-    const imagesWithUrls = bg?.images.filter(img => img.imageUrl) ?? [];
-
-    setBackgrounds(prev => prev.map(b =>
-      b.id !== bgId ? b : {
-        ...b,
-        images: b.images.map(img => ({
-          ...img,
-          imageBase64: "",
-          imageUrl: undefined,
-          isGenerating: false,
-          isFinalized: false,
-        }))
-      }
-    ));
-    setIsSaved(false);
-
-    if (currentProjectId && imagesWithUrls.length > 0) {
-      try {
-        await Promise.all(
-          imagesWithUrls.map(img => deleteBackgroundImage(currentProjectId, bgId, img.angle))
-        );
-        await clearBackgroundAngles(currentProjectId, bgId);
-        setIsSaved(true);
-      } catch (error) {
-        console.error("Failed to delete panel images from storage:", error);
-      }
-    }
-  };
-
   // Clear planned prompts
   const handleClearPlannedPrompts = (bgId: string) => {
     setBackgrounds(bgs => bgs.map(bg =>
@@ -1860,7 +1758,7 @@ export default function BgSheetGenerator() {
   // Apply planned prompts to all image cards (Plan Text button)
   // Also opens the prompt textbox for each card
   const handleApplyPlannedPrompts = (bgId: string) => {
-    const background = backgrounds.find(b => b.id === bgId);
+    const background = backgroundsRef.current.find(b => b.id === bgId);
     if (!background || !background.plannedPrompts) return;
 
     setBackgrounds(bgs => bgs.map(bg => {
@@ -1901,7 +1799,7 @@ export default function BgSheetGenerator() {
   };
 
   // Auto pilot: plan prompts → apply → generate for each eligible background
-  const handleAutoPilot = async (resumeFromSession?: AutoPilotSession) => {
+  const handleAutoPilot = async () => {
     const eligibleBgs = backgrounds.filter(
       bg => bg.referenceImageBase64 || bg.referenceImageUrl
     );
@@ -1914,31 +1812,11 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    const startIndex = resumeFromSession?.currentIndex ?? 0;
-
-    if (currentProjectId) {
-      writeAutoPilotSession(currentProjectId, {
-        bgIds: eligibleBgs.map(bg => bg.id),
-        currentIndex: startIndex,
-        startedAt: resumeFromSession?.startedAt ?? Date.now(),
-      });
-    }
-
     setIsAutoPiloting(true);
     autoPilotAbortRef.current = false;
 
-    for (let i = startIndex; i < eligibleBgs.length; i++) {
-      const bg = eligibleBgs[i];
+    for (const bg of eligibleBgs) {
       if (autoPilotAbortRef.current) break;
-
-      // Persist progress before any async work so navigation mid-step resumes here
-      if (currentProjectId) {
-        writeAutoPilotSession(currentProjectId, {
-          bgIds: eligibleBgs.map(b => b.id),
-          currentIndex: i,
-          startedAt: resumeFromSession?.startedAt ?? Date.now(),
-        });
-      }
 
       // Step 1: Plan prompts (skip if already planned)
       if (!bg.plannedPrompts || bg.plannedPrompts.length === 0) {
@@ -1959,8 +1837,6 @@ export default function BgSheetGenerator() {
       await handleGenerateBackgroundsSequential(bg.id);
     }
 
-    // Only clear the session if the loop completed naturally (not aborted by unmount or cancel)
-    if (!autoPilotAbortRef.current && currentProjectId) clearAutoPilotSession(currentProjectId);
     if (!autoPilotAbortRef.current) setIsAutoPiloting(false);
   };
 
@@ -1971,7 +1847,38 @@ export default function BgSheetGenerator() {
     backgrounds.forEach(bg => {
       stopGenerationRef.current[bg.id] = true;
     });
-    if (currentProjectId) clearAutoPilotSession(currentProjectId);
+  };
+
+  // Clear all generated images in a single panel
+  const handleClearPanelImages = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+    const imagesWithUrls = bg?.images.filter(img => img.imageUrl) ?? [];
+
+    setBackgrounds(prev => prev.map(b =>
+      b.id !== bgId ? b : {
+        ...b,
+        images: b.images.map(img => ({
+          ...img,
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isFinalized: false,
+        }))
+      }
+    ));
+    setIsSaved(false);
+
+    if (currentProjectId && imagesWithUrls.length > 0) {
+      try {
+        await Promise.all(
+          imagesWithUrls.map(img => deleteBackgroundImage(currentProjectId, bgId, img.angle))
+        );
+        await clearBackgroundAngles(currentProjectId, bgId);
+        setIsSaved(true);
+      } catch (error) {
+        console.error("Failed to delete panel images from storage:", error);
+      }
+    }
   };
 
   const handleCancelImageGeneration = async (bgId: string, angle: string) => {
@@ -2123,7 +2030,7 @@ export default function BgSheetGenerator() {
 
   // Generate a single view image
   const handleGenerateSingleView = async (bgId: string, index: number, forceRegenerate: boolean = false) => {
-    const background = backgrounds.find(b => b.id === bgId);
+    const background = backgroundsRef.current.find(b => b.id === bgId);
     if (!background || !background.images || index >= background.images.length) return;
 
     const imageInfo = background.images[index];
@@ -3139,7 +3046,7 @@ export default function BgSheetGenerator() {
                 </button>
               ) : (
                 <button
-                  onClick={() => handleAutoPilot()}
+                  onClick={handleAutoPilot}
                   className="flex items-center gap-2 px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors text-sm"
                 >
                   <span>▶</span>
@@ -3516,7 +3423,7 @@ export default function BgSheetGenerator() {
                                   {(img.imageBase64 || img.imageUrl) && (
                                     <button
                                       onClick={() => {
-                                        const filename = `${bg.name}.jpg`;
+                                        const filename = `${bg.name}_${img.angle}.jpg`;
                                         if (img.imageBase64) {
                                           downloadImage(img.imageBase64, filename);
                                         } else if (img.imageUrl) {

@@ -8,6 +8,8 @@ export type ProjectType =
   | 'manga-to-video-nsfw'
   | 'webtoon-to-video'
   | 'webtoon-to-video-nsfw'
+  | 'webnovel-trailer'
+  | 'webnovel-trailer-nsfw'
   | 'image-to-video';              // legacy — kept for backward compatibility only
 
 // Which underlying pipeline a project type uses
@@ -122,6 +124,18 @@ const IMAGE_TO_VIDEO_WEBTOON_STAGES: StageDefinition[] = [
   { id: 5, key: 'csv-video-gen',   labelKey: 'mithril_i2v_stage5',  component: 'CsvVideoGenerator' },
 ];
 
+// Stage configurations for Webnovel Trailer pipeline
+const WEBNOVEL_TRAILER_STAGES: StageDefinition[] = [
+  { id: 1, key: 'id-converter',    labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
+  { id: 2, key: 'story-splitter',  labelKey: 'mithril_stage2',             component: 'StorySplitter' },
+  { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3',             component: 'CharacterSheetGenerator', visibility: 'tool' },
+  { id: 4, key: 'storyboard',      labelKey: 'mithril_stage4',             component: 'WebnovelTrailerStoryboardGenerator' },
+  { id: 5, key: 'prop-designer',   labelKey: 'mithril_stage5_prop',        component: 'PropDesigner' },
+  { id: 6, key: 'bg-sheet',        labelKey: 'mithril_stage5',             component: 'WebnovelTrailerBgSheetGenerator' },
+  { id: 7, key: 'image-gen',       labelKey: 'mithril_stage6',             component: 'WebnovelTrailerImageGenerator' },
+  { id: 8, key: 'video-gen',       labelKey: 'mithril_stage7',             component: 'WebnovelTrailer' },
+];
+
 // Project type configurations
 export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
   'text-to-video': {
@@ -194,6 +208,24 @@ export const PROJECT_TYPE_CONFIGS: Record<ProjectType, ProjectTypeConfig> = {
     icon: 'Palette',
     stages: IMAGE_TO_VIDEO_WEBTOON_NSFW_STAGES,
     pipeline: 'image-to-video',
+    isNsfw: true,
+  },
+  'webnovel-trailer': {
+    type: 'webnovel-trailer',
+    labelKey: 'project_type_webnovel_trailer',
+    descriptionKey: 'project_type_webnovel_trailer_desc',
+    icon: 'BookText',
+    stages: WEBNOVEL_TRAILER_STAGES,
+    pipeline: 'text-to-video',
+    isNsfw: false,
+  },
+  'webnovel-trailer-nsfw': {
+    type: 'webnovel-trailer-nsfw',
+    labelKey: 'project_type_webnovel_trailer_nsfw',
+    descriptionKey: 'project_type_webnovel_trailer_nsfw_desc',
+    icon: 'BookText',
+    stages: WEBNOVEL_TRAILER_STAGES,
+    pipeline: 'text-to-video',
     isNsfw: true,
   },
   // Legacy type — kept so existing projects load correctly; not shown in creation UI

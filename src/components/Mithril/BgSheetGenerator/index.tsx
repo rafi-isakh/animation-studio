@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet } from "../services/firestore";
-import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage } from "../services/s3";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles } from "../services/firestore";
+import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage, deleteBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -1818,11 +1818,14 @@ export default function BgSheetGenerator() {
   };
 
   // Clear all generated images in a single panel
-  const handleClearPanelImages = (bgId: string) => {
-    setBackgrounds(prev => prev.map(bg =>
-      bg.id !== bgId ? bg : {
-        ...bg,
-        images: bg.images.map(img => ({
+  const handleClearPanelImages = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+    const imagesWithUrls = bg?.images.filter(img => img.imageUrl) ?? [];
+
+    setBackgrounds(prev => prev.map(b =>
+      b.id !== bgId ? b : {
+        ...b,
+        images: b.images.map(img => ({
           ...img,
           imageBase64: "",
           imageUrl: undefined,
@@ -1832,6 +1835,18 @@ export default function BgSheetGenerator() {
       }
     ));
     setIsSaved(false);
+
+    if (currentProjectId && imagesWithUrls.length > 0) {
+      try {
+        await Promise.all(
+          imagesWithUrls.map(img => deleteBackgroundImage(currentProjectId, bgId, img.angle))
+        );
+        await clearBackgroundAngles(currentProjectId, bgId);
+        setIsSaved(true);
+      } catch (error) {
+        console.error("Failed to delete panel images from storage:", error);
+      }
+    }
   };
 
   // Clear planned prompts

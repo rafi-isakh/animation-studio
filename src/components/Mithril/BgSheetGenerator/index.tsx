@@ -1946,11 +1946,16 @@ export default function BgSheetGenerator() {
 
     // Only clear the session if the loop completed naturally (not aborted by unmount or cancel)
     if (!autoPilotAbortRef.current && currentProjectId) clearAutoPilotSession(currentProjectId);
-    setIsAutoPiloting(false);
+    if (!autoPilotAbortRef.current) setIsAutoPiloting(false);
   };
 
   const handleCancelAutoPilot = () => {
     autoPilotAbortRef.current = true;
+    setIsAutoPiloting(false);
+    // Also stop any in-progress sequential generation triggered by auto-pilot
+    backgrounds.forEach(bg => {
+      stopGenerationRef.current[bg.id] = true;
+    });
     if (currentProjectId) clearAutoPilotSession(currentProjectId);
   };
 

@@ -1837,11 +1837,16 @@ export default function BgSheetGenerator() {
       await handleGenerateBackgroundsSequential(bg.id);
     }
 
-    setIsAutoPiloting(false);
+    if (!autoPilotAbortRef.current) setIsAutoPiloting(false);
   };
 
   const handleCancelAutoPilot = () => {
     autoPilotAbortRef.current = true;
+    setIsAutoPiloting(false);
+    // Also stop any in-progress sequential generation triggered by auto-pilot
+    backgrounds.forEach(bg => {
+      stopGenerationRef.current[bg.id] = true;
+    });
   };
 
   // Clear all generated images in a single panel

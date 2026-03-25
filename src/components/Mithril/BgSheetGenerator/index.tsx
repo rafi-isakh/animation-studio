@@ -23,6 +23,7 @@ import {
   FileUp,
   Package,
   FileJson,
+  Shuffle,
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -30,6 +31,33 @@ import BgSheetImageEditor from "./BgSheetImageEditor";
 import { useBgOrchestrator, type AngleUpdate } from "./useBgOrchestrator";
 import { getActiveProjectBgJobs, mapBgJobToAngleUpdate } from "../services/firestore/jobQueue";
 import type { Background, BgSheetResultMetadata, ReferenceAnalysis } from "./types";
+
+// Auto pilot session persistence (localStorage)
+interface AutoPilotSession {
+  bgIds: string[];
+  currentIndex: number;
+  startedAt: number;
+}
+const autoPilotStorageKey = (projectId: string) => `mithril:autopilot:${projectId}`;
+const AUTOPILOT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 h
+function readAutoPilotSession(projectId: string): AutoPilotSession | null {
+  try {
+    const raw = localStorage.getItem(autoPilotStorageKey(projectId));
+    if (!raw) return null;
+    const s: AutoPilotSession = JSON.parse(raw);
+    if (Date.now() - s.startedAt > AUTOPILOT_MAX_AGE_MS) {
+      localStorage.removeItem(autoPilotStorageKey(projectId));
+      return null;
+    }
+    return s;
+  } catch { return null; }
+}
+function writeAutoPilotSession(projectId: string, s: AutoPilotSession) {
+  try { localStorage.setItem(autoPilotStorageKey(projectId), JSON.stringify(s)); } catch {}
+}
+function clearAutoPilotSession(projectId: string) {
+  try { localStorage.removeItem(autoPilotStorageKey(projectId)); } catch {}
+}
 
 // 9 specialized camera angles matching storyboard production workflow
 const BACKGROUND_ANGLES = [
@@ -89,14 +117,23 @@ const angleToDetailedPrompt: Record<string, string> = {
 interface LoaderProps {
   dictionary: Dictionary;
   language: Language;
+  onCancel?: () => void;
 }
 
-const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
+const Loader: React.FC<LoaderProps> = ({ dictionary, language, onCancel }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
       {phrase(dictionary, "bgsheet_ai_analyzing", language)}
     </p>
+    {onCancel && (
+      <button
+        onClick={onCancel}
+        className="mt-2 px-4 py-1.5 text-sm rounded-lg border border-[#272727] bg-[#211F21] text-gray-400 hover:text-[#E8E8E8] hover:border-[#DB2777] transition-colors"
+      >
+        Cancel
+      </button>
+    )}
   </div>
 );
 
@@ -381,7 +418,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -425,8 +462,17 @@ export default function BgSheetGenerator() {
   // Master reference generation state (per background)
   const [isGeneratingMaster, setIsGeneratingMaster] = useState<Record<string, boolean>>({});
 
+  // Master reference remix state (per background)
+  const [isRemixingMaster, setIsRemixingMaster] = useState<Record<string, boolean>>({});
+  const [remixPrompts, setRemixPrompts] = useState<Record<string, string>>({});
+
   // Batch prompt planning state (per background)
   const [isPlanningPrompts, setIsPlanningPrompts] = useState<Record<string, boolean>>({});
+
+  // Auto pilot state
+  const [isAutoPiloting, setIsAutoPiloting] = useState(false);
+  const autoPilotAbortRef = useRef(false);
+  const hasCheckedResumeRef = useRef(false);
 
   // Sequential generation stop control (per background)
   const stopGenerationRef = useRef<Record<string, boolean>>({});
@@ -610,6 +656,14 @@ export default function BgSheetGenerator() {
     };
   }, []);
 
+  // Cleanup: stop auto pilot loop on unmount WITHOUT clearing the localStorage session
+  // (so it can be resumed when the component remounts)
+  useEffect(() => {
+    return () => {
+      autoPilotAbortRef.current = true;
+    };
+  }, []);
+
   // Keep refs in sync with state for use in async callbacks
   useEffect(() => {
     styleKeywordRef.current = styleKeyword;
@@ -724,6 +778,39 @@ export default function BgSheetGenerator() {
 
     hydrateFromContext();
   }, [contextResult, currentProjectId]);
+
+  // Resume auto pilot if a session was in progress before navigation
+  useEffect(() => {
+    if (isLoadingData || backgrounds.length === 0 || !currentProjectId) return;
+    if (isAutoPiloting) return;
+    if (hasCheckedResumeRef.current) return;
+
+    const session = readAutoPilotSession(currentProjectId);
+    if (!session) {
+      hasCheckedResumeRef.current = true;
+      return;
+    }
+
+    if (session.currentIndex >= session.bgIds.length) {
+      clearAutoPilotSession(currentProjectId);
+      hasCheckedResumeRef.current = true;
+      return;
+    }
+
+    // Wait for backgrounds to have reference data before resuming.
+    // Don't mark as checked yet — retry when backgrounds update.
+    const eligible = backgrounds.filter(
+      bg => bg.referenceImageBase64 || bg.referenceImageUrl
+    );
+    if (eligible.length === 0) return;
+
+    hasCheckedResumeRef.current = true;
+    toast({
+      title: "Auto Pilot resuming",
+      description: `Continuing from background ${session.currentIndex + 1} of ${session.bgIds.length}…`,
+    });
+    handleAutoPilot(session);
+  }, [isLoadingData, backgrounds, currentProjectId, isAutoPiloting]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -1455,6 +1542,73 @@ export default function BgSheetGenerator() {
     }
   };
 
+  // Remix master reference image via Gemini (image-to-image variation)
+  const handleRemixMasterRef = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+    if (!bg || isRemixingMaster[bgId]) return;
+
+    // Get reference image base64
+    let refBase64 = bg.referenceImageBase64;
+    if (!refBase64 && bg.referenceImageUrl) {
+      try {
+        const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(bg.referenceImageUrl.split("?")[0])}`;
+        const imageResponse = await fetch(proxyUrl);
+        if (imageResponse.ok) {
+          const blob = await imageResponse.blob();
+          refBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          setBackgrounds(bgs => bgs.map(b => b.id === bgId ? { ...b, referenceImageBase64: refBase64 } : b));
+        }
+      } catch (e) {
+        console.error("Failed to fetch reference image for remix:", e);
+      }
+    }
+
+    if (!refBase64) {
+      toast({ variant: "destructive", title: "No reference image to remix" });
+      return;
+    }
+
+    setIsRemixingMaster(prev => ({ ...prev, [bgId]: true }));
+
+    try {
+      const userInstruction = remixPrompts[bgId]?.trim();
+      const prompt = userInstruction
+        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`
+        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+
+      const response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referenceImageBase64: refBase64, prompt, customApiKey: customApiKey || undefined }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      await handleSetReferenceImage(bgId, data.imageBase64);
+
+      toast({
+        variant: "success",
+        title: "Reference Remixed",
+        description: bg.name,
+      });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_toast_image_failed", language),
+        description: errorMessage,
+      });
+    } finally {
+      setIsRemixingMaster(prev => ({ ...prev, [bgId]: false }));
+    }
+  };
+
   // Remove reference image (also deletes from S3 and Firestore)
   const handleRemoveReference = async (bgId: string) => {
     const bg = backgrounds.find(b => b.id === bgId);
@@ -1657,6 +1811,23 @@ export default function BgSheetGenerator() {
     setIsSaved(false);
   };
 
+  // Clear all generated images in a single panel
+  const handleClearPanelImages = (bgId: string) => {
+    setBackgrounds(prev => prev.map(bg =>
+      bg.id !== bgId ? bg : {
+        ...bg,
+        images: bg.images.map(img => ({
+          ...img,
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isFinalized: false,
+        }))
+      }
+    ));
+    setIsSaved(false);
+  };
+
   // Clear planned prompts
   const handleClearPlannedPrompts = (bgId: string) => {
     setBackgrounds(bgs => bgs.map(bg =>
@@ -1706,6 +1877,95 @@ export default function BgSheetGenerator() {
       title: phrase(dictionary, "bgsheet_prompts_applied", language) || "Prompts Applied",
       description: phrase(dictionary, "bgsheet_planned_prompts_copied", language) || "Planned prompts copied to all image cards",
     });
+  };
+
+  // Auto pilot: plan prompts → apply → generate for each eligible background
+  const handleAutoPilot = async (resumeFromSession?: AutoPilotSession) => {
+    const eligibleBgs = backgrounds.filter(
+      bg => bg.referenceImageBase64 || bg.referenceImageUrl
+    );
+    if (eligibleBgs.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No reference images found",
+        description: "Add a reference image to at least one background first.",
+      });
+      return;
+    }
+
+    const startIndex = resumeFromSession?.currentIndex ?? 0;
+
+    if (currentProjectId) {
+      writeAutoPilotSession(currentProjectId, {
+        bgIds: eligibleBgs.map(bg => bg.id),
+        currentIndex: startIndex,
+        startedAt: resumeFromSession?.startedAt ?? Date.now(),
+      });
+    }
+
+    setIsAutoPiloting(true);
+    autoPilotAbortRef.current = false;
+
+    for (let i = startIndex; i < eligibleBgs.length; i++) {
+      const bg = eligibleBgs[i];
+      if (autoPilotAbortRef.current) break;
+
+      // Persist progress before any async work so navigation mid-step resumes here
+      if (currentProjectId) {
+        writeAutoPilotSession(currentProjectId, {
+          bgIds: eligibleBgs.map(b => b.id),
+          currentIndex: i,
+          startedAt: resumeFromSession?.startedAt ?? Date.now(),
+        });
+      }
+
+      // Step 1: Plan prompts (skip if already planned)
+      if (!bg.plannedPrompts || bg.plannedPrompts.length === 0) {
+        await handlePlanPrompts(bg.id);
+      }
+
+      if (autoPilotAbortRef.current) break;
+
+      // Step 2: Apply planned prompts using fresh state from ref
+      const freshBg = backgroundsRef.current.find(b => b.id === bg.id);
+      if (freshBg?.plannedPrompts && freshBg.plannedPrompts.length > 0) {
+        handleApplyPlannedPrompts(bg.id);
+      }
+
+      if (autoPilotAbortRef.current) break;
+
+      // Step 3: Generate all views
+      await handleGenerateBackgroundsSequential(bg.id);
+    }
+
+    // Only clear the session if the loop completed naturally (not aborted by unmount or cancel)
+    if (!autoPilotAbortRef.current && currentProjectId) clearAutoPilotSession(currentProjectId);
+    setIsAutoPiloting(false);
+  };
+
+  const handleCancelAutoPilot = () => {
+    autoPilotAbortRef.current = true;
+    if (currentProjectId) clearAutoPilotSession(currentProjectId);
+  };
+
+  const handleCancelImageGeneration = async (bgId: string, angle: string) => {
+    const angleKey = `${bgId}-${angle}`;
+    const jobId = activeJobsRef.current.get(angleKey);
+    if (jobId) {
+      try {
+        await cancelBgJob({ jobId });
+      } catch (e) {
+        console.warn("[BgSheet] Failed to cancel job:", e);
+      }
+      activeJobsRef.current.delete(angleKey);
+    }
+    setBackgrounds(prevBgs =>
+      prevBgs.map(bg =>
+        bg.id === bgId
+          ? { ...bg, images: bg.images.map(img => img.angle === angle ? { ...img, isGenerating: false } : img) }
+          : bg
+      )
+    );
   };
 
   // Toggle prompt textbox visibility for an image card
@@ -2782,7 +3042,7 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Loader */}
-      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} />}
+      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} onCancel={cancelBgSheetAnalysis} />}
 
       {/* Results */}
       {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
@@ -2825,6 +3085,24 @@ export default function BgSheetGenerator() {
                 <Sparkles className="w-4 h-4" />
                 <span>{phrase(dictionary, "bgsheet_generate_all", language)}</span>
               </button>
+              {isAutoPiloting ? (
+                <button
+                  onClick={handleCancelAutoPilot}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#211F21] border border-[#272727] text-[#E8E8E8] font-medium rounded-lg transition-colors text-sm hover:bg-[#272727]"
+                >
+                  <span className="animate-pulse text-[#DB2777]">●</span>
+                  <span>Auto Pilot</span>
+                  <span className="text-gray-500 text-xs">Cancel</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleAutoPilot()}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors text-sm"
+                >
+                  <span>▶</span>
+                  <span>Auto Pilot</span>
+                </button>
+              )}
               <button
                 onClick={() => exportToCSV(backgrounds)}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
@@ -2866,7 +3144,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {backgrounds.map((bg) => (
+            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"
@@ -2913,6 +3191,15 @@ export default function BgSheetGenerator() {
                             className="w-full h-full object-cover"
                           />
                         </div>
+                        {/* Remix prompt input */}
+                        <input
+                          type="text"
+                          value={remixPrompts[bg.id] || ""}
+                          onChange={(e) => setRemixPrompts(prev => ({ ...prev, [bg.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleRemixMasterRef(bg.id); }}
+                          placeholder="Remix instruction (e.g. make it night time)…"
+                          className="w-full px-2 py-1.5 text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        />
                         {/* Replace reference buttons */}
                         <div className="flex gap-2">
                           <label className="flex-1 cursor-pointer">
@@ -2930,8 +3217,21 @@ export default function BgSheetGenerator() {
                             />
                           </label>
                           <button
+                            onClick={() => handleRemixMasterRef(bg.id)}
+                            disabled={isRemixingMaster[bg.id] || isGeneratingMaster[bg.id]}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 rounded-lg border border-purple-500/20 transition-colors disabled:opacity-50"
+                            title="Remix reference with Gemini"
+                          >
+                            {isRemixingMaster[bg.id] ? (
+                              <div className="w-3 h-3 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                            ) : (
+                              <Shuffle className="w-3 h-3" />
+                            )}
+                            <span className="text-xs">Remix</span>
+                          </button>
+                          <button
                             onClick={() => handleGenerateMasterRef(bg.id)}
-                            disabled={isGeneratingMaster[bg.id]}
+                            disabled={isGeneratingMaster[bg.id] || isRemixingMaster[bg.id]}
                             className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[#DB2777]/10 hover:bg-[#DB2777]/20 text-[#DB2777] rounded-lg border border-[#DB2777]/20 transition-colors disabled:opacity-50"
                           >
                             {isGeneratingMaster[bg.id] ? (
@@ -3093,6 +3393,16 @@ export default function BgSheetGenerator() {
                         {phrase(dictionary, "bgsheet_plan_text", language) || "Plan Text"}
                       </button>
                     )}
+                    {/* Clear Images Button */}
+                    {bg.images.some(img => img.imageBase64 || img.imageUrl) && (
+                      <button
+                        onClick={() => handleClearPanelImages(bg.id)}
+                        className="text-xs bg-gray-500/10 text-gray-400 px-3 py-1 rounded-full border border-gray-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
+                        title="Clear all generated images in this panel"
+                      >
+                        Clear Images
+                      </button>
+                    )}
                     {/* Sequential Render / Stop Button */}
                     {bg.isSequentiallyGenerating ? (
                       <button
@@ -3201,6 +3511,12 @@ export default function BgSheetGenerator() {
                                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm">
                                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
                                   <span className="mt-2 text-xs text-white">{phrase(dictionary, "bgsheet_generating", language)}</span>
+                                  <button
+                                    onClick={() => handleCancelImageGeneration(bg.id, img.angle)}
+                                    className="mt-2 px-3 py-1 text-xs rounded border border-white/30 text-white/70 hover:text-white hover:border-white/60 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               )}
                             </>
@@ -3208,6 +3524,12 @@ export default function BgSheetGenerator() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
                               <span className="mt-2 text-xs text-gray-400">{phrase(dictionary, "bgsheet_generating", language)}</span>
+                              <button
+                                onClick={() => handleCancelImageGeneration(bg.id, img.angle)}
+                                className="mt-2 px-3 py-1 text-xs rounded border border-[#272727] bg-[#211F21] text-gray-400 hover:text-[#E8E8E8] hover:border-[#DB2777] transition-colors"
+                              >
+                                Cancel
+                              </button>
                             </div>
                           ) : (
                             <button

@@ -189,6 +189,17 @@ const downloadImage = (base64: string, filename: string): void => {
   document.body.removeChild(link);
 };
 
+const downloadImageFromUrl = async (url: string, filename: string): Promise<void> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 // === Phase 7: Import/Export Utilities ===
 
 // CSV Import data structure - one view per CSV row (storyboard style)
@@ -446,6 +457,8 @@ export default function BgSheetGenerator() {
 
   // Track active jobs: Map<`${bgId}-${angle}`, jobId>
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+  // Resolvers for awaiting job completion in the concurrency-limited loop
+  const jobCompletionResolversRef = useRef<Map<string, () => void>>(new Map());
   const isMountedRef = useRef(true);
   // Mirror backgrounds state for use in callbacks without stale closures
   const backgroundsRef = useRef<Background[]>([]);
@@ -497,6 +510,22 @@ export default function BgSheetGenerator() {
 
       updatedBgs[bgIndex] = { ...bg, images: updatedImages };
 
+      // Persist to Firestore when job completes so hard refresh loads images correctly
+      if (update.status === "completed" && hasNewImageUrl && currentProjectId) {
+        const baseUrl = update.imageUrl!.split('?')[0];
+        const bgData = backgroundsRef.current.find(b => b.id === update.bgId);
+        const imgData = bgData?.images.find(i => i.angle === update.angle);
+        updateBackgroundAngleImage(
+          currentProjectId,
+          update.bgId,
+          update.angle,
+          baseUrl,
+          imgData?.prompt || "",
+          update.bgName,
+          bgData?.description,
+        ).catch(console.error);
+      }
+
       // Sync to MithrilContext when job completes successfully (so navigation preserves new image)
       if (update.status === "completed" && hasNewImageUrl) {
         const metadata: BgSheetResultMetadata = {
@@ -526,6 +555,8 @@ export default function BgSheetGenerator() {
     // Cleanup on completion/failure (no success toast to avoid noise with batch generation)
     if (update.status === "completed" && isTrackedJob) {
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     } else if (update.status === "failed" && isTrackedJob) {
       toast({
         variant: "destructive",
@@ -533,8 +564,10 @@ export default function BgSheetGenerator() {
         description: `${update.bgName} - ${update.angle}: ${update.error || "Unknown error"}`,
       });
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
-  }, [toast, setBgSheetResult, setStageResult]);
+  }, [toast, setBgSheetResult, setStageResult, currentProjectId]);
 
   // Initialize orchestrator hook
   const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob, pendingUpdates: bgPendingUpdates, clearPendingUpdates: clearBgPendingUpdates } = useBgOrchestrator({
@@ -1725,7 +1758,7 @@ export default function BgSheetGenerator() {
   // Apply planned prompts to all image cards (Plan Text button)
   // Also opens the prompt textbox for each card
   const handleApplyPlannedPrompts = (bgId: string) => {
-    const background = backgrounds.find(b => b.id === bgId);
+    const background = backgroundsRef.current.find(b => b.id === bgId);
     if (!background || !background.plannedPrompts) return;
 
     setBackgrounds(bgs => bgs.map(bg => {
@@ -1801,7 +1834,7 @@ export default function BgSheetGenerator() {
       if (autoPilotAbortRef.current) break;
 
       // Step 3: Generate all views
-      await handleGenerateBackgroundSheet(bg.id);
+      await handleGenerateBackgroundsSequential(bg.id);
     }
 
     setIsAutoPiloting(false);
@@ -1809,6 +1842,23 @@ export default function BgSheetGenerator() {
 
   const handleCancelAutoPilot = () => {
     autoPilotAbortRef.current = true;
+  };
+
+  // Clear all generated images in a single panel
+  const handleClearPanelImages = (bgId: string) => {
+    setBackgrounds(prev => prev.map(bg =>
+      bg.id !== bgId ? bg : {
+        ...bg,
+        images: bg.images.map(img => ({
+          ...img,
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isFinalized: false,
+        }))
+      }
+    ));
+    setIsSaved(false);
   };
 
   const handleCancelImageGeneration = async (bgId: string, angle: string) => {
@@ -1960,7 +2010,7 @@ export default function BgSheetGenerator() {
 
   // Generate a single view image
   const handleGenerateSingleView = async (bgId: string, index: number, forceRegenerate: boolean = false) => {
-    const background = backgrounds.find(b => b.id === bgId);
+    const background = backgroundsRef.current.find(b => b.id === bgId);
     if (!background || !background.images || index >= background.images.length) return;
 
     const imageInfo = background.images[index];
@@ -2240,15 +2290,32 @@ export default function BgSheetGenerator() {
       }
     });
 
-    // Generate images one by one
+    // Generate images with max 3 concurrent in-flight jobs
+    const MAX_CONCURRENT = 3;
+    const inFlight = new Set<Promise<void>>();
+
     for (const idx of indicesToGenerate) {
-      // Check if stop was requested
-      if (stopGenerationRef.current[bgId]) {
-        break;
+      if (stopGenerationRef.current[bgId]) break;
+
+      // Wait until a slot is free
+      while (inFlight.size >= MAX_CONCURRENT) {
+        await Promise.race(inFlight);
       }
 
-      await handleGenerateSingleView(bgId, idx);
+      // Create a completion promise bridged from the Firestore callback
+      const imageInfo = backgroundsRef.current.find(b => b.id === bgId)?.images[idx];
+      if (!imageInfo) continue;
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      const p: Promise<void> = new Promise<void>((resolve) => {
+        jobCompletionResolversRef.current.set(angleKey, resolve);
+        handleGenerateSingleView(bgId, idx);
+      });
+      inFlight.add(p);
+      p.finally(() => inFlight.delete(p));
     }
+
+    // Wait for remaining in-flight jobs to complete
+    await Promise.all(inFlight);
 
     // Clear sequential generation state
     setBackgrounds(prev => prev.map(b =>
@@ -3256,6 +3323,16 @@ export default function BgSheetGenerator() {
                         {phrase(dictionary, "bgsheet_plan_text", language) || "Plan Text"}
                       </button>
                     )}
+                    {/* Clear Images Button */}
+                    {bg.images.some(img => img.imageBase64 || img.imageUrl) && (
+                      <button
+                        onClick={() => handleClearPanelImages(bg.id)}
+                        className="text-xs bg-gray-500/10 text-gray-400 px-3 py-1 rounded-full border border-gray-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
+                        title="Clear all generated images in this panel"
+                      >
+                        Clear Images
+                      </button>
+                    )}
                     {/* Sequential Render / Stop Button */}
                     {bg.isSequentiallyGenerating ? (
                       <button
@@ -3323,14 +3400,16 @@ export default function BgSheetGenerator() {
                               {/* Hover overlay for edit/download/set-as-ref */}
                               {!img.isGenerating && !isFinalized && (
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                                  {img.imageBase64 && (
+                                  {(img.imageBase64 || img.imageUrl) && (
                                     <button
-                                      onClick={() =>
-                                        downloadImage(
-                                          img.imageBase64,
-                                          `${bg.name}_${img.angle}.jpg`
-                                        )
-                                      }
+                                      onClick={() => {
+                                        const filename = `${bg.name}_${img.angle}.jpg`;
+                                        if (img.imageBase64) {
+                                          downloadImage(img.imageBase64, filename);
+                                        } else if (img.imageUrl) {
+                                          downloadImageFromUrl(img.imageUrl, filename);
+                                        }
+                                      }}
                                       className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
                                       title={phrase(dictionary, "download", language)}
                                     >

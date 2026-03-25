@@ -486,6 +486,8 @@ export default function BgSheetGenerator() {
 
   // Track active jobs: Map<`${bgId}-${angle}`, jobId>
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+  // Resolvers for awaiting job completion in the concurrency-limited loop
+  const jobCompletionResolversRef = useRef<Map<string, () => void>>(new Map());
   const isMountedRef = useRef(true);
   // Mirror backgrounds state for use in callbacks without stale closures
   const backgroundsRef = useRef<Background[]>([]);
@@ -582,6 +584,8 @@ export default function BgSheetGenerator() {
     // Cleanup on completion/failure (no success toast to avoid noise with batch generation)
     if (update.status === "completed" && isTrackedJob) {
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     } else if (update.status === "failed" && isTrackedJob) {
       toast({
         variant: "destructive",
@@ -589,6 +593,8 @@ export default function BgSheetGenerator() {
         description: `${update.bgName} - ${update.angle}: ${update.error || "Unknown error"}`,
       });
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
   }, [toast, setBgSheetResult, setStageResult, currentProjectId]);
 
@@ -2377,15 +2383,32 @@ export default function BgSheetGenerator() {
       }
     });
 
-    // Generate images one by one
+    // Generate images with max 3 concurrent in-flight jobs
+    const MAX_CONCURRENT = 3;
+    const inFlight = new Set<Promise<void>>();
+
     for (const idx of indicesToGenerate) {
-      // Check if stop was requested
-      if (stopGenerationRef.current[bgId]) {
-        break;
+      if (stopGenerationRef.current[bgId]) break;
+
+      // Wait until a slot is free
+      while (inFlight.size >= MAX_CONCURRENT) {
+        await Promise.race(inFlight);
       }
 
-      await handleGenerateSingleView(bgId, idx);
+      // Create a completion promise bridged from the Firestore callback
+      const imageInfo = backgroundsRef.current.find(b => b.id === bgId)?.images[idx];
+      if (!imageInfo) continue;
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      const p: Promise<void> = new Promise<void>((resolve) => {
+        jobCompletionResolversRef.current.set(angleKey, resolve);
+        handleGenerateSingleView(bgId, idx);
+      });
+      inFlight.add(p);
+      p.finally(() => inFlight.delete(p));
     }
+
+    // Wait for remaining in-flight jobs to complete
+    await Promise.all(inFlight);
 
     // Clear sequential generation state
     setBackgrounds(prev => prev.map(b =>

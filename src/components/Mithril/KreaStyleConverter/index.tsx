@@ -107,6 +107,8 @@ export default function KreaStyleConverter() {
   const sessionIdRef = useRef<string>('');
   // Map panelId → jobId for cancellation
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+  // Set of jobIds explicitly cancelled — suppresses all Firestore updates for those jobs
+  const cancelledJobsRef = useRef<Set<string>>(new Set());
   // Stable ref for reading current panels in callbacks without stale closures
   const panelsRef = useRef<PanelData[]>(panels);
   panelsRef.current = panels;
@@ -204,7 +206,7 @@ export default function KreaStyleConverter() {
           return;
         }
 
-        const sortedPanels = [...savedPanels].sort((left, right) => left.panelIndex - right.panelIndex);
+        const sortedPanels = [...savedPanels].sort((left, right) => (left.fileName ?? '').localeCompare(right.fileName ?? '', undefined, { numeric: true, sensitivity: 'base' }));
         const uniqueByFileName = new Map<string, typeof sortedPanels[number]>();
         const duplicatePanels: typeof sortedPanels = [];
 
@@ -282,6 +284,16 @@ export default function KreaStyleConverter() {
         const update = mapStyleConverterJobToUpdate(job);
         const uiStatus = mapBackendStatus(update.status);
         log(`  job panelId=${update.panelId.slice(0,8)}... status=${update.status} uiStatus=${uiStatus}`);
+
+        // Guard: skip all updates for explicitly cancelled jobs
+        if (cancelledJobsRef.current.has(update.jobId)) {
+          return;
+        }
+        // Guard: skip stale job updates (old job firing after a new job was submitted)
+        const trackedJobId = activeJobsRef.current.get(update.panelId);
+        if (trackedJobId && trackedJobId !== update.jobId) {
+          return;
+        }
 
         // Track jobId for cancellation
         if (update.panelId && update.jobId) {
@@ -614,6 +626,22 @@ export default function KreaStyleConverter() {
     [submitSinglePanel],
   );
 
+  const handleCancelPanel = useCallback((id: string) => {
+    const jobId = activeJobsRef.current.get(id);
+    if (jobId) {
+      cancelledJobsRef.current.add(jobId);
+      fetch('/api/krea-style-converter/orchestrator/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      }).catch(() => undefined);
+      activeJobsRef.current.delete(id);
+    }
+    setPanels((prev) =>
+      prev.map((p) => (p.id === id && p.status === ProcessingStatus.Pending ? { ...p, status: ProcessingStatus.Idle } : p)),
+    );
+  }, []);
+
   // ── Download ZIP ───────────────────────────────────────────────────────────
 
   const handleDownloadAll = useCallback(async () => {
@@ -834,6 +862,7 @@ export default function KreaStyleConverter() {
                   key={panel.id}
                   panel={panel}
                   onRemove={removePanel}
+                  onCancel={handleCancelPanel}
                   onRetry={handleRetry}
                   onUpdatePrompt={handleUpdatePrompt}
                   onUpdateImageWeight={handleUpdateImageWeight}

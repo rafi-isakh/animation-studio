@@ -67,8 +67,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!response.ok) {
+      console.error('[modelslab-style-converter/submit] Backend error:', response.status, data);
       return NextResponse.json(
-        { error: data.detail || "Backend error" },
+        { error: data.detail || data.error || "Backend error" },
         { status: response.status }
       );
     }
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    console.error('[modelslab-style-converter/submit] Caught exception:', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

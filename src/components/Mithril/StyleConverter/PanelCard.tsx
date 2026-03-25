@@ -8,12 +8,14 @@ import {
   DownloadIcon,
   ArrowRightIcon,
   PlayIcon,
+  XMarkIcon,
 } from './Icons';
 import { InteractiveCanvas, InteractiveCanvasHandle } from './InteractiveCanvas';
 
 interface PanelCardProps {
   panel: PanelData;
   onRemove: (id: string) => void;
+  onCancel: (id: string) => void;
   onRetry: (id: string) => void;
   onUpdatePrompt: (id: string, newPrompt: string) => void;
   onUpdateImageWeight: (id: string, imageWeight: number) => void;
@@ -23,6 +25,7 @@ interface PanelCardProps {
 export const PanelCard: React.FC<PanelCardProps> = ({
   panel,
   onRemove,
+  onCancel,
   onRetry,
   onUpdatePrompt,
   onUpdateImageWeight,
@@ -71,6 +74,16 @@ export const PanelCard: React.FC<PanelCardProps> = ({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {isProcessing && (
+            <button
+              onClick={() => onCancel(panel.id)}
+              className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-400 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg transition-colors"
+              title="Cancel"
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+              Cancel
+            </button>
+          )}
           {(isError || isSuccess) && (
             <button
               onClick={() => onRetry(panel.id)}

@@ -220,7 +220,10 @@ export function useVideoOrchestrator({
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to cancel job');
+      // Job already in a terminal state — treat as success since it's no longer running
+      const msg: string = data.error || '';
+      if (msg.includes('cannot be cancelled') || msg.includes('already') ) return;
+      throw new Error(msg || 'Failed to cancel job');
     }
   }, []);
 

@@ -27,7 +27,7 @@ IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
 PIXAI_PROMPT_SUFFIX = "Maintain the original eyes and hair color. Do not change cultural nuance, don't render random Japanese elements that didn't exist"
 VIDEO_PROMPT_SUFFIX = "Don't generate random Japanese element"
 
-BATCH_SIZE = 200  # Max panels per Gemini call; above this, batch automatically
+BATCH_SIZE = 50  # Max panels per Gemini call; above this, batch automatically
 
 
 class CancellationRequested(Exception):
@@ -387,6 +387,7 @@ async def _generate_storyboard_with_gemini(
     negative_instruction = job.negative_instruction or ""
     video_instruction = job.video_instruction or ""
     image_instruction = job.image_instruction or ""
+    selected_trailer_script = job.selected_trailer_script or ""
     source_text = source_text_override if source_text_override is not None else (job.source_text or "")
 
     continuation_block = ""
@@ -508,6 +509,18 @@ async def _generate_storyboard_with_gemini(
     {image_instruction}
     ''' if image_instruction else ''}
 
+    {f'''
+    **[CRITICAL: 트레일러 스크립트 배치 규칙]**
+    - 사용자가 선택한 트레일러 스크립트(Trailer Script)가 제공됩니다.
+    - 이 스크립트의 각 라인을 적절한 클립의 `trailerScriptKo` 필드에 하나씩 배치하십시오.
+    - 스크립트 라인 수보다 클립 수가 많을 수 있으므로, 내용과 어울리지 않거나 여백이 필요한 클립의 `trailerScriptKo` 필드는 비워두어도 됩니다.
+    - `trailerScriptEn` 필드에는 `trailerScriptKo`에 배치된 스크립트의 영문 번역본을 작성하십시오.
+    - 기존의 `dialogue`, `narration` 필드는 원본 텍스트와의 대조를 위해 유지되므로, 트레일러 스크립트와 별개로 위 규칙에 따라 작성하십시오.
+
+    **[선택된 트레일러 스크립트]**
+    {selected_trailer_script}
+    ''' if selected_trailer_script else ''}
+
     {continuation_block}
 
     원본 텍스트:
@@ -549,12 +562,15 @@ async def _generate_storyboard_with_gemini(
                                     "accumulatedTime": {"type": "STRING"},
                                     "backgroundPrompt": {"type": "STRING"},
                                     "backgroundId": {"type": "STRING"},
+                                    "trailerScriptKo": {"type": "STRING"},
+                                    "trailerScriptEn": {"type": "STRING"},
                                 },
                                 "required": [
                                     "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
+                                    "trailerScriptKo", "trailerScriptEn",
                                 ],
                             },
                         },

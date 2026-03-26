@@ -13,6 +13,7 @@ interface ClipTableRowProps {
   clipIndex: number;
   isNewBackground: boolean;
   clipHeadersLength: number;
+  showTrailerColumns?: boolean;
   onUpdatePrompt: (field: EditableClipField, value: string) => void;
   getOriginalPrompt: (field: EditableClipField) => string | null;
 }
@@ -149,6 +150,7 @@ export default function ClipTableRow({
   clipIndex,
   isNewBackground,
   clipHeadersLength,
+  showTrailerColumns = false,
   onUpdatePrompt,
   getOriginalPrompt,
 }: ClipTableRowProps) {
@@ -293,6 +295,18 @@ export default function ClipTableRow({
             placeholderKey="storyboard_edit_bgm_en_placeholder"
           />
         </td>
+
+        {/* Trailer Script columns (only when showTrailerColumns is true) */}
+        {showTrailerColumns && (
+          <>
+            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+              {row.trailerScriptKo || ""}
+            </td>
+            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-500 dark:text-teal-100 italic min-w-[200px]">
+              {row.trailerScriptEn || ""}
+            </td>
+          </>
+        )}
       </tr>
     </React.Fragment>
   );

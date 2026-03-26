@@ -28,6 +28,9 @@ interface StoryboardSubmitRequest {
   imageInstruction?: string;
   // API key
   apiKey?: string;
+  // Trailer-specific params
+  imagePromptQA?: string;
+  selectedTrailerScript?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -73,6 +76,9 @@ export async function POST(request: NextRequest) {
       image_instruction: body.imageInstruction || "",
       // API key
       api_key: body.apiKey,
+      // Trailer-specific params
+      image_prompt_qa: body.imagePromptQA || "",
+      selected_trailer_script: body.selectedTrailerScript || "",
     };
 
 

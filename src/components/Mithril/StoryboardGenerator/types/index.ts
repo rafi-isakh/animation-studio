@@ -45,6 +45,15 @@ export interface Continuity {
   backgroundId: string;
   characterInfo?: string; // Brief character relationships (e.g., "AREL=Protagonist's son, 19-year-old")
   imageRef?: string; // S3 URL for generated storyboard image
+  // Webnovel trailer script fields
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
+}
+
+export interface TrailerOption {
+  id: number;
+  title: string;
+  script: string[];
 }
 
 // Scene image generation state per clip

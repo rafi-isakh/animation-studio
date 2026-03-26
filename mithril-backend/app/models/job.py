@@ -209,6 +209,7 @@ class JobDocument(BaseModel):
     negative_instruction: str | None = None  # Negative prompts
     video_instruction: str | None = None  # Video prompt rules
     image_instruction: str | None = None  # Image prompt package instructions
+    selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -805,6 +806,7 @@ class StoryboardJobSubmitRequest(BaseModel):
     negative_instruction: str = ""
     video_instruction: str = ""
     image_instruction: str = ""  # Image prompt package instructions
+    selected_trailer_script: str = ""  # JSON-stringified trailer script lines
     # API key
     api_key: str | None = None
 
@@ -831,6 +833,8 @@ class StoryboardClip(BaseModel):
     bgmEn: str
     length: str
     accumulatedTime: str
+    trailerScriptKo: str = ""
+    trailerScriptEn: str = ""
     referenceImageIndex: int = 0
     refFileName: str = ""
     pixAiPrompt: str = ""

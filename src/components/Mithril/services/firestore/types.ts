@@ -587,6 +587,8 @@ export interface SaveClipInput {
   bgmEn: string;
   length: string;
   accumulatedTime: string;
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   imageRef?: string;
   selectedBgId?: string | null;
 }
@@ -612,6 +614,8 @@ export interface UpdateClipInput {
   bgmEn?: string;
   length?: string;
   accumulatedTime?: string;
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   imageRef?: string;
   selectedBgId?: string | null;
 }

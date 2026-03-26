@@ -24,14 +24,15 @@ import {
   BookOpen,
   CheckCircle,
   Image,
+  Search,
+  ArrowLeft,
 } from "lucide-react";
 import StoryboardTable from "../../StoryboardGenerator/components/StoryboardTable";
 import DriveSettings from "../../StoryboardGenerator/components/DriveSettings";
-import GenrePresets, { type GenrePreset } from "../../StoryboardGenerator/components/GenrePresets";
-import { useGenrePresets } from "../../StoryboardGenerator/hooks/useGenrePresets";
 import { getChapter } from "../../services/firestore";
 import { useProject } from "@/contexts/ProjectContext";
-import type { Scene, Continuity } from "../../StoryboardGenerator/types";
+import type { Scene, Continuity, TrailerOption } from "../../StoryboardGenerator/types";
+import TrailerSurvey from "./TrailerSurvey";
 
 // Default file instruction contents (from 02_작업에 필요한 파일)
 const DEFAULT_BACKGROUND_INSTRUCTION = `Background ID Column:
@@ -223,6 +224,19 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const negativeInstructionFileRef = useRef<HTMLInputElement>(null);
   const videoInstructionFileRef = useRef<HTMLInputElement>(null);
   const imageInstructionFileRef = useRef<HTMLInputElement>(null);
+  const imagePromptQAFileRef = useRef<HTMLInputElement>(null);
+
+  // Trailer survey state
+  const [currentView, setCurrentView] = useState<'survey' | 'editor'>('survey');
+  const [selectedTrailerScript, setSelectedTrailerScript] = useState<TrailerOption | undefined>(undefined);
+  const [trailerSourceText, setTrailerSourceText] = useState<string>("");
+
+  // Image Prompt QA Package
+  const [imagePromptQA, setImagePromptQA] = useState("");
+
+  // Find & Replace
+  const [findText, setFindText] = useState("");
+  const [replaceText, setReplaceText] = useState("");
 
   // Default conditions
   const defaultConditions = useMemo(
@@ -261,15 +275,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
   // State from Stage 2 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
   const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
-
-  // Genre presets hook
-  const {
-    presets: genrePresets,
-    addPreset: addGenrePreset,
-    updatePreset: updateGenrePreset,
-    renamePreset: renameGenrePreset,
-    deletePreset: deleteGenrePreset,
-  } = useGenrePresets();
 
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
@@ -333,7 +338,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       return;
     }
 
-    const sourceText = splitParts[selectedPartIndex];
+    const sourceText = trailerSourceText || splitParts[selectedPartIndex];
     if (!sourceText) {
       toast({
         variant: "destructive",
@@ -357,6 +362,10 @@ export default function WebnovelTrailerStoryboardGenerator() {
       videoInstruction,
       imageInstruction,
       clipCount,
+      imagePromptQA,
+      selectedTrailerScript: selectedTrailerScript
+        ? JSON.stringify(selectedTrailerScript.script)
+        : "",
     });
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
@@ -367,6 +376,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       });
     }
   }, [
+    trailerSourceText,
     splitParts,
     selectedPartIndex,
     storyCondition,
@@ -381,6 +391,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
     videoInstruction,
     imageInstruction,
     clipCount,
+    imagePromptQA,
+    selectedTrailerScript,
     startStoryboardGeneration,
     storyboardGenerator,
     toast,
@@ -435,6 +447,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
       "SFX (En)",
       "BGM (Ko)",
       "BGM (En)",
+      "Trailer Script (Ko)",
+      "Trailer Script (En)",
     ];
 
     const q = (s: string) => `"${(s || "").replace(/"/g, '""')}"`;
@@ -485,6 +499,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
           q(clip.sfxEn),
           q(clip.bgm),
           q(clip.bgmEn),
+          q(clip.trailerScriptKo || ""),
+          q(clip.trailerScriptEn || ""),
         ];
         return row.join(",");
       })
@@ -513,41 +529,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
     link.click();
   }, [scenes, selectedPartIndex, characterIdSummary, genre]);
 
-  const handleApplyPreset = useCallback((preset: GenrePreset) => {
-    setStoryCondition(preset.story);
-    setImageCondition(preset.image);
-    setVideoCondition(preset.video);
-    setSoundCondition(preset.sound);
-    const presetName = preset.isSystem && preset.nameKey
-      ? phrase(dictionary, preset.nameKey, language)
-      : preset.name || preset.id;
-    toast({
-      variant: "success",
-      title: phrase(dictionary, "storyboard_preset_applied", language),
-      description: presetName,
-    });
-  }, [toast, dictionary, language]);
-
-  const handleSaveCurrentToPreset = useCallback((id: string) => {
-    updateGenrePreset(id, {
-      story: storyCondition,
-      image: imageCondition,
-      video: videoCondition,
-      sound: soundCondition,
-    });
-    toast({
-      variant: "success",
-      title: phrase(dictionary, "preset_saved", language),
-    });
-  }, [updateGenrePreset, storyCondition, imageCondition, videoCondition, soundCondition, toast, dictionary, language]);
-
-  const currentConditions = useMemo(() => ({
-    story: storyCondition,
-    image: imageCondition,
-    video: videoCondition,
-    sound: soundCondition,
-  }), [storyCondition, imageCondition, videoCondition, soundCondition]);
-
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
 
@@ -569,6 +550,10 @@ export default function WebnovelTrailerStoryboardGenerator() {
         soundCondition,
         imageGuide,
         videoGuide,
+      },
+      trailerData: {
+        selectedTrailerScript: selectedTrailerScript || null,
+        imagePromptQA: imagePromptQA || "",
       },
     };
 
@@ -594,6 +579,10 @@ export default function WebnovelTrailerStoryboardGenerator() {
     soundCondition,
     imageGuide,
     videoGuide,
+    selectedTrailerScript,
+    imagePromptQA,
+    characterIdSummary,
+    genre,
     toast,
     dictionary,
     language,
@@ -627,6 +616,11 @@ export default function WebnovelTrailerStoryboardGenerator() {
           if (data.conditions.soundCondition) setSoundCondition(data.conditions.soundCondition);
           if (data.conditions.imageGuide) setImageGuide(data.conditions.imageGuide);
           if (data.conditions.videoGuide) setVideoGuide(data.conditions.videoGuide);
+        }
+
+        if (data.trailerData) {
+          if (data.trailerData.selectedTrailerScript) setSelectedTrailerScript(data.trailerData.selectedTrailerScript);
+          if (data.trailerData.imagePromptQA) setImagePromptQA(data.trailerData.imagePromptQA);
         }
 
         toast({
@@ -722,6 +716,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
           sfxEn: findIdx(["SFX (En)", "효과음 (En)"]),
           bgm: findIdx(["BGM (Ko)", "배경음악 (Ko)", "배경음악", "BGM"]),
           bgmEn: findIdx(["BGM (En)", "배경음악 (En)"]),
+          trailerScriptKo: findIdx(["Trailer Script (Ko)", "트레일러 스크립트 (Ko)"]),
+          trailerScriptEn: findIdx(["Trailer Script (En)", "트레일러 스크립트 (En)"]),
         };
 
         // Detect if this is the new A/B/C/D format
@@ -786,6 +782,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
             sfxEn: getVal(idx.sfxEn),
             bgm: getVal(idx.bgm),
             bgmEn: getVal(idx.bgmEn),
+            trailerScriptKo: getVal(idx.trailerScriptKo) || undefined,
+            trailerScriptEn: getVal(idx.trailerScriptEn) || undefined,
           };
 
           if (!currentScene || (sceneLabel && sceneLabel !== lastSceneLabel)) {
@@ -827,6 +825,32 @@ export default function WebnovelTrailerStoryboardGenerator() {
     event.target.value = "";
   }, [importStoryboard, toast, dictionary, language]);
 
+  const handleFindAndReplace = useCallback(() => {
+    if (!findText || scenes.length === 0) return;
+    const replace = (s: string) => s.replaceAll(findText, replaceText);
+    const modifiedScenes = scenes.map((scene) => ({
+      ...scene,
+      sceneTitle: replace(scene.sceneTitle),
+      clips: scene.clips.map((clip) => {
+        const updated: Continuity = { ...clip };
+        const stringKeys = Object.keys(updated) as (keyof Continuity)[];
+        for (const key of stringKeys) {
+          const val = updated[key];
+          if (typeof val === "string") {
+            (updated as unknown as Record<string, unknown>)[key] = replace(val);
+          }
+        }
+        return updated;
+      }),
+    }));
+    importStoryboard(modifiedScenes, voicePrompts, characterIdSummary, genre);
+    toast({
+      variant: "success",
+      title: "Find & Replace 완료",
+      description: `"${findText}" → "${replaceText}"`,
+    });
+  }, [findText, replaceText, scenes, voicePrompts, characterIdSummary, genre, importStoryboard, toast]);
+
   const handleConfigFileUpload = useCallback(
     (
       event: React.ChangeEvent<HTMLInputElement>,
@@ -857,6 +881,61 @@ export default function WebnovelTrailerStoryboardGenerator() {
         </p>
       </div>
 
+      {/* View Toggle */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setCurrentView('survey')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            currentView === 'survey'
+              ? 'bg-[#DB2777] text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-[#DB2777]'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          트레일러 서베이
+        </button>
+        <button
+          onClick={() => setCurrentView('editor')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            currentView === 'editor'
+              ? 'bg-[#DB2777] text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-[#DB2777]'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          스토리보드 편집기
+        </button>
+        {currentView === 'editor' && selectedTrailerScript && (
+          <span className="text-xs text-[#DB2777] font-medium">
+            ✓ Option {selectedTrailerScript.id}: {selectedTrailerScript.title}
+          </span>
+        )}
+      </div>
+
+      {/* TrailerSurvey view */}
+      {currentView === 'survey' && (
+        <TrailerSurvey
+          initialSourceText={splitParts[selectedPartIndex]}
+          onStart={(text, option) => {
+            setTrailerSourceText(text);
+            setSelectedTrailerScript(option);
+            setCurrentView('editor');
+          }}
+        />
+      )}
+
+      {/* Editor view wrapper */}
+      {currentView === 'editor' && (
+        <>
+        {/* Back to survey button */}
+        <button
+          onClick={() => setCurrentView('survey')}
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#DB2777] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          트레일러 서베이로 돌아가기
+        </button>
+
       {/* Part Selection */}
       {splitParts.length > 0 ? (
         <div className="space-y-3">
@@ -882,17 +961,19 @@ export default function WebnovelTrailerStoryboardGenerator() {
           <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {phrase(dictionary, "storysplitter_part", language)} {selectedPartIndex + 1} {phrase(dictionary, "storyboard_part_preview", language)}
+                {trailerSourceText
+                  ? "트레일러 텍스트 미리보기"
+                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedPartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {(splitParts[selectedPartIndex]?.length ?? 0).toLocaleString()}{" "}
+                {((trailerSourceText || splitParts[selectedPartIndex])?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>
             <div className="max-h-24 overflow-y-auto scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {splitParts[selectedPartIndex]?.slice(0, 300)}
-                {splitParts[selectedPartIndex]?.length > 300 && "..."}
+                {(trailerSourceText || splitParts[selectedPartIndex])?.slice(0, 300)}
+                {(trailerSourceText || splitParts[selectedPartIndex])?.length > 300 && "..."}
               </pre>
             </div>
           </div>
@@ -925,20 +1006,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
         {showConditions && (
           <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
-            {/* Genre Presets */}
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <GenrePresets
-                presets={genrePresets}
-                onApply={handleApplyPreset}
-                onSaveCurrent={handleSaveCurrentToPreset}
-                onAddPreset={addGenrePreset}
-                onUpdatePreset={updateGenrePreset}
-                onRenamePreset={renameGenrePreset}
-                onDeletePreset={deleteGenrePreset}
-                currentConditions={currentConditions}
-              />
-            </div>
-
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {phrase(dictionary, "storyboard_story_conditions", language)}
@@ -1060,8 +1127,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
           />
         </div>
 
-        {/* File Uploads — 4 slots */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* File Uploads — 5 slots */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Background ID Instruction */}
           <div>
             <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1197,6 +1264,40 @@ export default function WebnovelTrailerStoryboardGenerator() {
               </p>
             )}
           </div>
+
+          {/* Image Prompt QA Package */}
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Search className="w-4 h-4 text-green-500" />
+              Image Prompt QA
+            </label>
+            <input
+              type="file"
+              ref={imagePromptQAFileRef}
+              accept=".txt"
+              onChange={(e) => handleConfigFileUpload(e, setImagePromptQA)}
+              className="hidden"
+            />
+            <button
+              onClick={() => imagePromptQAFileRef.current?.click()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-lg border-2 border-dashed transition-all ${
+                imagePromptQA
+                  ? "bg-green-50 dark:bg-green-900/20 border-green-400 text-green-700 dark:text-green-300"
+                  : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-green-400 hover:text-green-600"
+              }`}
+            >
+              {imagePromptQA ? (
+                <><CheckCircle className="w-4 h-4" />{phrase(dictionary, "storyboard_file_loaded", language) || "Loaded"}</>
+              ) : (
+                <><Upload className="w-4 h-4" />{phrase(dictionary, "storyboard_upload_txt", language) || "Upload .txt"}</>
+              )}
+            </button>
+            {imagePromptQA && (
+              <p className="mt-1 text-xs text-green-600 dark:text-green-400 truncate">
+                {imagePromptQA.slice(0, 50)}...
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1314,13 +1415,43 @@ export default function WebnovelTrailerStoryboardGenerator() {
             </div>
           </div>
 
+          {/* Find & Replace Bar */}
+          <div className="flex items-center gap-2 p-3 bg-[#211F21] border border-[#272727] rounded-lg">
+            <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            <input
+              type="text"
+              value={findText}
+              onChange={(e) => setFindText(e.target.value)}
+              placeholder="찾기..."
+              className="flex-1 px-3 py-1.5 text-sm bg-[#0F0F0F] border border-[#272727] rounded-lg text-[#E8E8E8] focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
+            />
+            <span className="text-gray-500 text-sm shrink-0">→</span>
+            <input
+              type="text"
+              value={replaceText}
+              onChange={(e) => setReplaceText(e.target.value)}
+              placeholder="바꾸기..."
+              className="flex-1 px-3 py-1.5 text-sm bg-[#0F0F0F] border border-[#272727] rounded-lg text-[#E8E8E8] focus:ring-[#DB2777] focus:border-[#DB2777] focus:outline-none"
+            />
+            <button
+              onClick={handleFindAndReplace}
+              disabled={!findText}
+              className="px-3 py-1.5 text-sm bg-[#DB2777] hover:bg-[#BE185D] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            >
+              모두 바꾸기
+            </button>
+          </div>
+
           <StoryboardTable
             data={scenes}
             voicePrompts={voicePrompts}
             characterIdSummary={characterIdSummary}
             genre={genre}
+            showTrailerColumns={true}
           />
         </div>
+      )}
+        </>
       )}
     </div>
   );

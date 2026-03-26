@@ -833,6 +833,7 @@ class JobQueueService:
             negative_instruction=request.negative_instruction,
             video_instruction=request.video_instruction,
             image_instruction=request.image_instruction,
+            selected_trailer_script=request.selected_trailer_script,
             max_retries=3,
         )
 

@@ -167,6 +167,9 @@ interface GenerateStoryboardParams {
   // NSFW storyboard extra params
   imageInstruction?: string;
   clipCount?: string;
+  // Trailer-specific params
+  imagePromptQA?: string;
+  selectedTrailerScript?: string;
 }
 
 // Types for shared state
@@ -1295,6 +1298,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           videoInstruction: params.videoInstruction,
           imageInstruction: params.imageInstruction,
           clipCount: params.clipCount,
+          // Trailer-specific params
+          imagePromptQA: params.imagePromptQA || "",
+          selectedTrailerScript: params.selectedTrailerScript || "",
           // API key
           apiKey: customApiKey,
         }),

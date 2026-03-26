@@ -13,6 +13,7 @@ interface StoryboardTableProps {
   voicePrompts: VoicePrompt[];
   characterIdSummary?: CharacterIdSummary[];
   genre?: string;
+  showTrailerColumns?: boolean;
 }
 
 export default function StoryboardTable({
@@ -20,6 +21,7 @@ export default function StoryboardTable({
   voicePrompts,
   characterIdSummary,
   genre,
+  showTrailerColumns = false,
 }: StoryboardTableProps) {
   const { language, dictionary } = useLanguage();
   const { updateClipPrompt, getOriginalClipPrompt } = useMithril();
@@ -44,6 +46,7 @@ export default function StoryboardTable({
     phrase(dictionary, "table_sfx_en", language),
     phrase(dictionary, "table_bgm_ko", language),
     phrase(dictionary, "table_bgm_en", language),
+    ...(showTrailerColumns ? ["Trailer Script (Ko)", "Trailer Script (En)"] : []),
   ];
 
   if (data.length === 0) {
@@ -161,6 +164,7 @@ export default function StoryboardTable({
                       clipIndex={clipIndex}
                       isNewBackground={isNewBackground}
                       clipHeadersLength={clipHeaders.length}
+                      showTrailerColumns={showTrailerColumns}
                       onUpdatePrompt={(field, value) => updateClipPrompt(sceneIndex, clipIndex, field, value)}
                       getOriginalPrompt={(field) => getOriginalClipPrompt(sceneIndex, clipIndex, field)}
                     />

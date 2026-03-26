@@ -29,13 +29,19 @@ export default function ImageModal({ isOpen, imageUrl, onClose }: ImageModalProp
 
   if (!isOpen) return null;
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(imageUrl)}`);
+    const { base64, contentType } = await response.json();
+    const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: contentType });
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = imageUrl;
+    a.href = objectUrl;
     a.download = `image_${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(objectUrl);
   };
 
   return (

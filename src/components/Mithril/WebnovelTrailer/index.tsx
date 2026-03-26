@@ -52,6 +52,7 @@ interface TrailerClipCardProps {
   onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateDuration: (id: string, duration: string) => void;
   onUpdateVideoApi: (id: string, videoApi: string) => void;
+  onRefinePrompt: (id: string) => Promise<void>;
 }
 
 function TrailerClipCard({
@@ -64,8 +65,10 @@ function TrailerClipCard({
   onUpdateStartImage,
   onUpdateDuration,
   onUpdateVideoApi,
+  onRefinePrompt,
 }: TrailerClipCardProps) {
   const { language, dictionary } = useLanguage();
+  const [isRefiningClip, setIsRefiningClip] = useState(false);
 
   const canGenerate = !!(frame.imageData || frame.imageUrl) && !!frame.veoPrompt;
   const isProcessing =
@@ -212,9 +215,26 @@ function TrailerClipCard({
 
           {/* Prompt Input */}
           <div className="flex-1 flex flex-col min-h-[100px]">
-            <label className="text-xs text-gray-500 uppercase font-bold mb-1 block">
-              {phrase(dictionary, 'prompt', language) || 'Video Prompt'}
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-gray-500 uppercase font-bold">
+                {phrase(dictionary, 'prompt', language) || 'Video Prompt'}
+              </label>
+              {(frame.imageData || frame.imageUrl) && frame.veoPrompt.trim() && (
+                <button
+                  onClick={async () => {
+                    setIsRefiningClip(true);
+                    await onRefinePrompt(frame.id);
+                    setIsRefiningClip(false);
+                  }}
+                  disabled={isRefiningClip}
+                  className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-[#DB2777] transition-colors disabled:opacity-50"
+                  title="Refine prompt to match reference image"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  {isRefiningClip ? 'Refining...' : 'Refine'}
+                </button>
+              )}
+            </div>
             <textarea
               className="w-full flex-1 min-h-[80px] bg-gray-950 border border-gray-700 rounded p-2 text-sm text-gray-300 focus:outline-none focus:ring-0 resize-vertical"
               value={frame.veoPrompt}
@@ -364,6 +384,8 @@ export default function WebnovelTrailer() {
   const [selectedProvider, setSelectedProvider] = useState(getDefaultProviderId());
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+  const [refineProgress, setRefineProgress] = useState({ done: 0, total: 0 });
 
   const shouldStopRef             = useRef(false);
   const isMountedRef              = useRef(true);
@@ -698,7 +720,7 @@ export default function WebnovelTrailer() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 projectId:      currentProjectId,
-                imageType:      'webnovel-trailer',
+                imageType:      'csv-frame',
                 csvFrameIndex:  frame.rowIndex,
                 base64,
                 mimeType:       'image/jpeg',
@@ -706,10 +728,11 @@ export default function WebnovelTrailer() {
             });
             const result: { success: boolean; url?: string } = await response.json();
             if (result.success && result.url) {
+              const displayUrl = `${result.url}?t=${Date.now()}`;
               setFrames((prev) =>
-                prev.map((f) => (f.id === frame.id ? { ...f, imageData: null, imageUrl: result.url! } : f))
+                prev.map((f) => (f.id === frame.id ? { ...f, imageData: null, imageUrl: displayUrl } : f))
               );
-              await updateWebnovelTrailerClipStatus(currentProjectId, clipId, { imageUrl: result.url });
+              await updateWebnovelTrailerClipStatus(currentProjectId, clipId, { imageUrl: displayUrl });
             }
           } catch (err) {
             console.error(`WebnovelTrailer: failed to upload image for clip ${frame.rowIndex}`, err);
@@ -741,6 +764,101 @@ export default function WebnovelTrailer() {
       return updated;
     });
   }, [debounceSaveClip]);
+
+  // ── Refine prompts (vision-based) ──────────────────────
+  const handleRefinePrompts = useCallback(async () => {
+    const eligible = frames.filter((f) => f.imageUrl && f.veoPrompt.trim());
+    if (eligible.length === 0) {
+      toast({ title: "No clips with both image and prompt to refine", variant: "destructive" });
+      return;
+    }
+
+    setIsRefining(true);
+    setRefineProgress({ done: 0, total: eligible.length });
+
+    let refinedCount = 0;
+    const BATCH_SIZE = 10;
+
+    try {
+      for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
+        const batch = eligible.slice(i, i + BATCH_SIZE);
+        const payload = batch.map((f) => ({
+          clipId: f.id,
+          imageUrl: f.imageUrl!,
+          currentPrompt: f.veoPrompt,
+        }));
+
+        const res = await fetch("/api/webnovel-trailer/refine-prompts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clips: payload }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
+        const { results } = await res.json();
+
+        for (const result of results) {
+          if (result.action === "refined") {
+            updatePrompt(result.clipId, result.refinedPrompt);
+            refinedCount++;
+          }
+        }
+
+        setRefineProgress({ done: Math.min(i + BATCH_SIZE, eligible.length), total: eligible.length });
+      }
+
+      toast({ title: `Refined ${refinedCount} of ${eligible.length} prompts` });
+    } catch (err: any) {
+      console.error("[refine-prompts]", err);
+      toast({ title: `Refinement error: ${err.message}`, variant: "destructive" });
+    } finally {
+      setIsRefining(false);
+    }
+  }, [frames, updatePrompt, toast]);
+
+  const handleRefineClip = useCallback(async (id: string) => {
+    const frame = frames.find((f) => f.id === id);
+    if (!frame || (!frame.imageUrl && !frame.imageData) || !frame.veoPrompt.trim()) return;
+
+    try {
+      const clipPayload: Record<string, string> = {
+        clipId: id,
+        currentPrompt: frame.veoPrompt,
+      };
+      if (frame.imageUrl) {
+        clipPayload.imageUrl = frame.imageUrl;
+      } else {
+        clipPayload.imageBase64 = frame.imageData!;
+      }
+
+      const res = await fetch("/api/webnovel-trailer/refine-prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clips: [clipPayload] }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const { results } = await res.json();
+      const result = results?.[0];
+      if (result?.action === "refined") {
+        updatePrompt(id, result.refinedPrompt);
+        toast({ title: "Prompt refined" });
+      } else {
+        toast({ title: "Prompt already matches image — no change needed" });
+      }
+    } catch (err: any) {
+      console.error("[refine-clip]", err);
+      toast({ title: `Refinement error: ${err.message}`, variant: "destructive" });
+    }
+  }, [frames, updatePrompt, toast]);
 
   const updateStartImage = useCallback(async (id: string, data: string | null) => {
     const frame = frames.find((f) => f.id === id);
@@ -782,12 +900,13 @@ export default function WebnovelTrailer() {
       const result: { success: boolean; url?: string } = await response.json();
 
       if (result.success && result.url) {
+        const displayUrl = `${result.url}?t=${Date.now()}`;
         setFrames((prev) =>
           prev.map((f) =>
-            f.id === id ? { ...f, imageData: null, imageUrl: result.url! } : f
+            f.id === id ? { ...f, imageData: null, imageUrl: displayUrl } : f
           )
         );
-        await updateWebnovelTrailerClipStatus(currentProjectId, clipId, { imageUrl: result.url });
+        await updateWebnovelTrailerClipStatus(currentProjectId, clipId, { imageUrl: displayUrl });
       }
     } catch (err) {
       console.error('WebnovelTrailer: failed to upload start image', err);
@@ -1462,6 +1581,18 @@ export default function WebnovelTrailer() {
 
               {/* Action buttons */}
               <button
+                onClick={handleRefinePrompts}
+                disabled={isRefining || frames.filter((f) => f.imageUrl && f.veoPrompt.trim()).length === 0}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                title="Refine prompts to match reference images"
+              >
+                <Sparkles className="h-4 w-4" />
+                {isRefining
+                  ? `Refining ${refineProgress.done}/${refineProgress.total}...`
+                  : 'Refine Prompts'}
+              </button>
+
+              <button
                 onClick={handleSave}
                 disabled={isSaving}
                 className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors"
@@ -1579,6 +1710,7 @@ export default function WebnovelTrailer() {
                 onUpdateStartImage={updateStartImage}
                 onUpdateDuration={updateDuration}
                 onUpdateVideoApi={updateVideoApi}
+                onRefinePrompt={handleRefineClip}
               />
             ))}
           </div>

@@ -1556,6 +1556,8 @@ export interface StoryboardScene {
     refFileName?: string;
     pixAiPrompt?: string;
     facePresent?: boolean;
+    trailerScriptKo?: string;
+    trailerScriptEn?: string;
   }>;
 }
 

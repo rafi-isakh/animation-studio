@@ -27,7 +27,7 @@ IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
 PIXAI_PROMPT_SUFFIX = "Maintain the original eyes and hair color. Do not change cultural nuance, don't render random Japanese elements that didn't exist"
 VIDEO_PROMPT_SUFFIX = "Don't generate random Japanese element"
 
-BATCH_SIZE = 200  # Max panels per Gemini call; above this, batch automatically
+BATCH_SIZE = 50  # Max panels per Gemini call; above this, batch automatically
 
 
 class CancellationRequested(Exception):
@@ -570,6 +570,7 @@ async def _generate_storyboard_with_gemini(
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
+                                    "trailerScriptKo", "trailerScriptEn",
                                 ],
                             },
                         },

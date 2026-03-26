@@ -672,7 +672,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
@@ -694,6 +694,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   bgmEn: clip.bgmEn,
                   length: clip.length,
                   accumulatedTime: clip.accumulatedTime,
+                  trailerScriptKo: clip.trailerScriptKo || "",
+                  trailerScriptEn: clip.trailerScriptEn || "",
                 })),
               }));
 
@@ -987,6 +989,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             bgmEn: clip.bgmEn,
             length: clip.length,
             accumulatedTime: clip.accumulatedTime,
+            trailerScriptKo: clip.trailerScriptKo || "",
+            trailerScriptEn: clip.trailerScriptEn || "",
           })),
         }));
 
@@ -1052,6 +1056,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     bgmEn: clip.bgmEn || "",
                     length: clip.length || "",
                     accumulatedTime: clip.accumulatedTime || "",
+                    trailerScriptKo: clip.trailerScriptKo || "",
+                    trailerScriptEn: clip.trailerScriptEn || "",
                   });
                 }
               }

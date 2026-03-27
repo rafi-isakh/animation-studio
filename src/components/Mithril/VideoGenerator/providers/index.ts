@@ -9,12 +9,13 @@ import { wanI2VProvider } from "./wanI2V";
 import { wan22I2VProvider } from "./wanI2V22";
 
 // Provider registry - add new providers here
+// Note: wanI2VProvider (WAN 2.1) is kept for backward compatibility with existing jobs
+// but is not registered here so it does not appear in UI dropdowns
 const providers = new Map<string, VideoProvider>([
   [soraProvider.id, soraProvider as VideoProvider],
   [veo3Provider.id, veo3Provider as VideoProvider],
   [grokI2VProvider.id, grokI2VProvider as VideoProvider],
   [grokImagineI2VProvider.id, grokImagineI2VProvider as VideoProvider],
-  [wanI2VProvider.id, wanI2VProvider as VideoProvider],
   [wan22I2VProvider.id, wan22I2VProvider as VideoProvider],
 ]);
 

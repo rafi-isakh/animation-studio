@@ -804,13 +804,15 @@ export default function CsvVideoGenerator() {
       const result: { success: boolean; url?: string } = await response.json();
 
       if (result.success && result.url) {
-        // Swap base64 for stable CDN URL in local state
+        // Append cache-busting timestamp so the browser fetches the new image
+        // even though the S3 key (and CDN URL) is the same on replacement
+        const bustUrl = `${result.url}?t=${Date.now()}`;
         setFrames((prev) =>
           prev.map((f) =>
-            f.id === id ? { ...f, imageData: null, imageUrl: result.url! } : f
+            f.id === id ? { ...f, imageData: null, imageUrl: bustUrl } : f
           )
         );
-        await updateCsvVideoClipStatus(currentProjectId, clipId, { imageUrl: result.url });
+        await updateCsvVideoClipStatus(currentProjectId, clipId, { imageUrl: bustUrl });
       }
     } catch (err) {
       console.error('CsvVideoGenerator: failed to upload start image', err);

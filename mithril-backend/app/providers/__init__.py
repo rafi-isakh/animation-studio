@@ -9,10 +9,11 @@ from app.providers.wan_video import wan_i2v_provider, wan22_i2v_provider
 from app.providers.modelslab_video import grok_i2v_provider
 
 # Register all providers
+# Note: wan_i2v_provider (WAN 2.1) is kept for backward compatibility with existing jobs
+# but is not registered here so it does not appear as an available option
 register_provider(sora_provider)
 register_provider(veo3_provider)
 register_provider(xai_video_provider)
-register_provider(wan_i2v_provider)
 register_provider(wan22_i2v_provider)
 register_provider(grok_i2v_provider)
 

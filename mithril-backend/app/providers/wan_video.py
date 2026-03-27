@@ -51,7 +51,7 @@ _WAN22_CONSTRAINTS = ProviderConstraints(
     ),
     supports_image_to_video=True,
 )
-_WAN22_FRAMES = {5: 120}
+_WAN22_FRAMES = {5: 89}
 
 
 class _WanI2VBase(VideoProvider):
@@ -111,7 +111,8 @@ class _WanI2VBase(VideoProvider):
             "num_frames": num_frames,
             "fps": self._fps,
             "resolution": self._resolution,
-            "num_inference_steps": 25,
+            "output_type": "mp4",
+            "base64": "false",
         }
 
         if request.image_end_url:
@@ -279,7 +280,7 @@ class Wan22I2VProvider(_WanI2VBase):
     _model_id = "wan-2.2-i2v"
     _constraints = _WAN22_CONSTRAINTS
     _duration_frames = _WAN22_FRAMES
-    _fps = 24
+    _fps = 18
     _resolution = 480
     _log_tag = "WAN22_I2V"
 

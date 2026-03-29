@@ -14,12 +14,17 @@ interface SubmitPanelJobParams {
   sessionId: string;  // Session ID for real-time tracking
   panelId: string;
   fileName: string;
-  imageBase64: string;
+  imageBase64?: string;
   mimeType: string;
   targetAspectRatio: AspectRatio;
-  refinementMode: 'default' | 'zoom' | 'expand';
+  refinementMode: 'default' | 'zoom' | 'expand' | 'inpaint';
   apiKey?: string;
   provider?: 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev';
+  // Inpaint fields
+  inpaintPrompt?: string;
+  inpaintMaskUrl?: string;
+  inpaintSourceUrl?: string;
+  inpaintStrength?: number;
 }
 
 interface CancelJobParams {

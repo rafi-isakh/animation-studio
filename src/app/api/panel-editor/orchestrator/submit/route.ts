@@ -11,12 +11,17 @@ interface PanelJobSubmitRequest {
   sessionId: string; // Unique session identifier for real-time tracking
   panelId: string;
   fileName: string;
-  imageBase64: string; // Base64 encoded source image
+  imageBase64?: string; // Base64 encoded source image (empty for inpaint mode)
   mimeType: string;
   targetAspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
-  refinementMode: "default" | "zoom" | "expand";
+  refinementMode: "default" | "zoom" | "expand" | "inpaint";
   apiKey?: string;
   provider?: "gemini" | "gemini_flash" | "grok" | "z_image_turbo" | "flux2_dev";
+  // Inpaint fields
+  inpaintPrompt?: string;
+  inpaintMaskUrl?: string;
+  inpaintSourceUrl?: string;
+  inpaintStrength?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -33,9 +38,21 @@ export async function POST(request: NextRequest) {
     const body: PanelJobSubmitRequest = await request.json();
 
     // Validate required fields
-    if (!body.projectId || !body.sessionId || !body.panelId || !body.imageBase64) {
+    if (!body.projectId || !body.sessionId || !body.panelId) {
       return NextResponse.json(
-        { error: "Missing required fields: projectId, sessionId, panelId, imageBase64" },
+        { error: "Missing required fields: projectId, sessionId, panelId" },
+        { status: 400 }
+      );
+    }
+    if (body.refinementMode === "inpaint" && (!body.inpaintSourceUrl || !body.inpaintMaskUrl || !body.inpaintPrompt)) {
+      return NextResponse.json(
+        { error: "Missing inpaint fields: inpaintSourceUrl, inpaintMaskUrl, inpaintPrompt" },
+        { status: 400 }
+      );
+    }
+    if (body.refinementMode !== "inpaint" && !body.imageBase64) {
+      return NextResponse.json(
+        { error: "Missing required field: imageBase64" },
         { status: 400 }
       );
     }
@@ -55,12 +72,16 @@ export async function POST(request: NextRequest) {
         session_id: body.sessionId,
         panel_id: body.panelId,
         file_name: body.fileName,
-        image_base64: body.imageBase64,
+        image_base64: body.imageBase64 ?? "",
         mime_type: body.mimeType,
         target_aspect_ratio: body.targetAspectRatio,
         refinement_mode: body.refinementMode,
         api_key: body.apiKey,
         provider: body.provider ?? "gemini",
+        inpaint_prompt: body.inpaintPrompt,
+        inpaint_mask_url: body.inpaintMaskUrl,
+        inpaint_source_url: body.inpaintSourceUrl,
+        inpaint_strength: body.inpaintStrength,
       }),
     });
 

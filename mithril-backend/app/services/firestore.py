@@ -346,6 +346,11 @@ class JobQueueService:
             # to avoid the 1MB document size limit (same pattern as panel splitter)
             source_mime_type=request.mime_type,
             refinement_mode=request.refinement_mode,
+            # Inpaint-specific fields (only set when refinement_mode="inpaint")
+            inpaint_prompt=request.inpaint_prompt,
+            inpaint_mask_url=request.inpaint_mask_url,
+            inpaint_source_url=request.inpaint_source_url,
+            inpaint_strength=request.inpaint_strength if request.refinement_mode == "inpaint" else None,
             max_retries=2,  # Fewer retries for panels
         )
 

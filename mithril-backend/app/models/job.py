@@ -141,7 +141,13 @@ class JobDocument(BaseModel):
     file_name: str | None = None  # Original filename
     source_image_base64: str | None = None  # Base64 encoded source image
     source_mime_type: str | None = None  # MIME type of source image
-    refinement_mode: str | None = None  # "default", "zoom", or "expand"
+    refinement_mode: str | None = None  # "default", "zoom", "expand", or "inpaint"
+
+    # Inpaint-specific fields (for type=PANEL with refinement_mode="inpaint")
+    inpaint_prompt: str | None = None
+    inpaint_mask_url: str | None = None
+    inpaint_source_url: str | None = None
+    inpaint_strength: float | None = None
 
     # Panel colorizer-specific fields (for type=PANEL_COLORIZER)
     global_prompt: str | None = None  # Scene description (lighting, atmosphere)
@@ -432,12 +438,17 @@ class PanelJobSubmitRequest(BaseModel):
     session_id: str  # Session ID for real-time tracking
     panel_id: str  # Panel ID within session
     file_name: str  # Original filename
-    image_base64: str  # Base64 encoded source image
+    image_base64: str = ""  # Base64 encoded source image (empty for inpaint mode)
     mime_type: str = "image/png"  # MIME type of source image
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
-    refinement_mode: Literal["default", "zoom", "expand"] = "default"
+    refinement_mode: Literal["default", "zoom", "expand", "inpaint"] = "default"
     api_key: str | None = None  # Custom API key (optional)
     provider: Literal["gemini", "gemini_flash", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
+    # Inpaint fields (only used when refinement_mode="inpaint")
+    inpaint_prompt: str | None = None
+    inpaint_mask_url: str | None = None
+    inpaint_source_url: str | None = None
+    inpaint_strength: float = 0.7
 
 
 class PanelJobStatusResponse(BaseModel):

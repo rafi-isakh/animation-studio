@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { PanelData, ProcessingStatus, AspectRatio } from './types';
 import {
   TrashIcon,
@@ -11,8 +11,10 @@ import {
   ZoomInIcon,
   ArrowsExpandIcon,
   XMarkIcon,
+  PaintBrushIcon,
 } from './Icons';
 import { InteractiveCanvas, InteractiveCanvasHandle } from './InteractiveCanvas';
+import { InpaintModal } from './InpaintModal';
 
 interface PanelCardProps {
   panel: PanelData;
@@ -21,6 +23,7 @@ interface PanelCardProps {
   onCancel: (id: string) => void;
   onRetry: (id: string) => void;
   onRefine: (id: string, mode: 'zoom' | 'expand') => void;
+  onInpaint: (id: string, maskDataUrl: string, prompt: string, strength: number) => void;
   targetRatio: AspectRatio;
 }
 
@@ -31,6 +34,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   onCancel,
   onRetry,
   onRefine,
+  onInpaint,
   targetRatio,
 }) => {
   const isIdle = panel.status === ProcessingStatus.Idle;
@@ -39,6 +43,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const isError = panel.status === ProcessingStatus.Error;
 
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
+  const [isInpaintOpen, setIsInpaintOpen] = useState(false);
 
   const handleDownload = () => {
     const fileName = `${String(index + 1).padStart(3, '0')}.png`;
@@ -193,7 +198,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
 
           {/* Quick Actions Footer */}
           {isSuccess && (
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-2 justify-center flex-wrap">
               <button
                 onClick={() => onRefine(panel.id, 'zoom')}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-[#DB2777]/10 dark:hover:bg-[#DB2777]/20 text-gray-700 dark:text-gray-300 hover:text-[#DB2777] rounded-lg border border-gray-300 dark:border-gray-700 hover:border-[#DB2777]/50 transition-all text-xs font-medium"
@@ -210,7 +215,27 @@ export const PanelCard: React.FC<PanelCardProps> = ({
                 <ArrowsExpandIcon className="w-4 h-4" />
                 Refine: Expand
               </button>
+              <button
+                onClick={() => setIsInpaintOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:border-orange-500/50 transition-all text-xs font-medium"
+                title="AI: Paint over a region to regenerate it"
+              >
+                <PaintBrushIcon className="w-4 h-4" />
+                Inpaint
+              </button>
             </div>
+          )}
+
+          {/* Inpaint Modal */}
+          {isInpaintOpen && (panel.resultUrl || panel.originalImageRef) && (
+            <InpaintModal
+              imageUrl={(panel.resultUrl || panel.originalImageRef)!}
+              onSubmit={(maskDataUrl, prompt, strength) => {
+                setIsInpaintOpen(false);
+                onInpaint(panel.id, maskDataUrl, prompt, strength);
+              }}
+              onClose={() => setIsInpaintOpen(false)}
+            />
           )}
         </div>
       </div>

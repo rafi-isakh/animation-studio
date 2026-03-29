@@ -392,6 +392,11 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
             raise VideoJobError.invalid_request("No xAI API key configured for Grok provider")
         return settings.xai_api_key
 
+    if job.refinement_mode == "inpaint":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured for inpaint")
+        return settings.modelslab_api_key
+
     if job.provider_id == "z_image_turbo":
         if not settings.modelslab_api_key:
             raise VideoJobError.invalid_request("No ModelsLab API key configured for Z-Image Turbo provider")
@@ -424,10 +429,13 @@ async def _stage_prepare(
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to PREPARING in Firestore")
 
     # Build the transformation prompt (no intermediate progress write — saves 1 Firestore write)
-    prompt = build_panel_prompt(
-        target_aspect_ratio=job.aspect_ratio,
-        refinement_mode=job.refinement_mode or "default",
-    )
+    if job.refinement_mode == "inpaint":
+        prompt = job.inpaint_prompt or ""
+    else:
+        prompt = build_panel_prompt(
+            target_aspect_ratio=job.aspect_ratio,
+            refinement_mode=job.refinement_mode or "default",
+        )
 
     logger.info(f"[PANEL-GEN] {job.id} - Stage 1 complete: prompt built")
     return prompt
@@ -450,24 +458,40 @@ async def _stage_generate(
     await job_queue_service.update_job_status(job.id, JobStatus.GENERATING, progress=0.3)
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to GENERATING in Firestore")
 
-    # Validate we have source image
-    if not image_base64:
-        raise VideoJobError.invalid_request("No source image provided")
-
     # Generate image
-    logger.info(f"[PANEL-GEN] {job.id} - Calling {provider_id} API...")
+    logger.info(f"[PANEL-GEN] {job.id} - Calling API (mode={job.refinement_mode})...")
     try:
-        image_bytes = await generate_panel_image_for_provider(
-            provider_id=provider_id,
-            image_base64=image_base64,
-            mime_type=job.source_mime_type or "image/jpeg",
-            prompt=prompt,
-            aspect_ratio=job.aspect_ratio,
-            api_key=api_key,
-        )
+        if job.refinement_mode == "inpaint":
+            from app.providers.image.inpaint import generate_inpaint_panel
+
+            if not job.inpaint_source_url or not job.inpaint_mask_url:
+                raise VideoJobError.invalid_request("Inpaint job missing source_url or mask_url")
+
+            image_bytes = await generate_inpaint_panel(
+                source_url=job.inpaint_source_url,
+                mask_url=job.inpaint_mask_url,
+                prompt=prompt,
+                negative_prompt="text, speech bubbles, watermarks, borders",
+                width=1024,
+                height=1024,
+                strength=job.inpaint_strength if job.inpaint_strength is not None else 0.7,
+                api_key=api_key,
+            )
+        else:
+            if not image_base64:
+                raise VideoJobError.invalid_request("No source image provided")
+
+            image_bytes = await generate_panel_image_for_provider(
+                provider_id=provider_id,
+                image_base64=image_base64,
+                mime_type=job.source_mime_type or "image/jpeg",
+                prompt=prompt,
+                aspect_ratio=job.aspect_ratio,
+                api_key=api_key,
+            )
         logger.info(f"[PANEL-GEN] {job.id} - Image generated successfully: {len(image_bytes)} bytes")
     except Exception as e:
-        logger.error(f"[PANEL-GEN] {job.id} - {provider_id} API error: {type(e).__name__}: {str(e)}")
+        logger.error(f"[PANEL-GEN] {job.id} - API error: {type(e).__name__}: {str(e)}")
         raise classify_exception(e)
 
     try:

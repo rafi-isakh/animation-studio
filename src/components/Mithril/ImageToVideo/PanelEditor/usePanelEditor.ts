@@ -670,6 +670,77 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     [processSinglePanel]
   );
 
+  // ── Inpaint panel region ─────────────────────────────────────────────
+  const inpaintPanel = useCallback(
+    async (id: string, maskDataUrl: string, inpaintPrompt: string, strength: number) => {
+      const panel = stateRef.current.panels.find((p) => p.id === id);
+      if (!panel) return;
+
+      // Determine the source image URL (prefer result, fall back to original)
+      const sourceUrl = panel.resultUrl || panel.originalImageRef;
+      if (!sourceUrl) return;
+
+      // Cancel any existing job for this panel
+      const existingJobId = activeJobsRef.current.get(id);
+      if (existingJobId) {
+        try {
+          await cancelJob({ jobId: existingJobId });
+        } catch {
+          // Ignore cancel errors
+        }
+        activeJobsRef.current.delete(id);
+      }
+
+      dispatch({
+        type: 'UPDATE_PANEL',
+        id,
+        updates: { status: ProcessingStatus.Pending, error: undefined },
+      });
+
+      try {
+        // Convert mask data URL to base64 and upload to S3
+        const maskBase64 = maskDataUrl.split(',')[1];
+        const maskUrl = await uploadI2VPanelEditorImage(
+          projectId,
+          `${id}-mask`,
+          maskBase64,
+          'image/png'
+        );
+
+        // Submit inpaint job (no imageBase64 needed — uses URLs)
+        const response = await submitJob({
+          projectId,
+          sessionId: sessionIdRef.current,
+          panelId: panel.id,
+          fileName: panel.fileName,
+          mimeType: 'image/png',
+          targetAspectRatio: stateRef.current.config.targetAspectRatio,
+          refinementMode: 'inpaint',
+          apiKey: customApiKey || undefined,
+          provider,
+          inpaintPrompt,
+          inpaintMaskUrl: maskUrl,
+          inpaintSourceUrl: sourceUrl,
+          inpaintStrength: strength,
+        });
+
+        console.log('[PanelEditor] inpaintPanel: job submitted, tracking jobId:', response.jobId, 'for panelId:', id);
+        activeJobsRef.current.set(id, response.jobId);
+      } catch (error: unknown) {
+        if (!isMountedRef.current) return;
+        dispatch({
+          type: 'UPDATE_PANEL',
+          id,
+          updates: {
+            status: ProcessingStatus.Error,
+            error: error instanceof Error ? error.message : 'Inpaint failed',
+          },
+        });
+      }
+    },
+    [projectId, customApiKey, provider, submitJob, cancelJob]
+  );
+
   // ── Clear all panels ─────────────────────────────────────────────────
   const clearPanels = useCallback(async () => {
     const panelsToDelete = [...stateRef.current.panels];
@@ -731,6 +802,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     cancelPanel,
     retryPanel,
     refinePanel,
+    inpaintPanel,
     clearPanels,
     successCount,
     hasResults,

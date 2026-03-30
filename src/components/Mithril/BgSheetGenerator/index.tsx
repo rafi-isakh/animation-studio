@@ -217,15 +217,14 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 const downloadImageFromUrl = async (url: string, filename: string): Promise<void> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
+  const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+  const { base64, contentType } = await proxyResponse.json();
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  link.href = `data:${contentType};base64,${base64}`;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
 };
 
 // === Phase 7: Import/Export Utilities ===
@@ -763,7 +762,7 @@ export default function BgSheetGenerator() {
                 if (firestoreBg && (firestoreBg.referenceImageRef || firestoreBg.referenceAnalysis || firestoreBg.plannedPrompts)) {
                   return {
                     ...bg,
-                    referenceImageUrl: firestoreBg.referenceImageRef || bg.referenceImageUrl,
+                    referenceImageUrl: firestoreBg.referenceImageRef ? `${firestoreBg.referenceImageRef}?t=${Date.now()}` : bg.referenceImageUrl,
                     referenceAnalysis: firestoreBg.referenceAnalysis || bg.referenceAnalysis,
                     plannedPrompts: firestoreBg.plannedPrompts || bg.plannedPrompts,
                   };
@@ -2865,7 +2864,7 @@ export default function BgSheetGenerator() {
 
     for (const bg of backgrounds) {
       // Create folder for each background
-      const folderName = bg.name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+      const folderName = bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase();
       const folder = zip.folder(folderName);
 
       for (const img of bg.images) {
@@ -2874,17 +2873,17 @@ export default function BgSheetGenerator() {
 
         if (img.imageBase64) {
           // Add base64 image to zip
-          const fileName = `${img.angle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.jpg`;
+          const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
           folder?.file(fileName, img.imageBase64, { base64: true });
           imageCount++;
         } else if (img.imageUrl) {
-          // For S3 URLs, we need to fetch the image
+          // For S3/CloudFront URLs, fetch via proxy to bypass CORS
           try {
-            const response = await fetch(img.imageUrl);
-            if (response.ok) {
-              const blob = await response.blob();
-              const fileName = `${img.angle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.jpg`;
-              folder?.file(fileName, blob);
+            const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(img.imageUrl)}`);
+            if (proxyResponse.ok) {
+              const { base64 } = await proxyResponse.json();
+              const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
+              folder?.file(fileName, base64, { base64: true });
               imageCount++;
             }
           } catch (err) {
@@ -3209,9 +3208,27 @@ export default function BgSheetGenerator() {
                 {/* Master Reference Panel */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
-                    </h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
+                      </h4>
+                      {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
+                        <button
+                          onClick={() => {
+                            const filename = `${bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}_ref.jpg`;
+                            if (bg.referenceImageBase64) {
+                              downloadImage(bg.referenceImageBase64, filename);
+                            } else if (bg.referenceImageUrl) {
+                              downloadImageFromUrl(bg.referenceImageUrl, filename);
+                            }
+                          }}
+                          className="p-0.5 text-gray-400 hover:text-[#E8E8E8] transition-colors"
+                          title="Download reference"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                     {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
                       <button
                         onClick={() => handleRemoveReference(bg.id)}
@@ -3516,7 +3533,7 @@ export default function BgSheetGenerator() {
                                   {(img.imageBase64 || img.imageUrl) && (
                                     <button
                                       onClick={() => {
-                                        const filename = `${bg.name}.jpg`;
+                                        const filename = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
                                         if (img.imageBase64) {
                                           downloadImage(img.imageBase64, filename);
                                         } else if (img.imageUrl) {

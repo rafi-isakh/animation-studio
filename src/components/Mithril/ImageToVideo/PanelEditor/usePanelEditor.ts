@@ -670,6 +670,78 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     [processSinglePanel]
   );
 
+  // ── Inpaint panel region ─────────────────────────────────────────────
+  const inpaintPanel = useCallback(
+    async (id: string, maskDataUrl: string, inpaintPrompt: string, strength: number, width: number, height: number) => {
+      const panel = stateRef.current.panels.find((p) => p.id === id);
+      if (!panel) return;
+
+      // Determine the source image URL (prefer result, fall back to original)
+      const sourceUrl = panel.resultUrl || panel.originalImageRef;
+      if (!sourceUrl) return;
+
+      // Cancel any existing job for this panel
+      const existingJobId = activeJobsRef.current.get(id);
+      if (existingJobId) {
+        try {
+          await cancelJob({ jobId: existingJobId });
+        } catch {
+          // Ignore cancel errors
+        }
+        activeJobsRef.current.delete(id);
+      }
+
+      dispatch({
+        type: 'UPDATE_PANEL',
+        id,
+        updates: { status: ProcessingStatus.Pending, error: undefined },
+      });
+
+      try {
+        // Extract mask base64 — backend will upload it to S3 with proper CloudFront URL
+        // so ModelsLab can fetch it (frontend bucket may not be publicly accessible)
+        const maskBase64 = maskDataUrl.split(',')[1];
+        console.log('[PanelEditor] inpaintPanel — panelId:', id);
+        console.log('[PanelEditor] inpaintPanel — reference image (sourceUrl):', sourceUrl);
+        console.log('[PanelEditor] inpaintPanel — mask base64 length:', maskBase64?.length, '| dimensions:', width, 'x', height);
+        console.log('[PanelEditor] inpaintPanel — prompt:', inpaintPrompt, '| strength:', strength);
+
+        // Submit inpaint job (no imageBase64 needed — uses URLs / maskBase64)
+        const response = await submitJob({
+          projectId,
+          sessionId: sessionIdRef.current,
+          panelId: panel.id,
+          fileName: panel.fileName,
+          mimeType: 'image/png',
+          targetAspectRatio: stateRef.current.config.targetAspectRatio,
+          refinementMode: 'inpaint',
+          apiKey: customApiKey || undefined,
+          provider,
+          inpaintPrompt,
+          inpaintMaskBase64: maskBase64,
+          inpaintSourceUrl: sourceUrl,
+          inpaintStrength: strength,
+          inpaintWidth: width,
+          inpaintHeight: height,
+        });
+
+        console.log('[PanelEditor] inpaintPanel: job submitted, tracking jobId:', response.jobId, 'for panelId:', id);
+        activeJobsRef.current.set(id, response.jobId);
+      } catch (error: unknown) {
+        if (!isMountedRef.current) return;
+        dispatch({
+          type: 'UPDATE_PANEL',
+          id,
+          updates: {
+            status: ProcessingStatus.Error,
+            error: error instanceof Error ? error.message : 'Inpaint failed',
+          },
+        });
+      }
+    },
+    [projectId, customApiKey, provider, submitJob, cancelJob]
+  );
+
   // ── Clear all panels ─────────────────────────────────────────────────
   const clearPanels = useCallback(async () => {
     const panelsToDelete = [...stateRef.current.panels];
@@ -731,6 +803,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     cancelPanel,
     retryPanel,
     refinePanel,
+    inpaintPanel,
     clearPanels,
     successCount,
     hasResults,

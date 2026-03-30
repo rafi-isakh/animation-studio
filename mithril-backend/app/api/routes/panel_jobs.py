@@ -39,6 +39,11 @@ async def submit_panel_job(
     logger.info(f"[PANEL-API] Refinement mode: {request.refinement_mode}")
     logger.info(f"[PANEL-API] Image size: {len(request.image_base64)} chars (base64)")
     logger.info(f"[PANEL-API] Has custom API key: {bool(request.api_key)}")
+    if request.refinement_mode == "inpaint":
+        logger.info(f"[PANEL-API] Inpaint source URL: {request.inpaint_source_url}")
+        logger.info(f"[PANEL-API] Inpaint mask base64 length: {len(request.inpaint_mask_base64 or '')}")
+        logger.info(f"[PANEL-API] Inpaint dimensions: {request.inpaint_width}x{request.inpaint_height}, strength: {request.inpaint_strength}")
+        logger.info(f"[PANEL-API] Inpaint prompt: {request.inpaint_prompt}")
 
     job_queue_service = get_job_queue_service()
 
@@ -47,9 +52,9 @@ async def submit_panel_job(
     job = await job_queue_service.create_panel_job(request, user.uid)
     logger.info(f"[PANEL-API] Job created: {job.id}")
 
-    # Queue for processing (pass image_base64 and API key through task queue, not stored in DB)
+    # Queue for processing (pass image_base64, mask_base64, and API key through task queue, not stored in DB)
     logger.debug(f"[PANEL-API] Queuing job {job.id} for processing...")
-    await process_panel_job.kiq(job.id, request.image_base64, request.api_key)
+    await process_panel_job.kiq(job.id, request.image_base64, request.api_key, request.inpaint_mask_base64)
     logger.info(f"[PANEL-API] Job {job.id} queued successfully")
 
     return JobSubmitResponse(

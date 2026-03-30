@@ -148,6 +148,8 @@ class JobDocument(BaseModel):
     inpaint_mask_url: str | None = None
     inpaint_source_url: str | None = None
     inpaint_strength: float | None = None
+    inpaint_width: int | None = None
+    inpaint_height: int | None = None
 
     # Panel colorizer-specific fields (for type=PANEL_COLORIZER)
     global_prompt: str | None = None  # Scene description (lighting, atmosphere)
@@ -446,9 +448,11 @@ class PanelJobSubmitRequest(BaseModel):
     provider: Literal["gemini", "gemini_flash", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
     # Inpaint fields (only used when refinement_mode="inpaint")
     inpaint_prompt: str | None = None
-    inpaint_mask_url: str | None = None
+    inpaint_mask_base64: str = ""  # Mask PNG as base64 — passed through task queue, NOT stored in Firestore
     inpaint_source_url: str | None = None
     inpaint_strength: float = 0.7
+    inpaint_width: int | None = None
+    inpaint_height: int | None = None
 
 
 class PanelJobStatusResponse(BaseModel):

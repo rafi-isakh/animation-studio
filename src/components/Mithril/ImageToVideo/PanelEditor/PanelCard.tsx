@@ -23,7 +23,7 @@ interface PanelCardProps {
   onCancel: (id: string) => void;
   onRetry: (id: string) => void;
   onRefine: (id: string, mode: 'zoom' | 'expand') => void;
-  onInpaint: (id: string, maskDataUrl: string, prompt: string, strength: number) => void;
+  onInpaint: (id: string, maskDataUrl: string, prompt: string, strength: number, width: number, height: number) => void;
   targetRatio: AspectRatio;
 }
 
@@ -230,9 +230,9 @@ export const PanelCard: React.FC<PanelCardProps> = ({
           {isInpaintOpen && (panel.resultUrl || panel.originalImageRef) && (
             <InpaintModal
               imageUrl={(panel.resultUrl || panel.originalImageRef)!}
-              onSubmit={(maskDataUrl, prompt, strength) => {
+              onSubmit={(maskDataUrl, prompt, strength, width, height) => {
                 setIsInpaintOpen(false);
-                onInpaint(panel.id, maskDataUrl, prompt, strength);
+                onInpaint(panel.id, maskDataUrl, prompt, strength, width, height);
               }}
               onClose={() => setIsInpaintOpen(false)}
             />

@@ -293,6 +293,7 @@ async def process_panel_generation(
     image_base64: str,
     worker_id: str = "worker-1",
     custom_api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """
     Main panel generation pipeline.
@@ -344,7 +345,7 @@ async def process_panel_generation(
         await check_cancellation(job_id)
 
         # === Stage 2: Generate image ===
-        image_bytes = await _stage_generate(job, image_base64, prompt, api_key, state_machine)
+        image_bytes = await _stage_generate(job, image_base64, prompt, api_key, state_machine, inpaint_mask_base64)
 
         # === Stage 3: Upload to S3 (no checkpoint — upload is fast and non-retryable) ===
         result = await _stage_upload(job, image_bytes, state_machine)
@@ -369,12 +370,12 @@ async def process_panel_generation(
 
     except VideoJobError as e:
         logger.error(f"[PANEL-GEN] {job_id} - VideoJobError: {e.code.value} - {e.message}")
-        return await _handle_error(job, e, state_machine, image_base64, custom_api_key)
+        return await _handle_error(job, e, state_machine, image_base64, custom_api_key, inpaint_mask_base64)
 
     except Exception as e:
         logger.exception(f"[PANEL-GEN] {job_id} - Unexpected error: {type(e).__name__}: {str(e)}")
         video_error = classify_exception(e)
-        return await _handle_error(job, video_error, state_machine, image_base64, custom_api_key)
+        return await _handle_error(job, video_error, state_machine, image_base64, custom_api_key, inpaint_mask_base64)
 
 
 def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
@@ -393,9 +394,9 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         return settings.xai_api_key
 
     if job.refinement_mode == "inpaint":
-        if not settings.modelslab_api_key:
-            raise VideoJobError.invalid_request("No ModelsLab API key configured for inpaint")
-        return settings.modelslab_api_key
+        if not settings.gemini_api_key:
+            raise VideoJobError.invalid_request("No Gemini API key configured for inpaint")
+        return settings.gemini_api_key
 
     if job.provider_id == "z_image_turbo":
         if not settings.modelslab_api_key:
@@ -447,6 +448,7 @@ async def _stage_generate(
     prompt: str,
     api_key: str,
     state_machine: JobStateMachine,
+    inpaint_mask_base64: str = "",
 ) -> bytes:
     """Stage 2: Generate image using the selected provider."""
     job_queue_service = get_job_queue_service()
@@ -464,17 +466,15 @@ async def _stage_generate(
         if job.refinement_mode == "inpaint":
             from app.providers.image.inpaint import generate_inpaint_panel
 
-            if not job.inpaint_source_url or not job.inpaint_mask_url:
-                raise VideoJobError.invalid_request("Inpaint job missing source_url or mask_url")
+            if not job.inpaint_source_url:
+                raise VideoJobError.invalid_request("Inpaint job missing source_url")
+            if not inpaint_mask_base64:
+                raise VideoJobError.invalid_request("Inpaint job missing mask base64")
 
             image_bytes = await generate_inpaint_panel(
                 source_url=job.inpaint_source_url,
-                mask_url=job.inpaint_mask_url,
+                mask_base64=inpaint_mask_base64,
                 prompt=prompt,
-                negative_prompt="text, speech bubbles, watermarks, borders",
-                width=1024,
-                height=1024,
-                strength=job.inpaint_strength if job.inpaint_strength is not None else 0.7,
                 api_key=api_key,
             )
         else:
@@ -594,6 +594,7 @@ async def _handle_error(
     state_machine: JobStateMachine,
     image_base64: str = "",
     custom_api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """Handle job error with potential retry."""
     from app.workers.tasks import retry_failed_panel_job
@@ -632,7 +633,7 @@ async def _handle_error(
         )
 
         # Queue retry task with delay, image, and API key
-        await retry_failed_panel_job.kiq(job.id, delay, image_base64, custom_api_key)
+        await retry_failed_panel_job.kiq(job.id, delay, image_base64, custom_api_key, inpaint_mask_base64)
 
         return {
             "job_id": job.id,

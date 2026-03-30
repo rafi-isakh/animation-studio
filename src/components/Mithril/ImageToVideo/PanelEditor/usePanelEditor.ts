@@ -672,7 +672,7 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
 
   // ── Inpaint panel region ─────────────────────────────────────────────
   const inpaintPanel = useCallback(
-    async (id: string, maskDataUrl: string, inpaintPrompt: string, strength: number) => {
+    async (id: string, maskDataUrl: string, inpaintPrompt: string, strength: number, width: number, height: number) => {
       const panel = stateRef.current.panels.find((p) => p.id === id);
       if (!panel) return;
 
@@ -698,16 +698,15 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       });
 
       try {
-        // Convert mask data URL to base64 and upload to S3
+        // Extract mask base64 — backend will upload it to S3 with proper CloudFront URL
+        // so ModelsLab can fetch it (frontend bucket may not be publicly accessible)
         const maskBase64 = maskDataUrl.split(',')[1];
-        const maskUrl = await uploadI2VPanelEditorImage(
-          projectId,
-          `${id}-mask`,
-          maskBase64,
-          'image/png'
-        );
+        console.log('[PanelEditor] inpaintPanel — panelId:', id);
+        console.log('[PanelEditor] inpaintPanel — reference image (sourceUrl):', sourceUrl);
+        console.log('[PanelEditor] inpaintPanel — mask base64 length:', maskBase64?.length, '| dimensions:', width, 'x', height);
+        console.log('[PanelEditor] inpaintPanel — prompt:', inpaintPrompt, '| strength:', strength);
 
-        // Submit inpaint job (no imageBase64 needed — uses URLs)
+        // Submit inpaint job (no imageBase64 needed — uses URLs / maskBase64)
         const response = await submitJob({
           projectId,
           sessionId: sessionIdRef.current,
@@ -719,9 +718,11 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           apiKey: customApiKey || undefined,
           provider,
           inpaintPrompt,
-          inpaintMaskUrl: maskUrl,
+          inpaintMaskBase64: maskBase64,
           inpaintSourceUrl: sourceUrl,
           inpaintStrength: strength,
+          inpaintWidth: width,
+          inpaintHeight: height,
         });
 
         console.log('[PanelEditor] inpaintPanel: job submitted, tracking jobId:', response.jobId, 'for panelId:', id);

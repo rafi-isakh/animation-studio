@@ -19,9 +19,11 @@ interface PanelJobSubmitRequest {
   provider?: "gemini" | "gemini_flash" | "grok" | "z_image_turbo" | "flux2_dev";
   // Inpaint fields
   inpaintPrompt?: string;
-  inpaintMaskUrl?: string;
+  inpaintMaskBase64?: string;
   inpaintSourceUrl?: string;
   inpaintStrength?: number;
+  inpaintWidth?: number;
+  inpaintHeight?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -44,9 +46,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (body.refinementMode === "inpaint" && (!body.inpaintSourceUrl || !body.inpaintMaskUrl || !body.inpaintPrompt)) {
+    if (body.refinementMode === "inpaint") {
+      console.log('[panel-jobs/submit] inpaint request — panelId:', body.panelId);
+      console.log('[panel-jobs/submit] inpaint — inpaintSourceUrl:', body.inpaintSourceUrl);
+      console.log('[panel-jobs/submit] inpaint — inpaintMaskBase64 length:', body.inpaintMaskBase64?.length, '| dimensions:', body.inpaintWidth, 'x', body.inpaintHeight);
+      console.log('[panel-jobs/submit] inpaint — prompt:', body.inpaintPrompt, '| strength:', body.inpaintStrength);
+    }
+    if (body.refinementMode === "inpaint" && (!body.inpaintSourceUrl || !body.inpaintMaskBase64 || !body.inpaintPrompt)) {
       return NextResponse.json(
-        { error: "Missing inpaint fields: inpaintSourceUrl, inpaintMaskUrl, inpaintPrompt" },
+        { error: "Missing inpaint fields: inpaintSourceUrl, inpaintMaskBase64, inpaintPrompt" },
         { status: 400 }
       );
     }
@@ -79,9 +87,11 @@ export async function POST(request: NextRequest) {
         api_key: body.apiKey,
         provider: body.provider ?? "gemini",
         inpaint_prompt: body.inpaintPrompt,
-        inpaint_mask_url: body.inpaintMaskUrl,
+        inpaint_mask_base64: body.inpaintMaskBase64,
         inpaint_source_url: body.inpaintSourceUrl,
         inpaint_strength: body.inpaintStrength,
+        inpaint_width: body.inpaintWidth,
+        inpaint_height: body.inpaintHeight,
       }),
     });
 

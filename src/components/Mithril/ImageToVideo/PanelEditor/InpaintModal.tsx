@@ -5,7 +5,7 @@ import { XMarkIcon } from './Icons';
 
 interface InpaintModalProps {
   imageUrl: string;
-  onSubmit: (maskDataUrl: string, prompt: string, strength: number) => void;
+  onSubmit: (maskDataUrl: string, prompt: string, strength: number, width: number, height: number) => void;
   onClose: () => void;
 }
 
@@ -100,8 +100,8 @@ export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, 
     const { x, y } = getCanvasPos(e);
     const scaledBrush = brushSize * Math.max(scaleRef.current.x, scaleRef.current.y);
 
-    ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
-    ctx.fillStyle = 'white';
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = isEraser ? 'black' : 'white';
     ctx.beginPath();
     ctx.arc(x, y, scaledBrush / 2, 0, Math.PI * 2);
     ctx.fill();
@@ -146,16 +146,25 @@ export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, 
     const ctx = canvas.getContext('2d');
     if (ctx) {
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      const hasMask = data.some((v, i) => i % 4 === 0 && v > 128);
+      const hasMask = data.some((v, i) => i % 4 === 0 && v > 128 && data[i + 3] > 128);
       if (!hasMask) {
         setError('Please paint the area you want to inpaint before submitting.');
         return;
       }
     }
 
-    // Export mask as PNG data URL (white = inpaint, black = keep)
-    const maskDataUrl = canvas.toDataURL('image/png');
-    onSubmit(maskDataUrl, prompt.trim(), strength);
+    // Flatten mask onto a black background before export so erased areas are
+    // explicitly black (not transparent), ensuring white=inpaint / black=keep.
+    const flatCanvas = document.createElement('canvas');
+    flatCanvas.width = canvas.width;
+    flatCanvas.height = canvas.height;
+    const flatCtx = flatCanvas.getContext('2d')!;
+    flatCtx.fillStyle = 'black';
+    flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+    flatCtx.drawImage(canvas, 0, 0);
+    const maskDataUrl = flatCanvas.toDataURL('image/png');
+    const { width, height } = naturalSizeRef.current;
+    onSubmit(maskDataUrl, prompt.trim(), strength, width, height);
   }, [prompt, strength, onSubmit]);
 
   return (

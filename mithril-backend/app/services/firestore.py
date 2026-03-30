@@ -348,9 +348,11 @@ class JobQueueService:
             refinement_mode=request.refinement_mode,
             # Inpaint-specific fields (only set when refinement_mode="inpaint")
             inpaint_prompt=request.inpaint_prompt,
-            inpaint_mask_url=request.inpaint_mask_url,
+            inpaint_mask_url=None,  # Set by backend after uploading mask from base64
             inpaint_source_url=request.inpaint_source_url,
             inpaint_strength=request.inpaint_strength if request.refinement_mode == "inpaint" else None,
+            inpaint_width=request.inpaint_width,
+            inpaint_height=request.inpaint_height,
             max_retries=2,  # Fewer retries for panels
         )
 

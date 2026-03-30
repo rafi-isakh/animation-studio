@@ -292,6 +292,7 @@ async def process_panel_job(
     job_id: str,
     image_base64: str,
     api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """
     Main panel editor generation task.
@@ -316,7 +317,7 @@ async def process_panel_job(
     logger.info(f"[{worker_id}] Processing panel job: {job_id} (custom_key: {bool(api_key)})")
 
     try:
-        result = await process_panel_generation(job_id, image_base64, worker_id, api_key)
+        result = await process_panel_generation(job_id, image_base64, worker_id, api_key, inpaint_mask_base64)
         logger.info(f"[{worker_id}] Panel job {job_id} finished with status: {result.get('status')}")
         return result
 
@@ -335,6 +336,7 @@ async def retry_failed_panel_job(
     delay_seconds: float = 0,
     image_base64: str = "",
     api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """
     Retry a failed panel job after a delay.
@@ -344,6 +346,7 @@ async def retry_failed_panel_job(
         delay_seconds: Delay before processing
         image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
         api_key: Optional API key (if not provided, uses settings fallback)
+        inpaint_mask_base64: Mask base64 for inpaint jobs (passed through task queue)
 
     Returns:
         dict with status and result information
@@ -354,7 +357,7 @@ async def retry_failed_panel_job(
         logger.info(f"Waiting {delay_seconds}s before retrying panel job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_panel_job(job_id, image_base64, api_key)
+    return await process_panel_job(job_id, image_base64, api_key, inpaint_mask_base64)
 
 
 # ============================================================================

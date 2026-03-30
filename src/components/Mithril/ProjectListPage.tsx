@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Calendar, Pencil, FileText, BookOpen, Palette, Copy, BookText } from 'lucide-react';
+import { Plus, Folder, Trash2, Pencil, FileText, BookOpen, Palette, Copy, BookText, ArrowLeft } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, copyProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles, copyAllProjectFiles } from './services/s3';
@@ -13,8 +12,60 @@ import RenameProjectModal from './RenameProjectModal';
 import CopyProjectModal from './CopyProjectModal';
 import { useProject } from '@/contexts/ProjectContext';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
-import { ProjectType, getProjectTypeConfig, getStageConfig } from './config/projectTypes';
+import { ProjectType, getStageConfig } from './config/projectTypes';
 import { useToast } from '@/hooks/use-toast';
+
+type TypeCategory = 'novel-to-video' | 'manga-to-video' | 'webtoon-to-video' | 'webnovel-trailer';
+
+const TYPE_CATEGORY_MAP: Partial<Record<ProjectType, TypeCategory>> = {
+  'text-to-video': 'novel-to-video',
+  'text-to-video-nsfw': 'novel-to-video',
+  'text-to-video-anime-bg': 'novel-to-video',
+  'text-to-video-nsfw-anime-bg': 'novel-to-video',
+  'manga-to-video': 'manga-to-video',
+  'manga-to-video-nsfw': 'manga-to-video',
+  'image-to-video': 'manga-to-video',
+  'webtoon-to-video': 'webtoon-to-video',
+  'webtoon-to-video-nsfw': 'webtoon-to-video',
+  'webnovel-trailer': 'webnovel-trailer',
+  'webnovel-trailer-nsfw': 'webnovel-trailer',
+};
+
+interface CategoryConfig {
+  label: string;
+  icon: React.ReactNode;
+  accent: string;
+  iconBg: string;
+}
+
+const CATEGORY_CONFIG: Record<TypeCategory, CategoryConfig> = {
+  'novel-to-video': {
+    label: 'Novel to Video (T2A)',
+    icon: <FileText className="w-8 h-8" />,
+    accent: 'text-blue-400',
+    iconBg: 'bg-blue-500/10',
+  },
+  'manga-to-video': {
+    label: 'Manga to Video (M2A)',
+    icon: <BookOpen className="w-8 h-8" />,
+    accent: 'text-purple-400',
+    iconBg: 'bg-purple-500/10',
+  },
+  'webtoon-to-video': {
+    label: 'Webtoon to Video (W2A)',
+    icon: <Palette className="w-8 h-8" />,
+    accent: 'text-indigo-400',
+    iconBg: 'bg-indigo-500/10',
+  },
+  'webnovel-trailer': {
+    label: 'Webnovel Trailer',
+    icon: <BookText className="w-8 h-8" />,
+    accent: 'text-teal-400',
+    iconBg: 'bg-teal-500/10',
+  },
+};
+
+const CATEGORY_ORDER: TypeCategory[] = ['novel-to-video', 'manga-to-video', 'webtoon-to-video', 'webnovel-trailer'];
 
 export default function ProjectListPage() {
   const router = useRouter();
@@ -23,6 +74,7 @@ export default function ProjectListPage() {
   const { toast } = useToast();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<TypeCategory | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
@@ -39,7 +91,6 @@ export default function ProjectListPage() {
 
   async function loadProjects() {
     if (!user) return;
-
     try {
       setLoading(true);
       const data = await listProjects({ id: user.id, role: user.role });
@@ -51,6 +102,25 @@ export default function ProjectListPage() {
     }
   }
 
+  const projectCountByCategory = useMemo(() => {
+    const counts: Record<TypeCategory, number> = {
+      'novel-to-video': 0,
+      'manga-to-video': 0,
+      'webtoon-to-video': 0,
+      'webnovel-trailer': 0,
+    };
+    projects.forEach((p) => {
+      const cat = TYPE_CATEGORY_MAP[p.projectType];
+      if (cat) counts[cat]++;
+    });
+    return counts;
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    if (!selectedCategory) return projects;
+    return projects.filter((p) => TYPE_CATEGORY_MAP[p.projectType] === selectedCategory);
+  }, [projects, selectedCategory]);
+
   function handleProjectClick(project: ProjectMetadata) {
     setCurrentProject(project);
     const stage = project.currentStage || 1;
@@ -59,27 +129,18 @@ export default function ProjectListPage() {
 
   async function handleDeleteProject(e: React.MouseEvent, projectId: string) {
     e.stopPropagation();
-
     if (!user) return;
-
     if (!confirm('Are you sure you want to delete this project? This will permanently delete all data including images and videos.')) {
       return;
     }
-
     try {
       setDeletingId(projectId);
-
-      // 1. Delete all S3 files (images and videos)
       try {
-        const deletedCount = await clearAllProjectFiles(projectId);
+        await clearAllProjectFiles(projectId);
       } catch (s3Error) {
         console.error('Failed to delete S3 files:', s3Error);
-        // Continue with Firestore deletion even if S3 cleanup fails
       }
-
-      // 2. Delete Firestore data (project + subcollections)
       await deleteProject(projectId, { id: user.id, role: user.role });
-
       setProjects((prev) => prev.filter((p) => p.id !== projectId));
     } catch (error) {
       console.error('Failed to delete project:', error);
@@ -92,6 +153,8 @@ export default function ProjectListPage() {
   function handleProjectCreated(newProject: ProjectMetadata) {
     setProjects((prev) => [newProject, ...prev]);
     setIsCreateModalOpen(false);
+    const cat = TYPE_CATEGORY_MAP[newProject.projectType];
+    if (cat) setSelectedCategory(cat);
   }
 
   function handleRenameClick(e: React.MouseEvent, project: ProjectMetadata) {
@@ -101,9 +164,7 @@ export default function ProjectListPage() {
   }
 
   function handleProjectRenamed(renamedProject: ProjectMetadata) {
-    setProjects((prev) => prev.map(p =>
-      p.id === renamedProject.id ? renamedProject : p
-    ));
+    setProjects((prev) => prev.map((p) => (p.id === renamedProject.id ? renamedProject : p)));
     setIsRenameModalOpen(false);
     setProjectToRename(null);
   }
@@ -116,17 +177,10 @@ export default function ProjectListPage() {
 
   async function handleProjectCopied(newName: string) {
     if (!user || !projectToCopy) return;
-
     const sourceProjectId = projectToCopy.id;
-
     try {
       setCopyingId(sourceProjectId);
-
-      const copiedProject = await copyProject(sourceProjectId, newName, {
-        id: user.id,
-        role: user.role,
-      });
-
+      const copiedProject = await copyProject(sourceProjectId, newName, { id: user.id, role: user.role });
       try {
         await copyAllProjectFiles(sourceProjectId, copiedProject.id);
       } catch (s3Error) {
@@ -135,16 +189,10 @@ export default function ProjectListPage() {
         await deleteProject(copiedProject.id, { id: user.id, role: user.role }).catch(() => {});
         throw new Error('Failed to copy project files. Copy was rolled back.');
       }
-
       setProjects((prev) => [copiedProject, ...prev]);
       setIsCopyModalOpen(false);
       setProjectToCopy(null);
-
-      toast({
-        variant: 'success',
-        title: 'Project copied',
-        description: `"${copiedProject.name}" is ready.`,
-      });
+      toast({ variant: 'success', title: 'Project copied', description: `"${copiedProject.name}" is ready.` });
     } catch (error) {
       console.error('Failed to copy project:', error);
       toast({
@@ -160,30 +208,12 @@ export default function ProjectListPage() {
   function formatDate(timestamp: any) {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  // Stage colors - each stage gets a unique color
-  const stageColors = [
-    { bg: 'bg-yellow-500/15', text: 'text-yellow-600 dark:text-yellow-400' },
-    { bg: 'bg-orange-500/15', text: 'text-orange-600 dark:text-orange-400' },
-    { bg: 'bg-red-500/15', text: 'text-red-600 dark:text-red-400' },
-    { bg: 'bg-purple-500/15', text: 'text-purple-600 dark:text-purple-400' },
-    { bg: 'bg-indigo-500/15', text: 'text-indigo-600 dark:text-indigo-400' },
-    { bg: 'bg-sky-500/15', text: 'text-sky-600 dark:text-sky-400' },
-    { bg: 'bg-green-500/15', text: 'text-green-600 dark:text-green-400' },
-  ];
-
-  // Get stage label based on project type
   function getStageLabel(projectType: ProjectType, stageId: number): string {
     const stageConfig = getStageConfig(projectType, stageId);
     if (!stageConfig) return `Stage ${stageId}`;
-
-    // Simple label mapping (could use i18n later)
     const labelMap: Record<string, string> = {
       'mithril_stage1': 'Upload',
       'mithril_stage_id_converter': 'ID Converter',
@@ -203,189 +233,190 @@ export default function ProjectListPage() {
       'mithril_i2v_stage_style_converter': 'Style Converter',
       'mithril_i2v_stage5': 'Video Generation',
     };
-
     return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;
   }
 
-  // Get stage color based on project type and stage id
-  function getStageColor(projectType: ProjectType, stageId: number) {
-    const config = getProjectTypeConfig(projectType);
-    const stageIndex = config.stages.findIndex(s => s.id === stageId);
-    if (stageIndex === -1) return stageColors[0];
-    return stageColors[stageIndex % stageColors.length];
-  }
+  // ── Category Cards (Level 1) ──────────────────────────────────────────────
 
-  // Get project type display info
-  function getProjectTypeDisplay(projectType: ProjectType) {
-    const nsfw = getProjectTypeConfig(projectType).isNsfw;
-    const nsfwSuffix = nsfw ? ' · 18+' : '';
-
-    if (projectType === 'manga-to-video' || projectType === 'manga-to-video-nsfw' || projectType === 'image-to-video') {
-      return {
-        label: `Manga to Video${nsfwSuffix}`,
-        icon: <BookOpen className="w-3 h-3" />,
-        color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-      };
-    }
-    if (projectType === 'webtoon-to-video' || projectType === 'webtoon-to-video-nsfw') {
-      return {
-        label: `Webtoon to Video${nsfwSuffix}`,
-        icon: <Palette className="w-3 h-3" />,
-        color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-      };
-    }
-    if (projectType === 'webnovel-trailer' || projectType === 'webnovel-trailer-nsfw') {
-      return {
-        label: `Webnovel Trailer${nsfwSuffix}`,
-        icon: <BookText className="w-3 h-3" />,
-        color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-      };
-    }
-    return {
-      label: `Novel to Video${nsfwSuffix}`,
-      icon: <FileText className="w-3 h-3" />,
-      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    };
-  }
-
-  return (
-    <div className="min-h-screen bg-[#f0f4f9] dark:bg-[#111]">
-      <MithrilHeader />
-      <div className="container mx-auto p-6 max-w-6xl pt-20">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Mithril Projects</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Create and manage your story-to-video projects
-          </p>
+  function renderCategoryCards() {
+    if (loading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-40 bg-[#211F21] border border-[#272727] rounded-xl animate-pulse" />
+          ))}
         </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {CATEGORY_ORDER.map((cat) => {
+          const config = CATEGORY_CONFIG[cat];
+          const count = projectCountByCategory[cat];
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className="flex flex-col items-start gap-4 p-6 bg-[#211F21] border border-[#272727] rounded-xl hover:border-[#DB2777] transition-colors text-left group"
+            >
+              <div className={`p-3 rounded-lg ${config.iconBg} ${config.accent}`}>
+                {config.icon}
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold text-[#E8E8E8] group-hover:text-white transition-colors">
+                  {config.label}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {count} {count === 1 ? 'project' : 'projects'}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ── Project List Rows (Level 2) ───────────────────────────────────────────
+
+  function renderProjectList() {
+    if (loading) {
+      return (
+        <div className="bg-[#211F21] border border-[#272727] rounded-xl overflow-hidden">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 px-6 py-4 border-b border-[#272727] last:border-0 animate-pulse">
+              <div className="w-4 h-4 bg-[#272727] rounded" />
+              <div className="h-4 bg-[#272727] rounded flex-1" />
+              <div className="h-4 bg-[#272727] rounded w-28" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (filteredProjects.length === 0) {
+      return (
+        <div className="flex flex-col items-center gap-4 py-20 bg-[#211F21] border border-[#272727] rounded-xl">
+          <Folder className="w-12 h-12 text-gray-600" />
+          <p className="text-gray-500 text-sm">No projects in this category</p>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white mt-2">
             <Plus className="w-4 h-4" />
             New Project
           </Button>
         </div>
-      </div>
+      );
+    }
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mt-2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-              </CardContent>
-            </Card>
-          ))}
+    return (
+      <div className="bg-[#211F21] border border-[#272727] rounded-xl overflow-hidden">
+        {/* Table header */}
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-[#272727] bg-[#1A1A1C]">
+          <div className="w-4 flex-shrink-0" />
+          <span className="flex-1 text-xs font-medium text-gray-500 uppercase tracking-widest">Name</span>
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-widest flex-shrink-0 mr-4 hidden sm:block">Stage</span>
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-widest flex-shrink-0 w-28 text-right hidden md:block">Last Updated</span>
+          <div className="w-[82px] flex-shrink-0" />
         </div>
-      ) : projects.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <Folder className="w-16 h-16 text-gray-400" />
-            <h2 className="text-xl font-semibold">No projects yet</h2>
-            <p className="text-gray-500 dark:text-gray-400">
-              Create your first project to start converting stories into videos
-            </p>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 mt-4">
-              <Plus className="w-4 h-4" />
-              Create First Project
-            </Button>
+        {filteredProjects.map((project, idx) => (
+          <div
+            key={project.id}
+            onClick={() => handleProjectClick(project)}
+            className={`flex items-center gap-3 px-6 py-4 cursor-pointer hover:bg-[#1A1A1C] transition-colors group ${idx < filteredProjects.length - 1 ? 'border-b border-[#272727]' : ''}`}
+          >
+            <Folder className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <span className="flex-1 text-[14px] text-[#E8E8E8] truncate">{project.name}</span>
+            <span className="text-xs text-gray-500 flex-shrink-0 mr-4 hidden sm:block">
+              {getStageLabel(project.projectType, project.currentStage)}
+            </span>
+            <span className="text-xs text-gray-500 flex-shrink-0 w-28 text-right hidden md:block">
+              {formatDate(project.updatedAt)}
+            </span>
+            {/* Hover actions */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+              <button
+                onClick={(e) => handleRenameClick(e, project)}
+                className="p-1.5 rounded text-gray-500 hover:text-[#E8E8E8] hover:bg-[#272727] transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => handleCopyClick(e, project)}
+                disabled={copyingId === project.id}
+                className="p-1.5 rounded text-gray-500 hover:text-[#E8E8E8] hover:bg-[#272727] transition-colors disabled:opacity-40"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => handleDeleteProject(e, project.id)}
+                disabled={deletingId === project.id}
+                className="p-1.5 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <Card
-              key={project.id}
-              className="cursor-pointer hover:border-primary transition-colors group"
-              onClick={() => handleProjectClick(project)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg truncate pr-2">
-                    {project.name}
-                  </CardTitle>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={(e) => handleRenameClick(e, project)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={(e) => handleCopyClick(e, project)}
-                      disabled={copyingId === project.id}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                      onClick={(e) => handleDeleteProject(e, project.id)}
-                      disabled={deletingId === project.id}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <CardDescription className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {formatDate(project.updatedAt)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {/* Project Type Badge */}
-                {(() => {
-                  const typeDisplay = getProjectTypeDisplay(project.projectType);
-                  return (
-                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${typeDisplay.color}`}>
-                      {typeDisplay.icon}
-                      {typeDisplay.label}
-                    </span>
-                  );
-                })()}
-                {/* Current Stage */}
-                {(() => {
-                  const stageColor = getStageColor(project.projectType, project.currentStage);
-                  return (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        Stage:
-                      </span>
-                      <span className={`text-sm font-medium px-2 py-0.5 rounded ${stageColor.bg} ${stageColor.text}`}>
-                        {getStageLabel(project.projectType, project.currentStage)}
-                      </span>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          ))}
+        ))}
+      </div>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  const currentCategoryConfig = selectedCategory ? CATEGORY_CONFIG[selectedCategory] : null;
+
+  return (
+    <div className="min-h-screen bg-[#0F0F0F] text-[#E8E8E8]">
+      <MithrilHeader />
+      <div className="w-full px-4 sm:px-8 lg:px-12 py-6 pt-20">
+
+        {/* Header */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            {selectedCategory && (
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-[#E8E8E8] hover:bg-[#211F21] transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {selectedCategory ? currentCategoryConfig!.label : 'Mithril Projects'}
+              </h1>
+              {!selectedCategory && (
+                <p className="text-gray-500 text-sm mt-1">
+                  Create and manage your story-to-video projects
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
+          </Button>
         </div>
-      )}
+
+        {/* Content */}
+        {selectedCategory ? renderProjectList() : renderCategoryCards()}
+
+      </div>
 
       <CreateProjectModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onProjectCreated={handleProjectCreated}
       />
-
       <RenameProjectModal
         open={isRenameModalOpen}
         onOpenChange={setIsRenameModalOpen}
         project={projectToRename}
         onProjectRenamed={handleProjectRenamed}
       />
-
       <CopyProjectModal
         open={isCopyModalOpen}
         onOpenChange={setIsCopyModalOpen}
@@ -393,7 +424,6 @@ export default function ProjectListPage() {
         loading={!!copyingId}
         onConfirm={handleProjectCopied}
       />
-      </div>
     </div>
   );
 }

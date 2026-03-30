@@ -3212,13 +3212,29 @@ export default function BgSheetGenerator() {
                       {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
                     </h4>
                     {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
-                      <button
-                        onClick={() => handleRemoveReference(bg.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Remove reference"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            const filename = `${bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}_ref.jpg`;
+                            if (bg.referenceImageBase64) {
+                              downloadImage(bg.referenceImageBase64, filename);
+                            } else if (bg.referenceImageUrl) {
+                              downloadImageFromUrl(bg.referenceImageUrl, filename);
+                            }
+                          }}
+                          className="p-1 text-gray-400 hover:text-[#E8E8E8] transition-colors"
+                          title="Download reference"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleRemoveReference(bg.id)}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Remove reference"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
 

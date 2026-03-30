@@ -190,10 +190,10 @@ const downloadImage = (base64: string, filename: string): void => {
 };
 
 const downloadImageFromUrl = async (url: string, filename: string): Promise<void> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
+  const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+  const { base64, contentType } = await proxyResponse.json();
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  link.href = `data:${contentType};base64,${base64}`;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
@@ -2785,13 +2785,13 @@ export default function BgSheetGenerator() {
           folder?.file(fileName, img.imageBase64, { base64: true });
           imageCount++;
         } else if (img.imageUrl) {
-          // For S3 URLs, we need to fetch the image
+          // For S3/CloudFront URLs, fetch via proxy to bypass CORS
           try {
-            const response = await fetch(img.imageUrl);
-            if (response.ok) {
-              const blob = await response.blob();
+            const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(img.imageUrl)}`);
+            if (proxyResponse.ok) {
+              const { base64 } = await proxyResponse.json();
               const fileName = `${img.angle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.jpg`;
-              folder?.file(fileName, blob);
+              folder?.file(fileName, base64, { base64: true });
               imageCount++;
             }
           } catch (err) {

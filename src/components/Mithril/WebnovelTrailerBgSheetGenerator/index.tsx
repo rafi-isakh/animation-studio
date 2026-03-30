@@ -726,7 +726,7 @@ export default function BgSheetGenerator() {
                 if (firestoreBg && (firestoreBg.referenceImageRef || firestoreBg.referenceAnalysis || firestoreBg.plannedPrompts)) {
                   return {
                     ...bg,
-                    referenceImageUrl: firestoreBg.referenceImageRef || bg.referenceImageUrl,
+                    referenceImageUrl: firestoreBg.referenceImageRef ? `${firestoreBg.referenceImageRef}?t=${Date.now()}` : bg.referenceImageUrl,
                     referenceAnalysis: firestoreBg.referenceAnalysis || bg.referenceAnalysis,
                     plannedPrompts: firestoreBg.plannedPrompts || bg.plannedPrompts,
                   };
@@ -3116,11 +3116,11 @@ export default function BgSheetGenerator() {
                 {/* Master Reference Panel */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
-                    </h4>
-                    {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
+                      </h4>
+                      {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
                         <button
                           onClick={() => {
                             const filename = `${bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}_ref.jpg`;
@@ -3130,19 +3130,21 @@ export default function BgSheetGenerator() {
                               downloadImageFromUrl(bg.referenceImageUrl, filename);
                             }
                           }}
-                          className="p-1 text-gray-400 hover:text-[#E8E8E8] transition-colors"
+                          className="p-0.5 text-gray-400 hover:text-[#E8E8E8] transition-colors"
                           title="Download reference"
                         >
-                          <Download className="w-4 h-4" />
+                          <Download className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleRemoveReference(bg.id)}
-                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                          title="Remove reference"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+                      )}
+                    </div>
+                    {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
+                      <button
+                        onClick={() => handleRemoveReference(bg.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Remove reference"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
 

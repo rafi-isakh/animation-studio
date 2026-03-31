@@ -31,6 +31,7 @@ export default function FrameCard({
   onRefChange,
   onGenerate,
   onRemix,
+  onUseRemix,
   onEdit,
   onDownload,
   onOpenModal,
@@ -157,6 +158,16 @@ export default function FrameCard({
                           title={phrase(dictionary, "imagegen_download_remix", language) || "Download Remix"}
                         >
                           ⬇️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUseRemix(frame.id);
+                          }}
+                          className="px-1.5 h-6 bg-purple-700/90 rounded flex items-center justify-center text-[9px] font-bold text-white hover:bg-purple-600"
+                          title="Use as main frame image"
+                        >
+                          Use
                         </button>
                       </div>
                     )}

@@ -1140,6 +1140,107 @@ export default function ImageGeneratorOrchestrator() {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, remixPrompt: value } : f)));
   }, []);
 
+  const handleRemixFrame = useCallback(async (frameId: string) => {
+    const frame = frames.find((f) => f.id === frameId);
+    if (!frame || !frame.imageUrl || !frame.remixPrompt) return;
+
+    if (!currentProjectId) {
+      toast({ title: "Project Required", description: "Please save your project first.", variant: "destructive" });
+      return;
+    }
+
+    setFrames((prev) => prev.map((f) => (f.id === frameId ? { ...f, isLoading: true } : f)));
+
+    try {
+      // Fetch the original image as base64
+      const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(frame.imageUrl)}`);
+      const { base64 } = await proxyResponse.json();
+      if (!base64) throw new Error("Failed to fetch reference image");
+
+      // Generate remix via Gemini image-to-image
+      const genResponse = await fetch("/api/image/remix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: base64,
+          prompt: frame.remixPrompt,
+          aspectRatio: settings.aspectRatio,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
+      const genData = await genResponse.json();
+      if (!genResponse.ok) throw new Error(genData.error);
+
+      // Upload remix result to S3
+      const uploadResponse = await fetch("/api/mithril/s3/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          imageType: "imagegen",
+          imageGenSubtype: "remix",
+          frameId,
+          base64: genData.imageBase64,
+          mimeType: "image/jpeg",
+        }),
+      });
+      const uploadData = await uploadResponse.json();
+      if (!uploadData.success) throw new Error(uploadData.error || "Failed to upload remix image");
+
+      setFrames((prev) =>
+        prev.map((f) =>
+          f.id === frameId
+            ? { ...f, isLoading: false, remixImageUrl: uploadData.url, remixImageBase64: genData.imageBase64 }
+            : f
+        )
+      );
+
+      toast({ variant: "success", title: "Remix Complete", description: frame.frameLabel });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error";
+      setFrames((prev) => prev.map((f) => (f.id === frameId ? { ...f, isLoading: false } : f)));
+      toast({ variant: "destructive", title: "Remix Failed", description: errorMessage });
+    }
+  }, [frames, currentProjectId, customApiKey, settings.aspectRatio, toast]);
+
+  const handleUseRemix = useCallback(async (frameId: string) => {
+    const frame = frames.find((f) => f.id === frameId);
+    if (!frame || !frame.remixImageUrl || !currentProjectId) return;
+
+    const newImageUrl = frame.remixImageUrl;
+    const now = Date.now();
+
+    setFrames((prev) =>
+      prev.map((f) =>
+        f.id === frameId
+          ? { ...f, imageUrl: newImageUrl, imageBase64: frame.remixImageBase64, remixImageUrl: null, remixImageBase64: null, imageUpdatedAt: now }
+          : f
+      )
+    );
+
+    try {
+      await saveImageGenFrame(currentProjectId, frame.id, {
+        sceneIndex: frame.sceneIndex,
+        clipIndex: frame.clipIndex,
+        frameLabel: frame.frameLabel,
+        frameNumber: frame.frameNumber,
+        shotGroup: frame.shotGroup,
+        prompt: frame.prompt,
+        backgroundId: frame.backgroundId,
+        refFrame: frame.refFrame,
+        imageRef: newImageUrl,
+        imageUpdatedAt: now,
+        status: "completed",
+        remixPrompt: frame.remixPrompt || "",
+        remixImageRef: null,
+        editedImageRef: frame.editedImageUrl || null,
+      });
+    } catch (err) {
+      console.error(`[ImageGenOrchestrator] Error saving frame after use remix:`, err);
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not persist the change." });
+    }
+  }, [frames, currentProjectId, toast]);
+
   const handleBgChange = useCallback((id: string, value: string) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, backgroundId: value } : f)));
   }, []);
@@ -1148,19 +1249,25 @@ export default function ImageGeneratorOrchestrator() {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, refFrame: value } : f)));
   }, []);
 
-  const handleDownload = useCallback((id: string, isRemix?: boolean) => {
+  const handleDownload = useCallback(async (id: string, isRemix?: boolean) => {
     const frame = frames.find((f) => f.id === id);
     if (!frame) return;
 
     const url = isRemix ? frame.remixImageUrl : frame.imageUrl;
     if (!url) return;
 
+    const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+    const { base64, contentType } = await response.json();
+    const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: contentType });
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
+    a.href = objectUrl;
     a.download = `frame_${frame.frameLabel}${isRemix ? "_remix" : ""}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(objectUrl);
   }, [frames]);
 
   // Apply bulk background to all frames
@@ -2118,7 +2225,8 @@ export default function ImageGeneratorOrchestrator() {
                       onBgChange={handleBgChange}
                       onRefChange={handleRefChange}
                       onGenerate={generateFrame}
-                      onRemix={() => {}}
+                      onRemix={handleRemixFrame}
+                      onUseRemix={handleUseRemix}
                       onEdit={() => {}}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}

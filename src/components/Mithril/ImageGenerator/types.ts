@@ -135,6 +135,7 @@ export interface FrameCardProps {
   onRefChange: (id: string, value: string) => void;
   onGenerate: (id: string) => void;
   onRemix: (id: string) => void;
+  onUseRemix: (id: string) => void;
   onEdit: (id: string) => void;
   onDownload: (id: string, isRemix?: boolean) => void;
   onOpenModal: (url: string) => void;

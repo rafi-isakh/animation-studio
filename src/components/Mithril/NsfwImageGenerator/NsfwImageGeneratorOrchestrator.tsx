@@ -1172,19 +1172,25 @@ export default function NsfwImageGeneratorOrchestrator() {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, refFrame: value } : f)));
   }, []);
 
-  const handleDownload = useCallback((id: string, isRemix?: boolean) => {
+  const handleDownload = useCallback(async (id: string, isRemix?: boolean) => {
     const frame = frames.find((f) => f.id === id);
     if (!frame) return;
 
     const url = isRemix ? frame.remixImageUrl : frame.imageUrl;
     if (!url) return;
 
+    const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+    const { base64, contentType } = await response.json();
+    const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: contentType });
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
+    a.href = objectUrl;
     a.download = `frame_${frame.frameLabel}${isRemix ? "_remix" : ""}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(objectUrl);
   }, [frames]);
 
   // Apply bulk background to all frames

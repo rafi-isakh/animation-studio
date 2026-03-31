@@ -1184,6 +1184,42 @@ export default function ImageGenerator() {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, refFrame: value } : f)));
   }, []);
 
+  const handleUseRemix = useCallback(async (frameId: string) => {
+    const frame = frames.find((f) => f.id === frameId);
+    if (!frame || !frame.remixImageUrl || !currentProjectId) return;
+
+    const newImageUrl = frame.remixImageUrl;
+    const now = Date.now();
+
+    setFrames((prev) =>
+      prev.map((f) =>
+        f.id === frameId
+          ? { ...f, imageUrl: newImageUrl, imageBase64: frame.remixImageBase64, remixImageUrl: null, remixImageBase64: null, imageUpdatedAt: now }
+          : f
+      )
+    );
+
+    try {
+      await saveImageGenFrame(currentProjectId, frame.id, {
+        sceneIndex: frame.sceneIndex,
+        clipIndex: frame.clipIndex,
+        frameLabel: frame.frameLabel,
+        frameNumber: frame.frameNumber,
+        shotGroup: frame.shotGroup,
+        prompt: frame.prompt,
+        backgroundId: frame.backgroundId,
+        refFrame: frame.refFrame,
+        imageRef: newImageUrl,
+        imageUpdatedAt: now,
+        status: "completed",
+        remixPrompt: frame.remixPrompt || "",
+        remixImageRef: null,
+      });
+    } catch (err) {
+      console.error("Failed to save use-remix state:", err);
+    }
+  }, [frames, currentProjectId]);
+
   const handleDownload = useCallback((id: string, isRemix?: boolean) => {
     const frame = frames.find((f) => f.id === id);
     if (!frame) return;
@@ -2078,6 +2114,7 @@ export default function ImageGenerator() {
                       onRefChange={handleRefChange}
                       onGenerate={generateFrame}
                       onRemix={() => {}}
+                      onUseRemix={handleUseRemix}
                       onEdit={() => {}}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}

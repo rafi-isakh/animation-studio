@@ -768,6 +768,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             designSheetPrompt: prop.designSheetPrompt,
             designSheetImageRef: prop.designSheetImageRef,
             referenceImageRef: prop.referenceImageRef,
+            referenceImageRefs: prop.referenceImageRefs,
           })),
           detectedIds: detectedIds.map(d => ({
             id: d.id,

@@ -356,6 +356,7 @@ export interface ImageGenDocument {
     name: string;
     imageUrl: string; // S3 URL instead of base64
     category: 'character' | 'background';
+    isRemoved?: boolean;
   }>;
 }
 

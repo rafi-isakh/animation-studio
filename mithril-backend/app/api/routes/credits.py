@@ -116,6 +116,36 @@ async def get_my_provider_breakdown(
     return {"providers": providers, "total_usd": round(total_usd, 6)}
 
 
+@router.get("/me/projects")
+async def get_my_project_breakdown(
+    user: AuthenticatedUser,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Return credit usage grouped by project for the authenticated user."""
+    credits_service = get_credits_service()
+    projects = await credits_service.get_project_breakdown(
+        user_id=user.uid, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(p["total_usd"] for p in projects)
+    return {"projects": projects, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/me/dashboard")
+async def get_my_dashboard(
+    user: AuthenticatedUser,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Return combined dashboard metrics for the authenticated user."""
+    credits_service = get_credits_service()
+    return await credits_service.get_dashboard(
+        user_id=user.uid, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+
+
 @router.get("/usage/summary")
 async def get_usage_summary(
     user: AuthenticatedUser,
@@ -166,6 +196,38 @@ async def get_usage_stage_breakdown(
     )
     total_usd = sum(s["total_usd"] for s in stages)
     return {"stages": stages, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/usage/projects")
+async def get_usage_project_breakdown(
+    user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Admin: cross-user project breakdown with optional filters."""
+    credits_service = get_credits_service()
+    projects = await credits_service.get_project_breakdown(
+        user_id=user_id, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+    total_usd = sum(p["total_usd"] for p in projects)
+    return {"projects": projects, "total_usd": round(total_usd, 6)}
+
+
+@router.get("/usage/dashboard")
+async def get_usage_dashboard(
+    user: AuthenticatedUser,
+    user_id: Annotated[str | None, Query()] = None,
+    project_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+) -> dict:
+    """Admin: combined dashboard metrics with optional filters."""
+    credits_service = get_credits_service()
+    return await credits_service.get_dashboard(
+        user_id=user_id, project_id=project_id, start_date=start_date, end_date=end_date
+    )
 
 
 @router.get("/usage")

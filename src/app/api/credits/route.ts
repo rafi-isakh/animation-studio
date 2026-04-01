@@ -13,7 +13,7 @@ function backendHeaders(userId: string) {
 }
 
 /**
- * GET /api/credits?type=summary|stages|providers
+ * GET /api/credits?type=summary|stages|providers|projects|dashboard
  * Proxies to the mithril-backend credits endpoints for the current user.
  * Optional query params: start_date, end_date
  */
@@ -45,11 +45,15 @@ export async function GET(request: NextRequest) {
         summary: `/credits/usage/summary${dateSuffix}`,
         stages: `/credits/usage/stages${dateSuffix}`,
         providers: `/credits/usage/providers${dateSuffix}`,
+        projects: `/credits/usage/projects${dateSuffix}`,
+        dashboard: `/credits/usage/dashboard${dateSuffix}`,
       }
     : {
         summary: `/credits/me${dateSuffix}`,
         stages: `/credits/me/stages${dateSuffix}`,
         providers: `/credits/me/providers${dateSuffix}`,
+        projects: `/credits/me/projects${dateSuffix}`,
+        dashboard: `/credits/me/dashboard${dateSuffix}`,
       };
 
   const backendPath = pathMap[type];

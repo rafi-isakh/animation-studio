@@ -11,7 +11,7 @@ import MithrilHeader from "./MithrilHeader";
 // ---------------------------------------------------------------------------
 
 interface UserSummary {
-  user_id: string;
+  user_id?: string;
   total_used_usd: number;
   transaction_count: number;
 }
@@ -24,6 +24,12 @@ interface StageEntry {
 
 interface ProviderEntry {
   provider_id: string;
+  total_usd: number;
+  call_count: number;
+}
+
+interface ProjectEntry {
+  project_id: string;
   total_usd: number;
   call_count: number;
 }
@@ -119,6 +125,7 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
   const [summary, setSummary] = useState<UserSummary | null>(null);
   const [stages, setStages] = useState<StageEntry[]>([]);
   const [providers, setProviders] = useState<ProviderEntry[]>([]);
+  const [projectBreakdown, setProjectBreakdown] = useState<ProjectEntry[]>([]);
   const [loading, setLoading] = useState(true);   // true only on first mount
   const [refetching, setRefetching] = useState(false); // true on filter changes
   const [error, setError] = useState<string | null>(null);
@@ -180,16 +187,17 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
 
     const dateParams = buildDateParams();
 
-    Promise.all([
-      fetchCredits("summary", dateParams, adminMode),
-      fetchCredits("stages", dateParams, adminMode),
-      fetchCredits("providers", dateParams, adminMode),
-    ])
-      .then(([summaryData, stagesData, providersData]) => {
+    fetchCredits("dashboard", dateParams, adminMode)
+      .then((dashboardData) => {
         if (cancelled) return;
-        setSummary(summaryData);
-        setStages(stagesData.stages ?? []);
-        setProviders(providersData.providers ?? []);
+        setSummary({
+          user_id: dashboardData.user_id,
+          total_used_usd: dashboardData.total_used_usd ?? 0,
+          transaction_count: dashboardData.transaction_count ?? 0,
+        });
+        setStages(dashboardData.stages ?? []);
+        setProviders(dashboardData.providers ?? []);
+        setProjectBreakdown(dashboardData.projects ?? []);
       })
       .catch((err: Error) => {
         if (!cancelled) setError(err.message);
@@ -217,6 +225,8 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
   const textUsd = Math.max(0, totalUsd - videoUsd - imageUsd);
 
   const maxProviderCost = providers[0]?.total_usd ?? 1;
+  const maxProjectCost = projectBreakdown[0]?.total_usd ?? 1;
+  const projectNameById = new Map(projects.map((p) => [p.id, p.name]));
 
   if (loading) {
     return (
@@ -421,6 +431,45 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
             </div>
           )}
         </div>
+
+        {/* Project breakdown (All projects only) */}
+        {!selectedProjectId && (
+          <div className="flex-1 bg-[#211F21] border border-[#272727] rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#272727]">
+              <span className="text-[15px] font-semibold">Cost by Project</span>
+              <span className="text-sm text-gray-500">{projectBreakdown.length} projects</span>
+            </div>
+            {projectBreakdown.length === 0 ? (
+              <EmptyState label="No project data yet" />
+            ) : (
+              <div className="flex flex-col">
+                {projectBreakdown.map((p, i) => {
+                  const barPct = Math.round((p.total_usd / maxProjectCost) * 100);
+                  const label = projectNameById.get(p.project_id) ?? p.project_id;
+                  return (
+                    <div
+                      key={p.project_id}
+                      className={`flex items-center gap-4 px-6 py-3.5 ${i < projectBreakdown.length - 1 ? "border-b border-[#1A1A1C]" : ""}`}
+                    >
+                      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <span className="text-sm font-medium truncate" title={label}>
+                          {label}
+                        </span>
+                        <div className="h-1 bg-[#1A1A1C] rounded-full w-full">
+                          <div className="h-1 rounded-full transition-all bg-[#DB2777]" style={{ width: `${barPct}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5 flex-shrink-0 w-20">
+                        <span className="text-sm font-semibold">{fmt(p.total_usd)}</span>
+                        <span className="text-xs text-gray-500">{p.call_count} calls</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       </div>
     </div>

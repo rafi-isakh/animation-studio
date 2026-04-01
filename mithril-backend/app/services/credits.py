@@ -354,6 +354,118 @@ class CreditsService:
         _cache_set(cache_key, result)
         return result
 
+    async def get_project_breakdown(
+        self,
+        user_id: str | None = None,
+        project_id: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> list[dict]:
+        """Aggregate credit transactions grouped by project_id, sorted by cost desc."""
+        cache_key = f"projects:{user_id}:{project_id}:{start_date}:{end_date}"
+        if cached := _cache_get(cache_key):
+            return cached
+
+        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
+        if user_id:
+            query = query.where("user_id", "==", user_id)
+        if project_id:
+            query = query.where("project_id", "==", project_id)
+        if start_date:
+            query = query.where("created_at", ">=", start_date)
+        if end_date:
+            query = query.where("created_at", "<=", end_date)
+
+        docs = await query.get()
+        aggregated: dict[str, dict] = {}
+        for doc in docs:
+            data = doc.to_dict() or {}
+            pid = data.get("project_id", "unknown")
+            if pid not in aggregated:
+                aggregated[pid] = {"project_id": pid, "total_usd": 0.0, "call_count": 0}
+            aggregated[pid]["total_usd"] += data.get("cost_usd", 0.0)
+            aggregated[pid]["call_count"] += 1
+
+        result = [
+            {**v, "total_usd": round(v["total_usd"], 6)}
+            for v in sorted(aggregated.values(), key=lambda x: x["total_usd"], reverse=True)
+        ]
+        _cache_set(cache_key, result)
+        return result
+
+    async def get_dashboard(
+        self,
+        user_id: str | None = None,
+        project_id: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> dict:
+        """Return combined summary + stage/provider/project breakdown in one query pass."""
+        cache_key = f"dashboard:{user_id}:{project_id}:{start_date}:{end_date}"
+        if cached := _cache_get(cache_key):
+            return cached
+
+        query = self.db.collection(self.TRANSACTIONS_COLLECTION)
+        if user_id:
+            query = query.where("user_id", "==", user_id)
+        if project_id:
+            query = query.where("project_id", "==", project_id)
+        if start_date:
+            query = query.where("created_at", ">=", start_date)
+        if end_date:
+            query = query.where("created_at", "<=", end_date)
+
+        docs = await query.get()
+
+        total_usd = 0.0
+        transaction_count = 0
+        stage_agg: dict[str, dict] = {}
+        provider_agg: dict[str, dict] = {}
+        project_agg: dict[str, dict] = {}
+
+        for doc in docs:
+            data = doc.to_dict() or {}
+            cost = data.get("cost_usd", 0.0) or 0.0
+            transaction_count += 1
+            total_usd += cost
+
+            stage = data.get("job_type", "unknown")
+            if stage not in stage_agg:
+                stage_agg[stage] = {"job_type": stage, "total_usd": 0.0, "call_count": 0}
+            stage_agg[stage]["total_usd"] += cost
+            stage_agg[stage]["call_count"] += 1
+
+            provider = data.get("provider_id", "unknown")
+            if provider not in provider_agg:
+                provider_agg[provider] = {"provider_id": provider, "total_usd": 0.0, "call_count": 0}
+            provider_agg[provider]["total_usd"] += cost
+            provider_agg[provider]["call_count"] += 1
+
+            pid = data.get("project_id", "unknown")
+            if pid not in project_agg:
+                project_agg[pid] = {"project_id": pid, "total_usd": 0.0, "call_count": 0}
+            project_agg[pid]["total_usd"] += cost
+            project_agg[pid]["call_count"] += 1
+
+        result = {
+            "total_used_usd": round(total_usd, 6),
+            "transaction_count": transaction_count,
+            "stages": [
+                {**v, "total_usd": round(v["total_usd"], 6)}
+                for v in sorted(stage_agg.values(), key=lambda x: x["total_usd"], reverse=True)
+            ],
+            "providers": [
+                {**v, "total_usd": round(v["total_usd"], 6)}
+                for v in sorted(provider_agg.values(), key=lambda x: x["total_usd"], reverse=True)
+            ],
+            "projects": [
+                {**v, "total_usd": round(v["total_usd"], 6)}
+                for v in sorted(project_agg.values(), key=lambda x: x["total_usd"], reverse=True)
+            ],
+        }
+        _cache_set(cache_key, result)
+        return result
+
     async def get_all_summary(
         self,
         user_id: str | None = None,

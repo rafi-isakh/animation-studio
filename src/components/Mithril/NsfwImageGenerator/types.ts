@@ -98,6 +98,7 @@ export interface LocalAssetRef {
   mimeType: string;
   category: "character" | "background";
   imageUrl?: string; // S3 URL for lazy loading
+  isRemoved?: boolean; // Marks original asset as intentionally removed/hidden
 }
 
 /**

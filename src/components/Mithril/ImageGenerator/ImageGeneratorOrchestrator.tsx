@@ -299,6 +299,8 @@ export default function ImageGeneratorOrchestrator() {
           };
         })
       );
+    } else {
+      setCharacterAssets([]);
     }
 
     // Load backgrounds from Stage 6
@@ -314,6 +316,8 @@ export default function ImageGeneratorOrchestrator() {
           })),
         }))
       );
+    } else {
+      setBackgroundAssets([]);
     }
   }, [propDesignerGenerator.result, getStageResult]);
 
@@ -439,7 +443,8 @@ export default function ImageGeneratorOrchestrator() {
               name: asset.name,
               mimeType: 'image/webp',
               category: asset.category,
-              imageUrl: asset.imageUrl,
+              imageUrl: asset.imageUrl || undefined,
+              isRemoved: !!asset.isRemoved,
             }));
             setLocalAssets(assetMetadata);
           }
@@ -723,9 +728,16 @@ export default function ImageGeneratorOrchestrator() {
         const regexId = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedId}(?![a-zA-Z0-9가-힣])`, "i");
         const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
-        if ((regexId.test(promptText) || regexName.test(promptText)) && asset.imageUrl) {
-          referenceUrls.push(asset.imageUrl);
-          matchedCharacterIds.add(asset.id);
+        if (regexId.test(promptText) || regexName.test(promptText)) {
+          // Explicitly removed original asset: match it to block PropDesigner fallback.
+          if (asset.isRemoved) {
+            matchedCharacterIds.add(asset.id);
+            continue;
+          }
+          if (asset.imageUrl) {
+            referenceUrls.push(asset.imageUrl);
+            matchedCharacterIds.add(asset.id);
+          }
         }
       }
 
@@ -940,12 +952,24 @@ export default function ImageGeneratorOrchestrator() {
       const localAssetsForFirestore = await Promise.all(
         localAssets.map(async (asset) => {
           try {
+            // Keep explicit "removed original" markers as-is (no upload needed)
+            if (asset.isRemoved) {
+              return {
+                id: asset.id,
+                name: asset.name,
+                imageUrl: "",
+                category: asset.category,
+                isRemoved: true,
+              };
+            }
+
             if (asset.imageUrl) {
               return {
                 id: asset.id,
                 name: asset.name,
                 imageUrl: asset.imageUrl,
                 category: asset.category,
+                isRemoved: false,
               };
             }
 
@@ -965,6 +989,7 @@ export default function ImageGeneratorOrchestrator() {
               name: asset.name,
               imageUrl,
               category: asset.category,
+              isRemoved: false,
             };
           } catch (err) {
             console.error(`Failed to upload replacement asset ${asset.id}:`, err);
@@ -978,13 +1003,19 @@ export default function ImageGeneratorOrchestrator() {
         name: string;
         imageUrl: string;
         category: 'character' | 'background';
+        isRemoved?: boolean;
       }>;
 
       // Update local state with S3 URLs so collectReferenceUrls can find them
       if (successfulAssets.length > 0) {
         const urlMap = new Map(successfulAssets.map((a) => [a.id, a.imageUrl]));
+        const removedSet = new Set(successfulAssets.filter((a) => a.isRemoved).map((a) => a.id));
         setLocalAssets((prev) =>
-          prev.map((a) => urlMap.has(a.id) ? { ...a, imageUrl: urlMap.get(a.id) } : a)
+          prev.map((a) =>
+            urlMap.has(a.id)
+              ? { ...a, imageUrl: urlMap.get(a.id), isRemoved: removedSet.has(a.id) }
+              : a
+          )
         );
       }
 
@@ -1526,8 +1557,14 @@ export default function ImageGeneratorOrchestrator() {
           try {
             const allAssets = [...localAssets, ...newAssets];
             const assetsForFirestore = allAssets
-              .filter((a) => a.imageUrl)
-              .map((a) => ({ id: a.id, name: a.name, imageUrl: a.imageUrl!, category: a.category }));
+              .map((a) => ({
+                id: a.id,
+                name: a.name,
+                imageUrl: a.imageUrl || "",
+                category: a.category,
+                isRemoved: !!a.isRemoved,
+              }))
+              .filter((a) => a.isRemoved || !!a.imageUrl);
             await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore);
           } catch (err) {
             console.warn("[ImageGen] Failed to persist asset metadata:", err);
@@ -1551,13 +1588,15 @@ export default function ImageGeneratorOrchestrator() {
     const asset = localAssets.find((a) => a.id === assetId);
     if (!asset) return;
 
-    if (currentProjectId) {
+    if (currentProjectId && !asset.isRemoved) {
       try {
         await deleteImageGenReplacementAsset(currentProjectId, assetId, asset.category);
       } catch (err) {
         console.warn(`Failed to delete replacement asset from S3:`, err);
       }
+    }
 
+    if (currentProjectId) {
       try {
         const remainingAssets = localAssets
           .filter((a) => a.id !== assetId)
@@ -1566,8 +1605,9 @@ export default function ImageGeneratorOrchestrator() {
             name: a.name,
             imageUrl: a.imageUrl || "",
             category: a.category,
+            isRemoved: !!a.isRemoved,
           }))
-          .filter((a) => a.imageUrl);
+          .filter((a) => a.isRemoved || !!a.imageUrl);
 
         await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, remainingAssets);
       } catch (err) {
@@ -1592,6 +1632,7 @@ export default function ImageGeneratorOrchestrator() {
           base64,
           mimeType: file.type || "image/png",
           category,
+          isRemoved: false,
         };
 
         // Upload to S3 immediately if project exists (orchestrator needs URLs)
@@ -1613,8 +1654,14 @@ export default function ImageGeneratorOrchestrator() {
           // Persist to Firestore
           if (currentProjectId) {
             const assetsForFirestore = updated
-              .filter((a) => a.imageUrl)
-              .map((a) => ({ id: a.id, name: a.name, imageUrl: a.imageUrl!, category: a.category }));
+              .map((a) => ({
+                id: a.id,
+                name: a.name,
+                imageUrl: a.imageUrl || "",
+                category: a.category,
+                isRemoved: !!a.isRemoved,
+              }))
+              .filter((a) => a.isRemoved || !!a.imageUrl);
             saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore)
               .catch((err) => console.warn("[ImageGen] Failed to persist asset metadata:", err));
           }
@@ -1641,9 +1688,52 @@ export default function ImageGeneratorOrchestrator() {
     [toast, currentProjectId, settings.stylePrompt, settings.aspectRatio]
   );
 
+  // Remove original PropDesigner character/prop image (can be restored later)
+  const handleRemoveOriginalCharacterAsset = useCallback(async (assetId: string, assetName: string) => {
+    const updatedAssets: LocalAssetRef[] = [
+      ...localAssets.filter((a) => a.id !== assetId),
+      {
+        id: assetId,
+        name: assetName,
+        mimeType: "image/webp",
+        category: "character",
+        isRemoved: true,
+      },
+    ];
+
+    setLocalAssets(updatedAssets);
+
+    if (currentProjectId) {
+      try {
+        const assetsForFirestore = updatedAssets
+          .map((a) => ({
+            id: a.id,
+            name: a.name,
+            imageUrl: a.imageUrl || "",
+            category: a.category,
+            isRemoved: !!a.isRemoved,
+          }))
+          .filter((a) => a.isRemoved || !!a.imageUrl);
+        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore);
+      } catch (err) {
+        console.warn(`Failed to persist removed original asset ${assetId}:`, err);
+      }
+    }
+
+    toast({
+      title: "Original Hidden",
+      description: `"${assetName}" will no longer be used as a reference image.`,
+      variant: "default",
+    });
+  }, [localAssets, currentProjectId, settings.stylePrompt, settings.aspectRatio, toast]);
+
   // Check if an asset has been replaced
   const isAssetReplaced = useCallback(
     (assetId: string) => localAssets.some((a) => a.id === assetId),
+    [localAssets]
+  );
+  const isAssetRemoved = useCallback(
+    (assetId: string) => !!localAssets.find((a) => a.id === assetId)?.isRemoved,
     [localAssets]
   );
 
@@ -1651,7 +1741,7 @@ export default function ImageGeneratorOrchestrator() {
   const localCharacterAssets = useMemo(
     () => {
       const propDesignerIds = new Set(characterAssets.map((c) => c.id));
-      return localAssets.filter((a) => a.category === "character" && !propDesignerIds.has(a.id));
+      return localAssets.filter((a) => a.category === "character" && !a.isRemoved && !propDesignerIds.has(a.id));
     },
     [localAssets, characterAssets]
   );
@@ -1661,6 +1751,10 @@ export default function ImageGeneratorOrchestrator() {
       return localAssets.filter((a) => a.category === "background" && !bgSheetIds.has(a.id));
     },
     [localAssets, backgroundAssets]
+  );
+  const visibleCharacterAssets = useMemo(
+    () => characterAssets.filter((c) => !isAssetRemoved(c.id)),
+    [characterAssets, isAssetRemoved]
   );
 
   // Loading state
@@ -1838,7 +1932,7 @@ export default function ImageGeneratorOrchestrator() {
         <div className="bg-slate-800/60 rounded-xl p-4 border border-yellow-500/30">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-[10px] font-black text-yellow-500 uppercase">
-              Characters & Props ({characterAssets.length + localCharacterAssets.length})
+              Characters & Props ({visibleCharacterAssets.length + localCharacterAssets.length})
             </h3>
             <label className="cursor-pointer bg-yellow-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors">
               UPLOAD
@@ -1851,19 +1945,24 @@ export default function ImageGeneratorOrchestrator() {
               />
             </label>
           </div>
-          {characterAssets.length === 0 && localCharacterAssets.length === 0 ? (
+          {visibleCharacterAssets.length === 0 && localCharacterAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
               No assets - upload or use Prop Designer
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
-              {characterAssets.map((char) => {
+              {visibleCharacterAssets.map((char) => {
                 const replaced = isAssetReplaced(char.id);
+                const removed = isAssetRemoved(char.id);
                 const replacementAsset = localAssets.find((a) => a.id === char.id);
                 const replacementSrc = replacementAsset?.base64
                   ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}`
                   : replacementAsset?.imageUrl || "";
-                const hasImage = replaced ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl) : !!char.imageUrl;
+                const hasImage = removed
+                  ? false
+                  : replaced
+                  ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl)
+                  : !!char.imageUrl;
                 return (
                   <div
                     key={char.id}
@@ -1888,27 +1987,36 @@ export default function ImageGeneratorOrchestrator() {
                         <button
                           onClick={() => handleRemoveAsset(char.id)}
                           className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                          title="Remove replacement"
+                          title={removed ? "Restore original image" : "Remove replacement"}
                         >
                           x
                         </button>
                       ) : (
-                        <label
-                          className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                          title="Replace with your image"
-                        >
-                          ^
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleReplaceAsset(e, char.id, char.name, "character")}
-                            className="hidden"
-                          />
-                        </label>
+                        <>
+                          <button
+                            onClick={() => handleRemoveOriginalCharacterAsset(char.id, char.name)}
+                            className="absolute top-1 left-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            title="Remove original image"
+                          >
+                            x
+                          </button>
+                          <label
+                            className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            title="Replace with your image"
+                          >
+                            ^
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleReplaceAsset(e, char.id, char.name, "character")}
+                              className="hidden"
+                            />
+                          </label>
+                        </>
                       )}
                       {replaced && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">
-                          <span className="text-[7px] font-black text-white uppercase">Replaced</span>
+                        <div className={`absolute bottom-0 left-0 right-0 py-0.5 text-center ${removed ? "bg-red-600/80" : "bg-green-600/80"}`}>
+                          <span className="text-[7px] font-black text-white uppercase">{removed ? "Removed" : "Replaced"}</span>
                         </div>
                       )}
                     </div>

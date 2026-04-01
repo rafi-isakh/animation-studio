@@ -62,6 +62,7 @@ export async function saveImageGenMeta(
     name: string;
     imageUrl: string;
     category: 'character' | 'background';
+    isRemoved?: boolean;
   }>,
   frameSource?: 'storyboard' | 'csv'
 ): Promise<void> {

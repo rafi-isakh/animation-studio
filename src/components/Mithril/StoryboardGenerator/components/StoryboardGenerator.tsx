@@ -337,7 +337,7 @@ export default function StoryboardGenerator() {
       scene.clips.map((clip, clipIndex) => {
         const row = [
           `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-          `${sceneIndex + 1}-${clipIndex + 1}`,
+          `"${sceneIndex + 1}-${clipIndex + 1}"`,
           clip.length,
           clip.accumulatedTime,
           clip.backgroundId,
@@ -504,7 +504,7 @@ export default function StoryboardGenerator() {
         scene.clips.map((clip, clipIndex) => {
           const row = [
             `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
-            `${sceneIndex + 1}-${clipIndex + 1}`,
+            `"${sceneIndex + 1}-${clipIndex + 1}"`,
             clip.length,
             clip.accumulatedTime,
             clip.backgroundId,

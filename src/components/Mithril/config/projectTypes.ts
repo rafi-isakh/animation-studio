@@ -52,7 +52,7 @@ const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
   { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
-  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'VideoGenerator' },
+  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'WebnovelTrailer' },
 ];
 
 // Stage configurations for Text-to-Video NSFW (mirrors TEXT_TO_VIDEO_STAGES)
@@ -64,7 +64,7 @@ const TEXT_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
   { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'NsfwImageGenerator' },
-  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'NsfwTextToVideoGenerator' },
+  { id: 8, key: 'video-gen', labelKey: 'mithril_stage7', component: 'WebnovelTrailer' },
 ];
 
 // Stage configurations for Text-to-Video with 3D BG (replaces BgSheetGenerator with AnimeBgStudio)

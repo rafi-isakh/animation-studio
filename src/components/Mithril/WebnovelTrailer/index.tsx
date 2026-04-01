@@ -5,7 +5,7 @@ import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown } from "lucide-react";
+import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown, Plus } from "lucide-react";
 import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../VideoGenerator/providers";
 import { compressBase64Image } from "../ImageToVideo/ImageToScriptWriter/utils/imageCompression";
 import { ASPECT_RATIOS } from "../VideoGenerator/types";
@@ -16,6 +16,7 @@ import {
   saveWebnovelTrailerMeta,
   saveWebnovelTrailerClip,
   updateWebnovelTrailerClipStatus,
+  deleteWebnovelTrailerClip,
   clearWebnovelTrailer,
   mapJobToClipUpdate,
   getActiveProjectJobs,
@@ -48,6 +49,7 @@ interface TrailerClipCardProps {
   onGenerate: (id: string) => void;
   onRegenerate: (id: string) => void;
   onCancel: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdatePrompt: (id: string, prompt: string) => void;
   onUpdateStartImage: (id: string, data: string | null) => void;
   onUpdateDuration: (id: string, duration: string) => void;
@@ -61,6 +63,7 @@ function TrailerClipCard({
   onGenerate,
   onRegenerate,
   onCancel,
+  onDelete,
   onUpdatePrompt,
   onUpdateStartImage,
   onUpdateDuration,
@@ -102,6 +105,15 @@ function TrailerClipCard({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Delete button */}
+          <button
+            onClick={() => onDelete(frame.id)}
+            className="p-1 text-gray-600 hover:text-red-500 transition-colors"
+            title="Delete clip"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+
           {/* Per-frame Provider Selector */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-gray-500 uppercase font-bold">API:</span>
@@ -1096,6 +1108,58 @@ export default function WebnovelTrailer() {
     }
   }, [frames, cancelJob]);
 
+  const deleteFrame = useCallback((id: string) => {
+    setFrames((prev) => {
+      const frame = prev.find((f) => f.id === id);
+      if (frame?.jobId) {
+        activeJobsRef.current.delete(frame.jobId);
+        cancelJob({ jobId: frame.jobId }).catch(console.error);
+      }
+      if (currentProjectId && frame) {
+        deleteWebnovelTrailerClip(currentProjectId, `0_${frame.rowIndex}`).catch(console.error);
+      }
+      return prev.filter((f) => f.id !== id);
+    });
+  }, [cancelJob, currentProjectId]);
+
+  const handleAddFrame = useCallback(async () => {
+    if (!currentProjectId) return;
+    const newRowIndex = frames.length;
+    const newFrame: CsvFrame = {
+      id: `frame-${newRowIndex}-${Date.now()}`,
+      rowIndex: newRowIndex,
+      frameNumber: String(newRowIndex + 1),
+      veoPrompt: '',
+      referenceFilename: '',
+      dialogue: undefined,
+      sfx: undefined,
+      clipLength: '5',
+      videoApi: undefined,
+      imageData: null,
+      endFrameData: null,
+      imageUrl: null,
+      videoUrl: null,
+      jobId: null,
+      s3FileName: null,
+      status: 'idle',
+    };
+    setFrames((prev) => [...prev, newFrame]);
+    toast({ title: `Clip #${newFrame.frameNumber} added`, variant: 'success' });
+    try {
+      await saveWebnovelTrailerClip(currentProjectId, `0_${newRowIndex}`, {
+        clipIndex: newRowIndex,
+        sceneIndex: 0,
+        sceneTitle: `Clip ${newFrame.frameNumber}`,
+        videoPrompt: '',
+        length: '5초',
+        videoApi: null,
+        imageUrl: null,
+      });
+    } catch (err) {
+      console.error('WebnovelTrailer: failed to persist new frame', err);
+    }
+  }, [currentProjectId, frames.length, toast]);
+
   const handleStop = useCallback(() => {
     shouldStopRef.current = true;
     setIsGeneratingAll(false);
@@ -1637,6 +1701,16 @@ export default function WebnovelTrailer() {
                 <Trash2 className="h-4 w-4" />
               </button>
 
+              <button
+                onClick={handleAddFrame}
+                disabled={!currentProjectId}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+                title="Add a blank clip"
+              >
+                <Plus className="h-4 w-4" />
+                Add Clip
+              </button>
+
               {isGeneratingAll ? (
                 <button
                   onClick={handleStop}
@@ -1706,6 +1780,7 @@ export default function WebnovelTrailer() {
                 onGenerate={generateFrame}
                 onRegenerate={regenerateFrame}
                 onCancel={handleCancelClip}
+                onDelete={deleteFrame}
                 onUpdatePrompt={updatePrompt}
                 onUpdateStartImage={updateStartImage}
                 onUpdateDuration={updateDuration}

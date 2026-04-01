@@ -2,6 +2,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   collection,
   getDocs,
   writeBatch,
@@ -154,6 +155,11 @@ export async function updateWebnovelTrailerClipStatus(
   );
   const docRef = getWebnovelTrailerClipRef(projectId, clipId);
   await setDoc(docRef, cleanUpdates, { merge: true });
+}
+
+export async function deleteWebnovelTrailerClip(projectId: string, clipId: string): Promise<void> {
+  const docRef = getWebnovelTrailerClipRef(projectId, clipId);
+  await deleteDoc(docRef);
 }
 
 export async function clearWebnovelTrailer(projectId: string): Promise<void> {

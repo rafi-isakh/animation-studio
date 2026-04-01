@@ -1979,8 +1979,23 @@ export default function ImageGeneratorOrchestrator() {
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
-              {backgroundAssets.map((bg) =>
-                bg.angles?.map((angle, angleIndex) => {
+              {(() => {
+                const allEntries = backgroundAssets.flatMap((bg) =>
+                  (bg.angles || []).map((angle) => ({ bg, angle }))
+                );
+
+                const sorted = [...allEntries].sort((a, b) => {
+                  const aParts = a.angle.angle.split("-").map(Number);
+                  const bParts = b.angle.angle.split("-").map(Number);
+                  if (aParts.some(isNaN) || bParts.some(isNaN)) return a.angle.angle.localeCompare(b.angle.angle);
+                  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0);
+                    if (diff !== 0) return diff;
+                  }
+                  return 0;
+                });
+
+                return sorted.map(({ bg, angle }, angleIndex) => {
                   const angleId = angle.angle;
                   const replaced = isAssetReplaced(angleId);
                   const replacementAsset = localAssets.find((a) => a.id === angleId);
@@ -2043,8 +2058,8 @@ export default function ImageGeneratorOrchestrator() {
                       </div>
                     </div>
                   );
-                })
-              )}
+                });
+              })()}
               {localBackgroundAssets.map((asset) => {
                 const imgSrc = asset.base64
                   ? `data:${asset.mimeType};base64,${asset.base64}`

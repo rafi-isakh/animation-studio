@@ -50,6 +50,7 @@ export interface SaveWebnovelTrailerClipInput {
 export interface UpdateWebnovelTrailerClipInput {
   sceneIndex?: number;
   clipIndex?: number;
+  sceneTitle?: string;
   videoPrompt?: string;
   length?: string;
   videoApi?: string | null;
@@ -143,6 +144,37 @@ export async function saveWebnovelTrailerClip(
     s3FileName:  null,
     status:      'idle',
   });
+}
+
+export async function saveWebnovelTrailerClipsBatch(
+  projectId: string,
+  clips: Array<{ clipId: string; input: SaveWebnovelTrailerClipInput }>
+): Promise<void> {
+  const MAX_WRITES_PER_BATCH = 450;
+
+  for (let start = 0; start < clips.length; start += MAX_WRITES_PER_BATCH) {
+    const batch = writeBatch(db);
+    const slice = clips.slice(start, start + MAX_WRITES_PER_BATCH);
+
+    for (const { clipId, input } of slice) {
+      const docRef = getWebnovelTrailerClipRef(projectId, clipId);
+      batch.set(docRef, {
+        clipIndex:   input.clipIndex,
+        sceneIndex:  input.sceneIndex,
+        sceneTitle:  input.sceneTitle,
+        videoPrompt: input.videoPrompt,
+        length:      input.length,
+        videoApi:    input.videoApi ?? null,
+        imageUrl:    input.imageUrl ?? null,
+        videoRef:    null,
+        jobId:       null,
+        s3FileName:  null,
+        status:      'idle',
+      });
+    }
+
+    await batch.commit();
+  }
 }
 
 export async function updateWebnovelTrailerClipStatus(

@@ -83,7 +83,7 @@ export default function ImageGeneratorOrchestrator() {
     isLoading: isContextLoading,
     propDesignerGenerator,
   } = useMithril();
-  const { language, dictionary } = useLanguage();
+const { language, dictionary } = useLanguage();
   const { toast } = useToast();
   const { trackImageGeneration, isClockedIn } = useCostTracker();
 
@@ -120,10 +120,12 @@ export default function ImageGeneratorOrchestrator() {
   const framesRef = useRef<ImageGenFrame[]>([]);
   const isBatchRunningRef = useRef(false);
   const isMountedRef = useRef(true);
+  const isLoadingDataRef = useRef(false);
   const activeJobsRef = useRef<Set<string>>(new Set());
   const frameToJobMap = useRef<Map<string, string>>(new Map()); // frameId -> jobId mapping
   const shouldStopRef = useRef(false);
   const currentProjectIdRef = useRef(currentProjectId);
+
 
   // Keep refs in sync
   useEffect(() => {
@@ -323,10 +325,10 @@ export default function ImageGeneratorOrchestrator() {
 
   // Reload assets whenever PropDesigner or Stage 6 data changes
   useEffect(() => {
-    if (currentStage === 7 && hasLoaded) {
+    if (currentStage === 7) {
       loadAssets();
     }
-  }, [currentStage, hasLoaded, loadAssets]);
+  }, [currentStage, loadAssets]);
 
   // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
@@ -402,6 +404,7 @@ export default function ImageGeneratorOrchestrator() {
   useEffect(() => {
     if (currentStage !== 7) {
       setHasLoaded(false);
+      isLoadingDataRef.current = false;
       return;
     }
 
@@ -411,8 +414,12 @@ export default function ImageGeneratorOrchestrator() {
     if (hasLoaded) {
       return;
     }
+    if (isLoadingDataRef.current) {
+      return;
+    }
 
     const loadData = async () => {
+      isLoadingDataRef.current = true;
       setIsLoadingData(true);
       setError(null);
 
@@ -674,12 +681,13 @@ export default function ImageGeneratorOrchestrator() {
         console.error("Error loading ImageGen data:", err);
         setError("Failed to load data. Please try again.");
       } finally {
+        isLoadingDataRef.current = false;
         setIsLoadingData(false);
       }
     };
 
     loadData();
-  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult, settings]);
+  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult]);
 
   // Group frames by shotGroup for display
   const groupedFrames = useMemo(() => {

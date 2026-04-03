@@ -70,7 +70,7 @@ export default function ImageGenerator() {
     isLoading: isContextLoading,
     propDesignerGenerator,
   } = useMithril();
-  const { language, dictionary } = useLanguage();
+const { language, dictionary } = useLanguage();
   const { toast } = useToast();
   const { trackImageGeneration, isClockedIn } = useCostTracker();
 
@@ -107,6 +107,7 @@ export default function ImageGenerator() {
   const framesRef = useRef<ImageGenFrame[]>([]);
   const isBatchRunningRef = useRef(false);
   const isMountedRef = useRef(true);
+  const isLoadingDataRef = useRef(false);
 
   // Keep refs in sync
   useEffect(() => {
@@ -171,10 +172,10 @@ export default function ImageGenerator() {
 
   // Reload assets whenever PropDesigner or Stage 6 data changes
   useEffect(() => {
-    if (currentStage === 7 && hasLoaded) {
+    if (currentStage === 7) {
       loadAssets();
     }
-  }, [currentStage, hasLoaded, loadAssets]);
+  }, [currentStage, loadAssets]);
 
   // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
@@ -250,6 +251,7 @@ export default function ImageGenerator() {
   useEffect(() => {
     if (currentStage !== 7) {
       setHasLoaded(false);
+      isLoadingDataRef.current = false;
       return;
     }
 
@@ -259,8 +261,12 @@ export default function ImageGenerator() {
     if (hasLoaded) {
       return;
     }
+    if (isLoadingDataRef.current) {
+      return;
+    }
 
     const loadData = async () => {
+      isLoadingDataRef.current = true;
       setIsLoadingData(true);
       setError(null);
 
@@ -509,12 +515,13 @@ export default function ImageGenerator() {
         console.error("Error loading ImageGen data:", err);
         setError("Failed to load data. Please try again.");
       } finally {
+        isLoadingDataRef.current = false;
         setIsLoadingData(false);
       }
     };
 
     loadData();
-  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult, settings]);
+  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult]);
 
   // Group frames by shotGroup for display
   const groupedFrames = useMemo(() => {

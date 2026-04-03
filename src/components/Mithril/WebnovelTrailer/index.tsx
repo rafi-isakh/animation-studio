@@ -15,6 +15,7 @@ import {
   getWebnovelTrailerClips,
   saveWebnovelTrailerMeta,
   saveWebnovelTrailerClip,
+  saveWebnovelTrailerClipsBatch,
   updateWebnovelTrailerClipStatus,
   deleteWebnovelTrailerClip,
   clearWebnovelTrailer,
@@ -507,11 +508,12 @@ export default function WebnovelTrailer() {
 
           // Re-track active jobs
           const activeJobs = await getActiveProjectJobs(currentProjectId);
+          const frameIndexByRowIndex = new Map<number, number>();
+          restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
           activeJobs.forEach((job) => {
             if (job.type && job.type !== 'video') return;
-            const frameIdx = restoredFrames.findIndex(
-              (f) => f.rowIndex === job.clip_index && job.scene_index === 0
-            );
+            if (job.scene_index !== 0) return;
+            const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
             if (frameIdx !== -1) {
               const update = mapJobToClipUpdate(job);
               activeJobsRef.current.add(update.jobId);
@@ -609,9 +611,11 @@ export default function WebnovelTrailer() {
     // Persist appended clips to Firestore
     if (currentProjectId) {
       try {
-        await Promise.all(
-          offsetFrames.map((frame) =>
-            saveWebnovelTrailerClip(currentProjectId, `0_${frame.rowIndex}`, {
+        await saveWebnovelTrailerClipsBatch(
+          currentProjectId,
+          offsetFrames.map((frame) => ({
+            clipId: `0_${frame.rowIndex}`,
+            input: {
               clipIndex:   frame.rowIndex,
               sceneIndex:  0,
               sceneTitle:  `Clip ${frame.frameNumber}`,
@@ -619,8 +623,8 @@ export default function WebnovelTrailer() {
               length:      `${frame.clipLength || '5'}초`,
               videoApi:    frame.videoApi ?? null,
               imageUrl:    null,
-            })
-          )
+            },
+          }))
         );
       } catch (err) {
         console.error('WebnovelTrailer: failed to persist appended frames', err);
@@ -661,9 +665,11 @@ export default function WebnovelTrailer() {
     if (currentProjectId) {
       try {
         await saveWebnovelTrailerMeta(currentProjectId, aspectRatio, selectedProvider);
-        await Promise.all(
-          newFrames.map((frame) =>
-            saveWebnovelTrailerClip(currentProjectId, `0_${frame.rowIndex}`, {
+        await saveWebnovelTrailerClipsBatch(
+          currentProjectId,
+          newFrames.map((frame) => ({
+            clipId: `0_${frame.rowIndex}`,
+            input: {
               clipIndex:   frame.rowIndex,
               sceneIndex:  0,
               sceneTitle:  `Clip ${frame.frameNumber}`,
@@ -671,8 +677,8 @@ export default function WebnovelTrailer() {
               length:      `${frame.clipLength || '5'}초`,
               videoApi:    frame.videoApi ?? null,
               imageUrl:    null,
-            })
-          )
+            },
+          }))
         );
       } catch (err) {
         console.error('WebnovelTrailer: failed to persist frames', err);
@@ -1028,15 +1034,17 @@ export default function WebnovelTrailer() {
         );
 
         const clipId = `0_${frame.rowIndex}`;
-        await saveWebnovelTrailerClip(currentProjectId, clipId, {
+        await updateWebnovelTrailerClipStatus(currentProjectId, clipId, {
           clipIndex:   frame.rowIndex,
           sceneIndex:  0,
           sceneTitle:  `Clip ${frame.frameNumber}`,
           videoPrompt: frame.veoPrompt,
           length:      `${frame.clipLength || '5'}초`,
+          videoApi:    frame.videoApi ?? null,
           imageUrl:    resolvedImageUrl,
-        });
-        await updateWebnovelTrailerClipStatus(currentProjectId, clipId, {
+          videoRef:    null,
+          s3FileName:  null,
+          error:       null,
           jobId:      response.jobId,
           status:     'generating',
           providerId: effectiveProvider,

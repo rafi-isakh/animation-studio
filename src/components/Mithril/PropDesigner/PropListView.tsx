@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Prop, getEasyModeCharacterPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
+import { updatePropDesignSheetImage } from "../services/firestore";
 
 // Status badge component for job statuses
 function JobStatusBadge({ status }: { status: PropJobStatus | null }) {
@@ -119,10 +120,17 @@ export default function PropListView({
       
       // If completed, update the prop with the new image URL
       if (update.status === "completed" && update.imageUrl) {
-        onUpdateProp(update.propId, { 
+        onUpdateProp(update.propId, {
           designSheetImageUrl: update.imageUrl,
-          isGenerating: false 
+          isGenerating: false
         });
+        // Persist image URL to Firestore so it survives page refresh
+        if (projectId) {
+          const existingProp = props.find(p => p.id === update.propId);
+          if (!existingProp?.designSheetImageUrl) {
+            updatePropDesignSheetImage(projectId, update.propId, update.imageUrl, existingProp?.designSheetPrompt || "").catch(console.error);
+          }
+        }
       }
       
       // If failed, mark as not generating
@@ -143,7 +151,7 @@ export default function PropListView({
           setBatchProgress(null);
         }
       }
-    }, [onUpdateProp, isBatchGenerating, batchProgress, jobStatuses]),
+    }, [onUpdateProp, isBatchGenerating, batchProgress, jobStatuses, props, projectId]),
   });
 
   // Editable prompts per prop (keyed by prop id)

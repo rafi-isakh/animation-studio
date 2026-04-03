@@ -205,20 +205,20 @@ export default function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50" style={{ background: 'linear-gradient(to bottom, rgba(8,8,8,0.96) 0%, transparent 100%)' }}>
         <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/favicon.svg" alt="Toonyz" width={26} height={26} className="rounded" />
-            <span className={`${cinzel.className} text-[13px] font-bold tracking-[0.14em] text-white`}>TOONYZ</span>
-            <span className="text-[10px] font-medium tracking-[0.18em] text-[#DB2777] border border-[#DB277740] px-1.5 py-0.5 rounded uppercase">Studio</span>
+            <Image src="/favicon.svg" alt="Rivell" width={26} height={26} className="rounded" />
+            <span className={`${cinzel.className} text-[14px] font-bold tracking-[0.14em] text-white`}>Rivell</span>
+            <span className="text-[11px] font-medium tracking-[0.18em] text-[#DB2777] border border-[#DB277740] px-1.5 py-0.5 rounded uppercase">Studio</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-[13px] text-[#7A7672]">
-            <a href="#features" className="hover:text-white transition-colors duration-200">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors duration-200">How it works</a>
-            <a href="#for-who" className="hover:text-white transition-colors duration-200">Who it&apos;s for</a>
+          <nav className="hidden md:flex items-center gap-8 text-[14px] text-[#7A7672]">
+            <a href="#features" className="text-[#9A9490] font-medium tracking-[0.06em] hover:text-white transition-colors duration-200">Features</a>
+            <a href="#how-it-works" className="text-[#9A9490] font-medium tracking-[0.06em] hover:text-white transition-colors duration-200">How it works</a>
+            <a href="#for-who" className="text-[#9A9490] font-medium tracking-[0.06em] hover:text-white transition-colors duration-200">Who it&apos;s for</a>
           </nav>
 
           <Link
             href="/mithril"
-            className="text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#DB2777] hover:bg-[#BE185D] text-white transition-all duration-200 hover:shadow-[0_0_20px_rgba(219,39,119,0.4)]"
+            className="text-[14px] font-semibold px-4 py-2 rounded-lg bg-[#DB2777] hover:bg-[#BE185D] text-white transition-all duration-200 hover:shadow-[0_0_20px_rgba(219,39,119,0.4)]"
           >
             Get Started
           </Link>
@@ -339,7 +339,7 @@ export default function HomePage() {
       <section id="features" className="py-32 px-6 md:px-10">
         <div className="max-w-6xl mx-auto">
           <FadeIn className="mb-16 max-w-2xl">
-            <p className="text-[10px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">What it does</p>
+            <p className="text-[11px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">What it does</p>
             <h2 className={`${cormorant.className} font-light text-white leading-tight`} style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               A complete pipeline,<br />
               <em>from source to draft.</em>
@@ -369,7 +369,7 @@ export default function HomePage() {
                     </div>
 
                     <h3 className="text-[17px] font-semibold text-white mb-3 leading-snug">{f.title}</h3>
-                    <p className="text-sm text-[#6A6663] leading-relaxed mb-6">{f.desc}</p>
+                    <p className="text-[15px] text-[#7E7B78] leading-relaxed mb-6">{f.desc}</p>
 
                     {/* Format pills */}
                     <div className="flex flex-wrap gap-1.5">
@@ -414,7 +414,7 @@ export default function HomePage() {
       <section id="how-it-works" className="py-32 px-6 md:px-10 border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto">
           <FadeIn className="mb-20 text-center">
-            <p className="text-[10px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">The Process</p>
+            <p className="text-[11px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">The Process</p>
             <h2 className={`${cormorant.className} font-light text-white leading-tight`} style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Simple steps to<br />
               <em>your animated story.</em>
@@ -439,8 +439,8 @@ export default function HomePage() {
 
                   {/* Content */}
                   <div className="pt-1.5 pb-2">
-                    <h3 className="text-[16px] font-semibold text-white mb-2">{step.title}</h3>
-                    <p className="text-sm text-[#5E5A57] leading-relaxed">{step.desc}</p>
+                    <h3 className="text-[17px] font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-[15px] text-[#8A8480] leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
               </FadeIn>
@@ -453,7 +453,7 @@ export default function HomePage() {
       <section id="for-who" className="py-32 px-6 md:px-10">
         <div className="max-w-6xl mx-auto">
           <FadeIn className="mb-16 text-center">
-            <p className="text-[10px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">Who it&apos;s for</p>
+            <p className="text-[11px] tracking-[0.28em] uppercase text-[#DB2777] mb-4">Who it&apos;s for</p>
             <h2 className={`${cormorant.className} font-light text-white leading-tight`} style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Built for every<br />
               <em>kind of storyteller.</em>
@@ -469,7 +469,7 @@ export default function HomePage() {
                 >
                   <span className="text-[#DB2777] text-lg mb-5 block">✦</span>
                   <h3 className={`${cormorant.className} text-[28px] font-semibold text-white mb-3`}>{a.label}</h3>
-                  <p className="text-sm text-[#5E5A57] leading-relaxed">{a.desc}</p>
+                  <p className="text-[15px] text-[#8A8480] leading-relaxed">{a.desc}</p>
                 </div>
               </FadeIn>
             ))}
@@ -499,7 +499,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative z-10">
-              <p className="text-[10px] tracking-[0.28em] uppercase text-[#DB2777] mb-5">Get Started Today</p>
+              <p className="text-[11px] tracking-[0.28em] uppercase text-[#DB2777] mb-5">Get Started Today</p>
               <h2
                 className={`${cormorant.className} font-light text-white leading-tight mb-6`}
                 style={{ fontSize: 'clamp(40px, 7vw, 72px)' }}
@@ -528,13 +528,13 @@ export default function HomePage() {
       <footer className="border-t border-white/[0.06] py-10 px-6 md:px-10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <div className="flex items-center gap-2.5">
-            <Image src="/favicon.svg" alt="Toonyz" width={20} height={20} className="rounded opacity-50" />
+            <Image src="/favicon.svg" alt="Rivell" width={20} height={20} className="rounded opacity-50" />
             <span className={`${cinzel.className} text-[11px] font-bold tracking-[0.18em] text-[#3A3835]`}>
-              TOONYZ ANIMATION STUDIO
+              RIVELL ANIMATION STUDIO
             </span>
           </div>
           <p className="text-[11px] text-[#302E2C] tracking-wide">
-            © 2025 Toonyz · Web Novel Short-Form Animation Platform
+            © 2026 Rivell · Web Novel Short-Form Animation Platform
           </p>
           <div className="flex items-center gap-5 text-[12px] text-[#3A3835]">
             <Link href="/mithril" className="hover:text-[#9A9490] transition-colors">Studio</Link>

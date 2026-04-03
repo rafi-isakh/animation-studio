@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Pencil, FileText, BookOpen, Palette, Copy, BookText, ArrowLeft } from 'lucide-react';
+import { Plus, Folder, Trash2, Pencil, FileText, BookOpen, Palette, Copy, BookText, ArrowLeft, LayoutGrid, LayoutList, Hash, Scissors, User, Film, Box, Image, Video, SplitSquareHorizontal, PanelLeft, ScrollText, Layers, Wand2, Clapperboard } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, copyProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles, copyAllProjectFiles } from './services/s3';
@@ -16,6 +16,8 @@ import { ProjectType, getStageConfig } from './config/projectTypes';
 import { useToast } from '@/hooks/use-toast';
 
 type TypeCategory = 'novel-to-video' | 'manga-to-video' | 'webtoon-to-video' | 'webnovel-trailer';
+type ViewMode = 'list' | 'grid';
+const VIEW_MODE_KEY = 'mithril_projects_view_mode';
 
 const TYPE_CATEGORY_MAP: Partial<Record<ProjectType, TypeCategory>> = {
   'text-to-video': 'novel-to-video',
@@ -67,6 +69,25 @@ const CATEGORY_CONFIG: Record<TypeCategory, CategoryConfig> = {
 
 const CATEGORY_ORDER: TypeCategory[] = ['novel-to-video', 'manga-to-video', 'webtoon-to-video', 'webnovel-trailer'];
 
+const STAGE_ICON_MAP: Record<string, React.ReactNode> = {
+  'mithril_stage_id_converter': <Hash className="w-6 h-6" />,
+  'mithril_stage2':             <Scissors className="w-6 h-6" />,
+  'mithril_stage3':             <User className="w-6 h-6" />,
+  'mithril_stage4':             <Film className="w-6 h-6" />,
+  'mithril_stage5_prop':        <Box className="w-6 h-6" />,
+  'mithril_stage5':             <Image className="w-6 h-6" />,
+  'mithril_stage5_3d_bg':       <Layers className="w-6 h-6" />,
+  'mithril_stage6':             <Wand2 className="w-6 h-6" />,
+  'mithril_stage7':             <Video className="w-6 h-6" />,
+  'mithril_i2v_stage1':                   <SplitSquareHorizontal className="w-6 h-6" />,
+  'mithril_i2v_stage2':                   <PanelLeft className="w-6 h-6" />,
+  'mithril_i2v_stage2_colorizer':         <Palette className="w-6 h-6" />,
+  'mithril_i2v_stage3':                   <ScrollText className="w-6 h-6" />,
+  'mithril_i2v_stage4':                   <Clapperboard className="w-6 h-6" />,
+  'mithril_i2v_stage_style_converter':    <Wand2 className="w-6 h-6" />,
+  'mithril_i2v_stage5':                   <Video className="w-6 h-6" />,
+};
+
 export default function ProjectListPage() {
   const router = useRouter();
   const { setCurrentProject } = useProject();
@@ -82,12 +103,23 @@ export default function ProjectListPage() {
   const [projectToCopy, setProjectToCopy] = useState<ProjectMetadata | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   useEffect(() => {
     if (user) {
       loadProjects();
     }
   }, [user]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(VIEW_MODE_KEY);
+    if (saved === 'grid' || saved === 'list') setViewMode(saved);
+  }, []);
+
+  function toggleViewMode(mode: ViewMode) {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
+  }
 
   async function loadProjects() {
     if (!user) return;
@@ -236,6 +268,12 @@ export default function ProjectListPage() {
     return labelMap[stageConfig.labelKey] || `Stage ${stageId}`;
   }
 
+  function getStageIcon(projectType: ProjectType, stageId: number): React.ReactNode {
+    const stageConfig = getStageConfig(projectType, stageId);
+    if (!stageConfig) return <Folder className="w-6 h-6" />;
+    return STAGE_ICON_MAP[stageConfig.labelKey] ?? <Folder className="w-6 h-6" />;
+  }
+
   // ── Category Cards (Level 1) ──────────────────────────────────────────────
 
   function renderCategoryCards() {
@@ -301,7 +339,7 @@ export default function ProjectListPage() {
           <Folder className="w-12 h-12 text-gray-600" />
           <p className="text-gray-500 text-sm">No projects in this category</p>
           <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white mt-2">
-            <Plus className="w-4 h-4" />
+            <Plus className="w-6 h-6" />
             New Project
           </Button>
         </div>
@@ -315,6 +353,7 @@ export default function ProjectListPage() {
           <div className="w-4 flex-shrink-0" />
           <span className="flex-1 text-xs font-medium text-gray-500 uppercase tracking-widest">Name</span>
           <span className="text-xs font-medium text-gray-500 uppercase tracking-widest flex-shrink-0 mr-4 hidden sm:block">Stage</span>
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-widest flex-shrink-0 w-28 text-right hidden lg:block">Created</span>
           <span className="text-xs font-medium text-gray-500 uppercase tracking-widest flex-shrink-0 w-28 text-right hidden md:block">Last Updated</span>
           <div className="w-[82px] flex-shrink-0" />
         </div>
@@ -328,6 +367,9 @@ export default function ProjectListPage() {
             <span className="flex-1 text-[14px] text-[#E8E8E8] truncate">{project.name}</span>
             <span className="text-xs text-gray-500 flex-shrink-0 mr-4 hidden sm:block">
               {getStageLabel(project.projectType, project.currentStage)}
+            </span>
+            <span className="text-xs text-gray-500 flex-shrink-0 w-28 text-right hidden lg:block">
+              {formatDate(project.createdAt)}
             </span>
             <span className="text-xs text-gray-500 flex-shrink-0 w-28 text-right hidden md:block">
               {formatDate(project.updatedAt)}
@@ -357,6 +399,81 @@ export default function ProjectListPage() {
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  // ── Project Grid Cards (Level 2 alternate) ───────────────────────────────
+
+  function renderProjectGrid() {
+    if (loading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-44 bg-[#211F21] border border-[#272727] rounded-xl animate-pulse" />
+          ))}
+        </div>
+      );
+    }
+
+    if (filteredProjects.length === 0) {
+      return (
+        <div className="flex flex-col items-center gap-4 py-20 bg-[#211F21] border border-[#272727] rounded-xl">
+          <Folder className="w-12 h-12 text-gray-600" />
+          <p className="text-gray-500 text-sm">No projects in this category</p>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white mt-2">
+            <Plus className="w-6 h-6" />
+            New Project
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredProjects.map((project) => {
+          const cat = TYPE_CATEGORY_MAP[project.projectType];
+          const config = cat ? CATEGORY_CONFIG[cat] : null;
+          return (
+            <div
+              key={project.id}
+              onClick={() => handleProjectClick(project)}
+              className="relative flex flex-col gap-3 p-5 bg-[#211F21] border border-[#272727] rounded-xl cursor-pointer hover:border-[#DB2777] transition-colors group"
+            >
+              <div className={`p-2 rounded-lg w-fit ${config?.iconBg ?? 'bg-gray-500/10'} ${config?.accent ?? 'text-gray-400'}`}>
+                {getStageIcon(project.projectType, project.currentStage)}
+              </div>
+              <p className="text-[14px] font-semibold text-[#E8E8E8] truncate">{project.name}</p>
+              <p className="text-xs text-gray-500">Created {formatDate(project.createdAt)}</p>
+              <p className="text-xs text-gray-500">Updated {formatDate(project.updatedAt)}</p>
+              <div className="mt-auto pt-3 border-t border-[#272727] flex flex-col gap-0.5">
+                <span className="text-[11px] text-gray-600">Stage: {getStageLabel(project.projectType, project.currentStage)}</span>
+              </div>
+              <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => handleRenameClick(e, project)}
+                  className="p-1.5 rounded text-gray-500 hover:text-[#E8E8E8] hover:bg-[#272727] transition-colors"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => handleCopyClick(e, project)}
+                  disabled={copyingId === project.id}
+                  className="p-1.5 rounded text-gray-500 hover:text-[#E8E8E8] hover:bg-[#272727] transition-colors disabled:opacity-40"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteProject(e, project.id)}
+                  disabled={deletingId === project.id}
+                  className="p-1.5 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -392,17 +509,37 @@ export default function ProjectListPage() {
               )}
             </div>
           </div>
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white"
-          >
-            <Plus className="w-4 h-4" />
-            New Project
-          </Button>
+          <div className="flex items-center gap-3">
+            {selectedCategory && (
+              <div className="flex items-center gap-1 bg-[#211F21] border border-[#272727] rounded-lg p-1">
+                <button
+                  onClick={() => toggleViewMode('list')}
+                  className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-[#272727] text-[#E8E8E8]' : 'text-gray-500 hover:text-[#E8E8E8]'}`}
+                >
+                  <LayoutList className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => toggleViewMode('grid')}
+                  className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-[#272727] text-[#E8E8E8]' : 'text-gray-500 hover:text-[#E8E8E8]'}`}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-2 bg-[#DB2777] hover:bg-[#BE185D] text-white"
+            >
+              <Plus className="w-4 h-4" />
+              New Project
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
-        {selectedCategory ? renderProjectList() : renderCategoryCards()}
+        {selectedCategory
+          ? (viewMode === 'grid' ? renderProjectGrid() : renderProjectList())
+          : renderCategoryCards()}
 
       </div>
 

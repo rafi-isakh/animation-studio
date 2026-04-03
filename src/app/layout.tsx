@@ -55,6 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
                 />
+                <meta name='probely-verification' content='2ce69ec2-3d2a-48ac-af88-41cee1e23f49' />
             </head>
             <body className="antialiased dark">
                 <GoogleAnalytics />

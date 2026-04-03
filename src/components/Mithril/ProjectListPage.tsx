@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/shadcnUI/Button';
 import { Plus, Folder, Trash2, Pencil, FileText, BookOpen, Palette, Copy, BookText, ArrowLeft, LayoutGrid, LayoutList, Hash, Scissors, User, Film, Box, Image, Video, SplitSquareHorizontal, PanelLeft, ScrollText, Layers, Wand2, Clapperboard } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
@@ -15,11 +15,11 @@ import { useMithrilAuth } from './auth/MithrilAuthContext';
 import { ProjectType, getStageConfig } from './config/projectTypes';
 import { useToast } from '@/hooks/use-toast';
 
-type TypeCategory = 'novel-to-video' | 'manga-to-video' | 'webtoon-to-video' | 'webnovel-trailer';
+export type TypeCategory = 'novel-to-video' | 'manga-to-video' | 'webtoon-to-video' | 'webnovel-trailer';
 type ViewMode = 'list' | 'grid';
 const VIEW_MODE_KEY = 'mithril_projects_view_mode';
 
-const TYPE_CATEGORY_MAP: Partial<Record<ProjectType, TypeCategory>> = {
+export const TYPE_CATEGORY_MAP: Partial<Record<ProjectType, TypeCategory>> = {
   'text-to-video': 'novel-to-video',
   'text-to-video-nsfw': 'novel-to-video',
   'text-to-video-anime-bg': 'novel-to-video',
@@ -40,7 +40,7 @@ interface CategoryConfig {
   iconBg: string;
 }
 
-const CATEGORY_CONFIG: Record<TypeCategory, CategoryConfig> = {
+export const CATEGORY_CONFIG: Record<TypeCategory, CategoryConfig> = {
   'novel-to-video': {
     label: 'Novel to Video (T2A)',
     icon: <FileText className="w-8 h-8" />,
@@ -90,12 +90,20 @@ const STAGE_ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function ProjectListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setCurrentProject } = useProject();
   const { user } = useMithrilAuth();
   const { toast } = useToast();
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<TypeCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<TypeCategory | null>(
+    (searchParams.get('category') as TypeCategory) ?? null
+  );
+
+  function handleCategorySelect(cat: TypeCategory | null) {
+    setSelectedCategory(cat);
+    router.replace(cat ? `/projects?category=${cat}` : '/projects');
+  }
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
@@ -186,7 +194,7 @@ export default function ProjectListPage() {
     setProjects((prev) => [newProject, ...prev]);
     setIsCreateModalOpen(false);
     const cat = TYPE_CATEGORY_MAP[newProject.projectType];
-    if (cat) setSelectedCategory(cat);
+    if (cat) handleCategorySelect(cat);
   }
 
   function handleRenameClick(e: React.MouseEvent, project: ProjectMetadata) {
@@ -295,7 +303,7 @@ export default function ProjectListPage() {
           return (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategorySelect(cat)}
               className="flex flex-col items-start gap-4 p-6 bg-[#211F21] border border-[#272727] rounded-xl hover:border-[#DB2777] transition-colors text-left group"
             >
               <div className={`p-3 rounded-lg ${config.iconBg} ${config.accent}`}>
@@ -492,7 +500,7 @@ export default function ProjectListPage() {
           <div className="flex items-center gap-3">
             {selectedCategory && (
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => handleCategorySelect(null)}
                 className="p-1.5 rounded-lg text-gray-500 hover:text-[#E8E8E8] hover:bg-[#211F21] transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />

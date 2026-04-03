@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
+import { fetchImageAsBase64 } from "@/utils/fetchImage";
 
 interface MangaPanel {
   id: string;
@@ -77,17 +78,6 @@ async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Fetch an image from a URL and return its base64 data.
- */
-async function fetchImageAsBase64(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image from ${url}: ${response.status}`);
-  }
-  const buffer = await response.arrayBuffer();
-  return Buffer.from(buffer).toString("base64");
-}
 
 /**
  * Resolve a panel's image data: use existing base64 or fetch from URL.
@@ -97,7 +87,8 @@ async function resolvePanelImage(panel: MangaPanel): Promise<string> {
     return panel.imageBase64;
   }
   if (panel.imageUrl) {
-    return fetchImageAsBase64(panel.imageUrl);
+    const { base64 } = await fetchImageAsBase64(panel.imageUrl);
+    return base64;
   }
   throw new Error(`Panel ${panel.id} has no image data or URL`);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import * as XLSX from "xlsx";
 import { useMithril } from "../../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -527,6 +528,129 @@ export default function WebnovelTrailerStoryboardGenerator() {
     link.href = URL.createObjectURL(blob);
     link.download = `storyboard_nsfw_part${selectedPartIndex + 1}.csv`;
     link.click();
+  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+
+  const handleDownloadXLSX = useCallback(() => {
+    if (scenes.length === 0) return;
+
+    const headers = [
+      "Scene",
+      "Clip",
+      "Length",
+      "Accumulated Time",
+      "Background ID",
+      "Background Prompt",
+      "Story",
+      "attention_device(A)",
+      "Image Prompt A1",
+      "Image Prompt A2",
+      "Image Prompt A3",
+      "Image Prompt A4",
+      "Image Prompt A5",
+      "attention_action(B)",
+      "Image Prompt B1",
+      "Image Prompt B2",
+      "Image Prompt B3",
+      "Image Prompt B4",
+      "Image Prompt B5",
+      "attention_expression(C)",
+      "Image Prompt C1",
+      "Image Prompt C2",
+      "Image Prompt C3",
+      "Image Prompt C4",
+      "Image Prompt C5",
+      "attention_mood(D)",
+      "Image Prompt D1",
+      "Image Prompt D2",
+      "Image Prompt D3",
+      "Image Prompt D4",
+      "Image Prompt D5",
+      "Video Prompt",
+      "Sora Video Prompt",
+      "Veo Video Prompt",
+      "PixAI Prompt",
+      "Dialogue (Ko)",
+      "Dialogue (En)",
+      "Narration (Ko)",
+      "Narration (En)",
+      "SFX (Ko)",
+      "SFX (En)",
+      "BGM (Ko)",
+      "BGM (En)",
+      "Trailer Script (Ko)",
+      "Trailer Script (En)",
+    ];
+
+    const clipRows = scenes.flatMap((scene, sceneIndex) =>
+      scene.clips.map((clip, clipIndex) => [
+        `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+        `${sceneIndex + 1}-${clipIndex + 1}`,
+        clip.length,
+        clip.accumulatedTime,
+        clip.backgroundId,
+        clip.backgroundPrompt,
+        clip.story,
+        clip.attentionDevice || "",
+        clip.imagePromptA1 || "",
+        clip.imagePromptA2 || "",
+        clip.imagePromptA3 || "",
+        clip.imagePromptA4 || "",
+        clip.imagePromptA5 || "",
+        clip.attentionAction || "",
+        clip.imagePromptB1 || "",
+        clip.imagePromptB2 || "",
+        clip.imagePromptB3 || "",
+        clip.imagePromptB4 || "",
+        clip.imagePromptB5 || "",
+        clip.attentionExpression || "",
+        clip.imagePromptC1 || "",
+        clip.imagePromptC2 || "",
+        clip.imagePromptC3 || "",
+        clip.imagePromptC4 || "",
+        clip.imagePromptC5 || "",
+        clip.attentionMood || "",
+        clip.imagePromptD1 || "",
+        clip.imagePromptD2 || "",
+        clip.imagePromptD3 || "",
+        clip.imagePromptD4 || "",
+        clip.imagePromptD5 || "",
+        clip.videoPrompt,
+        clip.soraVideoPrompt,
+        clip.veoVideoPrompt,
+        clip.pixAiPrompt || "",
+        clip.dialogue,
+        clip.dialogueEn,
+        clip.narration || "",
+        clip.narrationEn || "",
+        clip.sfx,
+        clip.sfxEn,
+        clip.bgm,
+        clip.bgmEn,
+        clip.trailerScriptKo || "",
+        clip.trailerScriptEn || "",
+      ])
+    );
+
+    const wsData: (string | number)[][] = [headers, ...clipRows];
+
+    if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+      wsData.push([]);
+      if (characterIdSummary && characterIdSummary.length > 0) {
+        wsData.push(["Character ID", "Description"]);
+        for (const char of characterIdSummary) {
+          wsData.push([char.characterId, char.description]);
+        }
+      }
+      if (genre) {
+        wsData.push([]);
+        wsData.push(["Genre", genre]);
+      }
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Storyboard");
+    XLSX.writeFile(wb, `storyboard_nsfw_part${selectedPartIndex + 1}.xlsx`);
   }, [scenes, selectedPartIndex, characterIdSummary, genre]);
 
   const handleDownloadJSON = useCallback(() => {
@@ -1235,7 +1359,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
           <div>
             <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               <Image className="w-4 h-4 text-amber-500" />
-              Image Prompt Package
+              Image Prompt
             </label>
             <input
               type="file"
@@ -1379,6 +1503,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
               >
                 <Download className="w-4 h-4" />
                 {phrase(dictionary, "storyboard_csv_download", language)}
+              </button>
+              <button
+                onClick={handleDownloadXLSX}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                XLSX Download
               </button>
               <button
                 onClick={handleDownloadJSON}

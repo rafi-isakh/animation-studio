@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import * as XLSX from "xlsx";
 import { useMithril } from "../../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -384,6 +385,79 @@ export default function StoryboardGenerator() {
     link.href = URL.createObjectURL(blob);
     link.download = `storyboard_part${selectedPartIndex + 1}.csv`;
     link.click();
+  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+
+  const handleDownloadXLSX = useCallback(() => {
+    if (scenes.length === 0) return;
+
+    const headers = [
+      "Scene",
+      "Clip",
+      "Length",
+      "Accumulated Time",
+      "Background ID",
+      "Background Prompt",
+      "Story",
+      "Image Prompt (Start)",
+      "Image Prompt (End)",
+      "Video Prompt",
+      "Sora Video Prompt",
+      "Veo Video Prompt",
+      "Dialogue (Ko)",
+      "Dialogue (En)",
+      "Narration (Ko)",
+      "Narration (En)",
+      "SFX (Ko)",
+      "SFX (En)",
+      "BGM (Ko)",
+      "BGM (En)",
+    ];
+
+    const clipRows = scenes.flatMap((scene, sceneIndex) =>
+      scene.clips.map((clip, clipIndex) => [
+        `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+        `${sceneIndex + 1}-${clipIndex + 1}`,
+        clip.length,
+        clip.accumulatedTime,
+        clip.backgroundId,
+        clip.backgroundPrompt,
+        clip.story,
+        clip.imagePrompt,
+        clip.imagePromptEnd || "",
+        clip.videoPrompt,
+        clip.soraVideoPrompt,
+        clip.veoVideoPrompt,
+        clip.dialogue,
+        clip.dialogueEn,
+        clip.narration || "",
+        clip.narrationEn || "",
+        clip.sfx,
+        clip.sfxEn,
+        clip.bgm,
+        clip.bgmEn,
+      ])
+    );
+
+    const wsData: (string | number)[][] = [headers, ...clipRows];
+
+    if ((characterIdSummary && characterIdSummary.length > 0) || genre) {
+      wsData.push([]);
+      if (characterIdSummary && characterIdSummary.length > 0) {
+        wsData.push(["Character ID", "Description"]);
+        for (const char of characterIdSummary) {
+          wsData.push([char.characterId, char.description]);
+        }
+      }
+      if (genre) {
+        wsData.push([]);
+        wsData.push(["Genre", genre]);
+      }
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Storyboard");
+    XLSX.writeFile(wb, `storyboard_part${selectedPartIndex + 1}.xlsx`);
   }, [scenes, selectedPartIndex, characterIdSummary, genre]);
 
   const handleApplyPreset = useCallback((preset: GenrePreset) => {
@@ -1207,6 +1281,13 @@ export default function StoryboardGenerator() {
               >
                 <Download className="w-4 h-4" />
                 {phrase(dictionary, "storyboard_csv_download", language)}
+              </button>
+              <button
+                onClick={handleDownloadXLSX}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                XLSX Download
               </button>
               <button
                 onClick={handleDownloadJSON}

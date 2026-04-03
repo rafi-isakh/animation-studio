@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Wand2, FolderOpen, Shield, Globe, LogOut } from "lucide-react";
 import { useMithrilAuth } from "@/components/Mithril/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,17 +25,27 @@ import {
 import { Button } from "@/components/shadcnUI/Button";
 import { listProjects } from "@/components/Mithril/services/firestore";
 import type { ProjectMetadata } from "@/components/Mithril/services/firestore";
+import { TYPE_CATEGORY_MAP, CATEGORY_CONFIG } from "@/components/Mithril/ProjectListPage";
+import type { TypeCategory } from "@/components/Mithril/ProjectListPage";
 
 export default function MithrilHeader() {
   const { user, logout, isAuthenticated, isAdmin } = useMithrilAuth();
   const { language, dictionary, setLanguageOverride } = useLanguage();
-  const { currentProject, setCurrentProject } = useProject();
+  const { currentProject } = useProject();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
+
+  const uniqueCategories = useMemo(() => {
+    const seen = new Set<TypeCategory>();
+    projects.forEach((p) => {
+      const cat = TYPE_CATEGORY_MAP[p.projectType];
+      if (cat) seen.add(cat);
+    });
+    return Array.from(seen);
+  }, [projects]);
 
   useEffect(() => {
     if (currentProject?.name && pathname.startsWith('/mithril')) {
@@ -63,12 +73,6 @@ export default function MithrilHeader() {
     }
   }
 
-  function handleProjectSelect(project: ProjectMetadata) {
-    setCurrentProject(project);
-    const stage = project.currentStage || 1;
-    router.push(`/mithril?project=${project.id}&stage=${stage}`);
-  }
-
   return (
     <>
       <header className="fixed top-0 left-0 right-0 h-14 z-20
@@ -78,7 +82,7 @@ export default function MithrilHeader() {
         <div className="flex items-center gap-1">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Wand2 size={18} className="text-[#DB2777] shrink-0" />
-            <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">Mithril</span>
+            <span className="font-semibold text-lg text-gray-800 dark:text-gray-100">Mithril</span>
           </Link>
           <DropdownMenu onOpenChange={handleProjectsDropdownOpen}>
             <DropdownMenuTrigger asChild>
@@ -93,28 +97,26 @@ export default function MithrilHeader() {
                 <FolderOpen size={16} />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto">
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/projects" className="cursor-pointer w-full">
+                  ← All Projects
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {projectsLoading ? (
                 <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
-              ) : projects.length === 0 ? (
+              ) : uniqueCategories.length === 0 ? (
                 <DropdownMenuItem disabled>No projects</DropdownMenuItem>
               ) : (
-                projects.map((project) => (
-                  <DropdownMenuItem
-                    key={project.id}
-                    onClick={() => handleProjectSelect(project)}
-                    className="cursor-pointer"
-                  >
-                    <span className="truncate">{project.name}</span>
+                uniqueCategories.map((cat) => (
+                  <DropdownMenuItem key={cat} asChild>
+                    <Link href={`/projects?category=${cat}`} className="cursor-pointer w-full">
+                      {CATEGORY_CONFIG[cat].label}
+                    </Link>
                   </DropdownMenuItem>
                 ))
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/projects" className="cursor-pointer w-full">
-                  View all projects
-                </Link>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

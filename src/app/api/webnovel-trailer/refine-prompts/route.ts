@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { fetchImageAsBase64 } from "@/utils/fetchImage";
 
 interface ClipInput {
   clipId: string;
@@ -16,14 +17,6 @@ interface RefineResult {
   reason: string;
 }
 
-async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
-  const contentType = res.headers.get("content-type") || "image/png";
-  const mimeType = contentType.split(";")[0].trim();
-  const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
-  return { base64, mimeType };
-}
 
 const systemInstruction = `You are a video prompt alignment specialist for animated story clips.
 

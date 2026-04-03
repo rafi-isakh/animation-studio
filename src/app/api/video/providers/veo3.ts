@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { s3Client } from "@/utils/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getVideoUrl } from "@/utils/urls";
+import { fetchImageAsBase64 as fetchImageAsBase64WithMime } from "@/utils/fetchImage";
 
 const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
@@ -41,18 +42,6 @@ function isUrl(str: string): boolean {
 }
 
 /**
- * Fetch image from URL and return as base64
- */
-async function fetchImageAsBase64(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image from URL: ${response.status}`);
-  }
-  const buffer = await response.arrayBuffer();
-  return Buffer.from(buffer).toString("base64");
-}
-
-/**
  * Resize image to exact Veo 3 dimensions
  */
 async function resizeImageToVeo3Dimensions(
@@ -63,7 +52,7 @@ async function resizeImageToVeo3Dimensions(
   // Handle both S3 URLs and base64 strings
   let base64: string;
   if (isUrl(imageInput)) {
-    base64 = await fetchImageAsBase64(imageInput);
+    ({ base64 } = await fetchImageAsBase64WithMime(imageInput));
   } else {
     base64 = imageInput;
   }

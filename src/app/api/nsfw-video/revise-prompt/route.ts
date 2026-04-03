@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { fetchImageAsBase64 } from "@/utils/fetchImage";
 
 interface RequestBody {
   imageUrl: string;       // S3 URL of the finalized image
@@ -7,14 +8,6 @@ interface RequestBody {
   variant: "B" | "C";
 }
 
-async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
-  const contentType = res.headers.get("content-type") || "image/png";
-  const mimeType = contentType.split(";")[0].trim();
-  const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
-  return { base64, mimeType };
-}
 
 export async function POST(req: NextRequest) {
   try {

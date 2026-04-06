@@ -2284,26 +2284,18 @@ export default function BgSheetGenerator() {
     try {
       let response;
 
-      if (refImage) {
-        // Use image-to-image generation with reference for consistency
-        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
-        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            referenceImageBase64: refImage,
-            prompt: refPrompt,
-            customApiKey: customApiKey || undefined
-          }),
-        });
-      } else {
-        // Use text-only generation
-        response = await fetch("/api/generate_bg_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-        });
-      }
+      const refPrompt = refImage
+        ? `Background consistent with the reference image style. ${prompt}`
+        : prompt;
+      response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: refImage || undefined,
+          prompt: refPrompt,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);

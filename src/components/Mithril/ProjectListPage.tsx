@@ -100,6 +100,10 @@ export default function ProjectListPage() {
     (searchParams.get('category') as TypeCategory) ?? null
   );
 
+  useEffect(() => {
+    setSelectedCategory((searchParams.get('category') as TypeCategory) ?? null);
+  }, [searchParams]);
+
   function handleCategorySelect(cat: TypeCategory | null) {
     setSelectedCategory(cat);
     router.replace(cat ? `/projects?category=${cat}` : '/projects');

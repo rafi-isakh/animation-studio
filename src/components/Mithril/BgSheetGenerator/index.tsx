@@ -2284,26 +2284,18 @@ export default function BgSheetGenerator() {
     try {
       let response;
 
-      if (refImage) {
-        // Use image-to-image generation with reference for consistency
-        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
-        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            referenceImageBase64: refImage,
-            prompt: refPrompt,
-            customApiKey: customApiKey || undefined
-          }),
-        });
-      } else {
-        // Use text-only generation
-        response = await fetch("/api/generate_bg_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-        });
-      }
+      const refPrompt = refImage
+        ? `Background consistent with the reference image style. ${prompt}`
+        : prompt;
+      response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: refImage || undefined,
+          prompt: refPrompt,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
@@ -2344,6 +2336,10 @@ export default function BgSheetGenerator() {
             : bg
         )
       );
+      // Resolve the sequential generation promise (direct mode doesn't use orchestrator callbacks)
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
   };
 
@@ -2678,15 +2674,37 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Create backgrounds from parsed data
+    // Create backgrounds from parsed data, keeping storyboard angle names as-is,
+    // and padding with standard angle slots for any suffixes (1-9) not covered by the storyboard.
     const newBackgrounds: Background[] = bgOrder.map(bgName => {
       const bgData = bgMap.get(bgName)!;
-      return {
-        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        name: bgData.name,
-        description: bgData.description,
-        images: bgData.views.map(view => ({
-          angle: view.angle,
+
+      // Keep all storyboard views with their original angle names (e.g. "1-1", "001-3")
+      const storyboardImages = bgData.views.map(view => ({
+        angle: view.angle,
+        prompt: "",
+        imageBase64: "",
+        imageUrl: undefined,
+        isGenerating: false,
+        isActive: true,
+        isFinalized: false,
+        characterPrompt: "",
+        csvContext: view.csvContext,
+      }));
+
+      // Collect which suffixes (1-9) are already covered by storyboard views
+      const coveredSuffixes = new Set(
+        bgData.views.map(v => getShotSuffix(v.angle)).filter(s => {
+          const n = parseInt(s, 10);
+          return !isNaN(n) && n >= 1 && n <= 9;
+        })
+      );
+
+      // Add standard slots for any suffix not already covered by a storyboard view
+      const missingStandard = BACKGROUND_ANGLES
+        .filter((_, idx) => !coveredSuffixes.has(String(idx + 1)))
+        .map(angle => ({
+          angle,
           prompt: "",
           imageBase64: "",
           imageUrl: undefined,
@@ -2694,8 +2712,14 @@ export default function BgSheetGenerator() {
           isActive: true,
           isFinalized: false,
           characterPrompt: "",
-          csvContext: view.csvContext,
-        })),
+          csvContext: undefined,
+        }));
+
+      return {
+        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: bgData.name,
+        description: bgData.description,
+        images: [...storyboardImages, ...missingStandard],
       };
     });
 
@@ -3186,7 +3210,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg) => (
+            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"
@@ -3510,6 +3534,10 @@ export default function BgSheetGenerator() {
                     const isActive = img.isActive !== false;
                     const isFinalized = img.isFinalized === true;
                     const globalFrameNum = frameNumbers[`${bg.id}-${idx}`];
+                    const standardAngleIndex = BACKGROUND_ANGLES.indexOf(img.angle);
+                    const slotLabel = standardAngleIndex >= 0
+                      ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                      : img.angle;
 
                     return (
                       <div
@@ -3600,12 +3628,12 @@ export default function BgSheetGenerator() {
                               <span className="group-hover:text-[#DB2777] transition-colors">
                                 {phrase(dictionary, "bgsheet_click_to_generate", language) || "Click to generate"}
                               </span>
-                              <span className="text-[10px] mt-1 opacity-60">{img.angle}</span>
+                              <span className="text-[10px] mt-1 opacity-60">{slotLabel}</span>
                             </button>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
                             <span className="text-[10px] font-medium text-white">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
                         </div>
@@ -3630,7 +3658,7 @@ export default function BgSheetGenerator() {
                             </button>
                             {/* Angle Label */}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded truncate border border-gray-200 dark:border-gray-600">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
 

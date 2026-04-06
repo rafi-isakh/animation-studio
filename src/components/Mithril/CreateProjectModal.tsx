@@ -14,7 +14,7 @@ import { Input } from '@/components/shadcnUI/Input';
 import { Label } from '@/components/shadcnUI/Label';
 import { createProject, getProject, ProjectMetadata } from './services/firestore';
 import { useMithrilAuth } from './auth/MithrilAuthContext';
-import { Loader2, FileText, BookOpen, Palette, BookText } from 'lucide-react';
+import { Loader2, BookText, ImagePlay, Shell, TvMinimalPlay } from 'lucide-react';
 import {
   ProjectType,
   getDefaultProjectType,
@@ -49,28 +49,28 @@ const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
         label: 'General',
         description: 'Convert stories to animated videos',
         isNsfw: false,
-        icon: <FileText className="w-6 h-6" />,
+        icon: <BookText className="w-6 h-6" />,
       },
       {
         type: 'text-to-video-nsfw',
         label: 'NSFW',
         description: 'Adult content — age-restricted',
         isNsfw: true,
-        icon: <FileText className="w-6 h-6" />,
+        icon: <BookText className="w-6 h-6" />,
       },
       {
         type: 'text-to-video-anime-bg',
         label: 'General (3D BG)',
         description: 'Animated videos with 3D background studio',
         isNsfw: false,
-        icon: <FileText className="w-6 h-6" />,
+        icon: <BookText className="w-6 h-6" />,
       },
       {
         type: 'text-to-video-nsfw-anime-bg',
         label: 'NSFW (3D BG)',
         description: 'Adult content with 3D background studio',
         isNsfw: true,
-        icon: <FileText className="w-6 h-6" />,
+        icon: <BookText className="w-6 h-6" />,
       },
     ],
   },
@@ -82,14 +82,14 @@ const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
         label: 'General',
         description: 'Convert B&W manga panels to videos',
         isNsfw: false,
-        icon: <BookOpen className="w-6 h-6" />,
+        icon: <ImagePlay className="w-6 h-6" />,
       },
       {
         type: 'manga-to-video-nsfw',
         label: 'NSFW',
         description: 'Adult content — age-restricted',
         isNsfw: true,
-        icon: <BookOpen className="w-6 h-6" />,
+        icon: <ImagePlay className="w-6 h-6" />,
       },
     ],
   },
@@ -101,33 +101,33 @@ const PROJECT_TYPE_GROUPS: ProjectTypeGroup[] = [
         label: 'General',
         description: 'Convert colored webtoon panels to videos',
         isNsfw: false,
-        icon: <Palette className="w-6 h-6" />,
+        icon: <Shell className="w-6 h-6" />,
       },
       {
         type: 'webtoon-to-video-nsfw',
         label: 'NSFW',
         description: 'Adult content — age-restricted',
         isNsfw: true,
-        icon: <Palette className="w-6 h-6" />,
+        icon: <Shell className="w-6 h-6" />,
       },
     ],
   },
   {
-    groupLabel: 'Webnovel Trailer',
+    groupLabel: 'Trailer',
     options: [
       {
         type: 'webnovel-trailer',
         label: 'General',
         description: 'Create trailers from webnovel panels',
         isNsfw: false,
-        icon: <BookText className="w-6 h-6" />,
+        icon: <TvMinimalPlay className="w-6 h-6" />,
       },
       {
         type: 'webnovel-trailer-nsfw',
         label: 'NSFW',
         description: 'Adult content — age-restricted',
         isNsfw: true,
-        icon: <BookText className="w-6 h-6" />,
+        icon: <TvMinimalPlay className="w-6 h-6" />,
       },
     ],
   },

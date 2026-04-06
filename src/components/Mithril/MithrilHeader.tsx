@@ -94,7 +94,7 @@ export default function MithrilHeader() {
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
-                <FolderOpen size={16} />
+                <FolderOpen size={18} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
@@ -127,7 +127,7 @@ export default function MithrilHeader() {
         )}
         <div className="flex items-center gap-1">
           {isAuthenticated && user && (
-            <span className="text-xs text-gray-400 dark:text-gray-500 mr-2 hidden sm:block truncate max-w-[180px]">
+            <span className="text-base text-gray-400 dark:text-gray-500 mr-2 hidden sm:block truncate max-w-[180px]">
               {user.email}
             </span>
           )}
@@ -136,7 +136,7 @@ export default function MithrilHeader() {
             title={phrase(dictionary, "language", language) || "Language"}
             className="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <Globe size={16} />
+            <Globe size={18} />
           </button>
           {isAdmin && (
             <Link
@@ -148,7 +148,7 @@ export default function MithrilHeader() {
                   : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
-              <Shield size={16} />
+              <Shield size={18} />
             </Link>
           )}
           {isAuthenticated && (
@@ -157,7 +157,7 @@ export default function MithrilHeader() {
               title={phrase(dictionary, "logout", language) || "Logout"}
               className="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
             </button>
           )}
         </div>

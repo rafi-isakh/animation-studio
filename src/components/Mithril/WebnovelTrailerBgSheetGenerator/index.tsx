@@ -487,7 +487,10 @@ export default function BgSheetGenerator() {
 
       const bg = prevBgs[bgIndex];
       const angleIndex = bg.images?.findIndex(img => img.angle === update.angle);
-      if (angleIndex === undefined || angleIndex === -1) return prevBgs;
+      if (angleIndex === undefined || angleIndex === -1) {
+        console.warn(`[BgSheet] handleAngleUpdate: angle "${update.angle}" not found in bg "${update.bgId}" (images count: ${bg.images?.length}, angles: ${bg.images?.map(i => i.angle).join(", ")})`);
+        return prevBgs;
+      }
 
       const updatedBgs = [...prevBgs];
       const updatedImages = [...bg.images];
@@ -678,35 +681,29 @@ export default function BgSheetGenerator() {
       setIsLoadingData(true);
       try {
         // Reconstruct backgrounds with S3 URLs from context
-        const backgroundsWithImages: Background[] = contextResult.backgrounds.map((bgMeta) => ({
-          id: bgMeta.id,
-          name: bgMeta.name,
-          description: bgMeta.description,
-          // Ensure images array is always populated with all angles
-          images: bgMeta.images && bgMeta.images.length > 0
-            ? bgMeta.images.map((imgMeta) => ({
-                angle: imgMeta.angle,
-                prompt: imgMeta.prompt,
-                imageBase64: "",  // No base64 when loading from S3
-                imageUrl: imgMeta.imageId || undefined,  // imageId contains S3 URL
-                isGenerating: false,
-                isActive: true,
-                isPromptOpen: false,
-              }))
-            : BACKGROUND_ANGLES.map((angle) => ({
-                angle,
-                prompt: "",
-                imageBase64: "",
-                imageUrl: undefined,
-                isGenerating: false,
-                isActive: true,
-                isPromptOpen: false,
-              })),
+        const backgroundsWithImages: Background[] = contextResult.backgrounds.map((bgMeta) => {
+          const saved = bgMeta.images || [];
+          const standard = BACKGROUND_ANGLES.map((angle) => {
+            const match = saved.find((img) => img.angle === angle);
+            return match
+              ? { angle, prompt: match.prompt, imageBase64: "", imageUrl: match.imageId || undefined, isGenerating: false, isActive: true, isPromptOpen: false }
+              : { angle, prompt: "", imageBase64: "", imageUrl: undefined, isGenerating: false, isActive: true, isPromptOpen: false };
+          });
+          const extras = saved
+            .filter((img) => !BACKGROUND_ANGLES.includes(img.angle))
+            .map((img) => ({ angle: img.angle, prompt: img.prompt, imageBase64: "", imageUrl: img.imageId || undefined, isGenerating: false, isActive: true, isPromptOpen: false }));
+          const images = [...standard, ...extras];
+          return {
+            id: bgMeta.id,
+            name: bgMeta.name,
+            description: bgMeta.description,
+            images,
           // Load reference data from context if available
           referenceImageUrl: bgMeta.referenceImageUrl,
           referenceAnalysis: bgMeta.referenceAnalysis,
           plannedPrompts: bgMeta.plannedPrompts,
-        }));
+          };
+        });
 
         // Mark as hydrated BEFORE setting state to prevent re-runs
         hasHydratedRef.current = true;
@@ -2192,26 +2189,18 @@ export default function BgSheetGenerator() {
     try {
       let response;
 
-      if (refImage) {
-        // Use image-to-image generation with reference for consistency
-        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
-        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            referenceImageBase64: refImage,
-            prompt: refPrompt,
-            customApiKey: customApiKey || undefined
-          }),
-        });
-      } else {
-        // Use text-only generation
-        response = await fetch("/api/generate_bg_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-        });
-      }
+      const refPrompt = refImage
+        ? `Background consistent with the reference image style. ${prompt}`
+        : prompt;
+      response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: refImage || undefined,
+          prompt: refPrompt,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
@@ -2586,14 +2575,36 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Create backgrounds from parsed data
+    // Create backgrounds from parsed data, always ensuring all 9 standard angle slots exist.
+    // Storyboard shot IDs (e.g. "1-3") are mapped to their standard angle name via suffix,
+    // carrying over csvContext. Shots with out-of-range suffixes are kept as extras.
     const newBackgrounds: Background[] = bgOrder.map(bgName => {
       const bgData = bgMap.get(bgName)!;
-      return {
-        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        name: bgData.name,
-        description: bgData.description,
-        images: bgData.views.map(view => ({
+
+      // Build all 9 standard slots, merging storyboard csvContext where suffix matches
+      const standard = BACKGROUND_ANGLES.map((angle, idx) => {
+        const suffix = String(idx + 1);
+        const matchingView = bgData.views.find(v => getShotSuffix(v.angle) === suffix);
+        return {
+          angle,
+          prompt: "",
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isActive: true,
+          isFinalized: false,
+          characterPrompt: "",
+          csvContext: matchingView?.csvContext,
+        };
+      });
+
+      // Keep storyboard shots whose suffix doesn't map to 1-9 as extra slots
+      const extras = bgData.views
+        .filter(v => {
+          const suffixInt = parseInt(getShotSuffix(v.angle), 10);
+          return isNaN(suffixInt) || suffixInt < 1 || suffixInt > 9;
+        })
+        .map(view => ({
           angle: view.angle,
           prompt: "",
           imageBase64: "",
@@ -2603,7 +2614,13 @@ export default function BgSheetGenerator() {
           isFinalized: false,
           characterPrompt: "",
           csvContext: view.csvContext,
-        })),
+        }));
+
+      return {
+        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: bgData.name,
+        description: bgData.description,
+        images: [...standard, ...extras],
       };
     });
 
@@ -3094,7 +3111,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg) => (
+            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"
@@ -3418,6 +3435,10 @@ export default function BgSheetGenerator() {
                     const isActive = img.isActive !== false;
                     const isFinalized = img.isFinalized === true;
                     const globalFrameNum = frameNumbers[`${bg.id}-${idx}`];
+                    const standardAngleIndex = BACKGROUND_ANGLES.indexOf(img.angle);
+                    const slotLabel = standardAngleIndex >= 0
+                      ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                      : img.angle;
 
                     return (
                       <div
@@ -3508,12 +3529,12 @@ export default function BgSheetGenerator() {
                               <span className="group-hover:text-[#DB2777] transition-colors">
                                 {phrase(dictionary, "bgsheet_click_to_generate", language) || "Click to generate"}
                               </span>
-                              <span className="text-[10px] mt-1 opacity-60">{img.angle}</span>
+                              <span className="text-[10px] mt-1 opacity-60">{slotLabel}</span>
                             </button>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
                             <span className="text-[10px] font-medium text-white">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
                         </div>
@@ -3538,7 +3559,7 @@ export default function BgSheetGenerator() {
                             </button>
                             {/* Angle Label */}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded truncate border border-gray-200 dark:border-gray-600">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
 

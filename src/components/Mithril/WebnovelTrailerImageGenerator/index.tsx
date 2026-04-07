@@ -60,6 +60,18 @@ const aspectRatios = [
   { value: "1:1", label: "Square (1:1)" },
 ];
 
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Worm View",
+  "Character A View",
+  "Character B View",
+  "Rear View",
+  "Bird's Eye View",
+  "Over-Shoulder A",
+  "Over-Shoulder B",
+  "Floor Close-up",
+];
+
 export default function ImageGenerator() {
   const {
     currentStage,
@@ -1930,29 +1942,27 @@ export default function ImageGenerator() {
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
               {/* Stage 4 backgrounds */}
               {(() => {
-                // Flatten all bg.angles across all backgrounds into a single list
-                const allEntries = backgroundAssets.flatMap((bg) =>
-                  (bg.angles || []).map((angle) => ({ bg, angle }))
+                // Sort backgrounds by name (same as BgSheetGenerator) to compute consistent slot labels
+                const sortedBgs = [...backgroundAssets].sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true })
                 );
 
-                const sorted = [...allEntries].sort((a, b) => {
-                  const aParts = a.angle.angle.split("-").map(Number);
-                  const bParts = b.angle.angle.split("-").map(Number);
-                  if (aParts.some(isNaN) || bParts.some(isNaN)) return a.angle.angle.localeCompare(b.angle.angle);
-                  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-                    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0);
-                    if (diff !== 0) return diff;
-                  }
-                  return 0;
-                });
+                // Flatten all bg.angles across all backgrounds into a single list
+                const allEntries = sortedBgs.flatMap((bg, bgSortedIndex) =>
+                  (bg.angles || []).map((angle) => ({ bg, bgSortedIndex, angle }))
+                );
 
-                return sorted.map(({ bg, angle }, angleIndex) => {
+                return allEntries.map(({ bg, bgSortedIndex, angle }, angleIndex) => {
+                  const standardAngleIndex = BACKGROUND_ANGLES.indexOf(angle.angle);
+                  const slotLabel = standardAngleIndex >= 0
+                    ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                    : angle.angle;
                   const angleId = angle.angle;
                   const replaced = isAssetReplaced(angleId);
                   const replacementAsset = localAssets.find((a) => a.id === angleId);
                   // For display: use base64 if loaded, otherwise use imageUrl
-                  const replacementSrc = replacementAsset?.base64 
-                    ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}` 
+                  const replacementSrc = replacementAsset?.base64
+                    ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}`
                     : replacementAsset?.imageUrl || "";
                   const hasImage = replaced ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl) : !!angle.imageRef;
                   return (
@@ -1961,7 +1971,7 @@ export default function ImageGenerator() {
                       className={`bg-slate-900 rounded-lg overflow-hidden border group relative ${
                         replaced ? "border-green-500" : "border-slate-700"
                       }`}
-                      title={`${bg.name} - ${angle.angle}`}
+                      title={`${bg.name} - ${slotLabel}`}
                     >
                       <div className="aspect-video bg-black/40 relative">
                         {hasImage ? (
@@ -1991,7 +2001,7 @@ export default function ImageGenerator() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${angle.angle}`, "background")}
+                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${slotLabel}`, "background")}
                               className="hidden"
                             />
                           </label>
@@ -2004,7 +2014,7 @@ export default function ImageGenerator() {
                       </div>
                       <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
                         <span className="text-[8px] text-cyan-200 font-bold truncate block">
-                          {angle.angle}
+                          {slotLabel}
                         </span>
                       </div>
                     </div>

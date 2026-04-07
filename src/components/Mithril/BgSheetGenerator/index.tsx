@@ -229,16 +229,10 @@ const downloadImageFromUrl = async (url: string, filename: string): Promise<void
 
 // === Phase 7: Import/Export Utilities ===
 
-// CSV Import data structure - one view per CSV row (storyboard style)
-interface CsvViewData {
-  angle: string;      // Background ID from CSV (e.g., "1-1", "1-3-1")
-  csvContext: string; // Storyboard context (Image Prompt from CSV)
-}
-
+// CSV Import data structure - only name and description (angles always use the 9 standard perspectives)
 interface CsvBackgroundData {
   name: string;
   description: string;
-  views: CsvViewData[]; // Array of views, one per CSV row
 }
 
 // Parse CSV content into rows, handling multi-line quoted fields
@@ -312,20 +306,19 @@ const DEFAULT_CSV_COLUMN_MAPPING: CsvColumnMapping = {
   imagePromptCol: 7,
 };
 
-// CSV Import parser - parses storyboard CSV to extract backgrounds
-// Each CSV row becomes a separate storyboard view (not fixed 9 angles)
+// CSV Import parser - parses storyboard CSV to extract background names and descriptions only.
+// Angles are always the 9 standard perspectives regardless of CSV content.
 const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping = DEFAULT_CSV_COLUMN_MAPPING): Map<string, CsvBackgroundData> => {
-  // Map: background name -> { name, description, views: CsvViewData[] }
+  // Map: background name -> { name, description }
   const result = new Map<string, CsvBackgroundData>();
-  const bgOrder: string[] = []; // Track order of backgrounds as they appear
 
   const rows = parseCsvRows(csvContent);
   if (rows.length <= 1) return result; // Only header or empty
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
-  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
-  const minCols = Math.max(backgroundIdCol, backgroundPromptCol, imagePromptCol) + 1;
+  const { backgroundIdCol, backgroundPromptCol } = columnMapping;
+  const minCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
 
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
@@ -334,22 +327,18 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
 
     const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
     const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
-    const storyboardContext = fields[imagePromptCol]?.trim() || "";
 
     let bgPrefix = "";
-    let fullId = "";
 
     // Match pattern like "1-1", "1-3", "2-5-1"
     const match = bgIdRaw.match(/^(\d+)-(.+)$/);
 
     if (match) {
       bgPrefix = match[1];
-      fullId = bgIdRaw; // Use the exact imported ID
       lastBgPrefix = bgPrefix;
-    } else if (!bgIdRaw && lastBgPrefix && (bgPrompt || storyboardContext)) {
-      // Implicit row for previous BG (row with empty ID but has data)
+    } else if (!bgIdRaw && lastBgPrefix && bgPrompt) {
+      // Implicit row for previous BG (row with empty ID but has description)
       bgPrefix = lastBgPrefix;
-      fullId = `${bgPrefix}-x`;
     } else {
       continue; // Skip rows without valid Background ID
     }
@@ -357,12 +346,7 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     const bgName = `Background ${bgPrefix}`;
 
     if (!result.has(bgName)) {
-      result.set(bgName, {
-        name: bgName,
-        description: "",
-        views: [],
-      });
-      bgOrder.push(bgName);
+      result.set(bgName, { name: bgName, description: "" });
     }
 
     const existingData = result.get(bgName)!;
@@ -370,14 +354,6 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     // Update description if we have a better one (longer)
     if (bgPrompt && bgPrompt.length > existingData.description.length) {
       existingData.description = bgPrompt;
-    }
-
-    // Add view for this CSV row (one row = one storyboard frame)
-    if (storyboardContext || bgIdRaw) {
-      existingData.views.push({
-        angle: fullId,
-        csvContext: storyboardContext,
-      });
     }
   }
 
@@ -2498,47 +2474,28 @@ export default function BgSheetGenerator() {
       const existingBgNames = new Set(backgrounds.map(bg => bg.name));
       const updatedBackgrounds: Background[] = [];
 
-      // Update existing backgrounds - merge new views from CSV
+      // Update existing backgrounds - update description from CSV if better
       for (const bg of backgrounds) {
         const csvBgData = importedData.get(bg.name);
         if (csvBgData) {
-          // Find existing angles to avoid duplicates
-          const existingAngles = new Set(bg.images.map(img => img.angle));
-
-          // Add new views from CSV that don't already exist
-          const newImages = csvBgData.views
-            .filter(view => !existingAngles.has(view.angle))
-            .map(view => ({
-              angle: view.angle,
-              prompt: "",
-              imageBase64: "",
-              imageUrl: undefined,
-              isGenerating: false,
-              isActive: true,
-              isFinalized: false,
-              characterPrompt: "",
-              csvContext: view.csvContext,
-            }));
-
           updatedBackgrounds.push({
             ...bg,
             description: csvBgData.description || bg.description,
-            images: [...bg.images, ...newImages],
           });
         } else {
           updatedBackgrounds.push(bg);
         }
       }
 
-      // Create new backgrounds from CSV that don't exist yet
+      // Create new backgrounds from CSV that don't exist yet (always 9 standard angles)
       for (const [bgName, csvBgData] of importedData) {
         if (!existingBgNames.has(bgName)) {
           const newBg: Background = {
             id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             name: csvBgData.name,
             description: csvBgData.description,
-            images: csvBgData.views.map(view => ({
-              angle: view.angle,
+            images: BACKGROUND_ANGLES.map(angle => ({
+              angle,
               prompt: "",
               imageBase64: "",
               imageUrl: undefined,
@@ -2546,7 +2503,6 @@ export default function BgSheetGenerator() {
               isActive: true,
               isFinalized: false,
               characterPrompt: "",
-              csvContext: view.csvContext,
             })),
           };
           updatedBackgrounds.push(newBg);
@@ -2618,16 +2574,14 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Parse storyboard clips to extract backgrounds
-    // Map: background prefix (e.g., "1", "2") -> { name, description, views }
-    const bgMap = new Map<string, { name: string; description: string; views: { angle: string; csvContext: string }[] }>();
+    // Parse storyboard clips to extract background names and descriptions only
+    const bgMap = new Map<string, { name: string; description: string }>();
     const bgOrder: string[] = [];
 
     for (const scene of scenes) {
       for (const clip of scene.clips) {
         const bgIdRaw = clip.backgroundId?.trim() || "";
         const bgPrompt = clip.backgroundPrompt?.trim() || "";
-        const imagePrompt = clip.imagePrompt?.trim() || "";
 
         if (!bgIdRaw) continue;
 
@@ -2639,11 +2593,7 @@ export default function BgSheetGenerator() {
         const bgName = `Background ${bgPrefix}`;
 
         if (!bgMap.has(bgName)) {
-          bgMap.set(bgName, {
-            name: bgName,
-            description: "",
-            views: [],
-          });
+          bgMap.set(bgName, { name: bgName, description: "" });
           bgOrder.push(bgName);
         }
 
@@ -2652,15 +2602,6 @@ export default function BgSheetGenerator() {
         // Update description if we have a better one (longer)
         if (bgPrompt && bgPrompt.length > bgData.description.length) {
           bgData.description = bgPrompt;
-        }
-
-        // Add view for this angle only if not already present (multiple clips can share the same backgroundId)
-        const existingView = bgData.views.find(v => v.angle === bgIdRaw);
-        if (!existingView) {
-          bgData.views.push({
-            angle: bgIdRaw,
-            csvContext: imagePrompt,
-          });
         }
       }
     }
@@ -2674,36 +2615,14 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Create backgrounds from parsed data, keeping storyboard angle names as-is,
-    // and padding with standard angle slots for any suffixes (1-9) not covered by the storyboard.
+    // Create backgrounds with the 9 standard perspective angles
     const newBackgrounds: Background[] = bgOrder.map(bgName => {
       const bgData = bgMap.get(bgName)!;
-
-      // Keep all storyboard views with their original angle names (e.g. "1-1", "001-3")
-      const storyboardImages = bgData.views.map(view => ({
-        angle: view.angle,
-        prompt: "",
-        imageBase64: "",
-        imageUrl: undefined,
-        isGenerating: false,
-        isActive: true,
-        isFinalized: false,
-        characterPrompt: "",
-        csvContext: view.csvContext,
-      }));
-
-      // Collect which suffixes (1-9) are already covered by storyboard views
-      const coveredSuffixes = new Set(
-        bgData.views.map(v => getShotSuffix(v.angle)).filter(s => {
-          const n = parseInt(s, 10);
-          return !isNaN(n) && n >= 1 && n <= 9;
-        })
-      );
-
-      // Add standard slots for any suffix not already covered by a storyboard view
-      const missingStandard = BACKGROUND_ANGLES
-        .filter((_, idx) => !coveredSuffixes.has(String(idx + 1)))
-        .map(angle => ({
+      return {
+        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: bgData.name,
+        description: bgData.description,
+        images: BACKGROUND_ANGLES.map(angle => ({
           angle,
           prompt: "",
           imageBase64: "",
@@ -2712,14 +2631,7 @@ export default function BgSheetGenerator() {
           isActive: true,
           isFinalized: false,
           characterPrompt: "",
-          csvContext: undefined,
-        }));
-
-      return {
-        id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        name: bgData.name,
-        description: bgData.description,
-        images: [...storyboardImages, ...missingStandard],
+        })),
       };
     });
 

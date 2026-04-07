@@ -194,9 +194,9 @@ async function splitTextWithCliffhangers(
 
     for (const sentence of cliffhangerSentences) {
       const searchSentence = sentence.trim();
-      const index = remainingText.indexOf(searchSentence);
+      const splitPoint = findSplitPoint(searchSentence, remainingText);
 
-      if (index === -1) {
+      if (splitPoint === -1) {
         console.error(
           `Could not find cliffhanger: "${searchSentence}" in remaining text.`
         );
@@ -204,8 +204,6 @@ async function splitTextWithCliffhangers(
           `AI returned a cliffhanger sentence ("${searchSentence.substring(0, 50)}...") that could not be found in the original script. The AI may have altered the sentence. Please try again.`
         );
       }
-
-      const splitPoint = index + searchSentence.length;
       const part = remainingText.substring(0, splitPoint);
       textParts.push(part.trim());
       remainingText = remainingText.substring(splitPoint);
@@ -303,5 +301,94 @@ export async function POST(request: NextRequest) {
       { error: "An unexpected error occurred" },
       { status: 500 }
     );
+  }
+}
+
+function findSplitPoint(sentence: string, text: string): number {
+  if (!sentence || !text) {
+    return -1;
+  }
+
+  const directIndex = text.indexOf(sentence);
+  if (directIndex !== -1) {
+    return directIndex + sentence.length;
+  }
+
+  const normalizedSentence = normalizeString(sentence);
+  if (!normalizedSentence) {
+    return -1;
+  }
+
+  const { normalizedText, indexMap } = buildNormalizedMapping(text);
+  const normalizedIndex = normalizedText.indexOf(normalizedSentence);
+  if (normalizedIndex === -1) {
+    return -1;
+  }
+
+  const endNormalizedIndex = normalizedIndex + normalizedSentence.length - 1;
+  const endOriginalIndex = indexMap[endNormalizedIndex];
+
+  return endOriginalIndex + 1;
+}
+
+function normalizeString(input: string): string {
+  const builder: string[] = [];
+  for (const char of input) {
+    const mapped = normalizeChar(char);
+    if (mapped) {
+      builder.push(mapped);
+    }
+  }
+  return builder.join("");
+}
+
+function buildNormalizedMapping(text: string) {
+  const normalizedChars: string[] = [];
+  const indexMap: number[] = [];
+
+  for (let i = 0; i < text.length; i += 1) {
+    const normalized = normalizeChar(text[i]);
+    if (!normalized) {
+      continue;
+    }
+    for (const char of normalized) {
+      normalizedChars.push(char);
+      indexMap.push(i);
+    }
+  }
+
+  return {
+    normalizedText: normalizedChars.join(""),
+    indexMap,
+  };
+}
+
+function normalizeChar(char: string): string {
+  switch (char) {
+    case "\r":
+      return "";
+    case "\n":
+    case "\t":
+    case "\u2028":
+    case "\u2029":
+      return " ";
+    case "“":
+    case "”":
+      return '"';
+    case "‘":
+    case "’":
+      return "'";
+    case "—":
+    case "–":
+      return "-";
+    case "…":
+      return "...";
+    case "\u00A0":
+      return " ";
+    case "\u200B":
+    case "\uFEFF":
+      return "";
+    default:
+      return char;
   }
 }

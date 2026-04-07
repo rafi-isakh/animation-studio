@@ -366,7 +366,17 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
+  const {
+    setStageResult,
+    bgSheetGenerator,
+    startBgSheetAnalysis,
+    cancelBgSheetAnalysis,
+    clearBgSheetAnalysis,
+    setBgSheetResult,
+    customApiKey,
+    getScenesForPart,
+    getGeneratedPartIndices,
+  } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -394,10 +404,20 @@ export default function BgSheetGenerator() {
     "2D anime background art, clean linework, soft cel shading with gradients, bright and vibrant colors, clean anime aesthetic."
   );
   const [referenceImageName, setReferenceImageName] = useState<string>("");
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
 
   // Refs to avoid stale closures in async callbacks
   const styleKeywordRef = useRef(styleKeyword);
   const backgroundBasePromptRef = useRef(backgroundBasePrompt);
+  const generatedPartIndices = getGeneratedPartIndices();
+  const selectedPartScenes = getScenesForPart(selectedPartIndex);
+
+  useEffect(() => {
+    if (generatedPartIndices.length === 0) return;
+    if (!generatedPartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
+    }
+  }, [generatedPartIndices, selectedPartIndex]);
 
   // Editor state
   const [editingTarget, setEditingTarget] = useState<{
@@ -2464,7 +2484,7 @@ export default function BgSheetGenerator() {
 
   // Storyboard Import handler - imports backgrounds from storyboard data
   const handleImportFromStoryboard = useCallback(async () => {
-    const { scenes } = storyboardGenerator;
+    const scenes = selectedPartScenes;
 
     if (!scenes || scenes.length === 0) {
       toast({
@@ -2588,7 +2608,7 @@ export default function BgSheetGenerator() {
       title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
       description: `${newBackgrounds.length} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported from storyboard"}`,
     });
-  }, [storyboardGenerator, toast, dictionary, language, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
+  }, [selectedPartScenes, toast, dictionary, language, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
 
   // JSON Project Export handler
   const handleJsonExport = useCallback(() => {
@@ -2859,16 +2879,36 @@ export default function BgSheetGenerator() {
       {/* Import from Storyboard & Import Options - only show when no results */}
       {!isLoadingData && !isAnalyzing && backgrounds.length === 0 && (
         <div className="flex flex-col items-center gap-3">
+          {generatedPartIndices.length > 0 && (
+            <div className="w-full max-w-xl space-y-2">
+              <p className="text-sm font-medium text-gray-300 text-center">Storyboard Parts</p>
+              <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap justify-center">
+                {generatedPartIndices.map((partIdx) => (
+                  <button
+                    key={partIdx}
+                    onClick={() => setSelectedPartIndex(partIdx)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      selectedPartIndex === partIdx
+                        ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                        : "text-gray-400 hover:text-[#E8E8E8]"
+                    }`}
+                  >
+                    Part {partIdx + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Primary: Import from Storyboard */}
           <button
             onClick={handleImportFromStoryboard}
-            disabled={!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0}
+            disabled={selectedPartScenes.length === 0}
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             {phrase(dictionary, "bgsheet_import_storyboard", language) || "Import from Storyboard"}
           </button>
-          {(!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0) && (
+          {selectedPartScenes.length === 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {phrase(dictionary, "bgsheet_no_storyboard_hint", language) || "Generate a storyboard first to import backgrounds"}
             </p>

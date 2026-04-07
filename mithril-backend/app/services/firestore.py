@@ -35,6 +35,7 @@ from app.models.job import (
     KreaStyleConverterJobSubmitRequest,
     ModelsLabStyleConverterJobSubmitRequest,
 )
+from app.services.s3 import get_story_splitter_input_key, upload_text_object
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -651,6 +652,9 @@ class JobQueueService:
         job_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
 
+        story_text_key = get_story_splitter_input_key(request.project_id, job_id)
+        await upload_text_object(story_text_key, request.text)
+
         job = JobDocument(
             id=job_id,
             type=JobType.STORY_SPLITTER,
@@ -666,7 +670,8 @@ class JobQueueService:
             updated_at=now,
             user_id=user_id,
             # Story splitter-specific fields
-            story_text=request.text,
+            story_text=None,
+            story_text_s3_key=story_text_key,
             guidelines=request.guidelines,
             num_parts=request.num_parts,
             max_retries=3,
@@ -1500,8 +1505,9 @@ class StorySplitsService:
         self,
         project_id: str,
         guidelines: str,
-        parts: list[dict],
+        parts: list[dict] | None = None,
         job_id: str | None = None,
+        result_key: str | None = None,
     ) -> None:
         """
         Save story split results to project's storySplits document.
@@ -1514,13 +1520,18 @@ class StorySplitsService:
         """
         data: dict[str, Any] = {
             "guidelines": guidelines,
-            "parts": parts,
+            "generatedAt": datetime.now(timezone.utc),
         }
+        if parts is not None:
+            data["parts"] = parts
         if job_id is not None:
             data["jobId"] = job_id
+        if result_key is not None:
+            data["resultKey"] = result_key
 
         await self._doc_ref(project_id).set(data, merge=True)
-        logger.debug(f"Saved story splits in project {project_id} ({len(parts)} parts)")
+        parts_count = len(parts) if parts else 0
+        logger.debug(f"Saved story splits in project {project_id} ({parts_count} parts)")
 
     async def get_story_splits(self, project_id: str) -> dict | None:
         """

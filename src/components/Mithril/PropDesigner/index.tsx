@@ -91,6 +91,8 @@ export default function PropDesigner() {
   const { currentProjectId } = useProject();
   const {
     storyboardGenerator,
+    getScenesForPart,
+    getGeneratedPartIndices,
     propDesignerGenerator,
     setPropDesignerResult,
     clearPropDesignerData,
@@ -125,6 +127,8 @@ export default function PropDesigner() {
   const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
   // CSV Genre
   const [csvGenre, setCsvGenre] = useState<string | null>(null);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [scanAllParts, setScanAllParts] = useState(false);
 
   // Per-clip generated preview images (key: "sIdx-cIdx", value: base64 data URL)
   const [generatedClipImages, setGeneratedClipImages] = useState<Record<string, string>>({});
@@ -312,8 +316,16 @@ export default function PropDesigner() {
     }
   }, [importedScenes]);
 
+  const generatedPartIndices = getGeneratedPartIndices();
+  useEffect(() => {
+    if (generatedPartIndices.length === 0) return;
+    if (!generatedPartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
+    }
+  }, [generatedPartIndices, selectedPartIndex]);
+
   // Determine active scenes (context or imported)
-  const contextScenes = storyboardGenerator.scenes;
+  const contextScenes = getScenesForPart(selectedPartIndex);
   const contextCharacterIdSummary = storyboardGenerator.characterIdSummary;
   const contextGenre = storyboardGenerator.genre;
   const hasContextScenes = contextScenes && contextScenes.length > 0;
@@ -330,6 +342,14 @@ export default function PropDesigner() {
     }
     return [];
   }, [contextScenes, importedScenes, hasContextScenes, hasImportedScenes]);
+
+  const scenesForDetection = useMemo(() => {
+    if (hasImportedScenes) return importedScenes;
+    if (scanAllParts) {
+      return generatedPartIndices.flatMap((idx) => getScenesForPart(idx));
+    }
+    return activeScenes;
+  }, [hasImportedScenes, importedScenes, scanAllParts, generatedPartIndices, getScenesForPart, activeScenes]);
 
   // Load from context on mount (only if we don't have imported scenes)
   useEffect(() => {
@@ -474,7 +494,7 @@ export default function PropDesigner() {
   // Include importVersion to force re-run when CSV is imported
   useEffect(() => {
 
-    if (!activeScenes || activeScenes.length === 0) {
+    if (!scenesForDetection || scenesForDetection.length === 0) {
       setDetectedIds([]);
       return;
     }
@@ -483,7 +503,7 @@ export default function PropDesigner() {
     const objectIds = new Set<string>();
     const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string; refFileName?: string }[] }>();
 
-    activeScenes.forEach((scene, sIdx) => {
+    scenesForDetection.forEach((scene, sIdx) => {
       scene.clips.forEach((clip, cIdx) => {
         const clipId = `${sIdx + 1}-${cIdx + 1}`;
         // Include all text fields for ID extraction
@@ -549,7 +569,7 @@ export default function PropDesigner() {
     });
 
     setDetectedIds(allDetected);
-  }, [activeScenes, importVersion]);
+  }, [scenesForDetection, importVersion]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -1325,7 +1345,6 @@ export default function PropDesigner() {
 
   // Check if storyboard is available (from context or imported CSV)
   const hasStoryboard = activeScenes && activeScenes.length > 0;
-  const hasContextStoryboard = storyboardGenerator.scenes && storyboardGenerator.scenes.length > 0;
 
   // Calculate total clips from active scenes
   const totalClips = activeScenes.reduce((acc, scene) => acc + scene.clips.length, 0);
@@ -1454,6 +1473,37 @@ export default function PropDesigner() {
           >
             Dismiss
           </button>
+        </div>
+      )}
+
+      {!hasImportedScenes && generatedPartIndices.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-300">Storyboard Parts</p>
+          <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap items-center">
+            {generatedPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => setSelectedPartIndex(partIdx)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                Part {partIdx + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setScanAllParts((prev) => !prev)}
+              className={`ml-auto px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                scanAllParts
+                  ? "bg-teal-600 text-white hover:bg-teal-500"
+                  : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+              }`}
+            >
+              {scanAllParts ? "Scanning All Parts" : "Scan All Parts"}
+            </button>
+          </div>
         </div>
       )}
 

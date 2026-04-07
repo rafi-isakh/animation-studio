@@ -17,6 +17,12 @@ from app.core.retry import RetryState
 from app.core.state_machine import JobStateMachine
 from app.models.job import JobDocument, JobStatus
 from app.services.firestore import get_job_queue_service
+from app.services.s3 import (
+    download_text_object,
+    upload_json_object,
+    delete_object,
+    get_story_splitter_result_key,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -92,8 +98,16 @@ async def process_story_splitter(
         logger.error(f"[STORY-SPLITTER] Job {job_id} not found in Firestore")
         return {"job_id": job_id, "status": "error", "error": "Job not found"}
 
+    story_text = job.story_text or ""
+    if job.story_text_s3_key:
+        try:
+            story_text = await download_text_object(job.story_text_s3_key)
+        except Exception as exc:
+            logger.error(f"[STORY-SPLITTER] Failed to download story text from S3 for job {job_id}: {exc}")
+            raise
+
     logger.info(f"[STORY-SPLITTER] Job {job_id} loaded: project={job.project_id}, status={job.status}")
-    logger.info(f"[STORY-SPLITTER] Text length: {len(job.story_text or '')} chars")
+    logger.info(f"[STORY-SPLITTER] Text length: {len(story_text)} chars")
     logger.info(f"[STORY-SPLITTER] Num parts: {job.num_parts}")
 
     # Initialize state machine
@@ -117,7 +131,7 @@ async def process_story_splitter(
         # Call Gemini for story splitting
         logger.info(f"[STORY-SPLITTER] {job_id} - Calling Gemini API for story splitting...")
         parts, _usage = await _split_story_with_gemini(
-            job.story_text or "",
+            story_text,
             job.guidelines or "",
             job.num_parts or 8,
             api_key
@@ -139,12 +153,16 @@ async def process_story_splitter(
         await check_cancellation(job_id)
 
         # Save to project's storySplits document
+        logger.debug(f"[STORY-SPLITTER] {job_id} - Uploading split result JSON to S3")
+        result_key = get_story_splitter_result_key(job.project_id, job_id)
+        await upload_json_object(result_key, parts)
+
         logger.debug(f"[STORY-SPLITTER] {job_id} - Updating storySplits document in project")
         await _save_story_splits(
             job.project_id,
             job.guidelines or "",
-            parts,
             job_id,
+            result_key=result_key,
         )
         logger.info(f"[STORY-SPLITTER] {job_id} - storySplits document updated")
 
@@ -155,6 +173,9 @@ async def process_story_splitter(
             JobStatus.COMPLETED,
             progress=1.0,
         )
+
+        if job.story_text_s3_key:
+            await delete_object(job.story_text_s3_key)
 
         logger.info(f"[STORY-SPLITTER] {job_id} ========== JOB COMPLETED SUCCESSFULLY ==========")
         return {
@@ -341,16 +362,15 @@ async def _split_story_with_gemini(
 
     for sentence in cliffhanger_sentences:
         search_sentence = sentence.strip()
-        index = remaining_text.find(search_sentence)
+        split_point = find_split_point(search_sentence, remaining_text)
 
-        if index == -1:
+        if split_point == -1:
             logger.error(f"Could not find cliffhanger: '{search_sentence[:50]}...' in remaining text")
             raise ValueError(
                 f"AI returned a cliffhanger sentence that could not be found in the original script. "
                 f"The AI may have altered the sentence."
             )
 
-        split_point = index + len(search_sentence)
         part = remaining_text[:split_point]
         text_parts.append(part.strip())
         remaining_text = remaining_text[split_point:]
@@ -378,17 +398,17 @@ async def _split_story_with_gemini(
 async def _save_story_splits(
     project_id: str,
     guidelines: str,
-    parts: list[dict],
     job_id: str,
+    result_key: str | None = None,
 ) -> None:
     """
-    Save story split results to Firestore.
+    Save story split metadata to Firestore.
 
     Args:
         project_id: The project ID
         guidelines: Guidelines used for splitting
-        parts: List of split parts with cliffhangers
         job_id: The job ID
+        result_key: Optional S3 key for the generated parts JSON
     """
     from app.services.firestore import get_story_splits_service
 
@@ -396,6 +416,77 @@ async def _save_story_splits(
     await story_splits_service.save_story_splits(
         project_id=project_id,
         guidelines=guidelines,
-        parts=parts,
         job_id=job_id,
+        result_key=result_key,
     )
+
+
+def find_split_point(sentence: str, text: str) -> int:
+    """
+    Locate the end index of a sentence within a larger text.
+
+    Uses normalization to tolerate minor differences in quotes/punctuation.
+    """
+    if not sentence or not text:
+        return -1
+
+    direct_index = text.find(sentence)
+    if direct_index != -1:
+        return direct_index + len(sentence)
+
+    normalized_sentence = normalize_string(sentence)
+    if not normalized_sentence:
+        return -1
+
+    normalized_text, index_map = build_normalized_mapping(text)
+    normalized_index = normalized_text.find(normalized_sentence)
+    if normalized_index == -1:
+        return -1
+
+    end_normalized_index = normalized_index + len(normalized_sentence) - 1
+    if end_normalized_index >= len(index_map):
+        return -1
+
+    return index_map[end_normalized_index] + 1
+
+
+def normalize_string(value: str) -> str:
+    builder: list[str] = []
+    for char in value:
+        normalized = normalize_char(char)
+        if normalized:
+            builder.append(normalized)
+    return "".join(builder)
+
+
+def build_normalized_mapping(text: str) -> tuple[str, list[int]]:
+    normalized_chars: list[str] = []
+    index_map: list[int] = []
+
+    for index, char in enumerate(text):
+        normalized = normalize_char(char)
+        if not normalized:
+            continue
+        for segment in normalized:
+            normalized_chars.append(segment)
+            index_map.append(index)
+
+    return "".join(normalized_chars), index_map
+
+
+def normalize_char(char: str) -> str:
+    if char == "\r":
+        return ""
+    if char in {"“", "”"}:
+        return '"'
+    if char in {"‘", "’"}:
+        return "'"
+    if char in {"—", "–"}:
+        return "-"
+    if char == "…":
+        return "..."
+    if char in {"\u00A0", "\n", "\t", "\u2028", "\u2029"}:
+        return " "
+    if char in {"\u200B", "\uFEFF"}:
+        return ""
+    return char

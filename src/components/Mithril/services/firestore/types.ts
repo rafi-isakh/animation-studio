@@ -302,6 +302,14 @@ export interface StoryboardDocument {
   genre?: string;
 }
 
+export interface StoryboardPartDocument {
+  partIndex: number;
+  generatedAt: Timestamp;
+  jobId?: string | null;
+  characterIdSummary?: Array<{ characterId: string; description: string }>;
+  genre?: string;
+}
+
 export interface VoicePromptDocument {
   promptKo: string;
   promptEn: string;
@@ -310,10 +318,12 @@ export interface VoicePromptDocument {
 export interface SceneDocument {
   sceneIndex: number;
   sceneTitle: string;
+  partIndex?: number;
 }
 
 export interface ClipDocument {
   clipIndex: number;
+  partIndex?: number;
   // Story content
   story: string;
   // Prompts
@@ -370,6 +380,7 @@ export interface ImageGenFrameDocument {
   id: string;
   sceneIndex: number;
   clipIndex: number;
+  partIndex?: number;
   frameLabel: string;
   frameNumber: string;
   shotGroup: number;
@@ -391,6 +402,7 @@ export interface ImageGenFrameDocument {
 export interface SaveImageGenFrameInput {
   sceneIndex: number;
   clipIndex: number;
+  partIndex?: number;
   frameLabel: string;
   frameNumber: string;
   shotGroup: number;
@@ -574,6 +586,7 @@ export interface SaveSceneInput {
 }
 
 export interface SaveClipInput {
+  partIndex?: number;
   story: string;
   imagePrompt: string;
   imagePromptEnd?: string;
@@ -601,6 +614,7 @@ export interface SaveClipInput {
 }
 
 export interface UpdateClipInput {
+  partIndex?: number;
   story?: string;
   imagePrompt?: string;
   imagePromptEnd?: string;
@@ -633,11 +647,13 @@ export interface SaveVideoClipInput {
   sceneTitle: string;
   videoPrompt: string;
   length: string;
+  partIndex?: number;
 }
 
 export interface UpdateVideoClipInput {
   sceneIndex?: number;
   clipIndex?: number;
+  partIndex?: number;
   videoRef?: string | null;
   jobId?: string | null;
   s3FileName?: string | null;

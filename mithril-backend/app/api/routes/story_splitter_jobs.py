@@ -24,6 +24,25 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/story-splitter-jobs", tags=["story-splitter-jobs"])
 
 
+async def _load_story_split_parts(job: JobDocument) -> list[StorySplitterPart] | None:
+    """
+    Load split parts either from Firestore document cache or fallback to S3.
+    """
+    if job.split_result:
+        return [StorySplitterPart(**part) for part in job.split_result]
+
+    if job.split_result_s3_key:
+        try:
+            raw_parts = await download_json_object(job.split_result_s3_key)
+        except Exception as exc:
+            logger.warning(f"[STORY-SPLITTER-API] Failed to load split result from S3 for job {job.id}: {exc}")
+            return None
+        if isinstance(raw_parts, list):
+            return [StorySplitterPart(**part) for part in raw_parts]
+
+    return None
+
+
 @router.post("/submit", response_model=JobSubmitResponse)
 async def submit_story_splitter_job(
     request: StorySplitterJobSubmitRequest,
@@ -232,9 +251,7 @@ async def get_project_story_splitter_jobs(
                 retryable=job.error_retryable or False,
             )
 
-        parts = None
-        if job.split_result:
-            parts = [StorySplitterPart(**part) for part in job.split_result]
+        parts = await _load_story_split_parts(job)
 
         responses.append(
             StorySplitterJobStatusResponse(

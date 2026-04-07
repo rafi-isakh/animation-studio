@@ -24,6 +24,7 @@ export interface WebnovelTrailerDocument {
 export interface WebnovelTrailerClipDocument {
   sceneIndex: number;
   clipIndex: number;
+  partIndex?: number;
   sceneTitle?: string;
   videoPrompt?: string;
   length?: string;
@@ -45,6 +46,7 @@ export interface SaveWebnovelTrailerClipInput {
   length: string;
   videoApi?: string | null;
   imageUrl?: string | null;
+  partIndex?: number;
 }
 
 export interface UpdateWebnovelTrailerClipInput {
@@ -143,6 +145,7 @@ export async function saveWebnovelTrailerClip(
     jobId:       null,
     s3FileName:  null,
     status:      'idle',
+    partIndex:   input.partIndex ?? 0,
   });
 }
 
@@ -170,6 +173,7 @@ export async function saveWebnovelTrailerClipsBatch(
         jobId:       null,
         s3FileName:  null,
         status:      'idle',
+        partIndex:   input.partIndex ?? 0,
       });
     }
 

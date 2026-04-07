@@ -135,6 +135,7 @@ export async function saveImageGenFrame(
   await setDoc(docRef, {
     sceneIndex: input.sceneIndex,
     clipIndex: input.clipIndex,
+    partIndex: input.partIndex ?? 0,
     frameLabel: input.frameLabel,
     frameNumber: input.frameNumber,
     shotGroup: input.shotGroup,
@@ -167,6 +168,7 @@ export async function saveImageGenFrames(
     batch.set(docRef, {
       sceneIndex: input.sceneIndex,
       clipIndex: input.clipIndex,
+      partIndex: input.partIndex ?? 0,
       frameLabel: input.frameLabel,
       frameNumber: input.frameNumber,
       shotGroup: input.shotGroup,

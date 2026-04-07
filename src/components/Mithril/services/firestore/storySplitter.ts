@@ -18,7 +18,33 @@ export async function getStorySplits(
     return null;
   }
 
-  return docSnap.data() as StorySplitsDocument;
+  const data = docSnap.data() as StorySplitsDocument;
+
+  if (data.parts && data.parts.length > 0) {
+    return data;
+  }
+
+  if (data.jobId) {
+    try {
+      const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${data.jobId}`);
+      if (response.ok) {
+        const jobStatus = await response.json();
+        if (jobStatus.status === "completed" && jobStatus.parts) {
+          return {
+            ...data,
+            parts: jobStatus.parts,
+          };
+        }
+      } else {
+        const error = await response.json().catch(() => null);
+        console.warn("Failed to fetch story splitter job status:", error);
+      }
+    } catch (err) {
+      console.error("Error fetching story splitter job status:", err);
+    }
+  }
+
+  return data;
 }
 
 /**

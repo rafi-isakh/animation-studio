@@ -277,7 +277,7 @@ export default function StoryboardGenerator() {
       backgroundInstruction,
       negativeInstruction,
       videoInstruction,
-    });
+    }, selectedPartIndex);
 
     // Show success toast if generation completed without error
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
@@ -876,7 +876,14 @@ export default function StoryboardGenerator() {
             {splitParts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedPartIndex(index)}
+                onClick={() => {
+                  console.log(
+                    "[StoryboardGenerator] part tab click",
+                    index,
+                    storyboardGenerator.parts[index]
+                  );
+                  setSelectedPartIndex(index);
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedPartIndex === index
                     ? "bg-[#DB2777] text-white"

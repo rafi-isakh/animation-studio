@@ -1413,6 +1413,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId: currentProjectId,
+          partIndex,
           sourceText: params.sourceText,
           // Conditions
           storyCondition: params.storyCondition,
@@ -1433,7 +1434,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           // Trailer-specific params
           imagePromptQA: params.imagePromptQA || "",
           selectedTrailerScript: params.selectedTrailerScript || "",
-          partIndex,
           // API key
           apiKey: customApiKey,
         }),
@@ -1790,6 +1790,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [originalStoryboards, storyboardGenerator.activePartIndex]);
 
   const setActiveStoryboardPartIndex = useCallback((partIndex: number) => {
+    console.log("[Storyboard] setActiveStoryboardPartIndex", partIndex, storyboardGenerator.parts[partIndex]);
     setStoryboardGenerator(prev => {
       const part = prev.parts[partIndex];
       if (!part) return prev;
@@ -1802,16 +1803,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         genre: part.genre,
       };
     });
-    setStageResults(prev => {
-      const stage4 = prev[4] as { parts?: Record<number, StoryboardPartData> } | undefined;
-      const parts = stage4?.parts || storyboardGenerator.parts;
-      return { ...prev, 4: buildStage4Result(parts, partIndex) };
-    });
-  }, [buildStage4Result, storyboardGenerator.parts]);
+  }, []);
 
   const getScenesForPart = useCallback((partIndex: number): Scene[] => {
     return storyboardGenerator.parts[partIndex]?.scenes || [];
   }, [storyboardGenerator.parts]);
+
+  useEffect(() => {
+    setStageResults(prev => ({
+      ...prev,
+      4: buildStage4Result(storyboardGenerator.parts, storyboardGenerator.activePartIndex),
+    }));
+  }, [buildStage4Result, setStageResults, storyboardGenerator.activePartIndex, storyboardGenerator.parts]);
 
   const getGeneratedPartIndices = useCallback((): number[] => {
     return Object.keys(storyboardGenerator.parts)

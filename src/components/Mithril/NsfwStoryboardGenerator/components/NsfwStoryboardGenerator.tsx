@@ -344,7 +344,7 @@ export default function NsfwStoryboardGenerator() {
       videoInstruction,
       imageInstruction,
       clipCount,
-    });
+    }, selectedPartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({

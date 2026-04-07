@@ -1492,7 +1492,10 @@ export default function WebnovelTrailerStoryboardGenerator() {
             {generatedPartIndices.map((partIdx) => (
               <button
                 key={partIdx}
-                onClick={() => setActiveStoryboardPartIndex(partIdx)}
+                onClick={() => {
+                  console.log("[Storyboard UI] tab click -> part", partIdx);
+                  setActiveStoryboardPartIndex(partIdx);
+                }}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   activePartIndex === partIdx
                     ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"

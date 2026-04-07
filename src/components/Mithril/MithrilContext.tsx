@@ -41,7 +41,15 @@ import {
   saveBackground,
   clearBgSheet,
   getStoryboardMeta,
+  getScenes,
+  getClips,
+  getVoicePrompts,
   saveStoryboardMeta,
+  saveScene,
+  saveClip,
+  saveVoicePrompts,
+  updateClipField as updateClipFieldFirestore,
+  clearStoryboard,
   // Part-namespaced storyboard functions
   getAvailablePartIndices,
   loadStoryboardPart,
@@ -50,9 +58,7 @@ import {
   savePartScene,
   savePartClip,
   updatePartClipField as updatePartClipFieldFirestore,
-  updatePartClipImage as updatePartClipImageFirestore,
   clearStoryboardPart,
-  migrateOldStoryboardToPartZero,
   // ImageGen (Stage 7)
   getImageGenMeta,
   getImageGenFrames,
@@ -109,7 +115,7 @@ type StoryboardPartData = {
 interface StoryboardGeneratorState {
   isGenerating: boolean;
   error: string | null;
-  // Convenience accessors → always reflect parts[activePartIndex]
+  // Convenience accessors — always reflect parts[activePartIndex]
   scenes: Scene[];
   voicePrompts: VoicePrompt[];
   characterIdSummary?: CharacterIdSummary[];
@@ -232,14 +238,12 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams, partIndex?: number) => Promise<void>;
   splitStartEndFrames: () => Promise<void>;
-  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string, partIndex?: number) => Promise<void>;
-  clearStoryboardGeneration: (partIndex?: number) => Promise<void>;
+  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => Promise<void>;
+  clearStoryboardGeneration: () => void;
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   updateClipImageRef: (sceneIndex: number, clipIndex: number, imageRef: string) => void;
   getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
   setActiveStoryboardPartIndex: (partIndex: number) => void;
-  getScenesForPart: (partIndex: number) => Scene[];
-  getGeneratedPartIndices: () => number[];
 
   // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -376,7 +380,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   });
   const [storySplitterJobId, setStorySplitterJobId] = useState<string | null>(null);
   const storySplitterJobIdRef = useRef<string | null>(null);
-  const storySplitterFetchPendingRef = useRef<Set<string>>(new Set());
 
   // Storyboard Generator state (Stage 5)
   const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
@@ -395,20 +398,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const storyboardInitialSnapshotRef = useRef(true);
   const storyboardProcessedJobIdsRef = useRef<Set<string>>(new Set());
 
-  // Original storyboards for reset functionality (per part)
-  const [originalStoryboards, setOriginalStoryboards] = useState<Record<number, StoryboardPartData>>({});
-
-  const buildStage4Result = useCallback((parts: Record<number, StoryboardPartData>, activePartIndex: number) => {
-    const activePart = parts[activePartIndex] || { scenes: [], voicePrompts: [], characterIdSummary: [], genre: undefined };
-    return {
-      scenes: activePart.scenes,
-      voicePrompts: activePart.voicePrompts,
-      characterIdSummary: activePart.characterIdSummary,
-      genre: activePart.genre,
-      activePartIndex,
-      parts,
-    };
-  }, []);
+  // Original storyboard for reset functionality
+  const [originalStoryboard, setOriginalStoryboard] = useState<{ scenes: Scene[]; voicePrompts: VoicePrompt[]; characterIdSummary?: CharacterIdSummary[]; genre?: string } | null>(null);
 
   // BgSheet Generator state (Stage 4)
   const [bgSheetGenerator, setBgSheetGenerator] = useState<BgSheetGeneratorState>({
@@ -452,47 +443,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       .map(s => s.id)
       .filter(id => !isStageSkipped(id));
   }, [projectType, isStageSkipped]);
-
-  const handleStorySplitterStatusResponse = useCallback(
-    (jobStatus: { status: string; parts?: PartWithAnalysis[]; error?: { message?: string } }) => {
-      if (jobStatus.status === "completed" && jobStatus.parts) {
-        storySplitterJobIdRef.current = null;
-        setStorySplitterJobId(null);
-        setStorySplitter({
-          isLoading: false,
-          error: null,
-          result: { parts: jobStatus.parts },
-        });
-        setStageResults(prev => ({ ...prev, 2: { parts: jobStatus.parts } }));
-      } else if (jobStatus.status === "failed") {
-        storySplitterJobIdRef.current = null;
-        setStorySplitterJobId(null);
-        setStorySplitter(prev => ({
-          ...prev,
-          isLoading: false,
-          error: jobStatus.error?.message || "Story splitting failed",
-        }));
-      }
-    },
-    [setStageResults]
-  );
-
-  const fetchStorySplitterJobStatus = useCallback(
-    async (jobId: string) => {
-      try {
-        const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${jobId}`);
-        const jobStatus = await response.json();
-        if (response.ok) {
-          handleStorySplitterStatusResponse(jobStatus);
-        } else {
-          throw new Error(jobStatus.error || "Failed to fetch story splitter job status");
-        }
-      } catch (error) {
-        console.error("Error fetching story splitter job status:", error);
-      }
-    },
-    [handleStorySplitterStatusResponse]
-  );
 
   // Load data from Firestore when projectId changes
   const loadFromFirestore = useCallback(async () => {
@@ -560,7 +510,30 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Manually fetch job status to handle the race condition where
         // the Firestore subscription fired before we restored the jobId
         try {
-          await fetchStorySplitterJobStatus(storySplitsData.jobId);
+          const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${storySplitsData.jobId}`);
+          const jobStatus = await response.json();
+
+          if (jobStatus.status === "completed" && jobStatus.parts) {
+            // Job completed while we were away - update state with results
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter({
+              isLoading: false,
+              error: null,
+              result: { parts: jobStatus.parts },
+            });
+            setStageResults(prev => ({ ...prev, 2: { parts: jobStatus.parts } }));
+          } else if (jobStatus.status === "failed") {
+            // Job failed while we were away
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({
+              ...prev,
+              isLoading: false,
+              error: jobStatus.error || "Story splitting failed",
+            }));
+          }
+          // If status is pending/generating, keep loading state - subscription will handle updates
         } catch (statusErr) {
           console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
           // Job might not exist anymore - clear loading state
@@ -637,176 +610,229 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setStageResults(prev => ({ ...prev, 6: metadata }));
       }
 
-      // Load storyboard data
-      // Step 1: attempt migration of old flat-path data → part_0
+      // Load storyboard data — try per-part path first, fall back to flat path
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
-      if (storyboardMeta) {
-        await migrateOldStoryboardToPartZero(currentProjectId);
-      }
-
-      // Step 2: load all available part indices
       const availablePartIndices = await getAvailablePartIndices(currentProjectId);
 
+      const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] =>
+        clips.map(clip => ({
+          story: clip.story,
+          imagePrompt: clip.imagePrompt,
+          imagePromptEnd: clip.imagePromptEnd,
+          videoPrompt: clip.videoPrompt,
+          soraVideoPrompt: clip.soraVideoPrompt,
+          veoVideoPrompt: clip.veoVideoPrompt || "",
+          pixAiPrompt: clip.pixAiPrompt || "",
+          backgroundPrompt: clip.backgroundPrompt,
+          backgroundId: clip.backgroundId,
+          characterInfo: clip.characterInfo,
+          dialogue: clip.dialogue,
+          dialogueEn: clip.dialogueEn,
+          narration: clip.narration || "",
+          narrationEn: clip.narrationEn || "",
+          sfx: clip.sfx,
+          sfxEn: clip.sfxEn,
+          bgm: clip.bgm,
+          bgmEn: clip.bgmEn,
+          length: clip.length,
+          accumulatedTime: clip.accumulatedTime,
+          imageRef: clip.imageRef || "",
+        }));
+
       if (availablePartIndices.length > 0) {
-        // Load every part and assemble the parts map
-        const partsMap: Record<number, StoryboardPartData> = {};
-
+        // Per-part data exists — load all parts into the cache
+        const loadedParts: Record<number, StoryboardPartData> = {};
         for (const partIdx of availablePartIndices) {
-          const { meta, scenes: partScenes, clips: partClips, voicePrompts: partVoicePrompts } = await loadStoryboardPart(currentProjectId, partIdx);
-
-          const scenesWithClips: Scene[] = partScenes.map((scene, i) => ({
-            sceneTitle: scene.sceneTitle,
-            clips: (partClips[i] || []).map(clip => ({
-              story: clip.story,
-              imagePrompt: clip.imagePrompt,
-              imagePromptEnd: clip.imagePromptEnd,
-              videoPrompt: clip.videoPrompt,
-              soraVideoPrompt: clip.soraVideoPrompt,
-              veoVideoPrompt: clip.veoVideoPrompt || "",
-              pixAiPrompt: clip.pixAiPrompt || "",
-              backgroundPrompt: clip.backgroundPrompt,
-              backgroundId: clip.backgroundId,
-              characterInfo: clip.characterInfo,
-              dialogue: clip.dialogue,
-              dialogueEn: clip.dialogueEn,
-              narration: clip.narration || "",
-              narrationEn: clip.narrationEn || "",
-              sfx: clip.sfx,
-              sfxEn: clip.sfxEn,
-              bgm: clip.bgm,
-              bgmEn: clip.bgmEn,
-              length: clip.length,
-              accumulatedTime: clip.accumulatedTime,
-              imageRef: clip.imageRef,
-            })),
-          }));
-
-          partsMap[partIdx] = {
-            scenes: scenesWithClips,
-            voicePrompts: partVoicePrompts.map(vp => ({ promptKo: vp.promptKo, promptEn: vp.promptEn })),
-            characterIdSummary: meta?.characterIdSummary || [],
-            genre: meta?.genre || undefined,
-          };
+          const partData = await loadStoryboardPart(currentProjectId, partIdx);
+          if (partData.scenes.length > 0) {
+            loadedParts[partIdx] = {
+              scenes: partData.scenes.map((scene, si) => ({
+                sceneTitle: scene.sceneTitle,
+                clips: normalizeClipsFromFirestore(partData.clips[si] || []),
+              })),
+              voicePrompts: partData.voicePrompts.map(vp => ({
+                promptKo: vp.promptKo,
+                promptEn: vp.promptEn,
+              })),
+              characterIdSummary: partData.meta?.characterIdSummary || storyboardMeta?.characterIdSummary || [],
+              genre: partData.meta?.genre || storyboardMeta?.genre || undefined,
+            };
+          }
         }
 
-        // Show the last generated part by default
-        const lastPartIndex = availablePartIndices[availablePartIndices.length - 1];
-        const activePart = partsMap[lastPartIndex];
+        const firstPartIdx = availablePartIndices[0];
+        const firstPart = loadedParts[firstPartIdx];
+        if (firstPart) {
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            scenes: firstPart.scenes,
+            voicePrompts: firstPart.voicePrompts,
+            characterIdSummary: firstPart.characterIdSummary || [],
+            genre: firstPart.genre,
+            activePartIndex: firstPartIdx,
+            parts: loadedParts,
+          }));
+          setStageResults(prev => ({ ...prev, 4: { scenes: firstPart.scenes, voicePrompts: firstPart.voicePrompts, characterIdSummary: firstPart.characterIdSummary, genre: firstPart.genre } }));
+          setOriginalStoryboard({ scenes: firstPart.scenes, voicePrompts: firstPart.voicePrompts, characterIdSummary: firstPart.characterIdSummary, genre: firstPart.genre });
+        }
+      } else if (storyboardMeta) {
+        const scenes = await getScenes(currentProjectId);
+        const voicePrompts = await getVoicePrompts(currentProjectId);
 
-        setStoryboardGenerator(prev => ({
-          ...prev,
-          scenes: activePart.scenes,
-          voicePrompts: activePart.voicePrompts,
-          characterIdSummary: activePart.characterIdSummary,
-          genre: activePart.genre,
-          activePartIndex: lastPartIndex,
-          parts: partsMap,
-        }));
+        // Check if there are existing results or an active job
+        if (scenes.length > 0) {
+          // Load clips for each scene
+          const scenesWithClips: Scene[] = await Promise.all(
+            scenes.map(async (scene) => {
+              const clips = await getClips(currentProjectId, scene.sceneIndex);
+              return {
+                sceneTitle: scene.sceneTitle,
+                clips: clips.map(clip => ({
+                  story: clip.story,
+                  imagePrompt: clip.imagePrompt,
+                  imagePromptEnd: clip.imagePromptEnd,
+                  videoPrompt: clip.videoPrompt,
+                  soraVideoPrompt: clip.soraVideoPrompt,
+                  veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
+                  backgroundPrompt: clip.backgroundPrompt,
+                  backgroundId: clip.backgroundId,
+                  characterInfo: clip.characterInfo,
+                  dialogue: clip.dialogue,
+                  dialogueEn: clip.dialogueEn,
+                  narration: clip.narration || "",
+                  narrationEn: clip.narrationEn || "",
+                  sfx: clip.sfx,
+                  sfxEn: clip.sfxEn,
+                  bgm: clip.bgm,
+                  bgmEn: clip.bgmEn,
+                  length: clip.length,
+                  accumulatedTime: clip.accumulatedTime,
+                  imageRef: clip.imageRef, // S3 URL for storyboard image
+                })),
+              };
+            })
+          );
 
-        setStageResults(prev => ({ ...prev, 4: buildStage4Result(partsMap, lastPartIndex) }));
-        setOriginalStoryboards(partsMap);
-
-      } else if (storyboardMeta?.jobId) {
-        // No parts yet but there's an active job - restore tracking state
-        storyboardJobIdRef.current = storyboardMeta.jobId;
-        setStoryboardJobId(storyboardMeta.jobId);
-
-        setStoryboardGenerator(prev => ({
-          ...prev,
-          isGenerating: true,
-          error: null,
-        }));
-
-        // Manually fetch job status to handle the race condition where
-        // the Firestore subscription fired before we restored the jobId
-        try {
-          const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${storyboardMeta.jobId}`);
-          const jobStatus = await response.json();
-
-          if (jobStatus.status === "completed" && jobStatus.scenes) {
-            // Job completed while we were away - update state with results
-            storyboardJobIdRef.current = null;
-            setStoryboardJobId(null);
-
-            const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
-              sceneTitle: scene.sceneTitle,
-              clips: scene.clips.map(clip => ({
-                story: clip.story,
-                imagePrompt: clip.imagePrompt,
-                imagePromptEnd: clip.imagePromptEnd,
-                videoPrompt: clip.videoPrompt,
-                soraVideoPrompt: clip.soraVideoPrompt,
-                veoVideoPrompt: clip.veoVideoPrompt || "",
-                pixAiPrompt: clip.pixAiPrompt || "",
-                backgroundPrompt: clip.backgroundPrompt,
-                backgroundId: clip.backgroundId,
-                dialogue: clip.dialogue,
-                dialogueEn: clip.dialogueEn,
-                narration: clip.narration || "",
-                narrationEn: clip.narrationEn || "",
-                sfx: clip.sfx,
-                sfxEn: clip.sfxEn,
-                bgm: clip.bgm,
-                bgmEn: clip.bgmEn,
-                length: clip.length,
-                accumulatedTime: clip.accumulatedTime,
-                trailerScriptKo: clip.trailerScriptKo || "",
-                trailerScriptEn: clip.trailerScriptEn || "",
-              })),
-            }));
-
-            const normalizedVoicePrompts: VoicePrompt[] = (jobStatus.voicePrompts || []).map((vp: { promptKo: string; promptEn: string }) => ({
+          const storyboardData = {
+            scenes: scenesWithClips,
+            voicePrompts: voicePrompts.map(vp => ({
               promptKo: vp.promptKo,
               promptEn: vp.promptEn,
-            }));
+            })),
+          };
 
-            const restoredCharacterIdSummary = (jobStatus.characterIdSummary || []).map((c: { characterId: string; description: string }) => ({
-              characterId: c.characterId,
-              description: c.description,
-            }));
-            const restoredGenre = jobStatus.genre || undefined;
-            const partIdx = storyboardPartIndexRef.current;
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            scenes: scenesWithClips,
+            voicePrompts: storyboardData.voicePrompts,
+            characterIdSummary: storyboardMeta.characterIdSummary || [],
+            genre: storyboardMeta.genre || undefined,
+          }));
 
-            const partData: StoryboardPartData = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: restoredCharacterIdSummary, genre: restoredGenre };
-            setOriginalStoryboards(prev => ({ ...prev, [partIdx]: partData }));
+          // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)
+          setStageResults(prev => ({ ...prev, 4: { ...storyboardData, characterIdSummary: storyboardMeta.characterIdSummary, genre: storyboardMeta.genre } }));
 
-            let nextParts: Record<number, StoryboardPartData> = {};
-            setStoryboardGenerator(prev => {
-              nextParts = { ...prev.parts, [partIdx]: partData };
-              return ({
-              isGenerating: false,
-              error: null,
-              scenes: normalizedScenes,
-              voicePrompts: normalizedVoicePrompts,
-              characterIdSummary: restoredCharacterIdSummary,
-              genre: restoredGenre,
-              activePartIndex: partIdx,
-              parts: nextParts,
-              });
-            });
-            setStageResults(prev => ({
-              ...prev,
-              4: buildStage4Result(nextParts, partIdx),
-            }));
-          } else if (jobStatus.status === "failed") {
+          // Store original for reset functionality
+          setOriginalStoryboard(storyboardData);
+        } else if (storyboardMeta.jobId) {
+          // No results yet but there's an active job - restore tracking state
+          storyboardJobIdRef.current = storyboardMeta.jobId;
+          setStoryboardJobId(storyboardMeta.jobId);
+
+          setStoryboardGenerator(prev => ({
+            ...prev,
+            isGenerating: true,
+            error: null,
+          }));
+
+          // Manually fetch job status to handle the race condition where
+          // the Firestore subscription fired before we restored the jobId
+          try {
+            const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${storyboardMeta.jobId}`);
+            const jobStatus = await response.json();
+
+            if (jobStatus.status === "completed" && jobStatus.scenes) {
+              // Job completed while we were away - update state with results
+              storyboardJobIdRef.current = null;
+              setStoryboardJobId(null);
+
+              // Normalize scenes to ensure optional fields have default values
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
+                sceneTitle: scene.sceneTitle,
+                clips: scene.clips.map(clip => ({
+                  story: clip.story,
+                  imagePrompt: clip.imagePrompt,
+                  imagePromptEnd: clip.imagePromptEnd,
+                  videoPrompt: clip.videoPrompt,
+                  soraVideoPrompt: clip.soraVideoPrompt,
+                  veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
+                  backgroundPrompt: clip.backgroundPrompt,
+                  backgroundId: clip.backgroundId,
+                  dialogue: clip.dialogue,
+                  dialogueEn: clip.dialogueEn,
+                  narration: clip.narration || "",
+                  narrationEn: clip.narrationEn || "",
+                  sfx: clip.sfx,
+                  sfxEn: clip.sfxEn,
+                  bgm: clip.bgm,
+                  bgmEn: clip.bgmEn,
+                  length: clip.length,
+                  accumulatedTime: clip.accumulatedTime,
+                  trailerScriptKo: clip.trailerScriptKo || "",
+                  trailerScriptEn: clip.trailerScriptEn || "",
+                })),
+              }));
+
+              const normalizedVoicePrompts: VoicePrompt[] = (jobStatus.voicePrompts || []).map((vp: { promptKo: string; promptEn: string }) => ({
+                promptKo: vp.promptKo,
+                promptEn: vp.promptEn,
+              }));
+
+              const restoredCharacterIdSummary = (jobStatus.characterIdSummary || []).map((c: { characterId: string; description: string }) => ({
+                characterId: c.characterId,
+                description: c.description,
+              }));
+              const restoredGenre = jobStatus.genre || undefined;
+
+              const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: restoredCharacterIdSummary, genre: restoredGenre };
+              setOriginalStoryboard(result);
+
+              const partIdx = storyboardPartIndexRef.current;
+              setStoryboardGenerator(prev => ({
+                isGenerating: false,
+                error: null,
+                scenes: normalizedScenes,
+                voicePrompts: normalizedVoicePrompts,
+                characterIdSummary: restoredCharacterIdSummary,
+                genre: restoredGenre,
+                activePartIndex: partIdx,
+                parts: { ...prev.parts, [partIdx]: { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: restoredCharacterIdSummary, genre: restoredGenre } },
+              }));
+              setStageResults(prev => ({ ...prev, 4: result }));
+            } else if (jobStatus.status === "failed") {
+              // Job failed while we were away
+              storyboardJobIdRef.current = null;
+              setStoryboardJobId(null);
+              setStoryboardGenerator(prev => ({
+                ...prev,
+                isGenerating: false,
+                error: jobStatus.error || "Storyboard generation failed",
+              }));
+            }
+            // If status is pending/generating, keep loading state - subscription will handle updates
+          } catch (statusErr) {
+            console.error("[MithrilContext] Error fetching storyboard job status:", statusErr);
+            // Job might not exist anymore - clear loading state
             storyboardJobIdRef.current = null;
             setStoryboardJobId(null);
             setStoryboardGenerator(prev => ({
               ...prev,
               isGenerating: false,
-              error: jobStatus.error || "Storyboard generation failed",
+              error: null,
             }));
           }
-          // If status is pending/generating, keep loading state - subscription will handle updates
-        } catch (statusErr) {
-          console.error("[MithrilContext] Error fetching storyboard job status:", statusErr);
-          storyboardJobIdRef.current = null;
-          setStoryboardJobId(null);
-          setStoryboardGenerator(prev => ({
-            ...prev,
-            isGenerating: false,
-            error: null,
-          }));
         }
       }
 
@@ -913,7 +939,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setIsLoading(false);
     }
-  }, [currentProjectId, normalizeStageForPipeline, buildStage4Result]);
+  }, [currentProjectId, normalizeStageForPipeline]);
 
   // Load data when projectId changes
   useEffect(() => {
@@ -977,13 +1003,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
 
-        if (update.status === "completed") {
-          if (!storySplitterFetchPendingRef.current.has(update.jobId)) {
-            storySplitterFetchPendingRef.current.add(update.jobId);
-            fetchStorySplitterJobStatus(update.jobId).finally(() => {
-              storySplitterFetchPendingRef.current.delete(update.jobId);
-            });
-          }
+        if (update.status === "completed" && update.parts) {
+          // Job completed - update state with results
+          storySplitterJobIdRef.current = null;
+          setStorySplitterJobId(null);
+          setStorySplitter({
+            isLoading: false,
+            error: null,
+            result: { parts: update.parts },
+          });
         } else if (update.status === "failed") {
           // Job failed
           storySplitterJobIdRef.current = null;
@@ -1005,7 +1033,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     return () => unsubscribe();
-  }, [currentProjectId, buildStage4Result]);
+  }, [currentProjectId]);
 
   // Storyboard job subscription
   useEffect(() => {
@@ -1067,16 +1095,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }));
         const normalizedGenre = update.genre || undefined;
 
-        const partIdx = storyboardPartIndexRef.current;
-        const partData: StoryboardPartData = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: normalizedCharacterIdSummary, genre: normalizedGenre };
+        const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: normalizedCharacterIdSummary, genre: normalizedGenre };
 
         // Store original for reset functionality
-        setOriginalStoryboards(prev => ({ ...prev, [partIdx]: partData }));
+        setOriginalStoryboard(result);
 
-        let nextParts: Record<number, StoryboardPartData> = {};
-        setStoryboardGenerator(prev => {
-          nextParts = { ...prev.parts, [partIdx]: partData };
-          return ({
+        const partIdx = storyboardPartIndexRef.current;
+        setStoryboardGenerator(prev => ({
           isGenerating: false,
           error: null,
           scenes: normalizedScenes,
@@ -1084,19 +1109,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           characterIdSummary: normalizedCharacterIdSummary,
           genre: normalizedGenre,
           activePartIndex: partIdx,
-          parts: nextParts,
-          });
-        });
-
-        setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, partIdx) }));
+          parts: { ...prev.parts, [partIdx]: { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: normalizedCharacterIdSummary, genre: normalizedGenre } },
+        }));
 
         // Save to Firestore only for NEW completions, not initial snapshot replays.
         // On page refresh, the initial snapshot replays already-completed jobs. If we
-        // re-save here, clearStoryboardPart() races against loadFromFirestore and
+        // re-save here, clearStoryboard() races against loadFromFirestore and
         // ImageGenerator's direct Firestore reads, causing them to find 0 scenes.
         if (!isInitialSnapshot) {
           (async () => {
             try {
+              // Save to per-part path (primary storage)
               await clearStoryboardPart(currentProjectId, partIdx);
               await savePartMeta(currentProjectId, partIdx, {
                 partIndex: partIdx,
@@ -1136,8 +1159,43 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   });
                 }
               }
+
+              // Also save to flat path (for backwards compat with ImageGenerator reads)
+              await clearStoryboard(currentProjectId);
+              await saveStoryboardMeta(currentProjectId, undefined, undefined, normalizedCharacterIdSummary, normalizedGenre);
+              await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
+              for (let sceneIndex = 0; sceneIndex < update.scenes!.length; sceneIndex++) {
+                const scene = update.scenes![sceneIndex];
+                await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
+                for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
+                  const clip = scene.clips[clipIndex];
+                  await saveClip(currentProjectId, sceneIndex, clipIndex, {
+                    story: clip.story || "",
+                    imagePrompt: clip.imagePrompt || "",
+                    imagePromptEnd: clip.imagePromptEnd || "",
+                    videoPrompt: clip.videoPrompt || "",
+                    soraVideoPrompt: clip.soraVideoPrompt || "",
+                    veoVideoPrompt: clip.veoVideoPrompt || "",
+                    pixAiPrompt: clip.pixAiPrompt || "",
+                    backgroundPrompt: clip.backgroundPrompt || "",
+                    backgroundId: clip.backgroundId || "",
+                    dialogue: clip.dialogue || "",
+                    dialogueEn: clip.dialogueEn || "",
+                    narration: clip.narration || "",
+                    narrationEn: clip.narrationEn || "",
+                    sfx: clip.sfx || "",
+                    sfxEn: clip.sfxEn || "",
+                    bgm: clip.bgm || "",
+                    bgmEn: clip.bgmEn || "",
+                    length: clip.length || "",
+                    accumulatedTime: clip.accumulatedTime || "",
+                    trailerScriptKo: clip.trailerScriptKo || "",
+                    trailerScriptEn: clip.trailerScriptEn || "",
+                  });
+                }
+              }
             } catch (saveErr) {
-              console.error("[MithrilContext:StoryboardSave] ERROR saving storyboard part:", saveErr);
+              console.error("[MithrilContext:StoryboardSave] ERROR saving storyboard:", saveErr);
             }
           })();
         }
@@ -1345,15 +1403,16 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    // Track which part we're generating
     storyboardPartIndexRef.current = partIndex;
-
     setStoryboardGenerator(prev => ({
       ...prev,
       isGenerating: true,
       error: null,
+      scenes: [],
+      voicePrompts: [],
+      characterIdSummary: [],
+      genre: undefined,
       activePartIndex: partIndex,
-      // Keep existing parts visible while generating
     }));
 
     try {
@@ -1363,8 +1422,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId: currentProjectId,
-          partIndex,
           sourceText: params.sourceText,
+          partIndex,
           // Conditions
           storyCondition: params.storyCondition,
           imageCondition: params.imageCondition,
@@ -1442,35 +1501,22 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Update Firestore with new imagePrompt and imagePromptEnd values
       if (currentProjectId) {
-        const activePartIndex = storyboardGenerator.activePartIndex;
         for (let sceneIndex = 0; sceneIndex < data.scenes.length; sceneIndex++) {
           const scene = data.scenes[sceneIndex];
           for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
             const clip = scene.clips[clipIndex];
-            await updatePartClipFieldFirestore(currentProjectId, activePartIndex, sceneIndex, clipIndex, 'imagePrompt', clip.imagePrompt || "");
+            await updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'imagePrompt', clip.imagePrompt || "");
             // Always write imagePromptEnd — empty string clears stale values from previous splits
-            await updatePartClipFieldFirestore(currentProjectId, activePartIndex, sceneIndex, clipIndex, 'imagePromptEnd', clip.imagePromptEnd || "");
+            await updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'imagePromptEnd', clip.imagePromptEnd || "");
           }
         }
       }
 
-      let nextParts: Record<number, StoryboardPartData> = {};
-      setStoryboardGenerator(prev => {
-        const partIdx = prev.activePartIndex;
-        const prevPart = prev.parts[partIdx] || { scenes: [], voicePrompts: [], characterIdSummary: [], genre: undefined };
-        const updatedPart: StoryboardPartData = {
-          ...prevPart,
-          scenes: data.scenes,
-        };
-        nextParts = { ...prev.parts, [partIdx]: updatedPart };
-        return {
-          ...prev,
-          isGenerating: false,
-          scenes: data.scenes,
-          parts: nextParts,
-        };
-      });
-      setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, storyboardGenerator.activePartIndex) }));
+      setStoryboardGenerator(prev => ({
+        ...prev,
+        isGenerating: false,
+        scenes: data.scenes,
+      }));
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
@@ -1480,16 +1526,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         error: errorMessage,
       }));
     }
-  }, [storyboardGenerator.scenes, storyboardGenerator.activePartIndex, currentProjectId, customApiKey, buildStage4Result]);
+  }, [storyboardGenerator.scenes, currentProjectId]);
 
   // Import storyboard from JSON file
-  const importStoryboard = useCallback(async (
-    scenes: Scene[],
-    voicePrompts: VoicePrompt[],
-    characterIdSummary?: CharacterIdSummary[],
-    genre?: string,
-    partIndex?: number
-  ) => {
+  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => {
     if (!scenes || scenes.length === 0) {
       setStoryboardGenerator(prev => ({
         ...prev,
@@ -1498,34 +1538,28 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    const targetPartIndex = partIndex ?? storyboardGenerator.activePartIndex;
-
-    // Clear existing part first
+    // Clear existing storyboard first
     if (currentProjectId) {
       try {
-        await clearStoryboardPart(currentProjectId, targetPartIndex);
+        await clearStoryboard(currentProjectId);
       } catch (error) {
-        console.error("Error clearing existing storyboard part:", error);
+        console.error("Error clearing existing storyboard:", error);
       }
     }
 
     // Save imported data to Firestore
     if (currentProjectId) {
       try {
-        await savePartMeta(currentProjectId, targetPartIndex, {
-          partIndex: targetPartIndex,
-          characterIdSummary,
-          genre,
-        });
-        await savePartVoicePrompts(currentProjectId, targetPartIndex, voicePrompts || []);
+        await saveStoryboardMeta(currentProjectId, undefined, undefined, characterIdSummary, genre);
+        await saveVoicePrompts(currentProjectId, voicePrompts || []);
 
         for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex++) {
           const scene = scenes[sceneIndex];
-          await savePartScene(currentProjectId, targetPartIndex, sceneIndex, { sceneTitle: scene.sceneTitle });
+          await saveScene(currentProjectId, sceneIndex, { sceneTitle: scene.sceneTitle });
 
           for (let clipIndex = 0; clipIndex < scene.clips.length; clipIndex++) {
             const clip = scene.clips[clipIndex];
-            await savePartClip(currentProjectId, targetPartIndex, sceneIndex, clipIndex, {
+            await saveClip(currentProjectId, sceneIndex, clipIndex, {
               story: clip.story || "",
               imagePrompt: clip.imagePrompt || "",
               imagePromptEnd: clip.imagePromptEnd || "",
@@ -1555,84 +1589,28 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     // Update state
-    const importedPartData: StoryboardPartData = {
+    setStoryboardGenerator(prev => ({
+      ...prev,
+      isGenerating: false,
+      error: null,
       scenes,
       voicePrompts,
       characterIdSummary: characterIdSummary || [],
       genre,
-    };
-    let nextParts: Record<number, StoryboardPartData> = {};
-    setStoryboardGenerator(prev => {
-      nextParts = { ...prev.parts, [targetPartIndex]: importedPartData };
-      return {
-        isGenerating: false,
-        error: null,
-        scenes,
-        voicePrompts,
-        characterIdSummary: characterIdSummary || [],
-        genre,
-        activePartIndex: targetPartIndex,
-        parts: nextParts,
-      };
-    });
+      parts: { ...prev.parts, [prev.activePartIndex]: { scenes, voicePrompts, characterIdSummary, genre } },
+    }));
 
     // Store as original for reset functionality
-    setOriginalStoryboards(prev => ({ ...prev, [targetPartIndex]: importedPartData }));
-    setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, targetPartIndex) }));
-  }, [currentProjectId, storyboardGenerator.activePartIndex, buildStage4Result]);
+    setOriginalStoryboard({ scenes, voicePrompts, characterIdSummary, genre });
+  }, [currentProjectId]);
 
-  const clearStoryboardGeneration = useCallback(async (partIndex?: number) => {
+  const clearStoryboardGeneration = useCallback(async () => {
 
     // Clear job tracking
     storyboardJobIdRef.current = null;
     setStoryboardJobId(null);
 
-    const targetPartIndex = partIndex;
-
-    if (currentProjectId) {
-      try {
-        if (targetPartIndex !== undefined) {
-          await clearStoryboardPart(currentProjectId, targetPartIndex);
-        } else {
-          const partIndices = Object.keys(storyboardGenerator.parts).map(Number);
-          for (const idx of partIndices) {
-            await clearStoryboardPart(currentProjectId, idx);
-          }
-        }
-      } catch (error) {
-        console.error("Error clearing storyboard from Firestore:", error);
-      }
-    }
-
-    if (targetPartIndex !== undefined) {
-      let nextParts: Record<number, StoryboardPartData> = {};
-      let nextActivePartIndex = 0;
-      setStoryboardGenerator(prev => {
-        const filteredEntries = Object.entries(prev.parts).filter(([idx]) => Number(idx) !== targetPartIndex);
-        nextParts = Object.fromEntries(filteredEntries) as Record<number, StoryboardPartData>;
-        const remaining = Object.keys(nextParts).map(Number).sort((a, b) => a - b);
-        nextActivePartIndex = remaining.length > 0 ? remaining[remaining.length - 1] : 0;
-        const activePart = nextParts[nextActivePartIndex] || { scenes: [], voicePrompts: [], characterIdSummary: [], genre: undefined };
-        return {
-          isGenerating: false,
-          error: null,
-          scenes: activePart.scenes,
-          voicePrompts: activePart.voicePrompts,
-          characterIdSummary: activePart.characterIdSummary,
-          genre: activePart.genre,
-          activePartIndex: nextActivePartIndex,
-          parts: nextParts,
-        };
-      });
-      setOriginalStoryboards(prev => {
-        const next = { ...prev };
-        delete next[targetPartIndex];
-        return next;
-      });
-      setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, nextActivePartIndex) }));
-      return;
-    }
-
+    storyboardPartIndexRef.current = 0;
     setStoryboardGenerator({
       isGenerating: false,
       error: null,
@@ -1643,9 +1621,33 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       activePartIndex: 0,
       parts: {},
     });
-    setOriginalStoryboards({});
-    clearStageResult(4);
-  }, [currentProjectId, clearStageResult, storyboardGenerator.parts, buildStage4Result]);
+    setOriginalStoryboard(null);
+
+    if (currentProjectId) {
+      try {
+        await clearStoryboard(currentProjectId);
+      } catch (error) {
+        console.error("Error clearing storyboard from Firestore:", error);
+      }
+    }
+
+    clearStageResult(5);
+  }, [currentProjectId, clearStageResult, storyboardGenerator.scenes.length]);
+
+  const setActiveStoryboardPartIndex = useCallback((partIndex: number) => {
+    setStoryboardGenerator(prev => {
+      const part = prev.parts[partIndex];
+      if (!part) return { ...prev, activePartIndex: partIndex };
+      return {
+        ...prev,
+        activePartIndex: partIndex,
+        scenes: part.scenes,
+        voicePrompts: part.voicePrompts,
+        characterIdSummary: part.characterIdSummary,
+        genre: part.genre,
+      };
+    });
+  }, []);
 
   // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((
@@ -1654,10 +1656,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     field: EditableClipField,
     value: string
   ) => {
-    let nextParts: Record<number, StoryboardPartData> = {};
-    let activePartIndex = 0;
     setStoryboardGenerator(prev => {
-      activePartIndex = prev.activePartIndex;
       const newScenes = [...prev.scenes];
       const scene = { ...newScenes[sceneIndex] };
       const clips = [...scene.clips];
@@ -1677,23 +1676,24 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scene.clips = clips;
       newScenes[sceneIndex] = scene;
 
-      // Persist to Firestore
+      // Persist to Firestore (per-part path)
+      const activePartIndex = prev.activePartIndex;
       if (currentProjectId) {
         updatePartClipFieldFirestore(currentProjectId, activePartIndex, sceneIndex, clipIndex, field, value)
           .catch(error => console.error("Error updating clip in Firestore:", error));
-
-        // Also update soraVideoPrompt
         updatePartClipFieldFirestore(currentProjectId, activePartIndex, sceneIndex, clipIndex, 'soraVideoPrompt', clip.soraVideoPrompt)
           .catch(error => console.error("Error updating soraVideoPrompt in Firestore:", error));
+        // Also update flat path for backwards compat
+        updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, field, value)
+          .catch(() => {/* flat path may not exist for newer projects */});
+        updateClipFieldFirestore(currentProjectId, sceneIndex, clipIndex, 'soraVideoPrompt', clip.soraVideoPrompt)
+          .catch(() => {/* flat path may not exist for newer projects */});
       }
-
-      const prevPart = prev.parts[activePartIndex] || { scenes: [], voicePrompts: [], characterIdSummary: [], genre: undefined };
-      const updatedPart: StoryboardPartData = { ...prevPart, scenes: newScenes };
-      nextParts = { ...prev.parts, [activePartIndex]: updatedPart };
+      const prevPart = prev.parts[activePartIndex] || { scenes: [], voicePrompts: prev.voicePrompts };
+      const nextParts = { ...prev.parts, [activePartIndex]: { ...prevPart, scenes: newScenes } };
       return { ...prev, scenes: newScenes, parts: nextParts };
     });
-    setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, activePartIndex) }));
-  }, [currentProjectId, buildStage4Result]);
+  }, [currentProjectId]);
 
   // Update a specific clip's imageRef (S3 URL) and sync to stageResults
   const updateClipImageRef = useCallback((
@@ -1701,10 +1701,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     clipIndex: number,
     imageRef: string
   ) => {
-    let nextParts: Record<number, StoryboardPartData> = {};
-    let activePartIndex = 0;
     setStoryboardGenerator(prev => {
-      activePartIndex = prev.activePartIndex;
       const newScenes = [...prev.scenes];
       const scene = { ...newScenes[sceneIndex] };
       const clips = [...scene.clips];
@@ -1712,18 +1709,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       scene.clips = clips;
       newScenes[sceneIndex] = scene;
 
-      if (currentProjectId) {
-        updatePartClipImageFirestore(currentProjectId, activePartIndex, sceneIndex, clipIndex, imageRef)
-          .catch(error => console.error("Error updating clip imageRef in Firestore:", error));
-      }
+      // Also update stageResults so Stage 7 can access the images immediately
+      setStageResults(prevResults => ({
+        ...prevResults,
+        4: { scenes: newScenes, voicePrompts: prev.voicePrompts }
+      }));
 
-      const prevPart = prev.parts[activePartIndex] || { scenes: [], voicePrompts: [], characterIdSummary: [], genre: undefined };
-      const updatedPart: StoryboardPartData = { ...prevPart, scenes: newScenes };
-      nextParts = { ...prev.parts, [activePartIndex]: updatedPart };
+      const activePartIndex = prev.activePartIndex;
+      const prevPart = prev.parts[activePartIndex] || { scenes: [], voicePrompts: prev.voicePrompts };
+      const nextParts = { ...prev.parts, [activePartIndex]: { ...prevPart, scenes: newScenes } };
       return { ...prev, scenes: newScenes, parts: nextParts };
     });
-    setStageResults(prev => ({ ...prev, 4: buildStage4Result(nextParts, activePartIndex) }));
-  }, [currentProjectId, buildStage4Result]);
+  }, []);
 
   // Get the original AI-generated prompt value for reset functionality
   const getOriginalClipPrompt = useCallback((
@@ -1731,46 +1728,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     clipIndex: number,
     field: EditableClipField
   ): string | null => {
-    const originalStoryboard = originalStoryboards[storyboardGenerator.activePartIndex];
     if (!originalStoryboard) return null;
 
     const scene = originalStoryboard.scenes?.[sceneIndex];
     const clip = scene?.clips?.[clipIndex];
     return clip?.[field] ?? null;
-  }, [originalStoryboards, storyboardGenerator.activePartIndex]);
-
-  const setActiveStoryboardPartIndex = useCallback((partIndex: number) => {
-    console.log("[Storyboard] setActiveStoryboardPartIndex", partIndex, storyboardGenerator.parts[partIndex]);
-    setStoryboardGenerator(prev => {
-      const part = prev.parts[partIndex];
-      if (!part) return prev;
-      return {
-        ...prev,
-        activePartIndex: partIndex,
-        scenes: part.scenes,
-        voicePrompts: part.voicePrompts,
-        characterIdSummary: part.characterIdSummary,
-        genre: part.genre,
-      };
-    });
-  }, []);
-
-  const getScenesForPart = useCallback((partIndex: number): Scene[] => {
-    return storyboardGenerator.parts[partIndex]?.scenes || [];
-  }, [storyboardGenerator.parts]);
-
-  useEffect(() => {
-    setStageResults(prev => ({
-      ...prev,
-      4: buildStage4Result(storyboardGenerator.parts, storyboardGenerator.activePartIndex),
-    }));
-  }, [buildStage4Result, setStageResults, storyboardGenerator.activePartIndex, storyboardGenerator.parts]);
-
-  const getGeneratedPartIndices = useCallback((): number[] => {
-    return Object.keys(storyboardGenerator.parts)
-      .map(Number)
-      .sort((a, b) => a - b);
-  }, [storyboardGenerator.parts]);
+  }, [originalStoryboard]);
 
   // BgSheet Generator methods
   const startBgSheetAnalysis = useCallback(async (text: string, styleKeyword: string, backgroundBasePrompt: string): Promise<BgSheetBackground[]> => {
@@ -2165,8 +2128,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         updateClipImageRef,
         getOriginalClipPrompt,
         setActiveStoryboardPartIndex,
-        getScenesForPart,
-        getGeneratedPartIndices,
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,

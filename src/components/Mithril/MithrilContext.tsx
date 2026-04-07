@@ -240,12 +240,14 @@ interface MithrilContextProps {
   storyboardGenerator: StoryboardGeneratorState;
   startStoryboardGeneration: (params: GenerateStoryboardParams, partIndex?: number) => Promise<void>;
   splitStartEndFrames: () => Promise<void>;
-  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => Promise<void>;
-  clearStoryboardGeneration: () => void;
+  importStoryboard: (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string, partIndex?: number) => Promise<void>;
+  clearStoryboardGeneration: (partIndex?: number) => Promise<void>;
   updateClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   updateClipImageRef: (sceneIndex: number, clipIndex: number, imageRef: string) => void;
   getOriginalClipPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
   setActiveStoryboardPartIndex: (partIndex: number) => void;
+  getScenesForPart: (partIndex: number) => Scene[];
+  getGeneratedPartIndices: () => number[];
 
   // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -1544,7 +1546,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [storyboardGenerator.scenes, currentProjectId]);
 
   // Import storyboard from JSON file
-  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string) => {
+  const importStoryboard = useCallback(async (scenes: Scene[], voicePrompts: VoicePrompt[], characterIdSummary?: CharacterIdSummary[], genre?: string, partIndex?: number) => {
     if (!scenes || scenes.length === 0) {
       setStoryboardGenerator(prev => ({
         ...prev,
@@ -1604,24 +1606,55 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     // Update state
-    setStoryboardGenerator(prev => ({
-      ...prev,
-      isGenerating: false,
-      error: null,
-      scenes,
-      voicePrompts,
-      characterIdSummary: characterIdSummary || [],
-      genre,
-      parts: { ...prev.parts, [prev.activePartIndex]: { scenes, voicePrompts, characterIdSummary, genre } },
-    }));
+    setStoryboardGenerator(prev => {
+      const targetPartIndex = partIndex ?? prev.activePartIndex;
+      return {
+        ...prev,
+        isGenerating: false,
+        error: null,
+        scenes,
+        voicePrompts,
+        characterIdSummary: characterIdSummary || [],
+        genre,
+        activePartIndex: targetPartIndex,
+        parts: { ...prev.parts, [targetPartIndex]: { scenes, voicePrompts, characterIdSummary, genre } },
+      };
+    });
 
     // Store as original for reset functionality
     setOriginalStoryboard({ scenes, voicePrompts, characterIdSummary, genre });
   }, [currentProjectId]);
 
-  const clearStoryboardGeneration = useCallback(async () => {
+  const clearStoryboardGeneration = useCallback(async (partIndex?: number) => {
 
-    // Clear job tracking
+    if (partIndex !== undefined) {
+      // Clear a specific part only
+      setStoryboardGenerator(prev => {
+        const nextParts = { ...prev.parts };
+        delete nextParts[partIndex];
+        const nextActivePartIndex = prev.activePartIndex === partIndex ? 0 : prev.activePartIndex;
+        const nextPart = nextParts[nextActivePartIndex];
+        return {
+          ...prev,
+          scenes: nextPart?.scenes || [],
+          voicePrompts: nextPart?.voicePrompts || [],
+          characterIdSummary: nextPart?.characterIdSummary || [],
+          genre: nextPart?.genre,
+          activePartIndex: nextActivePartIndex,
+          parts: nextParts,
+        };
+      });
+      if (currentProjectId) {
+        try {
+          await clearStoryboardPart(currentProjectId, partIndex);
+        } catch (error) {
+          console.error("Error clearing storyboard part from Firestore:", error);
+        }
+      }
+      return;
+    }
+
+    // Clear all parts
     storyboardJobIdRef.current = null;
     setStoryboardJobId(null);
 
@@ -1663,6 +1696,16 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
     });
   }, []);
+
+  const getScenesForPart = useCallback((partIndex: number): Scene[] => {
+    return storyboardGenerator.parts[partIndex]?.scenes || [];
+  }, [storyboardGenerator.parts]);
+
+  const getGeneratedPartIndices = useCallback((): number[] => {
+    return Object.keys(storyboardGenerator.parts)
+      .map(Number)
+      .sort((a, b) => a - b);
+  }, [storyboardGenerator.parts]);
 
   // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((
@@ -2197,6 +2240,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         updateClipImageRef,
         getOriginalClipPrompt,
         setActiveStoryboardPartIndex,
+        getScenesForPart,
+        getGeneratedPartIndices,
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,

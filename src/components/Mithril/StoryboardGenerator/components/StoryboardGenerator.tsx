@@ -100,6 +100,7 @@ export default function StoryboardGenerator() {
     splitStartEndFrames,
     importStoryboard,
     clearStoryboardGeneration,
+    setActiveStoryboardPartIndex,
     isStageSkipped,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
@@ -877,12 +878,8 @@ export default function StoryboardGenerator() {
               <button
                 key={index}
                 onClick={() => {
-                  console.log(
-                    "[StoryboardGenerator] part tab click",
-                    index,
-                    storyboardGenerator.parts[index]
-                  );
                   setSelectedPartIndex(index);
+                  setActiveStoryboardPartIndex(index);
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedPartIndex === index

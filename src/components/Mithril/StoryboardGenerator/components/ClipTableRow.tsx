@@ -14,8 +14,8 @@ interface ClipTableRowProps {
   isNewBackground: boolean;
   clipHeadersLength: number;
   showTrailerColumns?: boolean;
-  onUpdatePrompt: (field: EditableClipField, value: string) => void;
-  getOriginalPrompt: (field: EditableClipField) => string | null;
+  onUpdatePrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
+  getOriginalPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 }
 
 // Editable cell component for prompts
@@ -144,7 +144,7 @@ function EditablePromptCell({
   );
 }
 
-export default function ClipTableRow({
+const ClipTableRow = React.memo(function ClipTableRow({
   row,
   sceneIndex,
   clipIndex,
@@ -188,8 +188,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
             value={row.imagePrompt}
-            originalValue={getOriginalPrompt('imagePrompt')}
-            onSave={(newValue) => onUpdatePrompt('imagePrompt', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePrompt', newValue)}
             placeholderKey="storyboard_edit_image_prompt_placeholder"
           />
         </td>
@@ -198,8 +198,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
             value={row.imagePromptEnd || ""}
-            originalValue={getOriginalPrompt('imagePromptEnd')}
-            onSave={(newValue) => onUpdatePrompt('imagePromptEnd', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptEnd')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptEnd', newValue)}
             placeholderKey="storyboard_edit_image_prompt_end_placeholder"
           />
         </td>
@@ -208,8 +208,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
             value={row.videoPrompt}
-            originalValue={getOriginalPrompt('videoPrompt')}
-            onSave={(newValue) => onUpdatePrompt('videoPrompt', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'videoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'videoPrompt', newValue)}
             placeholderKey="storyboard_edit_video_prompt_placeholder"
           />
         </td>
@@ -230,8 +230,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell
             value={row.dialogue}
-            originalValue={getOriginalPrompt('dialogue')}
-            onSave={(newValue) => onUpdatePrompt('dialogue', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'dialogue')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'dialogue', newValue)}
             placeholderKey="storyboard_edit_dialogue_placeholder"
           />
         </td>
@@ -240,8 +240,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell
             value={row.dialogueEn}
-            originalValue={getOriginalPrompt('dialogueEn')}
-            onSave={(newValue) => onUpdatePrompt('dialogueEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'dialogueEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'dialogueEn', newValue)}
             placeholderKey="storyboard_edit_dialogue_en_placeholder"
           />
         </td>
@@ -260,8 +260,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.sfx}
-            originalValue={getOriginalPrompt('sfx')}
-            onSave={(newValue) => onUpdatePrompt('sfx', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'sfx')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'sfx', newValue)}
             placeholderKey="storyboard_edit_sfx_placeholder"
           />
         </td>
@@ -270,8 +270,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.sfxEn}
-            originalValue={getOriginalPrompt('sfxEn')}
-            onSave={(newValue) => onUpdatePrompt('sfxEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'sfxEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'sfxEn', newValue)}
             placeholderKey="storyboard_edit_sfx_en_placeholder"
           />
         </td>
@@ -280,8 +280,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.bgm}
-            originalValue={getOriginalPrompt('bgm')}
-            onSave={(newValue) => onUpdatePrompt('bgm', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'bgm')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'bgm', newValue)}
             placeholderKey="storyboard_edit_bgm_placeholder"
           />
         </td>
@@ -290,8 +290,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.bgmEn}
-            originalValue={getOriginalPrompt('bgmEn')}
-            onSave={(newValue) => onUpdatePrompt('bgmEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'bgmEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'bgmEn', newValue)}
             placeholderKey="storyboard_edit_bgm_en_placeholder"
           />
         </td>
@@ -310,4 +310,6 @@ export default function ClipTableRow({
       </tr>
     </React.Fragment>
   );
-}
+});
+
+export default ClipTableRow;

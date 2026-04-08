@@ -1479,7 +1479,7 @@ export default function PropDesigner() {
       {!hasImportedScenes && generatedPartIndices.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-300">Storyboard Parts</p>
-          <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap items-center">
+          <div className="p-1 flex gap-1 flex-wrap items-center">
             {generatedPartIndices.map((partIdx) => (
               <button
                 key={partIdx}
@@ -1493,16 +1493,6 @@ export default function PropDesigner() {
                 Part {partIdx + 1}
               </button>
             ))}
-            <button
-              onClick={() => setScanAllParts((prev) => !prev)}
-              className={`ml-auto px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                scanAllParts
-                  ? "bg-teal-600 text-white hover:bg-teal-500"
-                  : "bg-gray-700 text-gray-200 hover:bg-gray-600"
-              }`}
-            >
-              {scanAllParts ? "Scanning All Parts" : "Scan All Parts"}
-            </button>
           </div>
         </div>
       )}

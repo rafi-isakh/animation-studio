@@ -165,8 +165,8 @@ export default function StoryboardTable({
                       isNewBackground={isNewBackground}
                       clipHeadersLength={clipHeaders.length}
                       showTrailerColumns={showTrailerColumns}
-                      onUpdatePrompt={(field, value) => updateClipPrompt(sceneIndex, clipIndex, field, value)}
-                      getOriginalPrompt={(field) => getOriginalClipPrompt(sceneIndex, clipIndex, field)}
+                      onUpdatePrompt={updateClipPrompt}
+                      getOriginalPrompt={getOriginalClipPrompt}
                     />
                   );
                 })}

@@ -128,6 +128,9 @@ export async function saveBackgroundWithId(
   if (input.plannedPrompts !== undefined) {
     docData.plannedPrompts = input.plannedPrompts;
   }
+  if (input.partIndex !== undefined) {
+    docData.partIndex = input.partIndex;
+  }
 
   await setDoc(docRef, docData);
 }

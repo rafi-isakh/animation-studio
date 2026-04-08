@@ -812,7 +812,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               const result = { scenes: normalizedScenes, voicePrompts: normalizedVoicePrompts, characterIdSummary: restoredCharacterIdSummary, genre: restoredGenre };
               setOriginalStoryboard(result);
 
-              const partIdx = storyboardPartIndexRef.current;
+              // Use part_index from job status when available; fall back to ref
+              const partIdx = (typeof jobStatus.part_index === 'number' ? jobStatus.part_index : null) ?? storyboardPartIndexRef.current;
               setStoryboardGenerator(prev => ({
                 isGenerating: false,
                 error: null,
@@ -1117,7 +1118,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Store original for reset functionality
         setOriginalStoryboard(result);
 
-        const partIdx = storyboardPartIndexRef.current;
+        // Prefer part_index from the job document; fall back to the ref (set when generation starts)
+        const partIdx = update.partIndex ?? storyboardPartIndexRef.current;
         setStoryboardGenerator(prev => ({
           isGenerating: false,
           error: null,
@@ -1685,14 +1687,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   const setActiveStoryboardPartIndex = useCallback((partIndex: number) => {
     setStoryboardGenerator(prev => {
       const part = prev.parts[partIndex];
-      if (!part) return { ...prev, activePartIndex: partIndex };
       return {
         ...prev,
         activePartIndex: partIndex,
-        scenes: part.scenes,
-        voicePrompts: part.voicePrompts,
-        characterIdSummary: part.characterIdSummary,
-        genre: part.genre,
+        scenes: part?.scenes ?? [],
+        voicePrompts: part?.voicePrompts ?? [],
+        characterIdSummary: part?.characterIdSummary ?? [],
+        genre: part?.genre,
       };
     });
   }, []);

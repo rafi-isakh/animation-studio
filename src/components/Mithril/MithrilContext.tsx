@@ -487,6 +487,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // the Firestore subscription fired before we restored the jobId
         try {
           const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${storySplitsData.jobId}`);
+
+          if (!response.ok) {
+            // Job no longer exists in the backend (404, etc.) - clear loading state
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({ ...prev, isLoading: false, error: null }));
+          } else {
           const jobStatus = await response.json();
 
           if (jobStatus.status === "completed" && jobStatus.parts) {
@@ -506,10 +513,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             setStorySplitter(prev => ({
               ...prev,
               isLoading: false,
-              error: jobStatus.error || "Story splitting failed",
+              error: (typeof jobStatus.error === 'object' ? jobStatus.error?.message : jobStatus.error) || "Story splitting failed",
+            }));
+          } else if (jobStatus.status === "cancelled" || !["pending", "submitted", "polling", "preparing", "generating", "uploading"].includes(jobStatus.status)) {
+            // Job is in a terminal non-recoverable state or unknown status - clear loading
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({
+              ...prev,
+              isLoading: false,
+              error: null,
             }));
           }
           // If status is pending/generating, keep loading state - subscription will handle updates
+          }
         } catch (statusErr) {
           console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
           // Job might not exist anymore - clear loading state
@@ -914,14 +931,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
 
-        if (update.status === "completed" && update.parts) {
-          // Job completed - update state with results
+        if (update.status === "completed") {
+          // Job completed - read results from storySplits document (not job_queue, avoids 1MB limit)
           storySplitterJobIdRef.current = null;
           setStorySplitterJobId(null);
-          setStorySplitter({
-            isLoading: false,
-            error: null,
-            result: { parts: update.parts },
+          getStorySplits(job.project_id).then((storySplitsData) => {
+            const parts = storySplitsData?.parts ?? [];
+            const result = { parts };
+            setStorySplitter({ isLoading: false, error: null, result });
+            setStageResults(prev => ({ ...prev, 2: result }));
+          }).catch(() => {
+            setStorySplitter(prev => ({ ...prev, isLoading: false }));
           });
         } else if (update.status === "failed") {
           // Job failed

@@ -132,7 +132,7 @@ async def process_glossary_analysis(
             await get_credits_service().record_credit(
                 user_id=job.user_id, project_id=job.project_id,
                 job_id=job.id, job_type=job.type.value,
-                provider_id="gemini", cost_usd=_cost,
+                provider_id="gemini_text", cost_usd=_cost,
             )
         except Exception:
             logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
@@ -480,7 +480,7 @@ async def process_batch_conversion(
                 await get_credits_service().record_credit(
                     user_id=job.user_id, project_id=job.project_id,
                     job_id=job.id, job_type=job.type.value,
-                    provider_id="gemini", cost_usd=_cost,
+                    provider_id="gemini_text", cost_usd=_cost,
                 )
             except Exception:
                 logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)

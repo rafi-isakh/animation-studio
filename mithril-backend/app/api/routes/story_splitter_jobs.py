@@ -16,8 +16,7 @@ from app.models.job import (
     StorySplitterJobStatusResponse,
     StorySplitterPart,
 )
-from app.services.firestore import get_job_queue_service
-from app.services.s3 import download_json_object
+from app.services.firestore import get_job_queue_service, get_story_splits_service
 from app.workers.tasks import process_story_splitter_job
 
 logger = logging.getLogger(__name__)
@@ -124,8 +123,12 @@ async def get_story_splitter_job_status(
             retryable=job.error_retryable or False,
         )
 
-    # Convert split_result to StorySplitterPart list
-    parts = await _load_story_split_parts(job)
+    # Read parts from storySplits document (not job_queue, to avoid 1MB limit)
+    parts = None
+    if job.status == JobStatus.COMPLETED:
+        story_splits = await get_story_splits_service().get_story_splits(job.project_id)
+        if story_splits and story_splits.get("parts"):
+            parts = [StorySplitterPart(**part) for part in story_splits["parts"]]
 
     return StorySplitterJobStatusResponse(
         job_id=job.id,

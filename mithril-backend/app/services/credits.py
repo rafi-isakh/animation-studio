@@ -422,6 +422,7 @@ class CreditsService:
         stage_agg: dict[str, dict] = {}
         provider_agg: dict[str, dict] = {}
         project_agg: dict[str, dict] = {}
+        stage_provider_set: dict[str, set[str]] = {}
 
         for doc in docs:
             data = doc.to_dict() or {}
@@ -447,11 +448,13 @@ class CreditsService:
             project_agg[pid]["total_usd"] += cost
             project_agg[pid]["call_count"] += 1
 
+            stage_provider_set.setdefault(stage, set()).add(provider)
+
         result = {
             "total_used_usd": round(total_usd, 6),
             "transaction_count": transaction_count,
             "stages": [
-                {**v, "total_usd": round(v["total_usd"], 6)}
+                {**v, "total_usd": round(v["total_usd"], 6), "providers": sorted(stage_provider_set.get(v["job_type"], set()))}
                 for v in sorted(stage_agg.values(), key=lambda x: x["total_usd"], reverse=True)
             ],
             "providers": [

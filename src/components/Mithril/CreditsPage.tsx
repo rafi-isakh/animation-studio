@@ -20,6 +20,7 @@ interface StageEntry {
   job_type: string;
   total_usd: number;
   call_count: number;
+  providers: string[];
 }
 
 interface ProviderEntry {
@@ -38,7 +39,8 @@ interface ProjectEntry {
 const PROVIDER_META: Record<string, { label: string; abbr: string; color: string }> = {
   veo3:              { label: "Veo 3",    abbr: "V3", color: "#DB2777" },
   sora:              { label: "Sora",     abbr: "So", color: "#3B82F6" },
-  gemini:            { label: "Gemini",   abbr: "Ge", color: "#8B5CF6" },
+  gemini:            { label: "Gemini", abbr: "Gi", color: "#8B5CF6" },
+  gemini_text:       { label: "Gemini Text",  abbr: "Gt", color: "#6D28D9" },
   grok:              { label: "Grok",     abbr: "Gr", color: "#F59E0B" },
   grok_i2v:          { label: "Grok I2V", abbr: "Gk", color: "#F97316" },
   grok_imagine_i2v:  { label: "Grok Img", abbr: "Gi", color: "#EF4444" },
@@ -49,11 +51,41 @@ const PROVIDER_META: Record<string, { label: string; abbr: string; color: string
   modelslab:         { label: "Flux Klein", abbr: "FK", color: "#06B6D4" },
 };
 
-const STAGE_COLORS = [
-  "#DB2777", "#3B82F6", "#8B5CF6", "#F59E0B",
-  "#10B981", "#EC4899", "#F97316", "#14B8A6",
-  "#EF4444", "#A78BFA", "#6366F1", "#84CC16",
-];
+
+// Canonical pipeline order for job_type values.
+// T2V stages first (1–7), then I2V-only stages (8–11), shared video last (12).
+const STAGE_ORDER: Record<string, number> = {
+  id_converter_glossary: 1,
+  id_converter_batch:    2,
+  story_splitter:        3,
+  storyboard:            4,
+  prop_design_sheet:     5,
+  background:            6,
+  image:                 7,
+  panel_splitter:        8,
+  panel:                 9,
+  i2v_storyboard:       10,
+  storyboard_editor:    11,
+  modelslab_style_converter: 12,
+  video:                13
+};
+
+// Human-readable labels matching the stage names in projectTypes.ts
+const STAGE_LABELS: Record<string, string> = {
+  id_converter_glossary: "ID Converter (Glossary)",
+  id_converter_batch:    "ID Converter (Batch)",
+  story_splitter:        "Story Splitter",
+  storyboard:            "Storyboard Generator",
+  prop_design_sheet:     "Prop Designer",
+  background:            "BG Sheet Generator",
+  image:                 "Image Generator",
+  panel_splitter:        "Image Splitter",
+  panel:                 "Panel Editor",
+  i2v_storyboard:       "Image to Script",
+  storyboard_editor:    "Storyboard Editor",
+  modelslab_style_converter: "Style Converter",
+  video:                 "Video Generator",
+};
 
 function providerMeta(id: string) {
   return PROVIDER_META[id] ?? {
@@ -413,17 +445,31 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
             <EmptyState label="No stage data yet" />
           ) : (
             <div className="flex flex-col">
-              {stages.map((s, i) => (
+              {[...stages]
+                .sort((a, b) => (STAGE_ORDER[a.job_type] ?? 99) - (STAGE_ORDER[b.job_type] ?? 99))
+                .map((s, i, arr) => (
                 <div
                   key={s.job_type}
-                  className={`flex items-center gap-4 px-6 py-3.5 ${i < stages.length - 1 ? "border-b border-[#1A1A1C]" : ""}`}
+                  className={`flex items-center gap-4 px-6 py-3.5 ${i < arr.length - 1 ? "border-b border-[#1A1A1C]" : ""}`}
                 >
-                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STAGE_COLORS[i % STAGE_COLORS.length] }} />
-                  </div>
-                  <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-sm font-medium capitalize">{s.job_type.replace(/_/g, " ")}</span>
-                    <span className="text-xs text-gray-500">{s.call_count} calls</span>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <span className="text-sm font-medium">{STAGE_LABELS[s.job_type] ?? s.job_type.replace(/_/g, " ")}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-500">{s.call_count} calls</span>
+                      {s.providers?.map((pid) => {
+                        const meta = providerMeta(pid);
+                        return (
+                          <span
+                            key={pid}
+                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold text-white"
+                            style={{ backgroundColor: meta.color }}
+                            title={meta.label}
+                          >
+                            {meta.abbr}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                   <span className="text-sm font-semibold flex-shrink-0 w-16 text-right">{fmt(s.total_usd)}</span>
                 </div>

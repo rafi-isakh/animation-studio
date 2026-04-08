@@ -1,4 +1,5 @@
-import type { CsvColumnMapping, CsvFrame } from '../types';
+import type { CsvFrame } from '../types';
+import type { WebnovelTrailerColumnMapping } from '../types';
 
 /**
  * Parse CSV text into a 2D array of strings.
@@ -72,9 +73,17 @@ export function normalizeVideoApiValue(raw: string): string | undefined {
 
 /**
  * Auto-detect column mapping from CSV headers.
- * Defaults video prompt to column AF (index 31).
+ * Defaults video prompt to column AF (index 31) for WebnovelTrailerStoryboardGenerator CSVs.
+ * Also detects "Image Prompt (End)" by name for A/B clip splitting.
  */
-export function autoDetectMapping(headers: string[]): CsvColumnMapping {
+export function autoDetectMapping(headers: string[]): WebnovelTrailerColumnMapping {
+  const findByName = (...names: string[]) => {
+    const idx = headers.findIndex((h) =>
+      names.some((n) => h.trim().toLowerCase() === n.toLowerCase())
+    );
+    return idx > -1 ? (headers[idx] ?? '') : '';
+  };
+
   const videoApiIndex = headers.findIndex((h) =>
     h.trim().toLowerCase().replace(/\s+/g, '') === 'videoapi'
   );
@@ -82,46 +91,66 @@ export function autoDetectMapping(headers: string[]): CsvColumnMapping {
   return {
     frameNumber:       headers[1]  ?? '',
     clipLength:        headers[2]  ?? '',
-    veoPrompt:         headers[31] ?? '',  // column AF
+    veoPrompt:         headers[31] ?? '',  // column AF (WebnovelTrailerStoryboardGenerator layout)
     dialogue:          headers[11] ?? '',
     sfx:               headers[13] ?? '',
     referenceFilename: headers[16] ?? '',
     videoApi:          videoApiIndex > -1 ? (headers[videoApiIndex] ?? '') : '',
+    endImagePrompt:    findByName('Image Prompt (End)', '이미지 프롬프트 (End)'),
   };
 }
 
 /**
  * Apply a column mapping to parsed CSV rows and produce CsvFrame[].
  * Rows with an empty veoPrompt are filtered out.
+ * If a row has a non-empty "Image Prompt (End)" value, it produces TWO frames:
+ *   - Frame A: frameNumber suffixed with " A"
+ *   - Frame B: frameNumber suffixed with " B" (same prompt, no image yet)
  */
 export function applyMapping(
   headers: string[],
   rows: string[][],
-  mapping: CsvColumnMapping,
+  mapping: WebnovelTrailerColumnMapping,
 ): CsvFrame[] {
   const idx = (col: string) => (col ? headers.indexOf(col) : -1);
 
-  const frameIdx     = idx(mapping.frameNumber);
-  const promptIdx    = idx(mapping.veoPrompt);
-  const filenameIdx  = idx(mapping.referenceFilename);
-  const dialogueIdx  = idx(mapping.dialogue);
-  const sfxIdx       = idx(mapping.sfx);
-  const lengthIdx    = idx(mapping.clipLength);
-  const videoApiIdx  = idx(mapping.videoApi);
+  const frameIdx        = idx(mapping.frameNumber);
+  const promptIdx       = idx(mapping.veoPrompt);
+  const filenameIdx     = idx(mapping.referenceFilename);
+  const dialogueIdx     = idx(mapping.dialogue);
+  const sfxIdx          = idx(mapping.sfx);
+  const lengthIdx       = idx(mapping.clipLength);
+  const videoApiIdx     = idx(mapping.videoApi);
+  const endPromptIdx    = idx(mapping.endImagePrompt ?? '');
 
   const now = Date.now();
+  const frames: CsvFrame[] = [];
+  let rowIndex = 0;
 
-  return rows
-    .map((row, i): CsvFrame => ({
-      id:                `frame-${i}-${now}`,
-      rowIndex:          i,
-      frameNumber:       frameIdx  > -1 ? (row[frameIdx]  ?? '').trim() : String(i + 1),
-      veoPrompt:         promptIdx > -1 ? (row[promptIdx] ?? '').trim() : '',
-      referenceFilename: filenameIdx > -1 ? (row[filenameIdx] ?? '').trim() : '',
-      dialogue:          dialogueIdx > -1 ? (row[dialogueIdx] ?? '').trim() : undefined,
-      sfx:               sfxIdx     > -1 ? (row[sfxIdx]     ?? '').trim() : undefined,
-      clipLength:        lengthIdx  > -1 ? (row[lengthIdx]  ?? '').trim() : undefined,
-      videoApi:          videoApiIdx > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined,
+  for (const row of rows) {
+    const baseFrameNumber = frameIdx > -1 ? (row[frameIdx] ?? '').trim() : String(rowIndex + 1);
+    const veoPrompt       = promptIdx > -1 ? (row[promptIdx] ?? '').trim() : '';
+    if (!veoPrompt) continue;
+
+    const referenceFilename = filenameIdx  > -1 ? (row[filenameIdx]  ?? '').trim() : '';
+    const dialogue          = dialogueIdx  > -1 ? (row[dialogueIdx]  ?? '').trim() || undefined : undefined;
+    const sfx               = sfxIdx       > -1 ? (row[sfxIdx]       ?? '').trim() || undefined : undefined;
+    const clipLength        = lengthIdx    > -1 ? (row[lengthIdx]    ?? '').trim() || undefined : undefined;
+    const videoApi          = videoApiIdx  > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined;
+    const endImagePrompt    = endPromptIdx > -1 ? (row[endPromptIdx]  ?? '').trim() : '';
+
+    const hasEndFrame = endImagePrompt !== '';
+
+    const baseFrame: CsvFrame = {
+      id:                `frame-${rowIndex}-${now}`,
+      rowIndex,
+      frameNumber:       hasEndFrame ? `${baseFrameNumber} A` : baseFrameNumber,
+      veoPrompt,
+      referenceFilename,
+      dialogue,
+      sfx,
+      clipLength,
+      videoApi,
       imageData:         null,
       endFrameData:      null,
       imageUrl:          null,
@@ -129,6 +158,33 @@ export function applyMapping(
       jobId:             null,
       s3FileName:        null,
       status:            'idle',
-    }))
-    .filter(f => f.veoPrompt !== '');
+    };
+    frames.push(baseFrame);
+    rowIndex++;
+
+    if (hasEndFrame) {
+      const bFrame: CsvFrame = {
+        id:                `frame-${rowIndex}-${now}`,
+        rowIndex,
+        frameNumber:       `${baseFrameNumber} B`,
+        veoPrompt,
+        referenceFilename: '',
+        dialogue,
+        sfx,
+        clipLength,
+        videoApi,
+        imageData:         null,
+        endFrameData:      null,
+        imageUrl:          null,
+        videoUrl:          null,
+        jobId:             null,
+        s3FileName:        null,
+        status:            'idle',
+      };
+      frames.push(bFrame);
+      rowIndex++;
+    }
+  }
+
+  return frames;
 }

@@ -175,11 +175,7 @@ export default function StoryboardGenerator() {
 
   // State from Stage 3 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
-  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
-
-  // Track which part the currently displayed scenes were generated from
-  const [generatedPartIndex, setGeneratedPartIndex] = useState<number | null>(null);
-  const scenesInitializedRef = useRef(false);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(storyboardGenerator.activePartIndex);
 
   // Genre presets hook
   const {
@@ -248,20 +244,6 @@ export default function StoryboardGenerator() {
     setStageResult(4, { scenes, voicePrompts, characterIdSummary, genre });
   }, [scenes, voicePrompts, characterIdSummary, genre, setStageResult]);
 
-  // When scenes first load from Firestore (on mount), anchor generatedPartIndex to
-  // the currently selected part so the stale-data warning doesn't fire on load.
-  useEffect(() => {
-    if (scenes.length > 0 && !scenesInitializedRef.current) {
-      scenesInitializedRef.current = true;
-      setGeneratedPartIndex(selectedPartIndex);
-    }
-    if (scenes.length === 0) {
-      scenesInitializedRef.current = false;
-      setGeneratedPartIndex(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenes.length]);
-
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
       toast({
@@ -282,7 +264,6 @@ export default function StoryboardGenerator() {
       return;
     }
 
-    setGeneratedPartIndex(selectedPartIndex);
     await startStoryboardGeneration({
       sourceText,
       storyCondition,
@@ -685,7 +666,6 @@ export default function StoryboardGenerator() {
         }
 
         // Import the storyboard
-        setGeneratedPartIndex(selectedPartIndex);
         await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre);
 
         // Also restore conditions if available
@@ -824,7 +804,6 @@ export default function StoryboardGenerator() {
         }
 
         if (parsedScenes.length > 0) {
-          setGeneratedPartIndex(selectedPartIndex);
           await importStoryboard(parsedScenes, []);
           const totalClips = parsedScenes.reduce((acc, s) => acc + s.clips.length, 0);
           toast({
@@ -1291,11 +1270,11 @@ export default function StoryboardGenerator() {
       {/* Loader */}
       {isGenerating && <Loader dictionary={dictionary} language={language} />}
 
-      {/* Stale-part warning: scenes exist but were generated from a different part */}
-      {scenes.length > 0 && !isGenerating && generatedPartIndex !== null && generatedPartIndex !== selectedPartIndex && (
+      {/* Stale-part warning: scenes exist but the active context part differs from the selected tab */}
+      {scenes.length > 0 && !isGenerating && storyboardGenerator.activePartIndex !== selectedPartIndex && (
         <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
           {phrase(dictionary, "storyboard_stale_part_warning", language) ||
-            `The storyboard below was generated from Part ${generatedPartIndex + 1}. Click Generate to create a new storyboard for Part ${selectedPartIndex + 1}.`}
+            `The storyboard below was generated from Part ${storyboardGenerator.activePartIndex + 1}. Click Generate to create a new storyboard for Part ${selectedPartIndex + 1}.`}
         </div>
       )}
 

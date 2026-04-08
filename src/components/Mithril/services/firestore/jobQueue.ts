@@ -1571,6 +1571,7 @@ export interface StoryboardJobUpdate {
   jobId: string;
   status: StoryboardJobStatus;
   progress: number;
+  partIndex?: number;
   // Results
   scenes?: StoryboardScene[];
   voicePrompts?: StoryboardVoicePrompt[];
@@ -1679,6 +1680,7 @@ export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUp
     jobId: job.id,
     status: mapJobStatusToStoryboardStatus(job.status, job.retry_count),
     progress: job.progress,
+    partIndex: job.part_index,
     scenes: result?.scenes,
     voicePrompts: result?.voicePrompts,
     characterIdSummary: result?.characterIdSummary,

@@ -23,7 +23,7 @@ import {
   getActiveProjectJobs,
 } from "../services/firestore";
 import { useVideoOrchestrator, type ClipUpdate } from "../VideoGenerator/useVideoOrchestrator";
-import type { CsvFrame, CsvColumnMapping } from "./types";
+import type { CsvFrame, WebnovelTrailerColumnMapping } from "./types";
 import { DEFAULT_WEBNOVEL_MAPPING } from "./types";
 import { parseCSV, autoDetectMapping, applyMapping } from "./utils/csvHelpers";
 
@@ -366,6 +366,280 @@ function TrailerClipCard({
 }
 
 // ============================================================
+// A/B pair grouping
+// ============================================================
+
+type FrameGroup =
+  | { type: 'single'; frame: CsvFrame }
+  | { type: 'pair'; frameA: CsvFrame; frameB: CsvFrame };
+
+function groupFrames(frames: CsvFrame[]): FrameGroup[] {
+  const groups: FrameGroup[] = [];
+  let i = 0;
+  while (i < frames.length) {
+    const curr = frames[i];
+    const next = frames[i + 1];
+    const currBase = curr.frameNumber.replace(/ A$/i, '').trim();
+    const nextBase = next?.frameNumber.replace(/ B$/i, '').trim();
+    if (
+      next &&
+      / A$/i.test(curr.frameNumber) &&
+      / B$/i.test(next.frameNumber) &&
+      currBase === nextBase
+    ) {
+      groups.push({ type: 'pair', frameA: curr, frameB: next });
+      i += 2;
+    } else {
+      groups.push({ type: 'single', frame: curr });
+      i++;
+    }
+  }
+  return groups;
+}
+
+// ============================================================
+// PairedClipCard — shows two sibling frames (A + B) in one card
+// ============================================================
+
+interface PairedClipCardProps {
+  frameA: CsvFrame;
+  frameB: CsvFrame;
+  globalProvider: string;
+  onGenerate: (id: string) => void;
+  onRegenerate: (id: string) => void;
+  onCancel: (id: string) => void;
+  onDelete: (id: string) => void;
+  onUpdatePrompt: (id: string, prompt: string) => void;
+  onUpdateStartImage: (id: string, data: string | null) => void;
+  onUpdateDuration: (id: string, duration: string) => void;
+  onUpdateVideoApi: (id: string, videoApi: string) => void;
+  onRefinePrompt: (id: string) => Promise<void>;
+}
+
+interface ClipHalfProps extends Omit<PairedClipCardProps, 'frameA' | 'frameB'> {
+  frame: CsvFrame;
+  label: 'A' | 'B';
+}
+
+function ClipHalf({
+  frame,
+  label,
+  globalProvider,
+  onGenerate,
+  onRegenerate,
+  onCancel,
+  onDelete,
+  onUpdatePrompt,
+  onUpdateStartImage,
+  onUpdateDuration,
+  onUpdateVideoApi,
+  onRefinePrompt,
+}: ClipHalfProps) {
+  const { language, dictionary } = useLanguage();
+  const [isRefiningClip, setIsRefiningClip] = useState(false);
+
+  const canGenerate = !!(frame.imageData || frame.imageUrl) && !!frame.veoPrompt;
+  const isProcessing = frame.status === 'pending' || frame.status === 'generating' || frame.status === 'retrying';
+  const isDone = frame.status === 'completed' && !!frame.videoUrl;
+  const isError = frame.status === 'failed';
+  const currentDuration = frame.clipLength ? frame.clipLength.replace(/[^0-9.]/g, '') : '5';
+  const imageSrc = frame.imageData || frame.imageUrl;
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => onUpdateStartImage(frame.id, evt.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  return (
+    <div className="flex flex-col flex-1 min-w-0 border-r last:border-r-0 border-gray-800">
+      {/* Sub-header */}
+      <div className="px-3 py-1.5 bg-gray-950 border-b border-gray-800 flex justify-between items-center">
+        <span className="text-xs font-bold text-gray-400 uppercase">Video {label}</span>
+        <div className="flex items-center gap-2">
+          <button onClick={() => onDelete(frame.id)} className="text-gray-600 hover:text-red-500 transition-colors" title={`Delete clip ${label}`}>
+            <Trash2 className="h-3 w-3" />
+          </button>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500 uppercase font-bold">API:</span>
+            <select
+              className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:ring-0"
+              value={frame.videoApi || ''}
+              onChange={(e) => onUpdateVideoApi(frame.id, e.target.value)}
+            >
+              <option value="">Default ({getProviderOptions().find(p => p.id === globalProvider)?.name || globalProvider})</option>
+              {getProviderOptions().map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500 uppercase font-bold">Dur:</span>
+            <select
+              className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:ring-0"
+              value={currentDuration}
+              onChange={(e) => onUpdateDuration(frame.id, e.target.value)}
+            >
+              <option value="5">5s</option>
+              <option value="8">8s</option>
+              <option value="10">10s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col flex-1 p-3 gap-3">
+        {/* Image */}
+        <div className="h-48 bg-gray-950 rounded-md overflow-hidden relative group border border-gray-800 flex items-center justify-center shrink-0">
+          {imageSrc ? (
+            <>
+              <img src={imageSrc} alt={`Frame ${label}`} className="w-full h-full object-contain" />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-10">
+                <label className="cursor-pointer flex items-center gap-1 bg-gray-800/90 hover:bg-[#DB2777] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  Replace
+                </label>
+                <button onClick={() => onUpdateStartImage(frame.id, null)} className="flex items-center gap-1 bg-gray-800/90 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                  Remove
+                </button>
+              </div>
+            </>
+          ) : (
+            <label className="flex flex-col items-center justify-center text-gray-600 cursor-pointer hover:text-gray-400 transition-colors w-full h-full">
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-xs">Upload image</span>
+            </label>
+          )}
+        </div>
+
+        {/* Prompt */}
+        <div className="flex flex-col flex-1 min-h-[80px]">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] text-gray-500 uppercase font-bold">Prompt</label>
+            {(frame.imageData || frame.imageUrl) && frame.veoPrompt.trim() && (
+              <button
+                onClick={async () => { setIsRefiningClip(true); await onRefinePrompt(frame.id); setIsRefiningClip(false); }}
+                disabled={isRefiningClip}
+                className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-[#DB2777] transition-colors disabled:opacity-50"
+              >
+                <Sparkles className="h-3 w-3" />
+                {isRefiningClip ? 'Refining...' : 'Refine'}
+              </button>
+            )}
+          </div>
+          <textarea
+            className="w-full flex-1 min-h-[70px] bg-gray-950 border border-gray-700 rounded p-2 text-xs text-gray-300 focus:outline-none focus:ring-0 resize-vertical"
+            value={frame.veoPrompt}
+            onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
+            placeholder="Video prompt..."
+          />
+        </div>
+
+        {/* Output */}
+        <div className="h-40 bg-black/20 rounded-md flex items-center justify-center relative">
+          {isDone ? (
+            <div className="relative w-full h-full group">
+              <video src={frame.videoUrl!} controls className="w-full h-full object-contain rounded" poster={imageSrc || undefined} />
+              <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a
+                  href={frame.s3FileName ? `/api/video/download?s3FileName=${encodeURIComponent(frame.s3FileName)}&downloadFileName=${encodeURIComponent(`clip_${frame.frameNumber}.mp4`)}` : frame.videoUrl!}
+                  download
+                  className="bg-gray-900/80 p-1.5 rounded-full text-white hover:bg-[#DB2777] block"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+          ) : isProcessing ? (
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777] mb-1"></div>
+              <span className="text-xs text-[#DB2777] animate-pulse">{frame.status === 'retrying' ? 'Retrying...' : 'Generating...'}</span>
+            </div>
+          ) : isError ? (
+            <div className="text-center px-2">
+              <p className="text-red-400 text-xs">{frame.error || 'Failed'}</p>
+              <button onClick={() => onRegenerate(frame.id)} className="mt-1 text-xs underline text-gray-400 hover:text-white">Retry</button>
+            </div>
+          ) : (
+            <div className="text-center opacity-30">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+              </svg>
+              <p className="text-xs">Ready</p>
+            </div>
+          )}
+        </div>
+
+        {/* Action */}
+        <div>
+          {isProcessing ? (
+            <button onClick={() => onCancel(frame.id)} className="w-full text-xs font-bold py-1.5 px-4 rounded bg-red-700 hover:bg-red-600 text-white">Cancel</button>
+          ) : (
+            <button
+              onClick={() => isDone ? onRegenerate(frame.id) : onGenerate(frame.id)}
+              disabled={!canGenerate}
+              className={`w-full text-xs font-bold py-1.5 px-4 rounded transition-colors ${canGenerate ? 'bg-[#DB2777] hover:bg-[#BE185D] text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+            >
+              {isDone ? 'Regenerate' : 'Generate'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PairedClipCard(props: PairedClipCardProps) {
+  const { frameA, frameB } = props;
+  const baseNumber = frameA.frameNumber.replace(/ A$/i, '').trim();
+
+  // Editing either half's prompt syncs both frames
+  const onUpdatePromptSynced = useCallback((id: string, prompt: string) => {
+    props.onUpdatePrompt(frameA.id, prompt);
+    props.onUpdatePrompt(frameB.id, prompt);
+  }, [props.onUpdatePrompt, frameA.id, frameB.id]);
+
+  const sharedHalfProps = {
+    globalProvider:    props.globalProvider,
+    onGenerate:        props.onGenerate,
+    onRegenerate:      props.onRegenerate,
+    onCancel:          props.onCancel,
+    onDelete:          props.onDelete,
+    onUpdatePrompt:    onUpdatePromptSynced,
+    onUpdateStartImage: props.onUpdateStartImage,
+    onUpdateDuration:  props.onUpdateDuration,
+    onUpdateVideoApi:  props.onUpdateVideoApi,
+    onRefinePrompt:    props.onRefinePrompt,
+  };
+
+  return (
+    <div className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
+      {/* Shared header */}
+      <div className="bg-gray-950 px-4 py-2 border-b border-gray-800 flex items-center gap-3">
+        <span className="font-mono text-sm text-[#DB2777] font-bold">#{baseNumber}</span>
+        <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded font-bold">A + B</span>
+        {(frameA.dialogue || frameA.sfx) && (
+          <div className="flex gap-3 ml-2">
+            {frameA.dialogue && <span className="text-xs text-gray-500 italic truncate max-w-[200px]">&ldquo;{frameA.dialogue}&rdquo;</span>}
+            {frameA.sfx && <span className="text-xs text-gray-600 font-mono">[{frameA.sfx}]</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Two halves side by side */}
+      <div className="flex flex-col md:flex-row">
+        <ClipHalf frame={frameA} label="A" {...sharedHalfProps} />
+        <ClipHalf frame={frameB} label="B" {...sharedHalfProps} />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // Main Component
 // ============================================================
 
@@ -390,7 +664,7 @@ export default function WebnovelTrailer() {
   const [csvStep, setCsvStep] = useState<1 | 2>(1);
   const [headers, setHeaders] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<string[][]>([]);
-  const [mapping, setMapping] = useState<CsvColumnMapping>(DEFAULT_WEBNOVEL_MAPPING);
+  const [mapping, setMapping] = useState<WebnovelTrailerColumnMapping>(DEFAULT_WEBNOVEL_MAPPING);
 
   // ── Video generation state ───────────────────────────────
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
@@ -1550,6 +1824,21 @@ export default function WebnovelTrailer() {
                     {headers.map((h) => <option key={h} value={h}>{h}</option>)}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Image Prompt (End) (Optional)
+                  </label>
+                  <select
+                    className="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-0"
+                    value={mapping.endImagePrompt}
+                    onChange={(e) => setMapping({ ...mapping, endImagePrompt: e.target.value })}
+                  >
+                    <option value="">-- None --</option>
+                    {headers.map((h) => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="text-[10px] text-gray-500 ml-1">If mapped, clips with an end prompt generate an A and B video</span>
+                </div>
               </div>
 
               <div className="flex justify-between pt-6">
@@ -1780,22 +2069,40 @@ export default function WebnovelTrailer() {
 
           {/* Clip cards */}
           <div className="grid grid-cols-1 gap-6">
-            {frames.map((frame) => (
-              <TrailerClipCard
-                key={frame.id}
-                frame={frame}
-                globalProvider={selectedProvider}
-                onGenerate={generateFrame}
-                onRegenerate={regenerateFrame}
-                onCancel={handleCancelClip}
-                onDelete={deleteFrame}
-                onUpdatePrompt={updatePrompt}
-                onUpdateStartImage={updateStartImage}
-                onUpdateDuration={updateDuration}
-                onUpdateVideoApi={updateVideoApi}
-                onRefinePrompt={handleRefineClip}
-              />
-            ))}
+            {groupFrames(frames).map((group) =>
+              group.type === 'pair' ? (
+                <PairedClipCard
+                  key={`${group.frameA.id}-${group.frameB.id}`}
+                  frameA={group.frameA}
+                  frameB={group.frameB}
+                  globalProvider={selectedProvider}
+                  onGenerate={generateFrame}
+                  onRegenerate={regenerateFrame}
+                  onCancel={handleCancelClip}
+                  onDelete={deleteFrame}
+                  onUpdatePrompt={updatePrompt}
+                  onUpdateStartImage={updateStartImage}
+                  onUpdateDuration={updateDuration}
+                  onUpdateVideoApi={updateVideoApi}
+                  onRefinePrompt={handleRefineClip}
+                />
+              ) : (
+                <TrailerClipCard
+                  key={group.frame.id}
+                  frame={group.frame}
+                  globalProvider={selectedProvider}
+                  onGenerate={generateFrame}
+                  onRegenerate={regenerateFrame}
+                  onCancel={handleCancelClip}
+                  onDelete={deleteFrame}
+                  onUpdatePrompt={updatePrompt}
+                  onUpdateStartImage={updateStartImage}
+                  onUpdateDuration={updateDuration}
+                  onUpdateVideoApi={updateVideoApi}
+                  onRefinePrompt={handleRefineClip}
+                />
+              )
+            )}
           </div>
         </div>
       )}

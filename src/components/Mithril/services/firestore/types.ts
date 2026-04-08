@@ -166,6 +166,7 @@ export interface BackgroundDocument {
   referenceImageRef?: string; // S3 URL for reference image
   referenceAnalysis?: BackgroundReferenceAnalysis; // Spatial analysis
   plannedPrompts?: string[]; // Array of 9 prompts
+  partIndex?: number; // Which storyboard part this background belongs to (0-based)
 }
 
 // ============================================
@@ -571,6 +572,7 @@ export interface SaveBackgroundInput {
   referenceImageRef?: string;
   referenceAnalysis?: BackgroundReferenceAnalysis;
   plannedPrompts?: string[];
+  partIndex?: number;
 }
 
 export interface UpdateBackgroundInput {

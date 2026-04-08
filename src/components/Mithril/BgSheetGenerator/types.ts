@@ -34,6 +34,7 @@ export interface Background {
   plannedPrompts?: string[];           // Array of 9 prompts (N-1 to N-9)
   isSequentiallyGenerating?: boolean;  // Whether batch generation is running
   generationRange?: string;            // Range for generation (e.g., "1-5", "All")
+  partIndex?: number;                  // Which storyboard part this background belongs to (0-based)
 }
 
 // Legacy type - kept for backward compatibility

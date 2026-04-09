@@ -2699,18 +2699,23 @@ export default function BgSheetGenerator() {
     const zip = new JSZip();
     let imageCount = 0;
 
-    for (const bg of backgrounds) {
+    const sortedBgs = [...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+    for (const [bgIdx, bg] of sortedBgs.entries()) {
       // Create folder for each background
       const folderName = bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase();
       const folder = zip.folder(folderName);
+      const bgNum = bgIdx + 1;
 
       for (const img of bg.images) {
         // Skip deactivated frames
         if (img.isActive === false) continue;
 
+        const angleNum = BACKGROUND_ANGLES.indexOf(img.angle) + 1;
+        const fileName = `${bgNum}-${angleNum}.jpg`;
+
         if (img.imageBase64) {
           // Add base64 image to zip
-          const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
           folder?.file(fileName, img.imageBase64, { base64: true });
           imageCount++;
         } else if (img.imageUrl) {
@@ -2719,7 +2724,6 @@ export default function BgSheetGenerator() {
             const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(img.imageUrl)}`);
             if (proxyResponse.ok) {
               const { base64 } = await proxyResponse.json();
-              const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
               folder?.file(fileName, base64, { base64: true });
               imageCount++;
             }
@@ -3374,7 +3378,7 @@ export default function BgSheetGenerator() {
                                   {(img.imageBase64 || img.imageUrl) && (
                                     <button
                                       onClick={() => {
-                                        const filename = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
+                                        const filename = `${slotLabel}.jpg`;
                                         if (img.imageBase64) {
                                           downloadImage(img.imageBase64, filename);
                                         } else if (img.imageUrl) {

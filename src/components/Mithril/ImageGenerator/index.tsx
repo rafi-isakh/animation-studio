@@ -2224,7 +2224,7 @@ const { language, dictionary } = useLanguage();
                   onClick={() => setSelectedPartIndex(partIdx)}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     selectedPartIndex === partIdx
-                      ? "bg-cyan-600 text-white hover:bg-cyan-500"
+                      ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
                       : "text-gray-400 hover:text-[#E8E8E8]"
                   }`}
                 >

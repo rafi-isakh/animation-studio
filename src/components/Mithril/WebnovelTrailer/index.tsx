@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,13 +12,13 @@ import { ASPECT_RATIOS } from "../VideoGenerator/types";
 import type { AspectRatio } from "../VideoGenerator/providers/types";
 import {
   getWebnovelTrailerMeta,
-  getWebnovelTrailerClips,
+  getWebnovelTrailerClipsByPart,
   saveWebnovelTrailerMeta,
   saveWebnovelTrailerClip,
   saveWebnovelTrailerClipsBatch,
   updateWebnovelTrailerClipStatus,
   deleteWebnovelTrailerClip,
-  clearWebnovelTrailer,
+  clearWebnovelTrailerPart,
   mapJobToClipUpdate,
   getActiveProjectJobs,
   getImageGenFrames,
@@ -649,6 +649,7 @@ export default function WebnovelTrailer() {
     currentProjectId,
     videoApiKey,
     isLoading: isContextLoading,
+    getGeneratedPartIndices,
   } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
@@ -661,8 +662,12 @@ export default function WebnovelTrailer() {
   const [frames, setFrames] = useState<CsvFrame[]>([]);
   const [selectedPartIndex, setSelectedPartIndex] = useState(0);
   const [showImageUploader, setShowImageUploader] = useState(true);
-  const framePartIndices = Array.from(new Set(frames.map((f) => f.partIndex ?? 0))).sort((a, b) => a - b);
-  const filteredFrames = frames.filter((f) => (f.partIndex ?? 0) === selectedPartIndex);
+  const storyboardPartIndices = getGeneratedPartIndices();
+  const availablePartIndices = useMemo(
+    () => (storyboardPartIndices.length > 0 ? storyboardPartIndices : [0]),
+    [storyboardPartIndices]
+  );
+  const filteredFrames = frames;
   const buildClipId = (frame: CsvFrame) => `${frame.partIndex ?? 0}_${frame.rowIndex}`;
 
   // ── CSV import state ─────────────────────────────────────
@@ -692,52 +697,68 @@ export default function WebnovelTrailer() {
   }, []);
 
   useEffect(() => {
-    if (framePartIndices.length === 0) return;
-    if (!framePartIndices.includes(selectedPartIndex)) {
-      setSelectedPartIndex(framePartIndices[0]);
+    setHasLoaded(false);
+    setIsLoadingData(true);
+    setFrames([]);
+    activeJobsRef.current.clear();
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    if (availablePartIndices.length === 0) return;
+    if (!availablePartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(availablePartIndices[availablePartIndices.length - 1]);
     }
-  }, [framePartIndices, selectedPartIndex]);
+  }, [availablePartIndices, selectedPartIndex]);
 
   // ── Orchestrator hook ────────────────────────────────────
   const handleClipUpdate = useCallback((update: ClipUpdate) => {
     if (!isMountedRef.current) return;
 
-    setFrames((prev) =>
-      prev.map((f) => {
-        if (f.rowIndex !== update.clipIndex) return f;
-        if (update.sceneIndex !== 0) return f;
+    let matchedFrame: CsvFrame | null = null;
+    setFrames((prev) => {
+      if (update.sceneIndex !== 0) return prev;
 
-        const isTerminal = update.status === 'completed' || update.status === 'failed';
-        if (isTerminal) activeJobsRef.current.delete(update.jobId);
+      const byJobIdIndex = prev.findIndex((f) => f.jobId === update.jobId);
+      const trackedJob = activeJobsRef.current.has(update.jobId);
+      const fallbackIndex = trackedJob
+        ? prev.findIndex((f) => f.rowIndex === update.clipIndex)
+        : -1;
+      const targetIndex = byJobIdIndex !== -1 ? byJobIdIndex : fallbackIndex;
 
-        return {
-          ...f,
-          jobId:      update.jobId,
-          status:     update.status === 'completed' ? 'completed'
-                    : update.status === 'failed'    ? 'failed'
-                    : update.status === 'retrying'  ? 'retrying'
-                    : 'generating',
-          videoUrl:   update.videoUrl ?? f.videoUrl,
-          s3FileName: update.s3FileName ?? f.s3FileName,
-          error:      update.error,
-          providerId: update.providerId,
-        };
-      })
-    );
+      if (targetIndex === -1) return prev;
 
-    // Auto-save on completion
-    if (update.status === 'completed' && update.videoUrl && currentProjectId) {
-      const frame = frames.find((f) => f.rowIndex === update.clipIndex);
-      const clipId = frame ? buildClipId(frame) : `0_${update.clipIndex}`;
-      updateWebnovelTrailerClipStatus(currentProjectId, clipId, {
-        videoRef:   update.videoUrl,
+      const isTerminal = update.status === 'completed' || update.status === 'failed';
+      if (isTerminal) activeJobsRef.current.delete(update.jobId);
+
+      const next = [...prev];
+      const target = next[targetIndex];
+      const updated = {
+        ...target,
+        jobId: update.jobId,
+        status: update.status === 'completed' ? 'completed'
+          : update.status === 'failed' ? 'failed'
+            : update.status === 'retrying' ? 'retrying'
+              : 'generating',
+        videoUrl: update.videoUrl ?? target.videoUrl,
+        s3FileName: update.s3FileName ?? target.s3FileName,
+        error: update.error,
+        providerId: update.providerId,
+      } as CsvFrame;
+      next[targetIndex] = updated;
+      matchedFrame = updated;
+      return next;
+    });
+
+    if (update.status === 'completed' && update.videoUrl && currentProjectId && matchedFrame) {
+      updateWebnovelTrailerClipStatus(currentProjectId, buildClipId(matchedFrame), {
+        videoRef: update.videoUrl,
         s3FileName: update.s3FileName ?? undefined,
-        jobId:      update.jobId,
-        status:     'completed',
+        jobId: update.jobId,
+        status: 'completed',
         providerId: update.providerId,
       }).catch(console.error);
     }
-  }, [currentProjectId, frames]);
+  }, [currentProjectId]);
 
   const { submitJob, cancelJob, pendingUpdates, clearPendingUpdates } =
     useVideoOrchestrator({
@@ -750,8 +771,6 @@ export default function WebnovelTrailer() {
   useEffect(() => {
     if (isLoadingData || !hasLoaded || pendingUpdates.length === 0) return;
     pendingUpdates.forEach((update) => {
-      const isTerminal = update.status === 'completed' || update.status === 'failed';
-      if (!isTerminal) activeJobsRef.current.add(update.jobId);
       handleClipUpdate(update);
     });
     clearPendingUpdates();
@@ -764,66 +783,16 @@ export default function WebnovelTrailer() {
     let cancelled = false;
     (async () => {
       try {
-        const [meta, savedClips] = await Promise.all([
-          getWebnovelTrailerMeta(currentProjectId),
-          getWebnovelTrailerClips(currentProjectId),
-        ]);
+        const meta = await getWebnovelTrailerMeta(currentProjectId);
 
         if (cancelled) return;
 
         if (meta?.aspectRatio) setAspectRatio(meta.aspectRatio);
-        if (meta?.providerId)  setSelectedProvider(meta.providerId);
-
-        if (savedClips.length > 0) {
-          const restoredFrames: CsvFrame[] = savedClips.map((clip) => ({
-            id:                `frame-${clip.clipIndex}-restored`,
-            rowIndex:          clip.clipIndex,
-            partIndex:         clip.partIndex ?? 0,
-            frameNumber:       clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
-            veoPrompt:         clip.videoPrompt || '',
-            referenceFilename: '',
-            clipLength:        clip.length?.replace(/[^0-9]/g, '') || '5',
-            videoApi:          clip.videoApi ?? undefined,
-            imageData:         null,
-            endFrameData:      null,
-            imageUrl:          clip.imageUrl ?? null,
-            videoUrl:          clip.videoRef ?? null,
-            jobId:             clip.jobId ?? null,
-            s3FileName:        clip.s3FileName ?? null,
-            status:            (clip.status as CsvFrame['status']) || 'idle',
-            error:             clip.error,
-            providerId:        clip.providerId,
-          }));
-
-          // Re-track active jobs
-          const activeJobs = await getActiveProjectJobs(currentProjectId);
-          const frameIndexByRowIndex = new Map<number, number>();
-          restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
-          activeJobs.forEach((job) => {
-            if (job.type && job.type !== 'video') return;
-            if (job.scene_index !== 0) return;
-            const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
-            if (frameIdx !== -1) {
-              const update = mapJobToClipUpdate(job);
-              activeJobsRef.current.add(update.jobId);
-              restoredFrames[frameIdx] = {
-                ...restoredFrames[frameIdx],
-                jobId:  update.jobId,
-                status: update.status === 'completed' ? 'completed'
-                       : update.status === 'failed'   ? 'failed'
-                       : 'generating',
-              };
-            }
-          });
-
-          setFrames(restoredFrames);
-          setShowImageUploader(false);
-        }
+        if (meta?.providerId) setSelectedProvider(meta.providerId);
       } catch (err) {
         console.error('WebnovelTrailer: failed to load persisted state', err);
       } finally {
         if (!cancelled) {
-          setIsLoadingData(false);
           setHasLoaded(true);
         }
       }
@@ -831,6 +800,73 @@ export default function WebnovelTrailer() {
 
     return () => { cancelled = true; };
   }, [currentProjectId, isContextLoading]);
+
+  useEffect(() => {
+    if (isContextLoading || !currentProjectId || !hasLoaded) return;
+
+    let cancelled = false;
+    setIsLoadingData(true);
+
+    (async () => {
+      try {
+        activeJobsRef.current.clear();
+        const savedClips = await getWebnovelTrailerClipsByPart(currentProjectId, selectedPartIndex);
+        if (cancelled) return;
+
+        const restoredFrames: CsvFrame[] = savedClips.map((clip) => ({
+          id: `frame-${selectedPartIndex}-${clip.clipIndex}-restored`,
+          rowIndex: clip.clipIndex,
+          partIndex: selectedPartIndex,
+          frameNumber: clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
+          veoPrompt: clip.videoPrompt || '',
+          referenceFilename: '',
+          clipLength: clip.length?.replace(/[^0-9]/g, '') || '5',
+          videoApi: clip.videoApi ?? undefined,
+          imageData: null,
+          endFrameData: null,
+          imageUrl: clip.imageUrl ?? null,
+          videoUrl: clip.videoRef ?? null,
+          jobId: clip.jobId ?? null,
+          s3FileName: clip.s3FileName ?? null,
+          status: (clip.status as CsvFrame['status']) || 'idle',
+          error: clip.error,
+          providerId: clip.providerId,
+        }));
+
+        const activeJobs = await getActiveProjectJobs(currentProjectId);
+        const frameIndexByRowIndex = new Map<number, number>();
+        restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
+        activeJobs.forEach((job) => {
+          if (job.type && job.type !== 'video') return;
+          if (job.scene_index !== 0) return;
+          const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
+          if (frameIdx === -1) return;
+          const update = mapJobToClipUpdate(job);
+          activeJobsRef.current.add(update.jobId);
+          restoredFrames[frameIdx] = {
+            ...restoredFrames[frameIdx],
+            jobId: update.jobId,
+            status: update.status === 'completed' ? 'completed'
+              : update.status === 'failed' ? 'failed'
+                : 'generating',
+          };
+        });
+
+        if (!cancelled) {
+          setFrames(restoredFrames);
+          setShowImageUploader(restoredFrames.length === 0);
+        }
+      } catch (err) {
+        console.error('WebnovelTrailer: failed to load selected part clips', err);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingData(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [currentProjectId, isContextLoading, hasLoaded, selectedPartIndex]);
 
   // ── CSV Import handlers ──────────────────────────────────
 
@@ -1505,9 +1541,9 @@ export default function WebnovelTrailer() {
 
   const handleClear = useCallback(async () => {
     if (!currentProjectId) return;
-    if (!confirm('Clear all clips and video data?')) return;
+    if (!confirm(`Clear clips and video data for Part ${selectedPartIndex + 1}?`)) return;
     try {
-      await clearWebnovelTrailer(currentProjectId);
+      await clearWebnovelTrailerPart(currentProjectId, selectedPartIndex);
     } catch {
       // ignore
     }
@@ -1518,7 +1554,7 @@ export default function WebnovelTrailer() {
     setMapping(DEFAULT_WEBNOVEL_MAPPING);
     setShowImageUploader(true);
     activeJobsRef.current.clear();
-  }, [currentProjectId]);
+  }, [currentProjectId, selectedPartIndex]);
 
   // ── ZIP download ────────────────────────────────────────
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
@@ -1644,7 +1680,7 @@ export default function WebnovelTrailer() {
         const importedFrames: CsvFrame[] = data.frames.map((f: Record<string, string | undefined>, i: number) => ({
           id:                `frame-${i}-${now}`,
           rowIndex:          i,
-          partIndex:         Number(f.partIndex ?? selectedPartIndex) || 0,
+          partIndex:         selectedPartIndex,
           frameNumber:       f.frameNumber || String(i + 1),
           veoPrompt:         f.veoPrompt || '',
           referenceFilename: '',
@@ -1763,6 +1799,25 @@ export default function WebnovelTrailer() {
   // ============================================================
   return (
     <div className="space-y-6 pb-12">
+      {/* Part selector - mirrors BgSheetGenerator behavior */}
+      {availablePartIndices.length > 1 && (
+        <div className="mb-4 p-1 rounded-lg flex gap-1 flex-wrap">
+          {availablePartIndices.map((partIdx) => (
+            <button
+              key={partIdx}
+              onClick={() => setSelectedPartIndex(partIdx)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                selectedPartIndex === partIdx
+                  ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                  : "text-gray-400 hover:text-[#E8E8E8]"
+              }`}
+            >
+              Part {partIdx + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Section 1: CSV Import (shown when no frames) ── */}
       {frames.length === 0 && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
@@ -1998,23 +2053,6 @@ export default function WebnovelTrailer() {
       {/* ── Section 3: Storyboard Grid ── */}
       {frames.length > 0 && (
         <div>
-          {framePartIndices.length > 0 && (
-            <div className="mb-4 p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap">
-              {framePartIndices.map((partIdx) => (
-                <button
-                  key={partIdx}
-                  onClick={() => setSelectedPartIndex(partIdx)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    selectedPartIndex === partIdx
-                      ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
-                      : "text-gray-400 hover:text-[#E8E8E8]"
-                  }`}
-                >
-                  Part {partIdx + 1}
-                </button>
-              ))}
-            </div>
-          )}
           {/* Header row */}
           <div className="flex justify-between items-end mb-6">
             <div>
@@ -2190,7 +2228,7 @@ export default function WebnovelTrailer() {
 
           {/* Clip cards */}
           <div className="grid grid-cols-1 gap-6">
-            {groupFrames(frames).map((group) =>
+            {groupFrames(filteredFrames).map((group) =>
               group.type === 'pair' ? (
                 <PairedClipCard
                   key={`${group.frameA.id}-${group.frameB.id}`}
@@ -2230,3 +2268,4 @@ export default function WebnovelTrailer() {
     </div>
   );
 }
+

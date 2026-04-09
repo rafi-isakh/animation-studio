@@ -2358,7 +2358,7 @@ const { language, dictionary } = useLanguage();
                   onClick={() => setSelectedPartIndex(partIdx)}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     selectedPartIndex === partIdx
-                      ? "bg-cyan-600 text-white hover:bg-cyan-500"
+                      ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
                       : "text-gray-400 hover:text-[#E8E8E8]"
                   }`}
                 >
@@ -2368,7 +2368,7 @@ const { language, dictionary } = useLanguage();
             </div>
           )}
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-black text-cyan-400 uppercase tracking-widest">
+            <h2 className="text-xl font-black text-white-400 uppercase tracking-widest">
               Storyboard
             </h2>
             <div className="flex items-center gap-2">

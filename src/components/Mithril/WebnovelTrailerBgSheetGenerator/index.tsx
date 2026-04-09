@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles } from "../services/firestore";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles, deleteBackground } from "../services/firestore";
 import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage, deleteBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
@@ -418,6 +418,14 @@ export default function BgSheetGenerator() {
       setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
     }
   }, [generatedPartIndices, selectedPartIndex]);
+
+  // Backgrounds filtered to the selected part (all if only one part)
+  const displayedBackgrounds = useMemo(
+    () => generatedPartIndices.length > 1
+      ? backgrounds.filter(bg => (bg.partIndex ?? 0) === selectedPartIndex)
+      : backgrounds,
+    [backgrounds, generatedPartIndices.length, selectedPartIndex]
+  );
 
   // Editor state
   const [editingTarget, setEditingTarget] = useState<{
@@ -1954,17 +1962,17 @@ export default function BgSheetGenerator() {
 
   // Total active frames count
   const totalActiveFrames = useMemo(() => {
-    return backgrounds.reduce((acc, bg) => {
+    return displayedBackgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false).length;
     }, 0);
-  }, [backgrounds]);
+  }, [displayedBackgrounds]);
 
   // Total active frames with images (downloadable)
   const totalDownloadableFrames = useMemo(() => {
-    return backgrounds.reduce((acc, bg) => {
+    return displayedBackgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false && (img.imageBase64 || img.imageUrl)).length;
     }, 0);
-  }, [backgrounds]);
+  }, [displayedBackgrounds]);
 
   // Toggle frame active/inactive
   const handleToggleActive = (bgId: string, index: number) => {
@@ -2543,6 +2551,7 @@ export default function BgSheetGenerator() {
         id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: bgData.name,
         description: bgData.description,
+        partIndex: selectedPartIndex,
         images: BACKGROUND_ANGLES.map(angle => ({
           angle,
           prompt: "",
@@ -2556,19 +2565,29 @@ export default function BgSheetGenerator() {
       };
     });
 
-    setBackgrounds(newBackgrounds);
+    // Replace only this part's backgrounds, keeping other parts intact
+    setBackgrounds(prev => [
+      ...prev.filter(bg => (bg.partIndex ?? 0) !== selectedPartIndex),
+      ...newBackgrounds,
+    ]);
 
     // Persist to Firestore immediately so backgrounds survive refresh
     if (currentProjectId) {
       try {
-        // Clear old backgrounds first to avoid duplicates on refresh
-        await clearBgSheet(currentProjectId);
+        // Delete only the current part's old backgrounds to avoid duplicates
+        const existingBgs = await getBackgrounds(currentProjectId);
+        for (const bg of existingBgs) {
+          if ((bg.partIndex ?? 0) === selectedPartIndex) {
+            await deleteBackground(currentProjectId, bg.id);
+          }
+        }
 
         // Save each background to Firestore
         for (const bg of newBackgrounds) {
           await saveBackgroundWithId(currentProjectId, bg.id, {
             name: bg.name,
             description: bg.description,
+            partIndex: selectedPartIndex,
             angles: bg.images.map(img => ({
               angle: img.angle,
               prompt: img.prompt || "",
@@ -2880,29 +2899,31 @@ export default function BgSheetGenerator() {
         </div>
       ))}
 
-      {/* Import from Storyboard & Import Options - only show when no results */}
-      {!isLoadingData && !isAnalyzing && backgrounds.length === 0 && (
+      {/* Part selector - visible when at least one storyboard part exists */}
+      {!isLoadingData && generatedPartIndices.length >= 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 dark:text-gray-500">Part:</span>
+          <div className="flex gap-1">
+            {generatedPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => setSelectedPartIndex(partIdx)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                {partIdx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Import from Storyboard & Import Options - only show when no results for current part */}
+      {!isLoadingData && !isAnalyzing && displayedBackgrounds.length === 0 && (
         <div className="flex flex-col items-center gap-3">
-          {generatedPartIndices.length > 0 && (
-            <div className="w-full max-w-xl space-y-2">
-              <p className="text-sm font-medium text-gray-300 text-center">Storyboard Parts</p>
-              <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap justify-center">
-                {generatedPartIndices.map((partIdx) => (
-                  <button
-                    key={partIdx}
-                    onClick={() => setSelectedPartIndex(partIdx)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      selectedPartIndex === partIdx
-                        ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
-                        : "text-gray-400 hover:text-[#E8E8E8]"
-                    }`}
-                  >
-                    Part {partIdx + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           {/* Primary: Import from Storyboard */}
           <button
             onClick={handleImportFromStoryboard}
@@ -2968,14 +2989,14 @@ export default function BgSheetGenerator() {
       {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} onCancel={cancelBgSheetAnalysis} />}
 
       {/* Results */}
-      {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
+      {!isLoadingData && displayedBackgrounds.length > 0 && !isAnalyzing && (
         <div className="space-y-4">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <span className="w-1 h-5 bg-[#DB2777] rounded-full"></span>
-                {phrase(dictionary, "bgsheet_backgrounds", language)} ({backgrounds.length})
+                {phrase(dictionary, "bgsheet_backgrounds", language)} ({displayedBackgrounds.length})
               </h3>
               <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">
                 {totalActiveFrames} {phrase(dictionary, "bgsheet_active_frames", language) || "active frames"}
@@ -3067,7 +3088,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
+            {[...displayedBackgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"

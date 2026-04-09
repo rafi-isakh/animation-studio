@@ -102,6 +102,7 @@ export default function StoryboardGenerator() {
     clearStoryboardGeneration,
     setActiveStoryboardPartIndex,
     isStageSkipped,
+    getGeneratedPartIndices,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
   const { toast } = useToast();
@@ -909,6 +910,31 @@ export default function StoryboardGenerator() {
                 {splitParts[selectedPartIndex]?.length > 300 && "..."}
               </pre>
             </div>
+          </div>
+        </div>
+      ) : getGeneratedPartIndices().length > 1 ? (
+        // No StorySplitter result in context, but multiple parts exist in Firestore — show tabs for navigation
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {phrase(dictionary, "storyboard_select_part", language)}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {getGeneratedPartIndices().map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => {
+                  setSelectedPartIndex(partIdx);
+                  setActiveStoryboardPartIndex(partIdx);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                {phrase(dictionary, "storysplitter_part", language)} {partIdx + 1}
+              </button>
+            ))}
           </div>
         </div>
       ) : (

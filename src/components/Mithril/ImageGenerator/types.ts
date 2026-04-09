@@ -22,6 +22,7 @@ export interface ImageGenFrame {
   id: string; // UUID for React key and state matching
   sceneIndex: number; // From storyboard scene
   clipIndex: number; // From storyboard clip
+  partIndex?: number; // Which storyboard part this frame belongs to (0-based)
   frameLabel: string; // e.g., "1A", "1B", "2"
   frameNumber: string; // e.g., "001", "001A", "002"
   shotGroup: number; // Grouping for UI display
@@ -77,6 +78,7 @@ export interface CharacterAssetRef {
 export interface BackgroundAssetRef {
   id: string;
   name: string;
+  partIndex?: number;
   angles: {
     angle: string;
     imageRef: string;
@@ -112,6 +114,7 @@ export interface ImageGenFrameMetadata {
   id: string;
   sceneIndex: number;
   clipIndex: number;
+  partIndex?: number;
   frameLabel: string;
   frameNumber: string;
   shotGroup: number;

@@ -55,6 +55,7 @@ export interface BackgroundMetadata {
   id: string;
   name: string;
   description: string;
+  partIndex?: number;                  // Which storyboard part this background belongs to (0-based)
   images: GeneratedImageMetadata[];
   referenceImageUrl?: string;          // S3 URL for master reference image
   referenceAnalysis?: ReferenceAnalysis; // Spatial analysis of reference

@@ -540,6 +540,7 @@ export default function BgSheetGenerator() {
             id: b.id,
             name: b.name,
             description: b.description,
+            partIndex: b.partIndex,
             referenceImageUrl: b.referenceImageUrl,
             referenceAnalysis: b.referenceAnalysis,
             plannedPrompts: b.plannedPrompts,
@@ -809,6 +810,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex,
             images: bg.images.map((img) => ({
               angle: img.angle,
               prompt: img.prompt,
@@ -842,6 +844,7 @@ export default function BgSheetGenerator() {
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -1330,6 +1333,7 @@ export default function BgSheetGenerator() {
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -2461,6 +2465,7 @@ export default function BgSheetGenerator() {
               id: bg.id,
               name: bg.name,
               description: bg.description,
+              partIndex: bg.partIndex,
               images: bg.images.map(img => ({
                 angle: img.angle,
                 prompt: img.prompt || "",
@@ -2602,6 +2607,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex,
             images: bg.images.map(img => ({
               angle: img.angle,
               prompt: img.prompt || "",

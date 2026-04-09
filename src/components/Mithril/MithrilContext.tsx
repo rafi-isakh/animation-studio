@@ -150,6 +150,7 @@ interface BgSheetBackground {
   id: string;
   name: string;
   description: string;
+  partIndex?: number;
   images: {
     angle: string;
     prompt: string;
@@ -747,6 +748,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             voicePrompts: storyboardData.voicePrompts,
             characterIdSummary: storyboardMeta.characterIdSummary || [],
             genre: storyboardMeta.genre || undefined,
+            // Populate parts[0] so getGeneratedPartIndices() returns [0] for legacy single-part projects
+            parts: { ...prev.parts, 0: { scenes: scenesWithClips, voicePrompts: storyboardData.voicePrompts, characterIdSummary: storyboardMeta.characterIdSummary || [], genre: storyboardMeta.genre || undefined } },
           }));
 
           // Also set stageResult for components that read from it (e.g., SoraVideoGenerator)

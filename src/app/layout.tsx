@@ -15,7 +15,7 @@ interface RootLayoutProps {
 }
 
 export const metadata: Metadata = {
-    title: '투니즈 Toonyz',
+    title: 'Mithril',
     description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
     manifest: '/manifest.json',
     openGraph: {

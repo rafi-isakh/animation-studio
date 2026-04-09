@@ -1488,12 +1488,12 @@ class StorySplitsService:
         self.db = get_db()
 
     def _doc_ref(self, project_id: str) -> DocumentReference:
-        """Get document reference for mithril/storySplits."""
+        """Get document reference for storySplits/data."""
         return (
             self.db.collection("projects")
             .document(project_id)
-            .collection("mithril")
-            .document("storySplits")
+            .collection("storySplits")
+            .document("data")
         )
 
     async def save_story_splits(

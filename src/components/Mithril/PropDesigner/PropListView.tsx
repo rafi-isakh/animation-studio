@@ -56,6 +56,8 @@ interface PropListViewProps {
   initialMinimized?: boolean; // Start minimized (as floating button)
   sessionId?: string; // Session identifier
   minimizedIndex?: number; // Position offset for stacking minimized buttons
+  isEasyMode?: boolean; // Controlled from parent (shared with DetectionPanel)
+  onToggleEasyMode?: (enabled: boolean) => void;
 }
 
 export default function PropListView({
@@ -75,6 +77,8 @@ export default function PropListView({
   initialMinimized = false,
   sessionId,
   minimizedIndex = 0,
+  isEasyMode: isEasyModeProp,
+  onToggleEasyMode,
 }: PropListViewProps) {
   // Sort props: Default characters first, then Variants
   const sortedProps = useMemo(() => {
@@ -99,8 +103,9 @@ export default function PropListView({
       setIsMinimizedLocal(prev => !prev);
     }
   }, [onToggleMinimize]);
-  // Easy Mode state
-  const [isEasyMode, setIsEasyMode] = useState(false);
+  // Easy Mode state — controlled by parent if isEasyModeProp is provided
+  const [isEasyModeLocal, setIsEasyModeLocal] = useState(true);
+  const isEasyMode = isEasyModeProp !== undefined ? isEasyModeProp : isEasyModeLocal;
 
   // Job statuses from orchestrator (real-time updates)
   const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
@@ -178,7 +183,8 @@ export default function PropListView({
   // Handle Easy Mode toggle
   const toggleEasyMode = useCallback(
     (enabled: boolean) => {
-      setIsEasyMode(enabled);
+      setIsEasyModeLocal(enabled);
+      onToggleEasyMode?.(enabled);
       if (enabled) {
         // Apply Easy Mode Template
         const newPrompts: Record<string, string> = {};
@@ -206,7 +212,7 @@ export default function PropListView({
         setEditablePrompts(defaultPrompts);
       }
     },
-    [sortedProps, genre]
+    [sortedProps, genre, onToggleEasyMode]
   );
 
   // Handle prompt change

@@ -26,6 +26,135 @@ interface DetectRequest {
   customApiKey?: string;
 }
 
+const JSON_OUTPUT_RETRY_INSTRUCTION = `
+[CRITICAL JSON OUTPUT RULES]
+- Return ONLY valid JSON. No markdown, no explanations, no trailing text.
+- Escape all double quotes inside string values.
+- Escape line breaks inside string values as \\n (do not output raw newlines inside strings).
+- Use null for missing nullable values.
+`;
+
+function stripJsonCodeFences(text: string): string {
+  return text.replace(/```json|```/g, "").trim();
+}
+
+function escapeControlCharsInJsonStrings(input: string): string {
+  let result = "";
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+
+    if (!inString) {
+      result += ch;
+      if (ch === '"') {
+        inString = true;
+      }
+      continue;
+    }
+
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      result += ch;
+      inString = false;
+      continue;
+    }
+
+    if (ch === "\n") {
+      result += "\\n";
+      continue;
+    }
+
+    if (ch === "\r") {
+      result += "\\r";
+      continue;
+    }
+
+    if (ch === "\t") {
+      result += "\\t";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+function parseJsonArrayResponse(responseText: string, label: string): unknown[] {
+  const cleaned = stripJsonCodeFences(responseText);
+
+  try {
+    const parsed = JSON.parse(cleaned) as unknown;
+    if (!Array.isArray(parsed)) {
+      throw new Error(`${label} response is not a JSON array`);
+    }
+    return parsed;
+  } catch (firstError) {
+    const sanitized = escapeControlCharsInJsonStrings(cleaned);
+    try {
+      const reparsed = JSON.parse(sanitized) as unknown;
+      if (!Array.isArray(reparsed)) {
+        throw new Error(`${label} response is not a JSON array`);
+      }
+      return reparsed;
+    } catch {
+      throw firstError;
+    }
+  }
+}
+
+async function generateStructuredArrayWithRetry(
+  ai: GoogleGenAI,
+  prompt: string,
+  responseSchema: object,
+  label: string
+): Promise<unknown[]> {
+  const maxAttempts = 2;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const contents = attempt === 1 ? prompt : `${prompt}\n\n${JSON_OUTPUT_RETRY_INSTRUCTION}`;
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema,
+      },
+    });
+
+    const responseText = response.text?.trim();
+    if (!responseText) {
+      lastError = new Error(`No response text from AI for ${label}`);
+      continue;
+    }
+
+    try {
+      return parseJsonArrayResponse(responseText, label);
+    } catch (error) {
+      lastError = error;
+      console.warn(`[generate_prop_sheet/detect] Failed to parse ${label} JSON on attempt ${attempt}`);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? new Error(`Failed to parse valid ${label} JSON after retries: ${lastError.message}`)
+    : new Error(`Failed to parse valid ${label} JSON after retries`);
+}
+
 const objectDetectionSchema = {
   type: Type.ARRAY,
   description: "Array of detected props/objects with their details",
@@ -233,22 +362,7 @@ ${JSON.stringify(allClips, null, 2)}
   `;
 
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: objectDetectionSchema,
-    },
-  });
-
-  const responseText = response.text?.trim();
-  if (!responseText) {
-    throw new Error("No response text from AI for objects");
-  }
-
-  const jsonText = responseText.replace(/```json|```/g, "").trim();
-  return JSON.parse(jsonText);
+  return generateStructuredArrayWithRetry(ai, prompt, objectDetectionSchema, "objects");
 }
 
 async function detectCharacters(
@@ -302,22 +416,7 @@ ${JSON.stringify(allClips, null, 2)}
   `;
 
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: characterDetectionSchema,
-    },
-  });
-
-  const responseText = response.text?.trim();
-  if (!responseText) {
-    throw new Error("No response text from AI for characters");
-  }
-
-  const jsonText = responseText.replace(/```json|```/g, "").trim();
-  return JSON.parse(jsonText);
+  return generateStructuredArrayWithRetry(ai, prompt, characterDetectionSchema, "characters");
 }
 
 export async function POST(request: NextRequest) {

@@ -49,7 +49,6 @@ interface PropListViewProps {
   onSetReferenceImages: (propId: string, images: string[]) => void;
   onUpdateProp: (propId: string, updates: Partial<Prop>) => void;
   onClose: () => void;
-  onClearAll: () => void;
   onToggleMinimize?: () => void; // Toggle minimize from parent
   title?: string;
   accentColor?: "purple" | "cyan";
@@ -1152,17 +1151,11 @@ export default function PropListView({
             >
               Fold Window
             </button>
-            <button
-              onClick={onClearAll}
-              className="px-5 py-1.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-900/50 rounded text-xs font-bold transition-colors"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={onClose}
-              className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold transition-colors"
-            >
-              Close
+              <button
+                onClick={onClose}
+                className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold transition-colors"
+              >
+                Close
             </button>
           </div>
         </div>

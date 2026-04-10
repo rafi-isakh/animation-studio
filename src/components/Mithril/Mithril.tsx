@@ -38,6 +38,7 @@ import { StageSidebarProvider, useStageSidebar } from "./StageSidebarContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { getProjectTypeConfig, getPipelineStages, isTextToVideoType, isImageToVideoType } from "./config/projectTypes";
+import SidebarAssetSection from "./SidebarAssetSection";
 
 // Component mapping for dynamic rendering
 const STAGE_COMPONENTS: Record<string, ComponentType> = {
@@ -277,6 +278,9 @@ function MithrilContent() {
   const isTextToVideo = isTextToVideoType(projectType);
   const isImageToVideo = isImageToVideoType(projectType);
 
+  const ASSET_SECTION_TYPES = ['text-to-video', 'text-to-video-nsfw', 'webnovel-trailer', 'webnovel-trailer-nsfw'] as const;
+  const showAssetSection = (ASSET_SECTION_TYPES as readonly string[]).includes(projectType);
+
   const isVideoStageComponent = currentStageConfig?.component === 'I2VVideoGenerator'
     || currentStageConfig?.component === 'CsvVideoGenerator'
     || currentStageConfig?.component === 'NsfwVideoGenerator';
@@ -390,6 +394,7 @@ function MithrilContent() {
             )}
             {showCostTracker && <CostTrackerDashboard />}
             <div ref={setSidebarNode} />
+            {showAssetSection && <SidebarAssetSection />}
             <div className="flex-1" />
             <PrevNextButtons
               currentStage={currentStage}

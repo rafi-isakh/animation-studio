@@ -59,8 +59,10 @@ import {
   getDetectedIds,
   savePropDesignerSettings,
   saveProp,
+  updateProp,
   saveDetectedIds,
   clearPropDesigner,
+  pushPropsToAssets as pushPropsToAssetsFirestore,
   // Image-to-Video: Stage 1 - ImageSplitter
   getImageSplitterMeta,
   getMangaPages,
@@ -241,6 +243,8 @@ interface MithrilContextProps {
   propDesignerGenerator: PropDesignerGeneratorState;
   setPropDesignerResult: (result: PropDesignerResultMetadata) => void;
   clearPropDesignerData: () => void;
+  pushPropsToAssets: () => Promise<void>;
+  renameProp: (propId: string, newName: string) => Promise<void>;
 
   // Upload Type (novel vs chapter)
   uploadType: UploadType;
@@ -786,6 +790,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             designSheetImageRef: prop.designSheetImageRef,
             referenceImageRef: prop.referenceImageRef,
             referenceImageRefs: prop.referenceImageRefs,
+            pushedToAssets: prop.pushedToAssets,
           })),
           detectedIds: detectedIds.map(d => ({
             id: d.id,
@@ -1874,6 +1879,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const clearPropDesignerData = useCallback(async () => {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[PropDesigner][clearPropDesignerData] start", {
+        hasProject: !!currentProjectId,
+      });
+    }
     setPropDesignerGenerator({
       isAnalyzing: false,
       error: null,
@@ -1883,10 +1893,59 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (currentProjectId) {
       try {
         await clearPropDesigner(currentProjectId);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][clearPropDesignerData] firestore_cleared");
+        }
       } catch (error) {
         console.error("Error clearing prop designer from Firestore:", error);
       }
     }
+  }, [currentProjectId]);
+
+  const pushPropsToAssets = useCallback(async () => {
+    if (!currentProjectId) return;
+    await pushPropsToAssetsFirestore(currentProjectId);
+    setPropDesignerGenerator(prev => {
+      if (!prev.result) return prev;
+      if (process.env.NODE_ENV !== "production") {
+        const total = prev.result.props.length;
+        const withImageRef = prev.result.props.filter(p => !!p.designSheetImageRef).length;
+        const charWithRef = prev.result.props.filter(p => p.category === "character" && !!p.designSheetImageRef).length;
+        const objWithRef = prev.result.props.filter(p => p.category === "object" && !!p.designSheetImageRef).length;
+        console.log("[PropDesigner][pushPropsToAssets]", {
+          total,
+          withImageRef,
+          charWithRef,
+          objWithRef,
+        });
+      }
+      return {
+        ...prev,
+        result: {
+          ...prev.result,
+          props: prev.result.props.map(p =>
+            p.designSheetImageRef ? { ...p, pushedToAssets: true } : p
+          ),
+        },
+      };
+    });
+  }, [currentProjectId]);
+
+  const renameProp = useCallback(async (propId: string, newName: string) => {
+    if (!currentProjectId) return;
+    await updateProp(currentProjectId, propId, { name: newName });
+    setPropDesignerGenerator(prev => {
+      if (!prev.result) return prev;
+      return {
+        ...prev,
+        result: {
+          ...prev.result,
+          props: prev.result.props.map(p =>
+            p.id === propId ? { ...p, name: newName } : p
+          ),
+        },
+      };
+    });
   }, [currentProjectId]);
 
   // Navigation methods (follow pipeline order, skipping tool-only and skipped stages)
@@ -1999,6 +2058,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         propDesignerGenerator,
         setPropDesignerResult,
         clearPropDesignerData,
+        pushPropsToAssets,
+        renameProp,
         // Upload Type (novel vs chapter)
         uploadType,
         setUploadType,

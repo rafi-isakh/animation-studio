@@ -211,6 +211,9 @@ export interface PropDocument {
   isVariant?: boolean;
   variantDetails?: string; // e.g., "Future version", "Dark mode"
   variantVisuals?: string; // e.g., "Longer hair, darker outfit"
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 export interface DetectedIdDocument {
@@ -282,6 +285,9 @@ export interface UpdatePropInput {
   isVariant?: boolean;
   variantDetails?: string;
   variantVisuals?: string;
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 // ============================================

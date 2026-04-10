@@ -525,29 +525,30 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             setStorySplitterJobId(null);
             setStorySplitter(prev => ({ ...prev, isLoading: false, error: null }));
           } else {
-          const jobStatus = await response.json();
+            const jobStatus = await response.json();
 
-          if (jobStatus.status === "completed" && jobStatus.parts) {
-            // Job completed while we were away - update state with results
-            storySplitterJobIdRef.current = null;
-            setStorySplitterJobId(null);
-            setStorySplitter({
-              isLoading: false,
-              error: null,
-              result: { parts: jobStatus.parts },
-            });
-            setStageResults(prev => ({ ...prev, 2: { parts: jobStatus.parts } }));
-          } else if (jobStatus.status === "failed") {
-            // Job failed while we were away
-            storySplitterJobIdRef.current = null;
-            setStorySplitterJobId(null);
-            setStorySplitter(prev => ({
-              ...prev,
-              isLoading: false,
-              error: jobStatus.error || "Story splitting failed",
-            }));
+            if (jobStatus.status === "completed" && jobStatus.parts) {
+              // Job completed while we were away - update state with results
+              storySplitterJobIdRef.current = null;
+              setStorySplitterJobId(null);
+              setStorySplitter({
+                isLoading: false,
+                error: null,
+                result: { parts: jobStatus.parts },
+              });
+              setStageResults(prev => ({ ...prev, 2: { parts: jobStatus.parts } }));
+            } else if (jobStatus.status === "failed") {
+              // Job failed while we were away
+              storySplitterJobIdRef.current = null;
+              setStorySplitterJobId(null);
+              setStorySplitter(prev => ({
+                ...prev,
+                isLoading: false,
+                error: jobStatus.error || "Story splitting failed",
+              }));
+            }
+            // If status is pending/generating, keep loading state - subscription will handle updates
           }
-          // If status is pending/generating, keep loading state - subscription will handle updates
         } catch (statusErr) {
           console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
           // Job might not exist anymore - clear loading state

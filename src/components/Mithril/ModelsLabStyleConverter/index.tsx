@@ -658,6 +658,66 @@ export default function ModelsLabStyleConverter() {
     [submitSinglePanel],
   );
 
+  const handleRemix = useCallback(async (id: string, remixPrompt: string) => {
+    const panel = panelsRef.current.find((p) => p.id === id);
+    if (!panel?.resultUrl) return;
+
+    // Get result image as base64
+    let imageBase64: string;
+    if (panel.resultUrl.startsWith('data:')) {
+      imageBase64 = panel.resultUrl.split(',')[1];
+    } else {
+      const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error('Failed to fetch result image');
+      const blob = await res.blob();
+      imageBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+      });
+    }
+
+    // Map AspectRatio to what the remix API accepts
+    const ratioMap: Partial<Record<AspectRatio, '1:1' | '16:9' | '9:16'>> = {
+      [AspectRatio.Square]: '1:1',
+      [AspectRatio.Landscape]: '16:9',
+      [AspectRatio.Portrait]: '9:16',
+    };
+    const aspectRatio = ratioMap[config.targetAspectRatio];
+
+    const response = await fetch('/api/storyboard-editor/remix-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        originalImage: imageBase64,
+        remixPrompt,
+        originalContext: panel.prompt || '',
+        ...(aspectRatio ? { aspectRatio } : {}),
+      }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || `Remix failed (${response.status})`);
+    }
+    const { imageBase64: remixedBase64 } = await response.json() as { imageBase64: string };
+
+    const remixImageUrl = await uploadI2VPanelEditorImage(
+      currentProjectId!,
+      `${id}-remix`,
+      remixedBase64,
+      'image/jpeg',
+    );
+
+    setPanels((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, resultUrl: remixImageUrl, _fromStorage: false } : p)),
+    );
+    if (currentProjectId) {
+      void updateStyleConverterPanel(currentProjectId, id, { resultImageRef: remixImageUrl });
+    }
+  }, [config.targetAspectRatio, currentProjectId]);
+
   const handleRemoveFileFromLibrary = useCallback((fileName: string) => {
     setFileLibrary((prev) => {
       const next = { ...prev };
@@ -896,6 +956,7 @@ export default function ModelsLabStyleConverter() {
                   onRetry={handleRetry}
                   onUpdatePrompt={handleUpdatePrompt}
                   onUpdateImageWeight={handleUpdateImageWeight}
+                  onRemix={handleRemix}
                   targetRatio={config.targetAspectRatio}
                 />
               ))}

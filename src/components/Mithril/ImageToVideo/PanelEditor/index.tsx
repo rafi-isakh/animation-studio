@@ -77,6 +77,7 @@ export default function PanelEditor() {
     retryPanel,
     refinePanel,
     inpaintPanel,
+    remixPanel,
     clearPanels,
     successCount,
   } = usePanelEditor({ projectId: currentProjectId || '' });
@@ -349,6 +350,7 @@ export default function PanelEditor() {
                   onRetry={retryPanel}
                   onRefine={refinePanel}
                   onInpaint={inpaintPanel}
+                  onRemix={remixPanel}
                   targetRatio={config.targetAspectRatio}
                 />
               ))}

@@ -4,6 +4,8 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from "react"
 import { Prop, getEasyModeCharacterPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
 import { updatePropDesignSheetImage } from "../services/firestore";
+import MannequinTemplatesPanel from "./MannequinTemplatesPanel";
+import { getSuggestedTemplates } from "./characterTemplates";
 
 // Status badge component for job statuses
 function JobStatusBadge({ status }: { status: PropJobStatus | null }) {
@@ -57,6 +59,7 @@ interface PropListViewProps {
   minimizedIndex?: number; // Position offset for stacking minimized buttons
   isEasyMode?: boolean; // Controlled from parent (shared with DetectionPanel)
   onToggleEasyMode?: (enabled: boolean) => void;
+  suggestedStartingImages?: Record<string, string[]>; // propId → suggested template paths
 }
 
 export default function PropListView({
@@ -78,6 +81,7 @@ export default function PropListView({
   minimizedIndex = 0,
   isEasyMode: isEasyModeProp,
   onToggleEasyMode,
+  suggestedStartingImages,
 }: PropListViewProps) {
   // Sort props: Default characters first, then Variants
   const sortedProps = useMemo(() => {
@@ -105,6 +109,34 @@ export default function PropListView({
   // Easy Mode state — controlled by parent if isEasyModeProp is provided
   const [isEasyModeLocal, setIsEasyModeLocal] = useState(true);
   const isEasyMode = isEasyModeProp !== undefined ? isEasyModeProp : isEasyModeLocal;
+
+  // Active prop for mannequin template panel
+  const [activePropId, setActivePropId] = useState<string | null>(null);
+
+  // Per-prop selected template paths (for mannequin panel)
+  // Pre-populate with top 2 suggestions; user can adjust via MannequinTemplatesPanel
+  const [startingImages, setStartingImages] = useState<Record<string, string[]>>(() => {
+    if (!suggestedStartingImages) return {};
+    const initial: Record<string, string[]> = {};
+    for (const [propId, paths] of Object.entries(suggestedStartingImages)) {
+      initial[propId] = paths.slice(0, 2);
+    }
+    return initial;
+  });
+
+  // When suggestions change (e.g. new props detected), seed any prop not yet touched
+  useEffect(() => {
+    if (!suggestedStartingImages) return;
+    setStartingImages((prev) => {
+      const next = { ...prev };
+      for (const [propId, paths] of Object.entries(suggestedStartingImages)) {
+        if (!next[propId] || next[propId].length === 0) {
+          next[propId] = paths.slice(0, 2);
+        }
+      }
+      return next;
+    });
+  }, [suggestedStartingImages]);
 
   // Job statuses from orchestrator (real-time updates)
   const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
@@ -199,6 +231,22 @@ export default function PropListView({
           }
         });
         setEditablePrompts(newPrompts);
+
+        // Seed starting images from suggestions (only for chars without existing selection)
+        setStartingImages((prev) => {
+          const next = { ...prev };
+          sortedProps.forEach((prop) => {
+            if (prop.category === "character" && !next[prop.id]?.length) {
+              next[prop.id] = suggestedStartingImages?.[prop.id] ||
+                getSuggestedTemplates(prop);
+            }
+          });
+          return next;
+        });
+
+        // Set first character as active in the template panel
+        const firstChar = sortedProps.find((p) => p.category === "character");
+        if (firstChar) setActivePropId(firstChar.id);
       } else {
         // Revert to default prompts
         const defaultPrompts: Record<string, string> = {};
@@ -265,6 +313,11 @@ export default function PropListView({
       const prompt = editablePrompts[propId] || prop.designSheetPrompt || "";
 
 
+      // Merge starting images (mannequin templates) with manual reference images
+      const isCharacterProp = prop.category === "character";
+      const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[propId] || []) : [];
+      const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+
       // Use async orchestrator if projectId is available
       if (projectId && orchestrator) {
         try {
@@ -291,7 +344,7 @@ export default function PropListView({
             prompt,
             genre,
             styleKeyword,
-            referenceImages: prop.referenceImages,
+            referenceImages: mergedRefs.length > 0 ? mergedRefs : undefined,
             aspectRatio: "16:9",
           });
 
@@ -312,13 +365,13 @@ export default function PropListView({
         // Fallback to sync generation (legacy)
         setActiveLoadingId(propId);
         try {
-          await onGenerateImage(propId, prompt, prop.referenceImages);
+          await onGenerateImage(propId, prompt, mergedRefs.length > 0 ? mergedRefs : prop.referenceImages);
         } finally {
           setActiveLoadingId(null);
         }
       }
     },
-    [props, editablePrompts, onGenerateImage, projectId, orchestrator, genre, styleKeyword, onUpdateProp]
+    [props, editablePrompts, onGenerateImage, projectId, orchestrator, genre, styleKeyword, onUpdateProp, isEasyMode, startingImages]
   );
 
   // Handle batch generation for all props without images
@@ -347,16 +400,21 @@ export default function PropListView({
     setJobStatuses((prev) => ({ ...prev, ...initialStatuses }));
 
     try {
-      const jobs = propsToGenerate.map((prop) => ({
-        propId: prop.id,
-        propName: prop.name,
-        category: prop.category as 'character' | 'object',
-        prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
-        genre,
-        styleKeyword,
-        referenceImages: prop.referenceImages,
-        aspectRatio: "16:9" as const,
-      }));
+      const jobs = propsToGenerate.map((prop) => {
+        const isCharacterProp = prop.category === "character";
+        const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[prop.id] || []) : [];
+        const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+        return {
+          propId: prop.id,
+          propName: prop.name,
+          category: prop.category as 'character' | 'object',
+          prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
+          genre,
+          styleKeyword,
+          referenceImages: mergedRefs.length > 0 ? mergedRefs : undefined,
+          aspectRatio: "16:9" as const,
+        };
+      });
 
       const result = await orchestrator.submitBatch({ jobs });
 
@@ -527,7 +585,18 @@ export default function PropListView({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+      <div className={`flex gap-3 h-[90vh] w-full ${isEasyMode ? "max-w-[72rem]" : "max-w-6xl"}`}>
+        {/* Mannequin Templates side panel — only visible in Easy Mode */}
+        {isEasyMode && (
+          <MannequinTemplatesPanel
+            activePropName={sortedProps.find((p) => p.id === activePropId)?.name}
+            selectedPaths={startingImages[activePropId || ""] || []}
+            onSelectionChange={(paths) =>
+              setStartingImages((prev) => ({ ...prev, [activePropId!]: paths }))
+            }
+          />
+        )}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl flex-1 h-full flex flex-col overflow-hidden min-w-0">
         {/* Modal Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
           <div>
@@ -679,7 +748,12 @@ export default function PropListView({
           return (
             <div
               key={prop.id}
-              className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex flex-col md:flex-row gap-4 shadow-sm min-h-[350px]"
+              onClick={() => { if (isEasyMode && isCharacter) setActivePropId(prop.id); }}
+              className={`bg-gray-800 border rounded-lg p-3 flex flex-col md:flex-row gap-4 shadow-sm min-h-[350px] transition-colors ${
+                isEasyMode && isCharacter && activePropId === prop.id
+                  ? "border-green-700 border-l-2 border-l-green-500"
+                  : "border-gray-700"
+              } ${isEasyMode && isCharacter ? "cursor-pointer" : ""}`}
             >
               {/* Left Column: Details */}
               <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
@@ -761,6 +835,38 @@ export default function PropListView({
                     <span>
                       Personality: <b className="text-gray-300">{prop.personality}</b>
                     </span>
+                  </div>
+                )}
+
+                {/* Starting References — selected mannequin templates (Easy Mode only) */}
+                {isEasyMode && isCharacter && (startingImages[prop.id]?.length ?? 0) > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[8px] font-black text-green-700 uppercase tracking-widest shrink-0">
+                      Starting Ref:
+                    </span>
+                    {startingImages[prop.id].map((path, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={path}
+                          alt={`Template ${idx + 1}`}
+                          className="h-8 w-8 object-contain rounded border border-green-800 bg-black/40"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStartingImages((prev) => ({
+                              ...prev,
+                              [prop.id]: (prev[prop.id] || []).filter((_, i) => i !== idx),
+                            }));
+                          }}
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-900 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5">
+                            <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -1159,6 +1265,7 @@ export default function PropListView({
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

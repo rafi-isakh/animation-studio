@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import { getSuggestedTemplates } from "./characterTemplates";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -123,6 +124,26 @@ export default function PropDesigner() {
 
   // Derive flat props array from all sessions (for context persistence compatibility)
   const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
+
+  // Compute suggested mannequin template paths per session and prop
+  const suggestedStartingImages = useMemo(() => {
+    const map: Record<string, Record<string, string[]>> = {};
+    sessions.forEach((session) => {
+      map[session.id] = {};
+      session.props.forEach((prop) => {
+        if (prop.category === "character") {
+          map[session.id][prop.id] = getSuggestedTemplates({
+              gender: prop.gender,
+              role: prop.role,
+              age: prop.age,
+              name: prop.name,
+              description: prop.description,
+            });
+        }
+      });
+    });
+    return map;
+  }, [sessions]);
 
   // CSV imported scenes (local storyboard data)
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
@@ -1762,6 +1783,7 @@ export default function PropDesigner() {
               minimizedIndex={idx}
               isEasyMode={isEasyMode}
               onToggleEasyMode={setIsEasyMode}
+              suggestedStartingImages={suggestedStartingImages[session.id] || {}}
             />
           ))}
         </>

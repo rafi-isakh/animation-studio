@@ -95,7 +95,19 @@ function Subsection({ label, icon, count, children }: SubsectionProps) {
 }
 
 type PropWithImage = PropMetadata & { designSheetImageRef: string };
-type BackgroundWithImage = { bg: BackgroundMetadata; firstImageUrl: string };
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Worm View",
+  "Character A View",
+  "Character B View",
+  "Rear View",
+  "Bird's Eye View",
+  "Over-Shoulder A",
+  "Over-Shoulder B",
+  "Floor Close-up",
+];
+
+type BackgroundWithImage = { bg: BackgroundMetadata; imageUrl: string; angle: string; slotLabel: string };
 
 export default function SidebarAssetSection() {
   const { propDesignerGenerator, bgSheetGenerator, renameProp } = useMithril();
@@ -111,8 +123,19 @@ export default function SidebarAssetSection() {
   const activeBgPartIndex = bgSheetGenerator.activeBgPartIndex ?? 0;
   const backgrounds: BackgroundWithImage[] = (bgSheetGenerator.result?.backgrounds ?? [])
     .filter(bg => bg.pushedToAssets === true && (bg.partIndex ?? 0) === activeBgPartIndex)
-    .map(bg => ({ bg, firstImageUrl: bg.images.find(i => i.imageId)?.imageId ?? "" }))
-    .filter(item => item.firstImageUrl !== "");
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .flatMap((bg, bgSortedIndex) => (
+      bg.images
+        .filter(i => !!i.imageId)
+        .map(i => {
+          const standardAngleIndex = BACKGROUND_ANGLES.indexOf(i.angle);
+          const slotLabel = standardAngleIndex >= 0
+            ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+            : i.angle;
+          return { bg, imageUrl: i.imageId ?? "", angle: i.angle, slotLabel };
+        })
+    ))
+    .filter(item => item.imageUrl !== "");
 
   if (characters.length === 0 && objects.length === 0 && backgrounds.length === 0) {
     return null;
@@ -149,8 +172,8 @@ export default function SidebarAssetSection() {
       )}
       {backgrounds.length > 0 && (
         <Subsection label="Backgrounds" icon={<ImageIcon className="h-3.5 w-3.5" />} count={backgrounds.length}>
-          {backgrounds.map(({ bg, firstImageUrl }) => (
-            <AssetCard key={bg.id} imageUrl={firstImageUrl} name={bg.name} />
+          {backgrounds.map(({ bg, imageUrl, angle, slotLabel }) => (
+            <AssetCard key={`${bg.id}-${angle}`} imageUrl={imageUrl} name={slotLabel} />
           ))}
         </Subsection>
       )}

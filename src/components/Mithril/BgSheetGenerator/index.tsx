@@ -561,6 +561,7 @@ export default function BgSheetGenerator() {
             id: b.id,
             name: b.name,
             description: b.description,
+            partIndex: b.partIndex ?? 0,
             referenceImageUrl: b.referenceImageUrl,
             referenceAnalysis: b.referenceAnalysis,
             plannedPrompts: b.plannedPrompts,
@@ -878,6 +879,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex ?? 0,
             images: bg.images.map((img) => ({
               angle: img.angle,
               prompt: img.prompt,
@@ -911,10 +913,11 @@ export default function BgSheetGenerator() {
       ]);
       // Convert to BgSheetResultMetadata format for stageResult
       const metadata: BgSheetResultMetadata = {
-        backgrounds: result.map((bg) => ({
+        backgrounds: taggedResult.map((bg) => ({
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex ?? 0,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -1403,6 +1406,7 @@ export default function BgSheetGenerator() {
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex ?? 0,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -2561,6 +2565,7 @@ export default function BgSheetGenerator() {
               id: bg.id,
               name: bg.name,
               description: bg.description,
+              partIndex: bg.partIndex ?? 0,
               images: bg.images.map(img => ({
                 angle: img.angle,
                 prompt: img.prompt || "",
@@ -2702,6 +2707,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex ?? 0,
             images: bg.images.map(img => ({
               angle: img.angle,
               prompt: img.prompt || "",
@@ -3180,6 +3186,17 @@ export default function BgSheetGenerator() {
               </button>
               <button
                 onClick={async () => {
+                  // Debug: show how many images are detected per background in this part
+                  console.log("[BgSheet] pushBgsToAssets: part", selectedPartIndex);
+                  displayedBackgrounds.forEach(bg => {
+                    const localImages = bg.images.filter(i => i.imageUrl || i.imageBase64);
+                    const persistedImages = bg.images.filter(i => i.imageId);
+                    console.log(
+                      "[BgSheet] bg",
+                      { id: bg.id, name: bg.name, partIndex: bg.partIndex ?? 0 },
+                      { localImageCount: localImages.length, persistedImageCount: persistedImages.length }
+                    );
+                  });
                   setIsPushingBgsToAssets(true);
                   try {
                     await pushBgsToAssets(selectedPartIndex);
@@ -3187,14 +3204,14 @@ export default function BgSheetGenerator() {
                     setIsPushingBgsToAssets(false);
                   }
                 }}
-                disabled={isPushingBgsToAssets || displayedBackgrounds.filter(bg => bg.images.some(i => i.imageUrl || i.imageBase64)).length === 0}
+                disabled={isPushingBgsToAssets || displayedBackgrounds.reduce((count, bg) => count + bg.images.filter(i => i.imageUrl || i.imageBase64).length, 0) === 0}
                 className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-800 disabled:text-gray-600 text-white border border-teal-600 disabled:border-gray-700 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
                 title="Push all generated backgrounds in this part to the asset sidebar"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
                 </svg>
-                {isPushingBgsToAssets ? "Pushing…" : `Push to Assets (${displayedBackgrounds.filter(bg => bg.images.some(i => i.imageUrl || i.imageBase64)).length})`}
+                {isPushingBgsToAssets ? "Pushing…" : `Push to Assets (${displayedBackgrounds.reduce((count, bg) => count + bg.images.filter(i => i.imageUrl || i.imageBase64).length, 0)})`}
               </button>
               <button
                 onClick={() => {

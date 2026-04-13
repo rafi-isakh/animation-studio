@@ -57,7 +57,9 @@ function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProp
   const fileInputRef = useRef<HTMLInputElement>(null);
   const safeLabel = typeof label === "string" ? label : String(label);
   const safeImagePreview =
-    imagePreview && (imagePreview.startsWith("blob:") || imagePreview.startsWith("data:"))
+    typeof imagePreview === "string" &&
+     (imagePreview.startsWith("blob:") ||
+       /^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(imagePreview))
       ? imagePreview
       : null;
 

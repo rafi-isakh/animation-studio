@@ -102,3 +102,26 @@ export function encodePathPreservingSlashes(value: string): string {
     .map((part) => encodeURIComponent(part))
     .join("/");
 }
+
+export function buildInternalServiceUrl(baseUrl: string, path: string): string {
+  const trimmedPath = path.trim();
+  if (
+    trimmedPath.startsWith("http://") ||
+    trimmedPath.startsWith("https://") ||
+    trimmedPath.startsWith("//")
+  ) {
+    throw new Error("Invalid internal service path");
+  }
+
+  const base = new URL(baseUrl);
+  if (base.protocol !== "http:" && base.protocol !== "https:") {
+    throw new Error(`Disallowed URL protocol: ${base.protocol}`);
+  }
+
+  const full = new URL(trimmedPath, base);
+  if (full.origin !== base.origin) {
+    throw new Error("Cross-origin internal service URL is not allowed");
+  }
+
+  return full.toString();
+}

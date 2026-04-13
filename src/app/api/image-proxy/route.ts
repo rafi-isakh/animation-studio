@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 /**
  * Image Proxy API
@@ -18,31 +19,22 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate URL is from expected domains (S3, CloudFront, or allowed hosts)
-    const parsedUrl = new URL(url);
-    const allowedHostPatterns = [
-      "s3.amazonaws.com",
-      "s3.ap-northeast-2.amazonaws.com",
-      "s3.ap-southeast-1.amazonaws.com",
-      ".s3.ap-northeast-2.amazonaws.com",
-      ".s3.ap-southeast-1.amazonaws.com",
-      ".s3.amazonaws.com",
-      "cloudfront.net",
-      ".cloudfront.net",
-    ];
-
-    const isAllowed = allowedHostPatterns.some(
-      (pattern) => parsedUrl.hostname === pattern || parsedUrl.hostname.endsWith(pattern)
-    );
-
-    if (!isAllowed) {
-      return NextResponse.json(
-        { error: "URL host not allowed" },
-        { status: 403 }
-      );
-    }
+    const parsedUrl = assertAllowedUrl(url, {
+      allowedHostSuffixes: [
+        ".s3.amazonaws.com",
+        ".s3.ap-northeast-2.amazonaws.com",
+        ".s3.ap-southeast-1.amazonaws.com",
+        ".cloudfront.net",
+      ],
+      allowedHostnames: new Set([
+        "s3.amazonaws.com",
+        "s3.ap-northeast-2.amazonaws.com",
+        "s3.ap-southeast-1.amazonaws.com",
+      ]),
+    });
 
     // Fetch the image
-    const response = await fetch(url);
+    const response = await fetch(parsedUrl.toString());
 
     if (!response.ok) {
       return NextResponse.json(

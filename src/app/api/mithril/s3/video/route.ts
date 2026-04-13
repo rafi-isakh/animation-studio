@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { s3Client } from "@/utils/s3";
 import { PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 import {
   UploadVideoRequest,
   UploadVideoResponse,
@@ -30,8 +31,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadVid
       );
     }
 
+    const allowedHostnames = new Set([
+      ...(VIDEOS_S3 ? [VIDEOS_S3] : []),
+    ]);
+    const safeVideoUrl = assertAllowedUrl(videoUrl, {
+      allowedHostSuffixes: [".cloudfront.net", ".amazonaws.com"],
+      allowedHostnames,
+    });
+
     // Download video from URL
-    const response = await fetch(videoUrl);
+    const response = await fetch(safeVideoUrl.toString());
     if (!response.ok) {
       return NextResponse.json(
         { success: false, s3Key: "", url: "", error: `Failed to download video: ${response.statusText}` },

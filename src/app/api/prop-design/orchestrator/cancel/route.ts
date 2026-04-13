@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/mithrilAuth";
+import { assertSafePathSegment, buildInternalServiceUrl } from "@/utils/urlSafety";
 
 const ORCHESTRATOR_URL = process.env.MITHRIL_BACKEND_URL || "http://localhost:8000";
 const INTERNAL_SERVICE_SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
@@ -22,10 +23,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CancelJobRequest = await request.json();
+    if (!body.jobId) {
+      return NextResponse.json({ error: "jobId is required" }, { status: 400 });
+    }
 
     // Forward to orchestrator backend
+    const safeJobId = assertSafePathSegment(body.jobId);
+    const cancelUrl = buildInternalServiceUrl(
+      ORCHESTRATOR_URL,
+      `/api/v1/prop-design-jobs/${encodeURIComponent(safeJobId)}/cancel`
+    );
 
-    const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/prop-design-jobs/${body.jobId}/cancel`, {
+    const response = await fetch(cancelUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

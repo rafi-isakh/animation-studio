@@ -27,17 +27,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const normalizedVideosCloudfrontHost = VIDEOS_CLOUDFRONT
+      ? new URL(
+          VIDEOS_CLOUDFRONT.startsWith("http://") || VIDEOS_CLOUDFRONT.startsWith("https://")
+            ? VIDEOS_CLOUDFRONT
+            : `https://${VIDEOS_CLOUDFRONT}`
+        ).hostname.toLowerCase()
+      : null;
+
     const allowedHostnames = new Set([
       "s3.amazonaws.com",
       "s3.ap-northeast-2.amazonaws.com",
-      ...(VIDEOS_CLOUDFRONT ? [VIDEOS_CLOUDFRONT] : []),
+      ...(normalizedVideosCloudfrontHost ? [normalizedVideosCloudfrontHost] : []),
     ]);
 
     const parsedUrl = assertAllowedUrl(url, {
       allowedHostSuffixes: [
         ".s3.amazonaws.com",
         ".s3.ap-northeast-2.amazonaws.com",
-        ".cloudfront.net",
       ],
       allowedHostnames,
     });

@@ -72,7 +72,6 @@ export default function PropListView({
   onSetReferenceImages,
   onUpdateProp,
   onClose,
-  onClearAll,
   onToggleMinimize,
   title = "Design Sheet Generator",
   accentColor = "cyan",

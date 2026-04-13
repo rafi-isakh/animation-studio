@@ -47,6 +47,8 @@ import FrameCard from "./FrameCard";
 import ImageModal from "./ImageModal";
 import { parseCsvData, parseCellReference, colLetterToIndex } from "@/utils/csvHelper";
 import { fileToBase64, sanitizeFilename } from "@/utils/fileHelper";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { useCostTracker } from "../CostContext";
 import { compressImage } from "../StoryboardGenerator/utils/imageUtils";
 import { useImageOrchestrator, FrameUpdate } from "./useImageOrchestrator";
@@ -71,6 +73,18 @@ const aspectRatios = [
   { value: "16:9", label: "Landscape (16:9)" },
   { value: "9:16", label: "Portrait (9:16)" },
   { value: "1:1", label: "Square (1:1)" },
+];
+
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Worm View",
+  "Character A View",
+  "Character B View",
+  "Rear View",
+  "Bird's Eye View",
+  "Over-Shoulder A",
+  "Over-Shoulder B",
+  "Floor Close-up",
 ];
 
 export default function ImageGeneratorOrchestrator() {
@@ -1169,6 +1183,46 @@ export default function ImageGeneratorOrchestrator() {
     URL.revokeObjectURL(objectUrl);
   }, [frames]);
 
+  const handleDownloadAll = useCallback(async () => {
+    const framesWithImages = frames.filter(
+      (f) => f.imageUrl || f.remixImageUrl || f.editedImageUrl
+    );
+    if (framesWithImages.length === 0) {
+      toast({ title: "No Images", description: "No generated images to download.", variant: "destructive" });
+      return;
+    }
+
+    const zip = new JSZip();
+    let imageCount = 0;
+
+    for (const frame of framesWithImages) {
+      const variants: Array<{ url: string; suffix: string }> = [];
+      if (frame.imageUrl)       variants.push({ url: frame.imageUrl,       suffix: "" });
+      if (frame.editedImageUrl) variants.push({ url: frame.editedImageUrl, suffix: "_edited" });
+      if (frame.remixImageUrl)  variants.push({ url: frame.remixImageUrl,  suffix: "_remix" });
+
+      for (const { url, suffix } of variants) {
+        try {
+          const res = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+          if (!res.ok) continue;
+          const { base64 } = await res.json();
+          zip.file(`frame_${frame.frameLabel}${suffix}.png`, base64, { base64: true });
+          imageCount++;
+        } catch (err) {
+          console.error(`Failed to fetch frame ${frame.frameLabel}${suffix}:`, err);
+        }
+      }
+    }
+
+    if (imageCount === 0) {
+      toast({ title: "Download Failed", description: "Could not fetch any images.", variant: "destructive" });
+      return;
+    }
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `frames_${new Date().toISOString().slice(0, 10)}.zip`);
+  }, [frames, toast]);
+
   // Apply bulk background to all frames
   const handleApplyBulkBg = useCallback(() => {
     if (!bulkBackgroundId.trim()) return;
@@ -1879,22 +1933,21 @@ export default function ImageGeneratorOrchestrator() {
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
               {(() => {
-                const allEntries = backgroundAssets.flatMap((bg) =>
-                  (bg.angles || []).map((angle) => ({ bg, angle }))
+                // Sort backgrounds by name (same as BgSheetGenerator) to compute consistent slot labels
+                const sortedBgs = [...backgroundAssets].sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true })
                 );
 
-                const sorted = [...allEntries].sort((a, b) => {
-                  const aParts = a.angle.angle.split("-").map(Number);
-                  const bParts = b.angle.angle.split("-").map(Number);
-                  if (aParts.some(isNaN) || bParts.some(isNaN)) return a.angle.angle.localeCompare(b.angle.angle);
-                  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-                    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0);
-                    if (diff !== 0) return diff;
-                  }
-                  return 0;
-                });
+                // Flatten all bg.angles across all backgrounds into a single list
+                const allEntries = sortedBgs.flatMap((bg, bgSortedIndex) =>
+                  (bg.angles || []).map((angle) => ({ bg, bgSortedIndex, angle }))
+                );
 
-                return sorted.map(({ bg, angle }, angleIndex) => {
+                return allEntries.map(({ bg, bgSortedIndex, angle }, angleIndex) => {
+                  const standardAngleIndex = BACKGROUND_ANGLES.indexOf(angle.angle);
+                  const slotLabel = standardAngleIndex >= 0
+                    ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                    : angle.angle;
                   const angleId = angle.angle;
                   const replaced = isAssetReplaced(angleId);
                   const replacementAsset = localAssets.find((a) => a.id === angleId);
@@ -1908,7 +1961,7 @@ export default function ImageGeneratorOrchestrator() {
                       className={`bg-slate-900 rounded-lg overflow-hidden border group relative ${
                         replaced ? "border-green-500" : "border-slate-700"
                       }`}
-                      title={`${bg.name} - ${angle.angle}`}
+                      title={`${bg.name} - ${slotLabel}`}
                     >
                       <div className="aspect-video bg-black/40 relative">
                         {hasImage ? (
@@ -1939,7 +1992,7 @@ export default function ImageGeneratorOrchestrator() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${angle.angle}`, "background")}
+                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${slotLabel}`, "background")}
                               className="hidden"
                             />
                           </label>
@@ -1952,7 +2005,7 @@ export default function ImageGeneratorOrchestrator() {
                       </div>
                       <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
                         <span className="text-[8px] text-cyan-200 font-bold truncate block">
-                          {angle.angle}
+                          {slotLabel}
                         </span>
                       </div>
                     </div>
@@ -2076,6 +2129,12 @@ export default function ImageGeneratorOrchestrator() {
                   APPLY ALL
                 </button>
               </div>
+              <button
+                onClick={handleDownloadAll}
+                className="px-3 py-1.5 text-[10px] bg-blue-600 text-white rounded-lg font-black hover:bg-blue-500 transition-all"
+              >
+                DOWNLOAD ALL
+              </button>
               <button
                 onClick={() => {
                   setFrames([]);

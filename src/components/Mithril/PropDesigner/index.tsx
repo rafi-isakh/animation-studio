@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
-import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt } from "./types";
+import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -107,6 +107,7 @@ export default function PropDesigner() {
   const [detectedIds, setDetectedIds] = useState<DetectedId[]>([]);
   const [genre, setGenre] = useState<string>("Modern");
   const [styleKeyword, setStyleKeyword] = useState<string>("anime 2d style");
+  const [isEasyMode, setIsEasyMode] = useState(true);
   const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
   const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -799,21 +800,37 @@ export default function PropDesigner() {
         // Build design sheet prompt using CSV description if available
         let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
         if (!designPrompt || designPrompt.trim() === "") {
-          // Helper to ensure text ends with period
-          const ensurePeriod = (text: string): string => {
-            const trimmed = text.trim();
-            return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
-          };
-          
-          if (csvDescription) {
-            // Use CSV description + visual description with new template format
-            const csvDesc = ensurePeriod(csvDescription);
-            const visualDesc = char.description ? ensurePeriod(char.description) : '';
-            designPrompt = `Make 2d anime white background character sheet of who would be ${csvDesc} ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+          if (isEasyMode) {
+            // Easy Mode: use structured metadata template
+            designPrompt = getEasyModeCharacterPrompt(
+              {
+                name: char.name,
+                description: char.description,
+                csvDescription: csvDescription || undefined,
+                age: char.age,
+                gender: char.gender,
+                hairColor: char.hairColor,
+                hairStyle: char.hairStyle,
+                eyeColor: char.eyeColor,
+                personality: char.personality,
+                role: resolvedRole,
+              },
+              genre
+            );
           } else {
-            // Fallback to AI-generated description only
-            const visualDesc = ensurePeriod(char.description);
-            designPrompt = `Make 2d anime white background character sheet of who would be ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+            // Advanced Mode: use AI-generated description only
+            const ensurePeriod = (text: string): string => {
+              const trimmed = text.trim();
+              return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+            };
+            if (csvDescription) {
+              const csvDesc = ensurePeriod(csvDescription);
+              const visualDesc = char.description ? ensurePeriod(char.description) : '';
+              designPrompt = `Make 2d anime white background character sheet of who would be ${csvDesc} ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+            } else {
+              const visualDesc = ensurePeriod(char.description);
+              designPrompt = `Make 2d anime white background character sheet of who would be ${visualDesc} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genre}.`;
+            }
           }
         }
         
@@ -861,6 +878,7 @@ export default function PropDesigner() {
     allProps,
     createSessionFromDetection,
     csvCharacterDescriptions,
+    isEasyMode,
   ]);
 
   // Detect objects using AI
@@ -1576,6 +1594,8 @@ export default function PropDesigner() {
               initialMinimized={session.isMinimized}
               sessionId={session.id}
               minimizedIndex={idx}
+              isEasyMode={isEasyMode}
+              onToggleEasyMode={setIsEasyMode}
             />
           ))}
         </>

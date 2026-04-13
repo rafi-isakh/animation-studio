@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
 interface GenerateFromReferenceRequest {
-  referenceImageBase64: string;
+  referenceImageBase64?: string;
   prompt: string;
   customApiKey?: string;
 }
@@ -19,13 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
     const { referenceImageBase64, prompt, customApiKey } = body;
-
-    if (!referenceImageBase64 || typeof referenceImageBase64 !== "string") {
-      return NextResponse.json(
-        { error: "referenceImageBase64 is required and must be a string" },
-        { status: 400 }
-      );
-    }
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
@@ -44,19 +37,16 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
+    const parts = referenceImageBase64
+      ? [
+          { inlineData: { data: referenceImageBase64, mimeType: "image/jpeg" } },
+          { text: prompt },
+        ]
+      : [{ text: prompt }];
+
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              data: referenceImageBase64,
-              mimeType: "image/jpeg",
-            },
-          },
-          { text: prompt },
-        ],
-      },
+      contents: { parts },
       config: {
         imageConfig: {
           aspectRatio: "16:9",

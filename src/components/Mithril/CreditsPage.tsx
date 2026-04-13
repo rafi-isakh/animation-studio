@@ -16,10 +16,17 @@ interface UserSummary {
   transaction_count: number;
 }
 
+interface StageProviderEntry {
+  provider_id: string;
+  total_usd: number;
+  call_count: number;
+}
+
 interface StageEntry {
   job_type: string;
   total_usd: number;
   call_count: number;
+  providers: StageProviderEntry[];
 }
 
 interface ProviderEntry {
@@ -38,7 +45,8 @@ interface ProjectEntry {
 const PROVIDER_META: Record<string, { label: string; abbr: string; color: string }> = {
   veo3:              { label: "Veo 3",    abbr: "V3", color: "#DB2777" },
   sora:              { label: "Sora",     abbr: "So", color: "#3B82F6" },
-  gemini:            { label: "Gemini",   abbr: "Ge", color: "#8B5CF6" },
+  gemini:            { label: "Gemini", abbr: "Gi", color: "#8B5CF6" },
+  gemini_text:       { label: "Gemini Text",  abbr: "Gt", color: "#6D28D9" },
   grok:              { label: "Grok",     abbr: "Gr", color: "#F59E0B" },
   grok_i2v:          { label: "Grok I2V", abbr: "Gk", color: "#F97316" },
   grok_imagine_i2v:  { label: "Grok Img", abbr: "Gi", color: "#EF4444" },
@@ -49,11 +57,47 @@ const PROVIDER_META: Record<string, { label: string; abbr: string; color: string
   modelslab:         { label: "Flux Klein", abbr: "FK", color: "#06B6D4" },
 };
 
-const STAGE_COLORS = [
-  "#DB2777", "#3B82F6", "#8B5CF6", "#F59E0B",
-  "#10B981", "#EC4899", "#F97316", "#14B8A6",
-  "#EF4444", "#A78BFA", "#6366F1", "#84CC16",
-];
+
+// Canonical pipeline order for job_type values.
+// T2V stages first (1–7), then I2V-only stages (8–11), shared video last (12).
+const STAGE_ORDER: Record<string, number> = {
+  id_converter:          1,
+  id_converter_glossary: 1,
+  id_converter_batch:    1,
+  story_splitter:        3,
+  storyboard:            4,
+  prop_design_sheet:     5,
+  background:            6,
+  image:                 7,
+  panel_splitter:        8,
+  panel:                 9,
+  panel_colorizer:      10,
+  i2v_storyboard:       11,
+  storyboard_editor:    12,
+  modelslab_style_converter: 13,
+  video:                14,
+  style_converter:      15
+};
+
+// Human-readable labels matching the stage names in projectTypes.ts
+const STAGE_LABELS: Record<string, string> = {
+  id_converter:          "ID Converter",
+  id_converter_glossary: "ID Converter (Glossary)",
+  id_converter_batch:    "ID Converter (Batch)",
+  story_splitter:        "Story Splitter",
+  storyboard:            "Script Generator",
+  prop_design_sheet:     "Prop Designer",
+  background:            "BG Sheet Generator",
+  image:                 "Image Generator",
+  panel_splitter:        "Image Splitter",
+  panel:                 "Panel Editor",
+  i2v_storyboard:       "Image to Script",
+  storyboard_editor:    "Script Editor",
+  modelslab_style_converter: "Style Converter",
+  video:                 "Video Generator",
+  style_converter:       "PixAI Converter",
+  panel_colorizer:       "Panel Colorizer",
+};
 
 function providerMeta(id: string) {
   return PROVIDER_META[id] ?? {
@@ -223,6 +267,32 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
     .reduce((s, p) => s + p.total_usd, 0);
   const totalUsd = summary?.total_used_usd ?? 0;
   const textUsd = Math.max(0, totalUsd - videoUsd - imageUsd);
+
+  // Merge id_converter_glossary + id_converter_batch into a single id_converter entry
+  const mergedStages: StageEntry[] = (() => {
+    const result: StageEntry[] = [];
+    let combined: StageEntry | null = null;
+    for (const s of stages) {
+      if (s.job_type === "id_converter_glossary" || s.job_type === "id_converter_batch") {
+        if (!combined) {
+          combined = { job_type: "id_converter", total_usd: 0, call_count: 0, providers: [] };
+        }
+        combined.total_usd += s.total_usd;
+        combined.call_count += s.call_count;
+        const providerMap = new Map(combined.providers.map((p) => [p.provider_id, { ...p }]));
+        for (const p of s.providers ?? []) {
+          const existing = providerMap.get(p.provider_id);
+          if (existing) { existing.total_usd += p.total_usd; existing.call_count += p.call_count; }
+          else providerMap.set(p.provider_id, { ...p });
+        }
+        combined.providers = [...providerMap.values()].sort((a, b) => b.total_usd - a.total_usd);
+      } else {
+        result.push(s);
+      }
+    }
+    if (combined) result.push(combined);
+    return result;
+  })();
 
   const maxProviderCost = providers[0]?.total_usd ?? 1;
   const maxProjectCost = projectBreakdown[0]?.total_usd ?? 1;
@@ -407,25 +477,47 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
         <div className="flex-1 bg-[#211F21] border border-[#272727] rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-6 py-5 border-b border-[#272727]">
             <span className="text-[15px] font-semibold">Cost by Stage</span>
-            <span className="text-sm text-gray-500">{stages.length} stages</span>
+            <span className="text-sm text-gray-500">{mergedStages.length} stages</span>
           </div>
-          {stages.length === 0 ? (
+          {mergedStages.length === 0 ? (
             <EmptyState label="No stage data yet" />
           ) : (
             <div className="flex flex-col">
-              {stages.map((s, i) => (
+              {[...mergedStages]
+                .sort((a, b) => (STAGE_ORDER[a.job_type] ?? 99) - (STAGE_ORDER[b.job_type] ?? 99))
+                .map((s, i, arr) => (
                 <div
                   key={s.job_type}
-                  className={`flex items-center gap-4 px-6 py-3.5 ${i < stages.length - 1 ? "border-b border-[#1A1A1C]" : ""}`}
+                  className={`flex items-center gap-4 px-6 py-3.5 ${i < arr.length - 1 ? "border-b border-[#1A1A1C]" : ""}`}
                 >
-                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STAGE_COLORS[i % STAGE_COLORS.length] }} />
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{STAGE_LABELS[s.job_type] ?? s.job_type.replace(/_/g, " ")}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">{s.call_count} calls · <span className="text-[#E8E8E8] font-semibold">{fmt(s.total_usd)}</span></span>
+                    {s.providers && s.providers.length > 0 && (
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {s.providers.map((p) => {
+                          const meta = providerMeta(p.provider_id);
+                          return (
+                            <span
+                              key={p.provider_id}
+                              className="inline-flex items-center gap-1.5"
+                              title={`${meta.label} — ${p.call_count} calls`}
+                            >
+                              <span
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
+                                style={{ backgroundColor: meta.color }}
+                              >
+                                {meta.abbr}
+                              </span>
+                              <span className="text-[11px] text-gray-400">{fmt(p.total_usd)}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-sm font-medium capitalize">{s.job_type.replace(/_/g, " ")}</span>
-                    <span className="text-xs text-gray-500">{s.call_count} calls</span>
-                  </div>
-                  <span className="text-sm font-semibold flex-shrink-0 w-16 text-right">{fmt(s.total_usd)}</span>
                 </div>
               ))}
             </div>

@@ -73,11 +73,11 @@ TOKEN_PRICING: dict[str, tuple[float, float]] = {
 # Video pricing: provider_id -> USD per second of generated video
 VIDEO_COST_PER_SECOND: dict[str, float] = {
     "sora": 0.10,
-    "veo3": 0.15,
+    "veo3": 0.4,
     "grok_i2v": 0.05,
     "grok_imagine_i2v": 0.05,
-    "wan_i2v": 0.15,
-    "wan22_i2v": 0.15,
+    "wan_i2v": 0.03,
+    "wan22_i2v": 0.03,
 }
 
 DEFAULT_COST_USD = 0.01
@@ -422,6 +422,7 @@ class CreditsService:
         stage_agg: dict[str, dict] = {}
         provider_agg: dict[str, dict] = {}
         project_agg: dict[str, dict] = {}
+        stage_provider_agg: dict[str, dict[str, dict]] = {}
 
         for doc in docs:
             data = doc.to_dict() or {}
@@ -447,11 +448,28 @@ class CreditsService:
             project_agg[pid]["total_usd"] += cost
             project_agg[pid]["call_count"] += 1
 
+            sp = stage_provider_agg.setdefault(stage, {})
+            if provider not in sp:
+                sp[provider] = {"provider_id": provider, "total_usd": 0.0, "call_count": 0}
+            sp[provider]["total_usd"] += cost
+            sp[provider]["call_count"] += 1
+
         result = {
             "total_used_usd": round(total_usd, 6),
             "transaction_count": transaction_count,
             "stages": [
-                {**v, "total_usd": round(v["total_usd"], 6)}
+                {
+                    **v,
+                    "total_usd": round(v["total_usd"], 6),
+                    "providers": sorted(
+                        [
+                            {**pv, "total_usd": round(pv["total_usd"], 6)}
+                            for pv in stage_provider_agg.get(v["job_type"], {}).values()
+                        ],
+                        key=lambda x: x["total_usd"],
+                        reverse=True,
+                    ),
+                }
                 for v in sorted(stage_agg.values(), key=lambda x: x["total_usd"], reverse=True)
             ],
             "providers": [

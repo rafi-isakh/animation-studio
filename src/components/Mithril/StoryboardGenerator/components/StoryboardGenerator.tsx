@@ -337,7 +337,7 @@ export default function StoryboardGenerator() {
     const clipRows = scenes.flatMap((scene, sceneIndex) =>
       scene.clips.map((clip, clipIndex) => {
         const row = [
-          `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+          `"Scene ${sceneIndex + 1}: ${scene.sceneTitle.replace(/"/g, '""')}"`,
           `"${sceneIndex + 1}-${clipIndex + 1}"`,
           clip.length,
           clip.accumulatedTime,
@@ -577,7 +577,7 @@ export default function StoryboardGenerator() {
       const driveClipRows = scenes.flatMap((scene, sceneIndex) =>
         scene.clips.map((clip, clipIndex) => {
           const row = [
-            `Scene ${sceneIndex + 1}: ${scene.sceneTitle}`,
+            `"Scene ${sceneIndex + 1}: ${scene.sceneTitle.replace(/"/g, '""')}"`,
             `"${sceneIndex + 1}-${clipIndex + 1}"`,
             clip.length,
             clip.accumulatedTime,

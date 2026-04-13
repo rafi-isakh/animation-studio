@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/shadcnUI/Button';
-import { Plus, Folder, Trash2, Pencil, FileText, BookOpen, Palette, Copy, BookText, ArrowLeft, LayoutGrid, LayoutList, Hash, Scissors, User, Film, Box, Image, Video, SplitSquareHorizontal, PanelLeft, ScrollText, Layers, Wand2, Clapperboard } from 'lucide-react';
+import { Plus, Folder, Trash2, Pencil, Palette, Copy, BookText, ArrowLeft, LayoutGrid, LayoutList, Hash, Scissors, User, Film, Box, Image, Video, SplitSquareHorizontal, PanelLeft, ScrollText, Layers, Wand2, Clapperboard, TvMinimalPlay, ImagePlay, Shell } from 'lucide-react';
 import MithrilHeader from './MithrilHeader';
 import { listProjects, deleteProject, copyProject, ProjectMetadata } from './services/firestore';
 import { clearAllProjectFiles, copyAllProjectFiles } from './services/s3';
@@ -43,25 +43,25 @@ interface CategoryConfig {
 export const CATEGORY_CONFIG: Record<TypeCategory, CategoryConfig> = {
   'novel-to-video': {
     label: 'Novel to Video (T2A)',
-    icon: <FileText className="w-8 h-8" />,
+    icon: <BookText className="w-8 h-8" />,
     accent: 'text-blue-400',
     iconBg: 'bg-blue-500/10',
   },
   'manga-to-video': {
     label: 'Manga to Video (M2A)',
-    icon: <BookOpen className="w-8 h-8" />,
+    icon: <ImagePlay className="w-8 h-8" />,
     accent: 'text-purple-400',
     iconBg: 'bg-purple-500/10',
   },
   'webtoon-to-video': {
     label: 'Webtoon to Video (W2A)',
-    icon: <Palette className="w-8 h-8" />,
+    icon: <Shell className="w-8 h-8" />,
     accent: 'text-indigo-400',
     iconBg: 'bg-indigo-500/10',
   },
   'webnovel-trailer': {
-    label: 'Webnovel Trailer',
-    icon: <BookText className="w-8 h-8" />,
+    label: 'Trailer',
+    icon: <TvMinimalPlay className="w-8 h-8" />,
     accent: 'text-teal-400',
     iconBg: 'bg-teal-500/10',
   },
@@ -99,6 +99,10 @@ export default function ProjectListPage() {
   const [selectedCategory, setSelectedCategory] = useState<TypeCategory | null>(
     (searchParams.get('category') as TypeCategory) ?? null
   );
+
+  useEffect(() => {
+    setSelectedCategory((searchParams.get('category') as TypeCategory) ?? null);
+  }, [searchParams]);
 
   function handleCategorySelect(cat: TypeCategory | null) {
     setSelectedCategory(cat);

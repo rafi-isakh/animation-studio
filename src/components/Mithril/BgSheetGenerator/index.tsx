@@ -229,16 +229,10 @@ const downloadImageFromUrl = async (url: string, filename: string): Promise<void
 
 // === Phase 7: Import/Export Utilities ===
 
-// CSV Import data structure - one view per CSV row (storyboard style)
-interface CsvViewData {
-  angle: string;      // Background ID from CSV (e.g., "1-1", "1-3-1")
-  csvContext: string; // Storyboard context (Image Prompt from CSV)
-}
-
+// CSV Import data structure - only name and description (angles always use the 9 standard perspectives)
 interface CsvBackgroundData {
   name: string;
   description: string;
-  views: CsvViewData[]; // Array of views, one per CSV row
 }
 
 // Parse CSV content into rows, handling multi-line quoted fields
@@ -312,20 +306,19 @@ const DEFAULT_CSV_COLUMN_MAPPING: CsvColumnMapping = {
   imagePromptCol: 7,
 };
 
-// CSV Import parser - parses storyboard CSV to extract backgrounds
-// Each CSV row becomes a separate storyboard view (not fixed 9 angles)
+// CSV Import parser - parses storyboard CSV to extract background names and descriptions only.
+// Angles are always the 9 standard perspectives regardless of CSV content.
 const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping = DEFAULT_CSV_COLUMN_MAPPING): Map<string, CsvBackgroundData> => {
-  // Map: background name -> { name, description, views: CsvViewData[] }
+  // Map: background name -> { name, description }
   const result = new Map<string, CsvBackgroundData>();
-  const bgOrder: string[] = []; // Track order of backgrounds as they appear
 
   const rows = parseCsvRows(csvContent);
   if (rows.length <= 1) return result; // Only header or empty
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
-  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
-  const minCols = Math.max(backgroundIdCol, backgroundPromptCol, imagePromptCol) + 1;
+  const { backgroundIdCol, backgroundPromptCol } = columnMapping;
+  const minCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
 
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
@@ -334,22 +327,18 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
 
     const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
     const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
-    const storyboardContext = fields[imagePromptCol]?.trim() || "";
 
     let bgPrefix = "";
-    let fullId = "";
 
     // Match pattern like "1-1", "1-3", "2-5-1"
     const match = bgIdRaw.match(/^(\d+)-(.+)$/);
 
     if (match) {
       bgPrefix = match[1];
-      fullId = bgIdRaw; // Use the exact imported ID
       lastBgPrefix = bgPrefix;
-    } else if (!bgIdRaw && lastBgPrefix && (bgPrompt || storyboardContext)) {
-      // Implicit row for previous BG (row with empty ID but has data)
+    } else if (!bgIdRaw && lastBgPrefix && bgPrompt) {
+      // Implicit row for previous BG (row with empty ID but has description)
       bgPrefix = lastBgPrefix;
-      fullId = `${bgPrefix}-x`;
     } else {
       continue; // Skip rows without valid Background ID
     }
@@ -357,12 +346,7 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     const bgName = `Background ${bgPrefix}`;
 
     if (!result.has(bgName)) {
-      result.set(bgName, {
-        name: bgName,
-        description: "",
-        views: [],
-      });
-      bgOrder.push(bgName);
+      result.set(bgName, { name: bgName, description: "" });
     }
 
     const existingData = result.get(bgName)!;
@@ -370,14 +354,6 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     // Update description if we have a better one (longer)
     if (bgPrompt && bgPrompt.length > existingData.description.length) {
       existingData.description = bgPrompt;
-    }
-
-    // Add view for this CSV row (one row = one storyboard frame)
-    if (storyboardContext || bgIdRaw) {
-      existingData.views.push({
-        angle: fullId,
-        csvContext: storyboardContext,
-      });
     }
   }
 
@@ -2284,26 +2260,18 @@ export default function BgSheetGenerator() {
     try {
       let response;
 
-      if (refImage) {
-        // Use image-to-image generation with reference for consistency
-        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
-        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            referenceImageBase64: refImage,
-            prompt: refPrompt,
-            customApiKey: customApiKey || undefined
-          }),
-        });
-      } else {
-        // Use text-only generation
-        response = await fetch("/api/generate_bg_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-        });
-      }
+      const refPrompt = refImage
+        ? `Background consistent with the reference image style. ${prompt}`
+        : prompt;
+      response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: refImage || undefined,
+          prompt: refPrompt,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
@@ -2344,6 +2312,10 @@ export default function BgSheetGenerator() {
             : bg
         )
       );
+      // Resolve the sequential generation promise (direct mode doesn't use orchestrator callbacks)
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
   };
 
@@ -2502,47 +2474,28 @@ export default function BgSheetGenerator() {
       const existingBgNames = new Set(backgrounds.map(bg => bg.name));
       const updatedBackgrounds: Background[] = [];
 
-      // Update existing backgrounds - merge new views from CSV
+      // Update existing backgrounds - update description from CSV if better
       for (const bg of backgrounds) {
         const csvBgData = importedData.get(bg.name);
         if (csvBgData) {
-          // Find existing angles to avoid duplicates
-          const existingAngles = new Set(bg.images.map(img => img.angle));
-
-          // Add new views from CSV that don't already exist
-          const newImages = csvBgData.views
-            .filter(view => !existingAngles.has(view.angle))
-            .map(view => ({
-              angle: view.angle,
-              prompt: "",
-              imageBase64: "",
-              imageUrl: undefined,
-              isGenerating: false,
-              isActive: true,
-              isFinalized: false,
-              characterPrompt: "",
-              csvContext: view.csvContext,
-            }));
-
           updatedBackgrounds.push({
             ...bg,
             description: csvBgData.description || bg.description,
-            images: [...bg.images, ...newImages],
           });
         } else {
           updatedBackgrounds.push(bg);
         }
       }
 
-      // Create new backgrounds from CSV that don't exist yet
+      // Create new backgrounds from CSV that don't exist yet (always 9 standard angles)
       for (const [bgName, csvBgData] of importedData) {
         if (!existingBgNames.has(bgName)) {
           const newBg: Background = {
             id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             name: csvBgData.name,
             description: csvBgData.description,
-            images: csvBgData.views.map(view => ({
-              angle: view.angle,
+            images: BACKGROUND_ANGLES.map(angle => ({
+              angle,
               prompt: "",
               imageBase64: "",
               imageUrl: undefined,
@@ -2550,7 +2503,6 @@ export default function BgSheetGenerator() {
               isActive: true,
               isFinalized: false,
               characterPrompt: "",
-              csvContext: view.csvContext,
             })),
           };
           updatedBackgrounds.push(newBg);
@@ -2622,16 +2574,14 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Parse storyboard clips to extract backgrounds
-    // Map: background prefix (e.g., "1", "2") -> { name, description, views }
-    const bgMap = new Map<string, { name: string; description: string; views: { angle: string; csvContext: string }[] }>();
+    // Parse storyboard clips to extract background names and descriptions only
+    const bgMap = new Map<string, { name: string; description: string }>();
     const bgOrder: string[] = [];
 
     for (const scene of scenes) {
       for (const clip of scene.clips) {
         const bgIdRaw = clip.backgroundId?.trim() || "";
         const bgPrompt = clip.backgroundPrompt?.trim() || "";
-        const imagePrompt = clip.imagePrompt?.trim() || "";
 
         if (!bgIdRaw) continue;
 
@@ -2643,11 +2593,7 @@ export default function BgSheetGenerator() {
         const bgName = `Background ${bgPrefix}`;
 
         if (!bgMap.has(bgName)) {
-          bgMap.set(bgName, {
-            name: bgName,
-            description: "",
-            views: [],
-          });
+          bgMap.set(bgName, { name: bgName, description: "" });
           bgOrder.push(bgName);
         }
 
@@ -2656,15 +2602,6 @@ export default function BgSheetGenerator() {
         // Update description if we have a better one (longer)
         if (bgPrompt && bgPrompt.length > bgData.description.length) {
           bgData.description = bgPrompt;
-        }
-
-        // Add view for this angle only if not already present (multiple clips can share the same backgroundId)
-        const existingView = bgData.views.find(v => v.angle === bgIdRaw);
-        if (!existingView) {
-          bgData.views.push({
-            angle: bgIdRaw,
-            csvContext: imagePrompt,
-          });
         }
       }
     }
@@ -2678,15 +2615,15 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Create backgrounds from parsed data
+    // Create backgrounds with the 9 standard perspective angles
     const newBackgrounds: Background[] = bgOrder.map(bgName => {
       const bgData = bgMap.get(bgName)!;
       return {
         id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: bgData.name,
         description: bgData.description,
-        images: bgData.views.map(view => ({
-          angle: view.angle,
+        images: BACKGROUND_ANGLES.map(angle => ({
+          angle,
           prompt: "",
           imageBase64: "",
           imageUrl: undefined,
@@ -2694,7 +2631,6 @@ export default function BgSheetGenerator() {
           isActive: true,
           isFinalized: false,
           characterPrompt: "",
-          csvContext: view.csvContext,
         })),
       };
     });
@@ -2862,18 +2798,23 @@ export default function BgSheetGenerator() {
     const zip = new JSZip();
     let imageCount = 0;
 
-    for (const bg of backgrounds) {
+    const sortedBgs = [...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+    for (const [bgIdx, bg] of sortedBgs.entries()) {
       // Create folder for each background
       const folderName = bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase();
       const folder = zip.folder(folderName);
+      const bgNum = bgIdx + 1;
 
       for (const img of bg.images) {
         // Skip deactivated frames
         if (img.isActive === false) continue;
 
+        const angleNum = BACKGROUND_ANGLES.indexOf(img.angle) + 1;
+        const fileName = `${bgNum}-${angleNum}.jpg`;
+
         if (img.imageBase64) {
           // Add base64 image to zip
-          const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
           folder?.file(fileName, img.imageBase64, { base64: true });
           imageCount++;
         } else if (img.imageUrl) {
@@ -2882,7 +2823,6 @@ export default function BgSheetGenerator() {
             const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(img.imageUrl)}`);
             if (proxyResponse.ok) {
               const { base64 } = await proxyResponse.json();
-              const fileName = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
               folder?.file(fileName, base64, { base64: true });
               imageCount++;
             }
@@ -3186,7 +3126,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg) => (
+            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"
@@ -3510,6 +3450,10 @@ export default function BgSheetGenerator() {
                     const isActive = img.isActive !== false;
                     const isFinalized = img.isFinalized === true;
                     const globalFrameNum = frameNumbers[`${bg.id}-${idx}`];
+                    const standardAngleIndex = BACKGROUND_ANGLES.indexOf(img.angle);
+                    const slotLabel = standardAngleIndex >= 0
+                      ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                      : img.angle;
 
                     return (
                       <div
@@ -3533,7 +3477,7 @@ export default function BgSheetGenerator() {
                                   {(img.imageBase64 || img.imageUrl) && (
                                     <button
                                       onClick={() => {
-                                        const filename = `${img.angle.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}.jpg`;
+                                        const filename = `${slotLabel}.jpg`;
                                         if (img.imageBase64) {
                                           downloadImage(img.imageBase64, filename);
                                         } else if (img.imageUrl) {
@@ -3600,12 +3544,12 @@ export default function BgSheetGenerator() {
                               <span className="group-hover:text-[#DB2777] transition-colors">
                                 {phrase(dictionary, "bgsheet_click_to_generate", language) || "Click to generate"}
                               </span>
-                              <span className="text-[10px] mt-1 opacity-60">{img.angle}</span>
+                              <span className="text-[10px] mt-1 opacity-60">{slotLabel}</span>
                             </button>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
                             <span className="text-[10px] font-medium text-white">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
                         </div>
@@ -3630,7 +3574,7 @@ export default function BgSheetGenerator() {
                             </button>
                             {/* Angle Label */}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded truncate border border-gray-200 dark:border-gray-600">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
 

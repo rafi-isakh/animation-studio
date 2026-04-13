@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { PanelData, ProcessingStatus, AspectRatio } from './types';
 import {
   TrashIcon,
@@ -19,6 +19,7 @@ interface PanelCardProps {
   onRetry: (id: string) => void;
   onUpdatePrompt: (id: string, newPrompt: string) => void;
   onUpdateImageWeight: (id: string, imageWeight: number) => void;
+  onRemix?: (id: string, remixPrompt: string) => Promise<void>;
   targetRatio: AspectRatio;
 }
 
@@ -29,6 +30,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   onRetry,
   onUpdatePrompt,
   onUpdateImageWeight,
+  onRemix,
   targetRatio,
 }) => {
   const isIdle = panel.status === ProcessingStatus.Idle;
@@ -36,12 +38,28 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const isSuccess = panel.status === ProcessingStatus.Success;
   const isError = panel.status === ProcessingStatus.Error;
 
+  const [remixOpen, setRemixOpen] = useState(false);
+  const [remixPrompt, setRemixPrompt] = useState('');
+  const [remixLoading, setRemixLoading] = useState(false);
+
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
   const resultSrc = panel.resultUrl
     ? panel.resultUrl.startsWith('http')
       ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
       : panel.resultUrl
     : undefined;
+
+  const handleRunRemix = async () => {
+    if (!onRemix || !remixPrompt.trim() || remixLoading) return;
+    setRemixLoading(true);
+    try {
+      await onRemix(panel.id, remixPrompt.trim());
+      setRemixOpen(false);
+      setRemixPrompt('');
+    } finally {
+      setRemixLoading(false);
+    }
+  };
 
   const handleDownload = () => {
     if (canvasRef.current && resultSrc) {
@@ -189,6 +207,44 @@ export const PanelCard: React.FC<PanelCardProps> = ({
                 >
                   <DownloadIcon />
                 </button>
+                {onRemix && (
+                  <div className="w-full mt-3 flex flex-col gap-2">
+                    <button
+                      onClick={() => setRemixOpen((prev) => !prev)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-pink-300 border border-pink-600/50 hover:border-pink-500 hover:bg-pink-600/10 rounded-full transition-colors self-start"
+                    >
+                      <svg className={`w-3.5 h-3.5 transition-transform ${remixOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      Remix
+                    </button>
+                    {remixOpen && (
+                      <div className="flex flex-col gap-2">
+                        <textarea
+                          value={remixPrompt}
+                          onChange={(e) => setRemixPrompt(e.target.value)}
+                          placeholder="Describe changes to apply…"
+                          rows={3}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 placeholder-gray-600 focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition-all resize-none"
+                        />
+                        <button
+                          onClick={handleRunRemix}
+                          disabled={remixLoading || !remixPrompt.trim()}
+                          className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                        >
+                          {remixLoading ? (
+                            <>
+                              <RefreshIcon className="w-4 h-4" spin />
+                              Remixing…
+                            </>
+                          ) : (
+                            'Run Remix'
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : isProcessing ? (
               <div className="flex flex-col items-center gap-2 p-6 text-center">

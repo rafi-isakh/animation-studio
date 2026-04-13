@@ -130,7 +130,7 @@ async def process_story_splitter(
             await get_credits_service().record_credit(
                 user_id=job.user_id, project_id=job.project_id,
                 job_id=job.id, job_type=job.type.value,
-                provider_id="gemini", cost_usd=_cost,
+                provider_id="gemini_text", cost_usd=_cost,
             )
         except Exception:
             logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
@@ -148,13 +148,12 @@ async def process_story_splitter(
         )
         logger.info(f"[STORY-SPLITTER] {job_id} - storySplits document updated")
 
-        # Update job with results
+        # Update job with results (no split_result - parts already saved to storySplits doc)
         state_machine.transition_to(JobStatus.COMPLETED)
         await job_queue_service.update_job_status(
             job_id,
             JobStatus.COMPLETED,
             progress=1.0,
-            split_result=parts,
         )
 
         logger.info(f"[STORY-SPLITTER] {job_id} ========== JOB COMPLETED SUCCESSFULLY ==========")

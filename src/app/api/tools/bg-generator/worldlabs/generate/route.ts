@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertAllowedUrl } from "@/utils/urlSafety";
 
 const WORLDLABS_BASE = "https://api.worldlabs.ai/marble/v1";
+const WORLDLABS_IMAGE_ALLOWED_HOSTNAMES = new Set<string>([
+  // Replace with the exact bucket/CDN hosts this endpoint is expected to fetch from.
+  // Keep this list narrow to prevent SSRF.
+  "your-bucket.s3.amazonaws.com",
+  "your-distribution.cloudfront.net",
+]);
 
 interface GenerateRequestBody {
   frontImageUrl: string; // S3/CDN URL or data URI
@@ -20,8 +26,8 @@ async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; conten
     return { buffer, contentType, ext };
   }
   const safeUrl = assertAllowedUrl(url, {
-    allowedHostSuffixes: [".amazonaws.com", ".cloudfront.net"],
-    allowedHostnames: new Set(),
+    allowedHostSuffixes: [],
+    allowedHostnames: WORLDLABS_IMAGE_ALLOWED_HOSTNAMES,
   });
   const res = await fetch(safeUrl.toString());
   if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);

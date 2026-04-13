@@ -7,6 +7,7 @@ import { s3Client } from "@/utils/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getVideoUrl } from "@/utils/urls";
 import { fetchImageAsBase64 as fetchImageAsBase64WithMime } from "@/utils/fetchImage";
+import { assertAllowedUrl, assertSafePathSegment, encodePathPreservingSlashes } from "@/utils/urlSafety";
 
 const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
@@ -186,16 +187,18 @@ export async function checkVeo3Status(
   jobId: string,
   customApiKey?: string
 ): Promise<Veo3StatusResult> {
+  const safeJobId = assertSafePathSegment(jobId, { allowSlash: true });
   const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
+  const encodedJobId = encodePathPreservingSlashes(safeJobId);
 
   // Use REST API directly to poll operation status
   // The SDK methods don't work reliably for operation polling
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/${jobId}?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/${encodedJobId}?key=${apiKey}`,
     {
       method: "GET",
       headers: {
@@ -244,12 +247,17 @@ export async function checkVeo3Status(
         throw new Error("No video URI in response");
       }
 
+      const safeVideoUrl = assertAllowedUrl(videoUri, {
+        allowedHostSuffixes: [".googleapis.com"],
+        allowedHostnames: new Set(),
+      });
 
       // Download the video directly from the URI
       // Add API key if not already in the URL
-      const downloadUrl = videoUri.includes("key=")
-        ? videoUri
-        : `${videoUri}&key=${apiKey}`;
+      const safeVideoUri = safeVideoUrl.toString();
+      const downloadUrl = safeVideoUri.includes("key=")
+        ? safeVideoUri
+        : `${safeVideoUri}&key=${apiKey}`;
 
       const videoResponse = await fetch(downloadUrl);
 

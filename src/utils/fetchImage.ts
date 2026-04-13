@@ -3,29 +3,14 @@
  * Includes SSRF protection via an allow-list of permitted hostnames.
  */
 
-const ALLOWED_HOSTNAME_SUFFIXES = [
-  ".amazonaws.com",
-  ".cloudfront.net",
-  ".s3.amazonaws.com",
-];
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 /**
  * Validates that a URL is safe to fetch (HTTPS, trusted S3/CDN host).
  * Throws if the URL fails any check.
  */
 export function validateImageUrl(url: string): URL {
-  const parsed = new URL(url);
-  if (parsed.protocol !== "https:") {
-    throw new Error(`Disallowed URL protocol: ${parsed.protocol}`);
-  }
-  const hostname = parsed.hostname.toLowerCase();
-  const allowed = ALLOWED_HOSTNAME_SUFFIXES.some((suffix) =>
-    hostname.endsWith(suffix)
-  );
-  if (!allowed) {
-    throw new Error(`Disallowed image hostname: ${hostname}`);
-  }
-  return parsed;
+  return assertAllowedUrl(url);
 }
 
 /**

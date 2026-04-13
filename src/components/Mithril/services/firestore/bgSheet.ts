@@ -279,6 +279,25 @@ export async function deleteBackground(
 }
 
 /**
+ * Mark all backgrounds with at least one generated image in the given part as pushed to assets.
+ * Uses a writeBatch for atomicity.
+ */
+export async function pushBgsToAssets(projectId: string, partIndex: number): Promise<void> {
+  const bgs = await getBackgrounds(projectId);
+  const toUpdate = bgs.filter(
+    bg => (bg.partIndex ?? 0) === partIndex && bg.angles.some(a => !!a.imageRef)
+  );
+  if (toUpdate.length === 0) return;
+
+  const batch = writeBatch(db);
+  for (const bg of toUpdate) {
+    const docRef = getBackgroundRef(projectId, bg.id);
+    batch.set(docRef, { pushedToAssets: true }, { merge: true });
+  }
+  await batch.commit();
+}
+
+/**
  * Clear all background sheet data (settings + all backgrounds)
  */
 export async function clearBgSheet(projectId: string): Promise<void> {

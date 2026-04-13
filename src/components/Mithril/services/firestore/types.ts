@@ -167,6 +167,7 @@ export interface BackgroundDocument {
   referenceAnalysis?: BackgroundReferenceAnalysis; // Spatial analysis
   plannedPrompts?: string[]; // Array of 9 prompts
   partIndex?: number; // Which storyboard part this background belongs to (0-based)
+  pushedToAssets?: boolean;
 }
 
 // ============================================

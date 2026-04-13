@@ -393,7 +393,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator, getScenesForPart, getGeneratedPartIndices } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, setActiveBgPartIndex, pushBgsToAssets, customApiKey, storyboardGenerator, getScenesForPart, getGeneratedPartIndices } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -451,6 +451,7 @@ export default function BgSheetGenerator() {
 
   // Part selection for multi-part storyboards
   const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [isPushingBgsToAssets, setIsPushingBgsToAssets] = useState(false);
 
   // Sequential generation stop control (per background)
   const stopGenerationRef = useRef<Record<string, boolean>>({});
@@ -476,7 +477,9 @@ export default function BgSheetGenerator() {
   useEffect(() => {
     if (generatedPartIndices.length === 0) return;
     if (!generatedPartIndices.includes(selectedPartIndex)) {
-      setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
+      const newPartIndex = generatedPartIndices[generatedPartIndices.length - 1];
+      setSelectedPartIndex(newPartIndex);
+      setActiveBgPartIndex(newPartIndex);
     }
   }, [generatedPartIndices, selectedPartIndex]);
 
@@ -3007,7 +3010,7 @@ export default function BgSheetGenerator() {
             {generatedPartIndices.map((partIdx) => (
               <button
                 key={partIdx}
-                onClick={() => setSelectedPartIndex(partIdx)}
+                onClick={() => { setSelectedPartIndex(partIdx); setActiveBgPartIndex(partIdx); }}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   selectedPartIndex === partIdx
                     ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
@@ -3173,6 +3176,24 @@ export default function BgSheetGenerator() {
                 <span className="bg-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                   {totalDownloadableFrames}/{totalActiveFrames}
                 </span>
+              </button>
+              <button
+                onClick={async () => {
+                  setIsPushingBgsToAssets(true);
+                  try {
+                    await pushBgsToAssets(selectedPartIndex);
+                  } finally {
+                    setIsPushingBgsToAssets(false);
+                  }
+                }}
+                disabled={isPushingBgsToAssets || displayedBackgrounds.filter(bg => bg.images.some(i => i.imageUrl || i.imageBase64)).length === 0}
+                className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-800 disabled:text-gray-600 text-white border border-teal-600 disabled:border-gray-700 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
+                title="Push all generated backgrounds in this part to the asset sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+                </svg>
+                {isPushingBgsToAssets ? "Pushing…" : `Push to Assets (${displayedBackgrounds.filter(bg => bg.images.some(i => i.imageUrl || i.imageBase64)).length})`}
               </button>
               <button
                 onClick={() => {

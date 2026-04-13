@@ -60,6 +60,7 @@ export interface BackgroundMetadata {
   referenceImageUrl?: string;          // S3 URL for master reference image
   referenceAnalysis?: ReferenceAnalysis; // Spatial analysis of reference
   plannedPrompts?: string[];           // Array of 9 prompts
+  pushedToAssets?: boolean;
 }
 
 export interface BgSheetResultMetadata {

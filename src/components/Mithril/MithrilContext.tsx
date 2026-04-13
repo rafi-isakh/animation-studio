@@ -72,6 +72,7 @@ import {
   saveDetectedIds,
   clearPropDesigner,
   pushPropsToAssets as pushPropsToAssetsFirestore,
+  pushBgsToAssets as pushBgsToAssetsFirestore,
   // Image-to-Video: Stage 1 - ImageSplitter
   getImageSplitterMeta,
   getMangaPages,
@@ -132,6 +133,7 @@ interface BgSheetGeneratorState {
   isAnalyzing: boolean;
   error: string | null;
   result: BgSheetResultMetadata | null;
+  activeBgPartIndex: number;
 }
 
 // Types for Character Sheet Generator
@@ -256,6 +258,8 @@ interface MithrilContextProps {
   cancelBgSheetAnalysis: () => void;
   clearBgSheetAnalysis: () => void;
   setBgSheetResult: (result: BgSheetResultMetadata) => void;
+  setActiveBgPartIndex: (index: number) => void;
+  pushBgsToAssets: (partIndex: number) => Promise<void>;
 
   // Character Sheet Generator (Stage 3)
   characterSheetGenerator: CharacterSheetGeneratorState;
@@ -413,6 +417,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     isAnalyzing: false,
     error: null,
     result: null,
+    activeBgPartIndex: 0,
   });
   const bgSheetAnalysisAbortRef = useRef<AbortController | null>(null);
 
@@ -1812,11 +1817,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     const abortController = new AbortController();
     bgSheetAnalysisAbortRef.current = abortController;
 
-    setBgSheetGenerator({
+    setBgSheetGenerator(prev => ({
+      ...prev,
       isAnalyzing: true,
       error: null,
       result: null,
-    });
+    }));
 
     try {
       const response = await fetch("/api/generate_bg_sheet/analyze", {
@@ -1884,11 +1890,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         backgroundBasePrompt,
       };
 
-      setBgSheetGenerator({
+      setBgSheetGenerator(prev => ({
+        ...prev,
         isAnalyzing: false,
         error: null,
         result: metadata,
-      });
+      }));
 
       return backgroundsWithImages;
     } catch (err: unknown) {
@@ -1904,11 +1911,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [currentProjectId]);
 
   const clearBgSheetAnalysis = useCallback(async () => {
-    setBgSheetGenerator({
+    setBgSheetGenerator(prev => ({
+      ...prev,
       isAnalyzing: false,
       error: null,
       result: null,
-    });
+    }));
 
     if (currentProjectId) {
       try {
@@ -2132,6 +2140,29 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, [currentProjectId]);
 
+  const setActiveBgPartIndex = useCallback((index: number) => {
+    setBgSheetGenerator(prev => ({ ...prev, activeBgPartIndex: index }));
+  }, []);
+
+  const pushBgsToAssets = useCallback(async (partIndex: number) => {
+    if (!currentProjectId) return;
+    await pushBgsToAssetsFirestore(currentProjectId, partIndex);
+    setBgSheetGenerator(prev => {
+      if (!prev.result) return prev;
+      return {
+        ...prev,
+        result: {
+          ...prev.result,
+          backgrounds: prev.result.backgrounds.map(bg =>
+            (bg.partIndex ?? 0) === partIndex && bg.images.some(i => i.imageId)
+              ? { ...bg, pushedToAssets: true }
+              : bg
+          ),
+        },
+      };
+    });
+  }, [currentProjectId]);
+
   const renameProp = useCallback(async (propId: string, newName: string) => {
     if (!currentProjectId) return;
     await updateProp(currentProjectId, propId, { name: newName });
@@ -2253,6 +2284,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         cancelBgSheetAnalysis,
         clearBgSheetAnalysis,
         setBgSheetResult,
+        setActiveBgPartIndex,
+        pushBgsToAssets,
         // Character Sheet Generator
         characterSheetGenerator,
         startCharacterSheetAnalysis,

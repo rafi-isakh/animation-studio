@@ -108,7 +108,9 @@ export default function SidebarAssetSection() {
     p.category === "object" && !!p.designSheetImageRef && p.pushedToAssets === true
   );
 
+  const activeBgPartIndex = bgSheetGenerator.activeBgPartIndex ?? 0;
   const backgrounds: BackgroundWithImage[] = (bgSheetGenerator.result?.backgrounds ?? [])
+    .filter(bg => bg.pushedToAssets === true && (bg.partIndex ?? 0) === activeBgPartIndex)
     .map(bg => ({ bg, firstImageUrl: bg.images.find(i => i.imageId)?.imageId ?? "" }))
     .filter(item => item.firstImageUrl !== "");
 

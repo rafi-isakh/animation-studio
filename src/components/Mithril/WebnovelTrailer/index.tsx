@@ -650,6 +650,7 @@ export default function WebnovelTrailer() {
     videoApiKey,
     isLoading: isContextLoading,
     getGeneratedPartIndices,
+    getStoryPartIndices,
   } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
@@ -663,10 +664,12 @@ export default function WebnovelTrailer() {
   const [selectedPartIndex, setSelectedPartIndex] = useState(0);
   const [showImageUploader, setShowImageUploader] = useState(true);
   const storyboardPartIndices = getGeneratedPartIndices();
-  const availablePartIndices = useMemo(
-    () => (storyboardPartIndices.length > 0 ? storyboardPartIndices : [0]),
-    [storyboardPartIndices]
-  );
+  const availablePartIndices = useMemo(() => {
+    const storyPartIndices = getStoryPartIndices();
+    if (storyPartIndices.length > 0) return storyPartIndices;
+    if (storyboardPartIndices.length > 0) return storyboardPartIndices;
+    return [0];
+  }, [getStoryPartIndices, storyboardPartIndices]);
   const filteredFrames = frames;
   const buildClipId = (frame: CsvFrame) => `${frame.partIndex ?? 0}_${frame.rowIndex}`;
 

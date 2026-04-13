@@ -251,6 +251,8 @@ interface MithrilContextProps {
   setActiveStoryboardPartIndex: (partIndex: number) => void;
   getScenesForPart: (partIndex: number) => Scene[];
   getGeneratedPartIndices: () => number[];
+  /** All story part indices — from StorySplitter result if available, else getGeneratedPartIndices(). Use this for tab rendering so all stages show the same set of parts. */
+  getStoryPartIndices: () => number[];
 
   // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
@@ -391,6 +393,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   });
   const [storySplitterJobId, setStorySplitterJobId] = useState<string | null>(null);
   const storySplitterJobIdRef = useRef<string | null>(null);
+  const storySplitterPendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Storyboard Generator state (Stage 5)
   const [storyboardGenerator, setStoryboardGenerator] = useState<StoryboardGeneratorState>({
@@ -551,8 +554,26 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 isLoading: false,
                 error: jobStatus.error || "Story splitting failed",
               }));
+            } else if (jobStatus.status === "pending") {
+              // Still pending — check if it's been sitting in queue too long
+              const createdAt = jobStatus.createdAt ? new Date(jobStatus.createdAt).getTime() : 0;
+              const ageMs = Date.now() - createdAt;
+              if (ageMs > 45_000) {
+                // Stale job from a previous session — cancel and clear
+                try {
+                  await fetch(`/api/story-splitter/orchestrator/cancel?jobId=${storySplitsData.jobId}`, { method: "POST" });
+                } catch { /* best effort */ }
+                storySplitterJobIdRef.current = null;
+                setStorySplitterJobId(null);
+                setStorySplitter(prev => ({
+                  ...prev,
+                  isLoading: false,
+                  error: "A previous job timed out in queue. The backend worker may be unavailable. Please try again.",
+                }));
+              }
+              // If fresh, keep loading state — subscription will handle updates
             }
-            // If status is pending/generating, keep loading state - subscription will handle updates
+            // If status is generating, keep loading state - subscription will handle updates
           }
         } catch (statusErr) {
           console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
@@ -1028,7 +1049,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 
         if (update.status === "completed") {
-          // Job completed - read results from storySplits document (not job_queue, avoids 1MB limit)
+          // Job completed — clear the pending timeout and read results
+          if (storySplitterPendingTimeoutRef.current) {
+            clearTimeout(storySplitterPendingTimeoutRef.current);
+            storySplitterPendingTimeoutRef.current = null;
+          }
           storySplitterJobIdRef.current = null;
           setStorySplitterJobId(null);
           getStorySplits(job.project_id).then((storySplitsData) => {
@@ -1040,7 +1065,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             setStorySplitter(prev => ({ ...prev, isLoading: false }));
           });
         } else if (update.status === "failed") {
-          // Job failed
+          // Job failed — clear timeout
+          if (storySplitterPendingTimeoutRef.current) {
+            clearTimeout(storySplitterPendingTimeoutRef.current);
+            storySplitterPendingTimeoutRef.current = null;
+          }
           storySplitterJobIdRef.current = null;
           setStorySplitterJobId(null);
           setStorySplitter(prev => ({
@@ -1049,12 +1078,19 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             error: update.error || "Story splitting failed",
           }));
         } else if (update.status === "generating") {
-          // Job is processing
+          // Job picked up by worker — clear the pending timeout
+          if (storySplitterPendingTimeoutRef.current) {
+            clearTimeout(storySplitterPendingTimeoutRef.current);
+            storySplitterPendingTimeoutRef.current = null;
+          }
           setStorySplitter(prev => ({
             ...prev,
             isLoading: true,
             error: null,
           }));
+        } else if (update.status === "pending" || update.status === "retrying") {
+          // Still waiting in queue — keep loading state
+          setStorySplitter(prev => ({ ...prev, isLoading: true, error: null }));
         }
       });
     });
@@ -1377,6 +1413,27 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (data.jobId) {
         await updateStorySplitsJobId(currentProjectId, data.jobId);
       }
+
+      // Start a staleness timeout — if the job stays pending for >45s the worker
+      // likely isn't running. Cancel the job and surface a clear error.
+      if (storySplitterPendingTimeoutRef.current) {
+        clearTimeout(storySplitterPendingTimeoutRef.current);
+      }
+      storySplitterPendingTimeoutRef.current = setTimeout(async () => {
+        storySplitterPendingTimeoutRef.current = null;
+        const jobId = storySplitterJobIdRef.current;
+        if (!jobId) return; // Already resolved
+        try {
+          await fetch(`/api/story-splitter/orchestrator/cancel?jobId=${jobId}`, { method: "POST" });
+        } catch { /* best effort */ }
+        storySplitterJobIdRef.current = null;
+        setStorySplitterJobId(null);
+        setStorySplitter(prev => ({
+          ...prev,
+          isLoading: false,
+          error: "Job did not start within 45 seconds — the backend worker may be unavailable. Please try again.",
+        }));
+      }, 45_000);
 
       // Job is now running in background - UI will update via Firestore subscription
     } catch (err: unknown) {
@@ -1716,6 +1773,15 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       .map(Number)
       .sort((a, b) => a - b);
   }, [storyboardGenerator.parts]);
+
+  const getStoryPartIndices = useCallback((): number[] => {
+    // Primary: StorySplitter result is the canonical list of all story parts
+    if (storySplitter.result?.parts && storySplitter.result.parts.length > 0) {
+      return storySplitter.result.parts.map((_, i) => i);
+    }
+    // Fallback: storyboard parts (covers legacy projects or skipped StorySplitter)
+    return getGeneratedPartIndices();
+  }, [storySplitter.result, getGeneratedPartIndices]);
 
   // Update a specific clip's prompt field
   const updateClipPrompt = useCallback((
@@ -2278,6 +2344,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setActiveStoryboardPartIndex,
         getScenesForPart,
         getGeneratedPartIndices,
+        getStoryPartIndices,
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,

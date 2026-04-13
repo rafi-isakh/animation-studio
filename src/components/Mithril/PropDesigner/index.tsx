@@ -94,6 +94,7 @@ export default function PropDesigner() {
     storyboardGenerator,
     getScenesForPart,
     getGeneratedPartIndices,
+    getStoryPartIndices,
     propDesignerGenerator,
     setPropDesignerResult,
     clearPropDesignerData,
@@ -343,12 +344,13 @@ export default function PropDesigner() {
   }, [importedScenes]);
 
   const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
   useEffect(() => {
-    if (generatedPartIndices.length === 0) return;
-    if (!generatedPartIndices.includes(selectedPartIndex)) {
-      setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
+    if (storyPartIndices.length === 0) return;
+    if (!storyPartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(storyPartIndices[storyPartIndices.length - 1] ?? 0);
     }
-  }, [generatedPartIndices, selectedPartIndex]);
+  }, [storyPartIndices, selectedPartIndex]);
 
   // Determine active scenes (context or imported)
   const contextScenes = getScenesForPart(selectedPartIndex);
@@ -1609,11 +1611,11 @@ export default function PropDesigner() {
         </div>
       )}
 
-      {!hasImportedScenes && generatedPartIndices.length > 0 && (
+      {!hasImportedScenes && storyPartIndices.length > 1 && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-300">Storyboard Parts</p>
           <div className="p-1 flex gap-1 flex-wrap items-center">
-            {generatedPartIndices.map((partIdx) => (
+            {storyPartIndices.map((partIdx) => (
               <button
                 key={partIdx}
                 onClick={() => setSelectedPartIndex(partIdx)}

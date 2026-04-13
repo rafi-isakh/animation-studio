@@ -97,6 +97,7 @@ export default function ImageGeneratorOrchestrator() {
     propDesignerGenerator,
     getScenesForPart,
     getGeneratedPartIndices,
+    getStoryPartIndices,
   } = useMithril();
 const { language, dictionary } = useLanguage();
   const { toast } = useToast();
@@ -171,14 +172,16 @@ const { language, dictionary } = useLanguage();
 
   // Storyboard part indices
   const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
 
   // Auto-select a valid part when parts change
   useEffect(() => {
-    if (generatedPartIndices.length === 0) return;
-    if (!generatedPartIndices.includes(selectedPartIndex)) {
-      setSelectedPartIndex(generatedPartIndices[generatedPartIndices.length - 1]);
+    const indices = storyPartIndices.length > 0 ? storyPartIndices : generatedPartIndices;
+    if (indices.length === 0) return;
+    if (!indices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(indices[indices.length - 1] ?? 0);
     }
-  }, [generatedPartIndices, selectedPartIndex]);
+  }, [storyPartIndices, generatedPartIndices, selectedPartIndex]);
 
   // Save a single completed frame to Firestore (called from onFrameUpdate)
   const saveCompletedFrame = useCallback(
@@ -480,15 +483,19 @@ const { language, dictionary } = useLanguage();
             aspectRatio: savedMeta.aspectRatio || "16:9",
           });
           if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
-            const assetMetadata: LocalAssetRef[] = savedMeta.localAssets.map((asset) => ({
-              id: asset.id,
-              name: asset.name,
-              mimeType: 'image/webp',
-              category: asset.category,
-              imageUrl: asset.imageUrl || undefined,
-              isRemoved: !!asset.isRemoved,
-            }));
-            setLocalAssets(assetMetadata);
+            // Deduplicate by id (keep last entry) to prevent stale duplicates
+            const seen = new Map<string, LocalAssetRef>();
+            savedMeta.localAssets.forEach((asset) => {
+              seen.set(asset.id, {
+                id: asset.id,
+                name: asset.name,
+                mimeType: 'image/webp',
+                category: asset.category,
+                imageUrl: asset.imageUrl || undefined,
+                isRemoved: !!asset.isRemoved,
+              });
+            });
+            setLocalAssets(Array.from(seen.values()));
           }
         }
 
@@ -730,12 +737,14 @@ const { language, dictionary } = useLanguage();
     loadData();
   }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult]);
 
-  // All available part indices — prefer storyboard context, fall back to what frames contain
+  // All available part indices — prefer StorySplitter result, then storyboard context, then frames
   const allPartIndices = useMemo(() => {
+    if (storyPartIndices.length > 0) return storyPartIndices;
     if (generatedPartIndices.length > 0) return generatedPartIndices;
+    // Fall back to deriving from loaded frames
     const parts = new Set(frames.map((f) => f.partIndex ?? 0));
     return Array.from(parts).sort((a, b) => a - b);
-  }, [generatedPartIndices, frames]);
+  }, [storyPartIndices, generatedPartIndices, frames]);
 
   // Frames filtered to the selected part (when multi-part)
   const displayedFrames = useMemo(

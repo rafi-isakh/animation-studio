@@ -17,12 +17,7 @@ from app.core.retry import RetryState
 from app.core.state_machine import JobStateMachine
 from app.models.job import JobDocument, JobStatus
 from app.services.firestore import get_job_queue_service
-from app.services.s3 import (
-    download_text_object,
-    upload_json_object,
-    delete_object,
-    get_story_splitter_result_key,
-)
+from app.services import s3 as s3_service
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -99,9 +94,10 @@ async def process_story_splitter(
         return {"job_id": job_id, "status": "error", "error": "Job not found"}
 
     story_text = job.story_text or ""
-    if job.story_text_s3_key:
+    story_text_s3_key = getattr(job, "story_text_s3_key", None)
+    if story_text_s3_key:
         try:
-            story_text = await download_text_object(job.story_text_s3_key)
+            story_text = await _download_story_text(story_text_s3_key)
         except Exception as exc:
             logger.error(f"[STORY-SPLITTER] Failed to download story text from S3 for job {job_id}: {exc}")
             raise
@@ -154,8 +150,8 @@ async def process_story_splitter(
 
         # Save to project's storySplits document
         logger.debug(f"[STORY-SPLITTER] {job_id} - Uploading split result JSON to S3")
-        result_key = get_story_splitter_result_key(job.project_id, job_id)
-        await upload_json_object(result_key, parts)
+        result_key = s3_service.get_story_splitter_result_key(job.project_id, job_id)
+        await s3_service.upload_json_object(result_key, parts)
 
         logger.debug(f"[STORY-SPLITTER] {job_id} - Updating storySplits document in project")
         await _save_story_splits(
@@ -166,16 +162,18 @@ async def process_story_splitter(
         )
         logger.info(f"[STORY-SPLITTER] {job_id} - storySplits document updated")
 
-        # Update job with results (no split_result - parts already saved to storySplits doc)
+        # Update job status and store split_result_s3_key so _load_story_split_parts
+        # can reliably find the result via S3 without needing the storySplits doc
         state_machine.transition_to(JobStatus.COMPLETED)
         await job_queue_service.update_job_status(
             job_id,
             JobStatus.COMPLETED,
             progress=1.0,
+            split_result_s3_key=result_key,
         )
 
-        if job.story_text_s3_key:
-            await delete_object(job.story_text_s3_key)
+        if story_text_s3_key:
+            await s3_service.delete_object(story_text_s3_key)
 
         logger.info(f"[STORY-SPLITTER] {job_id} ========== JOB COMPLETED SUCCESSFULLY ==========")
         return {
@@ -408,7 +406,7 @@ async def _save_story_splits(
         project_id: The project ID
         guidelines: Guidelines used for splitting
         job_id: The job ID
-        result_key: Optional S3 key for the generated parts JSON
+        result_key: S3 key for the generated parts JSON
     """
     from app.services.firestore import get_story_splits_service
 
@@ -419,6 +417,26 @@ async def _save_story_splits(
         job_id=job_id,
         result_key=result_key,
     )
+
+
+async def _download_story_text(key: str) -> str:
+    """
+    Download story text from S3, with backward-compatible fallback.
+
+    Some deployments may have an older s3 module without download_text_object.
+    """
+    download_text = getattr(s3_service, "download_text_object", None)
+    if callable(download_text):
+        return await download_text(key)
+
+    logger.warning("[STORY-SPLITTER] download_text_object not found; using fallback S3 download.")
+    client = s3_service.get_s3_client()
+    target_bucket = s3_service.settings.videos_bucket
+    response = client.get_object(Bucket=target_bucket, Key=key)
+    body = response["Body"].read()
+    if isinstance(body, bytes):
+        return body.decode("utf-8")
+    return str(body)
 
 
 def find_split_point(sentence: str, text: str) -> int:

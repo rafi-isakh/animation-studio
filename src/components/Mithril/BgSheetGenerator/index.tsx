@@ -393,7 +393,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, setActiveBgPartIndex, pushBgsToAssets, customApiKey, storyboardGenerator, getScenesForPart, getGeneratedPartIndices } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, setActiveBgPartIndex, pushBgsToAssets, customApiKey, storyboardGenerator, getScenesForPart, getGeneratedPartIndices, getStoryPartIndices } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -474,14 +474,15 @@ export default function BgSheetGenerator() {
 
   // Auto-correct selectedPartIndex if the selected part no longer exists
   const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
   useEffect(() => {
-    if (generatedPartIndices.length === 0) return;
-    if (!generatedPartIndices.includes(selectedPartIndex)) {
-      const newPartIndex = generatedPartIndices[generatedPartIndices.length - 1];
+    if (storyPartIndices.length === 0) return;
+    if (!storyPartIndices.includes(selectedPartIndex)) {
+      const newPartIndex = storyPartIndices[storyPartIndices.length - 1] ?? 0;
       setSelectedPartIndex(newPartIndex);
       setActiveBgPartIndex(newPartIndex);
     }
-  }, [generatedPartIndices, selectedPartIndex]);
+  }, [storyPartIndices, selectedPartIndex]);
 
   // Backgrounds filtered to the selected part (all if single-part)
   const displayedBackgrounds = useMemo(
@@ -3003,11 +3004,11 @@ export default function BgSheetGenerator() {
       ))}
 
       {/* Part selector - always visible when multiple parts exist */}
-      {!isLoadingData && generatedPartIndices.length > 1 && (
+      {!isLoadingData && storyPartIndices.length > 1 && (
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400 dark:text-gray-500">Part:</span>
           <div className="flex gap-1">
-            {generatedPartIndices.map((partIdx) => (
+            {storyPartIndices.map((partIdx) => (
               <button
                 key={partIdx}
                 onClick={() => { setSelectedPartIndex(partIdx); setActiveBgPartIndex(partIdx); }}

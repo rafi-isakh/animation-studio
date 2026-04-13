@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 const WORLDLABS_BASE = "https://api.worldlabs.ai/marble/v1";
 
@@ -18,7 +19,11 @@ async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; conten
     const buffer = Buffer.from(base64, "base64");
     return { buffer, contentType, ext };
   }
-  const res = await fetch(url);
+  const safeUrl = assertAllowedUrl(url, {
+    allowedHostSuffixes: [".amazonaws.com", ".cloudfront.net"],
+    allowedHostnames: new Set(),
+  });
+  const res = await fetch(safeUrl.toString());
   if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
   const contentType = res.headers.get("content-type") || "image/jpeg";
   const ext = contentType.split("/")[1]?.split("+")[0] || "jpg";

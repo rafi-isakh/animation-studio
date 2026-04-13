@@ -55,6 +55,13 @@ interface ImageUploadProps {
 
 function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const safeLabel = typeof label === "string" ? label : String(label);
+  const safeImagePreview =
+    typeof imagePreview === "string" &&
+     (imagePreview.startsWith("blob:") ||
+       /^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(imagePreview))
+      ? imagePreview
+      : null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,12 +82,12 @@ function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProp
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">{label}</label>
+      <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">{safeLabel}</label>
       <div
         onClick={() => fileInputRef.current?.click()}
         className={`
           relative h-48 w-full rounded-xl border-2 border-dashed transition-all cursor-pointer overflow-hidden group
-          ${imagePreview
+          ${safeImagePreview
             ? 'border-[#DB2777]/50 bg-slate-800'
             : 'border-slate-700 bg-slate-800/50 hover:border-[#DB2777]/50 hover:bg-slate-800'
           }
@@ -94,9 +101,9 @@ function ImageUpload({ label, imagePreview, onImageChange, id }: ImageUploadProp
           className="hidden"
           id={id}
         />
-        {imagePreview ? (
+        {safeImagePreview ? (
           <>
-            <img src={imagePreview} alt={label} className="w-full h-full object-cover" />
+            <img src={safeImagePreview} alt={safeLabel} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <span className="text-white font-medium flex items-center gap-2">
                 <Upload size={16} /> Change Image

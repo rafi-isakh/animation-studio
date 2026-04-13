@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/mithrilAuth";
+import { assertSafePathSegment } from "@/utils/urlSafety";
 
 const ORCHESTRATOR_URL = process.env.MITHRIL_BACKEND_URL || "http://localhost:8000";
 const INTERNAL_SERVICE_SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
@@ -23,16 +24,22 @@ export async function GET(request: NextRequest) {
     if (!jobId) {
       return NextResponse.json({ error: "jobId is required" }, { status: 400 });
     }
+    const safeJobId = assertSafePathSegment(jobId);
 
     // Forward to orchestrator backend
-    const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/jobs/${jobId}/status`, {
+    const response = await fetch(
+      `${ORCHESTRATOR_URL}/api/v1/jobs/${encodeURIComponent(
+        safeJobId
+      )}/status`,
+      {
       method: "GET",
       headers: {
         "X-Internal-Secret": INTERNAL_SERVICE_SECRET,
         "X-User-Id": session.userId,
         "X-User-Email": session.email || "",
       },
-    });
+    }
+    );
 
     const data = await response.json();
 

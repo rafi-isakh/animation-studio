@@ -31,12 +31,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadVid
       );
     }
 
-    const allowedHostnames = new Set([
-      ...(VIDEOS_S3 ? [VIDEOS_S3] : []),
-    ]);
+    if (!VIDEOS_S3) {
+      return NextResponse.json(
+        { success: false, s3Key: "", url: "", error: "Video CDN hostname is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const configuredVideoHost = (() => {
+      const trimmed = VIDEOS_S3.trim();
+      try {
+        return new URL(trimmed).hostname.toLowerCase();
+      } catch {
+        return trimmed.replace(/^https?:\/\//i, "").split("/")[0].toLowerCase();
+      }
+    })();
+
     const safeVideoUrl = assertAllowedUrl(videoUrl, {
-      allowedHostSuffixes: [".cloudfront.net", ".amazonaws.com"],
-      allowedHostnames,
+      allowedHostSuffixes: [],
+      allowedHostnames: new Set([configuredVideoHost]),
     });
 
     // Download video from URL

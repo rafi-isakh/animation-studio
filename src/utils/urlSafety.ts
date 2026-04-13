@@ -1,3 +1,6 @@
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+
 /**
  * URL and path safety helpers for server-side fetches.
  * Keeps allowlists narrow and blocks common SSRF bypasses.
@@ -21,10 +24,38 @@ type UrlAllowlistOptions = {
   allowHttps?: boolean;
 };
 
-export function assertAllowedUrl(
+function isPrivateOrLocalIp(address: string): boolean {
+  const ipVersion = isIP(address);
+  if (ipVersion === 4) {
+    const [a, b] = address.split(".").map((v) => Number(v));
+    return (
+      a === 10 ||
+      a === 127 ||
+      a === 0 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    );
+  }
+
+  if (ipVersion === 6) {
+    const normalized = address.toLowerCase();
+    return (
+      normalized === "::1" ||
+      normalized === "::" ||
+      normalized.startsWith("fe80:") ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd")
+    );
+  }
+
+  return false;
+}
+
+export async function assertAllowedUrl(
   url: string,
   options: UrlAllowlistOptions = {}
-): URL {
+): Promise<URL> {
   const parsed = new URL(url);
   const allowHttp = options.allowHttp ?? false;
   const allowHttps = options.allowHttps ?? true;
@@ -39,6 +70,19 @@ export function assertAllowedUrl(
     throw new Error(`Disallowed URL protocol: ${parsed.protocol}`);
   }
 
+  if (parsed.username || parsed.password) {
+    throw new Error("Disallowed URL credentials");
+  }
+
+  if (parsed.port) {
+    if (
+      (parsed.protocol === "https:" && parsed.port !== "443") ||
+      (parsed.protocol === "http:" && parsed.port !== "80")
+    ) {
+      throw new Error(`Disallowed URL port: ${parsed.port}`);
+    }
+  }
+
   const hostname = parsed.hostname.toLowerCase();
   const allowedHostSuffixes =
     options.allowedHostSuffixes ?? DEFAULT_ALLOWED_HOST_SUFFIXES;
@@ -51,6 +95,14 @@ export function assertAllowedUrl(
 
   if (!allowed) {
     throw new Error(`Disallowed hostname: ${hostname}`);
+  }
+
+  const resolved = await lookup(hostname, { all: true });
+  if (!resolved.length) {
+    throw new Error(`Unable to resolve hostname: ${hostname}`);
+  }
+  if (resolved.some((entry) => isPrivateOrLocalIp(entry.address))) {
+    throw new Error(`Disallowed resolved IP for hostname: ${hostname}`);
   }
 
   return parsed;

@@ -41,6 +41,10 @@ export const dynamic = 'force-dynamic';
 const BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME;
 const PICTURES_S3 = process.env.NEXT_PUBLIC_PICTURES_S3;
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * POST /api/mithril/s3/image
  * Upload an image to S3 with project-based key structure
@@ -506,7 +510,9 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
                 new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: panelPrefix })
               );
               if (panelList.Contents) {
-                const panelPattern = new RegExp(`/${pageIndex}_${panelIndex}(\\.webp|_[^/]+\\.webp)$`);
+                const safePageIndex = escapeRegExp(String(pageIndex));
+                const safePanelIndex = escapeRegExp(String(panelIndex));
+                const panelPattern = new RegExp(`/${safePageIndex}_${safePanelIndex}(\\.webp|_[^/]+\\.webp)$`);
                 keysToDelete = panelList.Contents
                   .map(obj => obj.Key!)
                   .filter(key => key && panelPattern.test(key));
@@ -522,7 +528,8 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
                 new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: pagePrefix })
               );
               if (pageList.Contents) {
-                const pagePattern = new RegExp(`/${pageIndex}(\\.webp|_[^/]+\\.webp)$`);
+                const safePageIndex = escapeRegExp(String(pageIndex));
+                const pagePattern = new RegExp(`/${safePageIndex}(\\.webp|_[^/]+\\.webp)$`);
                 keysToDelete = pageList.Contents
                   .map(obj => obj.Key!)
                   .filter(key => key && pagePattern.test(key));

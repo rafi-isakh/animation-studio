@@ -597,19 +597,13 @@ function PairedClipCard(props: PairedClipCardProps) {
   const { frameA, frameB } = props;
   const baseNumber = frameA.frameNumber.replace(/ A$/i, '').trim();
 
-  // Editing either half's prompt syncs both frames
-  const onUpdatePromptSynced = useCallback((id: string, prompt: string) => {
-    props.onUpdatePrompt(frameA.id, prompt);
-    props.onUpdatePrompt(frameB.id, prompt);
-  }, [props.onUpdatePrompt, frameA.id, frameB.id]);
-
   const sharedHalfProps = {
     globalProvider:    props.globalProvider,
     onGenerate:        props.onGenerate,
     onRegenerate:      props.onRegenerate,
     onCancel:          props.onCancel,
     onDelete:          props.onDelete,
-    onUpdatePrompt:    onUpdatePromptSynced,
+    onUpdatePrompt:    props.onUpdatePrompt,
     onUpdateStartImage: props.onUpdateStartImage,
     onUpdateDuration:  props.onUpdateDuration,
     onUpdateVideoApi:  props.onUpdateVideoApi,

@@ -47,6 +47,8 @@ import FrameCard from "./FrameCard";
 import ImageModal from "./ImageModal";
 import { parseCsvData, parseCellReference, colLetterToIndex } from "@/utils/csvHelper";
 import { fileToBase64, sanitizeFilename } from "@/utils/fileHelper";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { useCostTracker } from "../CostContext";
 import { compressImage } from "../StoryboardGenerator/utils/imageUtils";
 import { useImageOrchestrator, FrameUpdate } from "./useImageOrchestrator";
@@ -1321,6 +1323,46 @@ const { language, dictionary } = useLanguage();
     URL.revokeObjectURL(objectUrl);
   }, [frames]);
 
+  const handleDownloadAll = useCallback(async () => {
+    const framesWithImages = frames.filter(
+      (f) => f.imageUrl || f.remixImageUrl || f.editedImageUrl
+    );
+    if (framesWithImages.length === 0) {
+      toast({ title: "No Images", description: "No generated images to download.", variant: "destructive" });
+      return;
+    }
+
+    const zip = new JSZip();
+    let imageCount = 0;
+
+    for (const frame of framesWithImages) {
+      const variants: Array<{ url: string; suffix: string }> = [];
+      if (frame.imageUrl)       variants.push({ url: frame.imageUrl,       suffix: "" });
+      if (frame.editedImageUrl) variants.push({ url: frame.editedImageUrl, suffix: "_edited" });
+      if (frame.remixImageUrl)  variants.push({ url: frame.remixImageUrl,  suffix: "_remix" });
+
+      for (const { url, suffix } of variants) {
+        try {
+          const res = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+          if (!res.ok) continue;
+          const { base64 } = await res.json();
+          zip.file(`frame_${frame.frameLabel}${suffix}.png`, base64, { base64: true });
+          imageCount++;
+        } catch (err) {
+          console.error(`Failed to fetch frame ${frame.frameLabel}${suffix}:`, err);
+        }
+      }
+    }
+
+    if (imageCount === 0) {
+      toast({ title: "Download Failed", description: "Could not fetch any images.", variant: "destructive" });
+      return;
+    }
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `frames_${new Date().toISOString().slice(0, 10)}.zip`);
+  }, [frames, toast]);
+
   // Apply bulk background to all frames
   const handleApplyBulkBg = useCallback(() => {
     if (!bulkBackgroundId.trim()) return;
@@ -2304,6 +2346,12 @@ const { language, dictionary } = useLanguage();
                   APPLY ALL
                 </button>
               </div>
+              <button
+                onClick={handleDownloadAll}
+                className="px-3 py-1.5 text-[10px] bg-blue-600 text-white rounded-lg font-black hover:bg-blue-500 transition-all"
+              >
+                DOWNLOAD ALL
+              </button>
               <button
                 onClick={() => {
                   setFrames([]);

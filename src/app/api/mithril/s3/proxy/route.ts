@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "@/utils/s3";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 const VIDEOS_CLOUDFRONT = process.env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT;
 
@@ -25,26 +26,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "URL parameter is required" }, { status: 400 });
   }
 
-  // Validate that it's an S3 URL or allowed domain
-  const allowedDomains = [
-    "s3.amazonaws.com",
-    "s3.ap-northeast-2.amazonaws.com",
-    ".s3.amazonaws.com",
-    ".s3.ap-northeast-2.amazonaws.com",
-    "cloudfront.net",
-    // Allow CloudFront domain for video downloads
-    ...(VIDEOS_CLOUDFRONT ? [VIDEOS_CLOUDFRONT] : []),
-  ];
-
   try {
-    const parsedUrl = new URL(url);
-    const isAllowed = allowedDomains.some(
-      (domain) => parsedUrl.hostname === domain || parsedUrl.hostname.endsWith(domain)
-    );
+    const normalizedVideosCloudfrontHost = VIDEOS_CLOUDFRONT
+      ? new URL(
+          VIDEOS_CLOUDFRONT.startsWith("http://") || VIDEOS_CLOUDFRONT.startsWith("https://")
+            ? VIDEOS_CLOUDFRONT
+            : `https://${VIDEOS_CLOUDFRONT}`
+        ).hostname.toLowerCase()
+      : null;
 
-    if (!isAllowed) {
-      return NextResponse.json({ error: "URL domain not allowed" }, { status: 403 });
-    }
+    const allowedHostnames = new Set([
+      "s3.amazonaws.com",
+      "s3.ap-northeast-2.amazonaws.com",
+      ...(normalizedVideosCloudfrontHost ? [normalizedVideosCloudfrontHost] : []),
+    ]);
+
+    const parsedUrl = assertAllowedUrl(url, {
+      allowedHostSuffixes: [
+        ".s3.amazonaws.com",
+        ".s3.ap-northeast-2.amazonaws.com",
+      ],
+      allowedHostnames,
+    });
 
     // For direct S3 URLs (private bucket), use the SDK; for CloudFront, plain fetch is fine
     const isDirectS3 = parsedUrl.hostname.endsWith(".amazonaws.com") &&
@@ -65,7 +68,7 @@ export async function GET(request: NextRequest) {
       contentType = s3Response.ContentType || "application/octet-stream";
       buffer = bytes.buffer as ArrayBuffer;
     } else {
-      const response = await fetch(url);
+      const response = await fetch(parsedUrl.toString());
       if (!response.ok) {
         return NextResponse.json(
           { error: `Failed to fetch resource: ${response.status}` },

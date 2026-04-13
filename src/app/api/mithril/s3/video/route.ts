@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { s3Client } from "@/utils/s3";
 import { PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 import {
   UploadVideoRequest,
   UploadVideoResponse,
@@ -30,8 +31,29 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadVid
       );
     }
 
+    if (!VIDEOS_S3) {
+      return NextResponse.json(
+        { success: false, s3Key: "", url: "", error: "Video CDN hostname is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const configuredVideoHost = (() => {
+      const trimmed = VIDEOS_S3.trim();
+      try {
+        return new URL(trimmed).hostname.toLowerCase();
+      } catch {
+        return trimmed.replace(/^https?:\/\//i, "").split("/")[0].toLowerCase();
+      }
+    })();
+
+    const safeVideoUrl = assertAllowedUrl(videoUrl, {
+      allowedHostSuffixes: [],
+      allowedHostnames: new Set([configuredVideoHost]),
+    });
+
     // Download video from URL
-    const response = await fetch(videoUrl);
+    const response = await fetch(safeVideoUrl.toString());
     if (!response.ok) {
       return NextResponse.json(
         { success: false, s3Key: "", url: "", error: `Failed to download video: ${response.statusText}` },

@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(parsedUrl, { redirect: "error" }); // codeql[js/server-side-request-forgery]
+    const safeFetchUrl = new URL(`${parsedUrl.protocol}//${parsedUrl.hostname}`);
+    safeFetchUrl.pathname = parsedUrl.pathname;
+    safeFetchUrl.search = parsedUrl.search;
+    const response = await fetch(safeFetchUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
 
     if (!response.ok) {
       return NextResponse.json(

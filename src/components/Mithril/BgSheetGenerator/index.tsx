@@ -3190,11 +3190,10 @@ export default function BgSheetGenerator() {
                   console.log("[BgSheet] pushBgsToAssets: part", selectedPartIndex);
                   displayedBackgrounds.forEach(bg => {
                     const localImages = bg.images.filter(i => i.imageUrl || i.imageBase64);
-                    const persistedImages = bg.images.filter(i => i.imageId);
                     console.log(
                       "[BgSheet] bg",
                       { id: bg.id, name: bg.name, partIndex: bg.partIndex ?? 0 },
-                      { localImageCount: localImages.length, persistedImageCount: persistedImages.length }
+                      { localImageCount: localImages.length }
                     );
                   });
                   setIsPushingBgsToAssets(true);

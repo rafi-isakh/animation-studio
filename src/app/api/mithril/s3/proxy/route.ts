@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       ...(normalizedVideosCloudfrontHost ? [normalizedVideosCloudfrontHost] : []),
     ]);
 
-    const parsedUrl = assertAllowedUrl(url, {
+    const parsedUrl = await assertAllowedUrl(url, {
       allowedHostSuffixes: [
         ".s3.amazonaws.com",
         ".s3.ap-northeast-2.amazonaws.com",

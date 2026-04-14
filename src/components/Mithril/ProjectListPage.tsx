@@ -94,14 +94,16 @@ export default function ProjectListPage() {
   const { setCurrentProject } = useProject();
   const { user } = useMithrilAuth();
   const { toast } = useToast();
+  const parseCategory = (value: string | null): TypeCategory | null =>
+    value && value in CATEGORY_CONFIG ? (value as TypeCategory) : null;
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<TypeCategory | null>(
-    (searchParams.get('category') as TypeCategory) ?? null
+    parseCategory(searchParams.get('category'))
   );
 
   useEffect(() => {
-    setSelectedCategory((searchParams.get('category') as TypeCategory) ?? null);
+    setSelectedCategory(parseCategory(searchParams.get('category')));
   }, [searchParams]);
 
   function handleCategorySelect(cat: TypeCategory | null) {
@@ -512,7 +514,7 @@ export default function ProjectListPage() {
             )}
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                {selectedCategory ? currentCategoryConfig!.label : 'Mithril Projects'}
+                {selectedCategory && currentCategoryConfig ? currentCategoryConfig.label : 'Mithril Projects'}
               </h1>
               {!selectedCategory && (
                 <p className="text-gray-500 text-sm mt-1">

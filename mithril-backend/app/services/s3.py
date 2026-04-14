@@ -11,15 +11,46 @@ from botocore.exceptions import ClientError
 
 from app.config import get_settings
 
-ALLOWED_URL_SUFFIXES = (
-    ".amazonaws.com",
-    ".cloudfront.net",
-    ".firebasestorage.googleapis.com",
-)
-
-ALLOWED_URL_HOSTNAMES = {
+# Static hostnames always trusted (not configurable at runtime)
+_STATIC_ALLOWED_HOSTNAMES = {
     "storage.googleapis.com",
+    "firebasestorage.googleapis.com",
 }
+
+
+def _extract_hostname(value: str | None) -> str | None:
+    """Extract normalized hostname from a raw hostname or URL-like value."""
+    if not value:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    if "://" not in candidate:
+        candidate = f"https://{candidate}"
+    parsed = urlparse(candidate)
+    hostname = (parsed.hostname or "").strip().lower()
+    return hostname or None
+
+
+def _get_trusted_hostnames() -> set[str]:
+    """
+    Build trusted hostnames from static allowlist + configured storage/CDN domains.
+    Uses specific configured hostnames rather than broad suffix matching to prevent
+    SSRF to other tenants on shared domains (e.g. other AWS S3 buckets).
+    """
+    s = get_settings()
+    hosts = set(_STATIC_ALLOWED_HOSTNAMES)
+
+    # Specific CloudFront domain configured for this deployment
+    if hostname := _extract_hostname(s.cloudfront_domain):
+        hosts.add(hostname)
+
+    # Derive S3 bucket hostname from bucket name + region
+    if s.videos_bucket and s.aws_region:
+        hosts.add(f"{s.videos_bucket}.s3.{s.aws_region}.amazonaws.com")
+        hosts.add(f"{s.videos_bucket}.s3.amazonaws.com")
+
+    return hosts
 
 
 def assert_allowed_url(url: str) -> str:
@@ -27,7 +58,7 @@ def assert_allowed_url(url: str) -> str:
     Validate that a URL is safe to fetch (SSRF protection).
     Raises ValueError if the URL is not allowed.
     - Only HTTPS
-    - Hostname must match an allowlist of S3/CDN suffixes
+    - Hostname must be in the trusted set (configured S3 bucket + CloudFront domain)
     - Resolved IP must not be private/loopback
     """
     parsed = urlparse(url)
@@ -42,10 +73,8 @@ def assert_allowed_url(url: str) -> str:
     if not hostname:
         raise ValueError("Missing hostname in URL")
 
-    allowed = hostname in ALLOWED_URL_HOSTNAMES or any(
-        hostname.endswith(s) for s in ALLOWED_URL_SUFFIXES
-    )
-    if not allowed:
+    trusted_hostnames = _get_trusted_hostnames()
+    if hostname not in trusted_hostnames:
         raise ValueError(f"Disallowed hostname: {hostname!r}")
 
     try:
@@ -268,7 +297,7 @@ async def download_image(url: str) -> bytes:
     assert_allowed_url(url)  # raises ValueError if not allowed
 
     async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
-        response = await client.get(url)
+        response = await client.get(url)  # codeql[py/full-ssrf]
         if not response.is_success:
             raise Exception(f"Failed to download image: {response.status_code}")
         return response.content

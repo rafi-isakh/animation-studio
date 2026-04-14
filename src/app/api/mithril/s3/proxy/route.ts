@@ -68,7 +68,14 @@ export async function GET(request: NextRequest) {
       contentType = s3Response.ContentType || "application/octet-stream";
       buffer = bytes.buffer as ArrayBuffer;
     } else {
-      const response = await fetch(parsedUrl.toString());
+      const normalizedHost = parsedUrl.hostname.toLowerCase();
+      if (!allowedHostnames.has(normalizedHost)) {
+        throw new Error(`Disallowed hostname for proxy fetch: ${normalizedHost}`);
+      }
+      const canonicalUrl = new URL(`https://${normalizedHost}`);
+      canonicalUrl.pathname = parsedUrl.pathname;
+      canonicalUrl.search = parsedUrl.search;
+      const response = await fetch(canonicalUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
       if (!response.ok) {
         return NextResponse.json(
           { error: `Failed to fetch resource: ${response.status}` },

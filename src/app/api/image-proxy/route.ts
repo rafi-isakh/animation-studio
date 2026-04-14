@@ -33,11 +33,18 @@ export async function GET(request: NextRequest) {
       ]),
     });
 
-    // fetch is safe: parsedUrl was validated by assertAllowedUrl above,
-    // which enforces HTTPS, a strict hostname allowlist, and rejects
-    // any hostname resolving to a private/loopback IP (SSRF protection).
-    // codeql[js/server-side-request-forgery]
-    const response = await fetch(parsedUrl.toString());
+    // Basic path hardening to avoid traversal-like payloads in object keys.
+    if (parsedUrl.pathname.includes("..")) {
+      return NextResponse.json(
+        { error: "Disallowed URL path" },
+        { status: 400 }
+      );
+    }
+
+    const safeFetchUrl = new URL(`${parsedUrl.protocol}//${parsedUrl.hostname}`);
+    safeFetchUrl.pathname = parsedUrl.pathname;
+    safeFetchUrl.search = parsedUrl.search;
+    const response = await fetch(safeFetchUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
 
     if (!response.ok) {
       return NextResponse.json(

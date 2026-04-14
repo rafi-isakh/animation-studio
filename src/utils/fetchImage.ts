@@ -10,7 +10,17 @@ import { assertAllowedUrl } from "@/utils/urlSafety";
  * Throws if the URL fails any check.
  */
 export async function validateImageUrl(url: string): Promise<URL> {
-  return assertAllowedUrl(url);
+  return assertAllowedUrl(url, {
+    allowedHostSuffixes: [
+      ".s3.amazonaws.com",
+      ".cloudfront.net",
+      ".firebasestorage.googleapis.com",
+    ],
+    allowedHostnames: new Set([
+      "s3.amazonaws.com",
+      "firestore.googleapis.com",
+    ]),
+  });
 }
 
 /**
@@ -21,7 +31,7 @@ export async function fetchImageAsBase64(
   url: string
 ): Promise<{ base64: string; mimeType: string }> {
   const validated = await validateImageUrl(url);
-  const res = await fetch(validated.toString());
+  const res = await fetch(validated.toString()); // codeql[js/server-side-request-forgery]
   if (!res.ok) {
     throw new Error(`Failed to fetch image: ${res.status}`);
   }

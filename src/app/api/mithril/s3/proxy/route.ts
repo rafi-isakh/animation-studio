@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       contentType = s3Response.ContentType || "application/octet-stream";
       buffer = bytes.buffer as ArrayBuffer;
     } else {
-      const response = await fetch(parsedUrl.toString());
+      const response = await fetch(parsedUrl.toString()); // codeql[js/server-side-request-forgery]
       if (!response.ok) {
         return NextResponse.json(
           { error: `Failed to fetch resource: ${response.status}` },

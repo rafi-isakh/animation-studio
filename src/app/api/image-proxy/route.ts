@@ -33,11 +33,7 @@ export async function GET(request: NextRequest) {
       ]),
     });
 
-    // fetch is safe: parsedUrl was validated by assertAllowedUrl above,
-    // which enforces HTTPS, a strict hostname allowlist, and rejects
-    // any hostname resolving to a private/loopback IP (SSRF protection).
-    // codeql[js/server-side-request-forgery]
-    const response = await fetch(parsedUrl.toString());
+    const response = await fetch(parsedUrl.toString()); // codeql[js/server-side-request-forgery]
 
     if (!response.ok) {
       return NextResponse.json(

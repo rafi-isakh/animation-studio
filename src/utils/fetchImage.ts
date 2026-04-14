@@ -31,7 +31,16 @@ export async function fetchImageAsBase64(
   url: string
 ): Promise<{ base64: string; mimeType: string }> {
   const validated = await validateImageUrl(url);
-  const res = await fetch(validated.toString()); // codeql[js/server-side-request-forgery]
+  const normalizedHost = validated.hostname.toLowerCase();
+  const allowedExactHosts = new Set(["s3.amazonaws.com", "firestore.googleapis.com"]);
+  const allowedHostSuffixes = [".s3.amazonaws.com", ".cloudfront.net", ".firebasestorage.googleapis.com"];
+  if (!allowedExactHosts.has(normalizedHost) && !allowedHostSuffixes.some((s) => normalizedHost.endsWith(s))) {
+    throw new Error(`Disallowed hostname: ${normalizedHost}`);
+  }
+  const safeFetchUrl = new URL(`https://${normalizedHost}`);
+  safeFetchUrl.pathname = validated.pathname;
+  safeFetchUrl.search = validated.search;
+  const res = await fetch(safeFetchUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
   if (!res.ok) {
     throw new Error(`Failed to fetch image: ${res.status}`);
   }

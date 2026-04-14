@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate URL is from expected domains (S3, CloudFront, or allowed hosts)
-    const parsedUrl = assertAllowedUrl(url, {
+    const parsedUrl = await assertAllowedUrl(url, {
       allowedHostSuffixes: [
         ".s3.amazonaws.com",
         ".s3.ap-northeast-2.amazonaws.com",

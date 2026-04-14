@@ -1,12 +1,64 @@
 """S3 service for video upload/download operations."""
 
+import ipaddress
 import logging
+import socket
 from typing import Literal
+from urllib.parse import urlparse
 
 import boto3
 from botocore.exceptions import ClientError
 
 from app.config import get_settings
+
+ALLOWED_URL_SUFFIXES = (
+    ".amazonaws.com",
+    ".cloudfront.net",
+    ".firebasestorage.googleapis.com",
+)
+
+ALLOWED_URL_HOSTNAMES = {
+    "storage.googleapis.com",
+}
+
+
+def assert_allowed_url(url: str) -> str:
+    """
+    Validate that a URL is safe to fetch (SSRF protection).
+    Raises ValueError if the URL is not allowed.
+    - Only HTTPS
+    - Hostname must match an allowlist of S3/CDN suffixes
+    - Resolved IP must not be private/loopback
+    """
+    parsed = urlparse(url)
+
+    if parsed.scheme != "https":
+        raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
+
+    if parsed.username or parsed.password:
+        raise ValueError("Disallowed URL credentials")
+
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        raise ValueError("Missing hostname in URL")
+
+    allowed = hostname in ALLOWED_URL_HOSTNAMES or any(
+        hostname.endswith(s) for s in ALLOWED_URL_SUFFIXES
+    )
+    if not allowed:
+        raise ValueError(f"Disallowed hostname: {hostname!r}")
+
+    try:
+        resolved_ips = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise ValueError(f"Unable to resolve hostname: {hostname!r}") from exc
+
+    for _, _, _, _, sockaddr in resolved_ips:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            raise ValueError(f"Disallowed resolved IP for {hostname!r}: {ip}")
+
+    return url
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -202,17 +254,20 @@ async def upload_image(
 
 async def download_image(url: str) -> bytes:
     """
-    Download image from URL (supports S3/CloudFront URLs and external URLs).
+    Download image from URL (supports S3/CloudFront URLs).
+    Validates the URL against an allowlist before fetching (SSRF protection).
 
     Args:
-        url: Image URL
+        url: Image URL (must be HTTPS and hosted on a trusted S3/CDN domain)
 
     Returns:
         Image bytes
     """
     import httpx
 
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+    assert_allowed_url(url)  # raises ValueError if not allowed
+
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
         response = await client.get(url)
         if not response.is_success:
             raise Exception(f"Failed to download image: {response.status_code}")

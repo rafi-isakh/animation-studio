@@ -268,7 +268,7 @@ async def download_image(url: str) -> bytes:
     assert_allowed_url(url)  # raises ValueError if not allowed
 
     async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
-        response = await client.get(url)
+        response = await client.get(url)  # codeql[py/full-ssrf]
         if not response.is_success:
             raise Exception(f"Failed to download image: {response.status_code}")
         return response.content

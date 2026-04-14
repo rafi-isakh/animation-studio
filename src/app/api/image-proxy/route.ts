@@ -33,7 +33,15 @@ export async function GET(request: NextRequest) {
       ]),
     });
 
-    const response = await fetch(parsedUrl.toString()); // codeql[js/server-side-request-forgery]
+    // Basic path hardening to avoid traversal-like payloads in object keys.
+    if (parsedUrl.pathname.includes("..")) {
+      return NextResponse.json(
+        { error: "Disallowed URL path" },
+        { status: 400 }
+      );
+    }
+
+    const response = await fetch(parsedUrl, { redirect: "error" }); // codeql[js/server-side-request-forgery]
 
     if (!response.ok) {
       return NextResponse.json(

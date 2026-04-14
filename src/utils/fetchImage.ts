@@ -10,7 +10,17 @@ import { assertAllowedUrl } from "@/utils/urlSafety";
  * Throws if the URL fails any check.
  */
 export async function validateImageUrl(url: string): Promise<URL> {
-  return assertAllowedUrl(url);
+  return assertAllowedUrl(url, {
+    allowedHostSuffixes: [
+      ".s3.amazonaws.com",
+      ".cloudfront.net",
+      ".firebasestorage.googleapis.com",
+    ],
+    allowedHostnames: new Set([
+      "s3.amazonaws.com",
+      "firestore.googleapis.com",
+    ]),
+  });
 }
 
 /**

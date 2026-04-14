@@ -6,15 +6,11 @@ import { isIP } from "node:net";
  * Keeps allowlists narrow and blocks common SSRF bypasses.
  */
 
-const DEFAULT_ALLOWED_HOST_SUFFIXES = [
-  ".amazonaws.com",
-  ".cloudfront.net",
-  ".s3.amazonaws.com",
-  ".firebasestorage.googleapis.com",
-];
+const DEFAULT_ALLOWED_HOST_SUFFIXES: string[] = [];
 
 const DEFAULT_ALLOWED_HOSTNAMES = new Set([
   "firestore.googleapis.com",
+  "s3.amazonaws.com",
 ]);
 
 type UrlAllowlistOptions = {
@@ -91,7 +87,10 @@ export async function assertAllowedUrl(
 
   const allowed =
     allowedHostnames.has(hostname) ||
-    allowedHostSuffixes.some((suffix) => hostname.endsWith(suffix));
+    allowedHostSuffixes.some((suffix) => {
+      const normalized = suffix.toLowerCase().replace(/^\./, "");
+      return hostname === normalized || hostname.endsWith(`.${normalized}`);
+    });
 
   if (!allowed) {
     throw new Error(`Disallowed hostname: ${hostname}`);

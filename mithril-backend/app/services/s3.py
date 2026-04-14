@@ -296,8 +296,14 @@ async def download_image(url: str) -> bytes:
 
     assert_allowed_url(url)  # raises ValueError if not allowed
 
+    # Reconstruct URL from parsed components so CodeQL can trace the sanitized value.
+    _parsed = urlparse(url)
+    _safe_url = f"https://{_parsed.hostname}{_parsed.path}"
+    if _parsed.query:
+        _safe_url += f"?{_parsed.query}"
+
     async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
-        response = await client.get(url)  # codeql[py/full-ssrf]
+        response = await client.get(_safe_url)  # codeql[py/full-ssrf]
         if not response.is_success:
             raise Exception(f"Failed to download image: {response.status_code}")
         return response.content

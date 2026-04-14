@@ -31,7 +31,7 @@ export async function fetchImageAsBase64(
   url: string
 ): Promise<{ base64: string; mimeType: string }> {
   const validated = await validateImageUrl(url);
-  const res = await fetch(validated.toString()); // codeql[js/server-side-request-forgery]
+  const res = await fetch(validated.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
   if (!res.ok) {
     throw new Error(`Failed to fetch image: ${res.status}`);
   }

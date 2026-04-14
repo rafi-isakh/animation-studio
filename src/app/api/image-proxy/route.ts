@@ -41,7 +41,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const safeFetchUrl = new URL(`${parsedUrl.protocol}//${parsedUrl.hostname}`);
+    const normalizedHost = parsedUrl.hostname.toLowerCase();
+    const allowedExactHosts = new Set([
+      "s3.amazonaws.com",
+      "s3.ap-northeast-2.amazonaws.com",
+      "s3.ap-southeast-1.amazonaws.com",
+    ]);
+    const allowedHostSuffixes = [
+      ".s3.amazonaws.com",
+      ".s3.ap-northeast-2.amazonaws.com",
+      ".s3.ap-southeast-1.amazonaws.com",
+      ".cloudfront.net",
+    ];
+    const hostAllowed =
+      allowedExactHosts.has(normalizedHost) ||
+      allowedHostSuffixes.some((s) => normalizedHost.endsWith(s));
+    if (!hostAllowed) {
+      return NextResponse.json({ error: "Disallowed hostname" }, { status: 400 });
+    }
+    const safeFetchUrl = new URL(`https://${normalizedHost}`);
     safeFetchUrl.pathname = parsedUrl.pathname;
     safeFetchUrl.search = parsedUrl.search;
     const response = await fetch(safeFetchUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]

@@ -209,6 +209,53 @@ export default function PropListView({
 
   // File input refs for each prop
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  // Cache for resolved reference images (URL/path -> data URL)
+  const referenceImageCacheRef = useRef<Map<string, string>>(new Map());
+
+  const blobToDataUrl = useCallback((blob: Blob) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
+  const resolveReferenceImages = useCallback(async (images: string[]) => {
+    const isUrlLike = (value: string) =>
+      value.startsWith("http://") ||
+      value.startsWith("https://") ||
+      value.startsWith("/") ||
+      value.startsWith("blob:");
+
+    const resolved = await Promise.all(
+      images.map(async (img) => {
+        if (!img) return null;
+        if (img.startsWith("data:image/")) return img;
+        if (!isUrlLike(img)) return img;
+
+        const cached = referenceImageCacheRef.current.get(img);
+        if (cached) return cached;
+
+        try {
+          const response = await fetch(img);
+          if (!response.ok) {
+            console.warn("[PropListView] Failed to fetch reference image:", img, response.status);
+            return null;
+          }
+          const blob = await response.blob();
+          const dataUrl = await blobToDataUrl(blob);
+          referenceImageCacheRef.current.set(img, dataUrl);
+          return dataUrl;
+        } catch (error) {
+          console.warn("[PropListView] Failed to resolve reference image:", img, error);
+          return null;
+        }
+      })
+    );
+
+    return resolved.filter((img): img is string => Boolean(img));
+  }, [blobToDataUrl]);
 
   // Handle Easy Mode toggle
   const toggleEasyMode = useCallback(
@@ -316,6 +363,7 @@ export default function PropListView({
       const isCharacterProp = prop.category === "character";
       const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[propId] || []) : [];
       const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+      const resolvedRefs = mergedRefs.length > 0 ? await resolveReferenceImages(mergedRefs) : [];
 
       // Use async orchestrator if projectId is available
       if (projectId && orchestrator) {
@@ -343,7 +391,7 @@ export default function PropListView({
             prompt,
             genre,
             styleKeyword,
-            referenceImages: mergedRefs.length > 0 ? mergedRefs : undefined,
+            referenceImages: resolvedRefs.length > 0 ? resolvedRefs : undefined,
             aspectRatio: "16:9",
           });
 
@@ -364,13 +412,29 @@ export default function PropListView({
         // Fallback to sync generation (legacy)
         setActiveLoadingId(propId);
         try {
-          await onGenerateImage(propId, prompt, mergedRefs.length > 0 ? mergedRefs : prop.referenceImages);
+          await onGenerateImage(
+            propId,
+            prompt,
+            resolvedRefs.length > 0 ? resolvedRefs : prop.referenceImages
+          );
         } finally {
           setActiveLoadingId(null);
         }
       }
     },
-    [props, editablePrompts, onGenerateImage, projectId, orchestrator, genre, styleKeyword, onUpdateProp, isEasyMode, startingImages]
+    [
+      props,
+      editablePrompts,
+      onGenerateImage,
+      projectId,
+      orchestrator,
+      genre,
+      styleKeyword,
+      onUpdateProp,
+      isEasyMode,
+      startingImages,
+      resolveReferenceImages,
+    ]
   );
 
   // Handle batch generation for all props without images
@@ -399,21 +463,24 @@ export default function PropListView({
     setJobStatuses((prev) => ({ ...prev, ...initialStatuses }));
 
     try {
-      const jobs = propsToGenerate.map((prop) => {
-        const isCharacterProp = prop.category === "character";
-        const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[prop.id] || []) : [];
-        const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
-        return {
-          propId: prop.id,
-          propName: prop.name,
-          category: prop.category as 'character' | 'object',
-          prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
-          genre,
-          styleKeyword,
-          referenceImages: mergedRefs.length > 0 ? mergedRefs : undefined,
-          aspectRatio: "16:9" as const,
-        };
-      });
+      const jobs = await Promise.all(
+        propsToGenerate.map(async (prop) => {
+          const isCharacterProp = prop.category === "character";
+          const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[prop.id] || []) : [];
+          const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+          const resolvedRefs = mergedRefs.length > 0 ? await resolveReferenceImages(mergedRefs) : [];
+          return {
+            propId: prop.id,
+            propName: prop.name,
+            category: prop.category as 'character' | 'object',
+            prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
+            genre,
+            styleKeyword,
+            referenceImages: resolvedRefs.length > 0 ? resolvedRefs : undefined,
+            aspectRatio: "16:9" as const,
+          };
+        })
+      );
 
       const result = await orchestrator.submitBatch({ jobs });
 
@@ -440,7 +507,18 @@ export default function PropListView({
       setIsBatchGenerating(false);
       setBatchProgress(null);
     }
-  }, [projectId, orchestrator, props, editablePrompts, genre, styleKeyword, onUpdateProp]);
+  }, [
+    projectId,
+    orchestrator,
+    props,
+    editablePrompts,
+    genre,
+    styleKeyword,
+    onUpdateProp,
+    isEasyMode,
+    startingImages,
+    resolveReferenceImages,
+  ]);
 
   // Handle retry for failed jobs
   const handleRetry = useCallback(

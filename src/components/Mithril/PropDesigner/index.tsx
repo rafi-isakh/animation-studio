@@ -1088,9 +1088,7 @@ export default function PropDesigner() {
         }
 
         // Support both single reference (legacy) and multiple references
-        const refImagesForApi = referenceImages?.map((img) =>
-          img.includes("base64,") ? img.split("base64,")[1] : img
-        );
+        const refImagesForApi = referenceImages;
 
         const response = await fetch("/api/generate_prop_sheet/generate-image", {
           method: "POST",

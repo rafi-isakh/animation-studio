@@ -19,12 +19,10 @@ export async function getIdConverter(projectId: string): Promise<IdConverterDocu
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
-    console.log("[Firestore:idConverter] getIdConverter - document not found for project:", projectId);
     return null;
   }
 
   const data = docSnap.data() as IdConverterDocument;
-  console.log("[Firestore:idConverter] getIdConverter - loaded document, glossaryJobId:", data.glossaryJobId, "currentStep:", data.currentStep);
   return data;
 }
 
@@ -83,10 +81,8 @@ export async function updateIdConverter(
   if (input.batchJobId !== undefined) updateData.batchJobId = input.batchJobId;
   updateData.generatedAt = Timestamp.now();
 
-  console.log("[Firestore:idConverter] updateIdConverter - fields to write:", Object.keys(updateData));
 
   await setDoc(docRef, updateData, { merge: true });
-  console.log("[Firestore:idConverter] updateIdConverter - write complete");
 
   // Update project metadata timestamp
   const projectRef = doc(db, 'projects', projectId);

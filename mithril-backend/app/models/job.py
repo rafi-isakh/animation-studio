@@ -22,6 +22,10 @@ class JobType(str, Enum):
     STORYBOARD = "storyboard"
     I2V_STORYBOARD = "i2v_storyboard"
     STORYBOARD_EDITOR = "storyboard_editor"
+    PANEL_COLORIZER = "panel_colorizer"
+    STYLE_CONVERTER = "style_converter"
+    KREA_STYLE_CONVERTER = "krea_style_converter"
+    MODELSLAB_STYLE_CONVERTER = "modelslab_style_converter"
 
 
 class JobStatus(str, Enum):
@@ -65,10 +69,11 @@ class JobSubmitRequest(BaseModel):
     project_id: str
     scene_index: int
     clip_index: int
-    provider_id: Literal["sora", "veo3"]
+    provider_id: Literal["sora", "veo3", "grok_i2v", "grok_imagine_i2v", "wan_i2v", "wan22_i2v"]
     prompt: str
     image_url: str | None = None
-    duration: int = Field(ge=4, le=12)
+    image_end_url: str | None = None  # Optional end frame
+    duration: int = Field(ge=4, le=240)
     aspect_ratio: Literal["16:9", "9:16"]
     api_key: str | None = None  # Custom API key (optional)
 
@@ -109,6 +114,7 @@ class JobDocument(BaseModel):
     # Request parameters
     prompt: str
     image_url: str | None = None  # Video: source image for video generation
+    image_end_url: str | None = None  # Video: optional end frame
     duration: int | None = None  # Video only
     aspect_ratio: str
     api_key_hash: str | None = None  # Hashed for audit
@@ -135,7 +141,31 @@ class JobDocument(BaseModel):
     file_name: str | None = None  # Original filename
     source_image_base64: str | None = None  # Base64 encoded source image
     source_mime_type: str | None = None  # MIME type of source image
-    refinement_mode: str | None = None  # "default", "zoom", or "expand"
+    refinement_mode: str | None = None  # "default", "zoom", "expand", or "inpaint"
+
+    # Inpaint-specific fields (for type=PANEL with refinement_mode="inpaint")
+    inpaint_prompt: str | None = None
+    inpaint_mask_url: str | None = None
+    inpaint_source_url: str | None = None
+    inpaint_strength: float | None = None
+    inpaint_width: int | None = None
+    inpaint_height: int | None = None
+
+    # Panel colorizer-specific fields (for type=PANEL_COLORIZER)
+    global_prompt: str | None = None  # Scene description (lighting, atmosphere)
+    reference_image_count: int | None = None  # Number of reference images provided
+    time_of_day: str | None = None  # Lighting: "Morning", "Daylight", "Evening", "Night"
+    colorizer_mode: str | None = None  # "colorize" (default) or "remix" (no master prompt)
+
+    # Style converter-specific fields (for type=STYLE_CONVERTER)
+    pixai_prompts: str | None = None  # PixAI prompt text
+    pixai_image_weight: float | None = None  # PixAI media weight
+
+    # Krea style converter-specific fields (for type=KREA_STYLE_CONVERTER)
+    krea_prompts: str | None = None  # Krea AI prompt text
+
+    # ModelsLab style converter-specific fields (for type=MODELSLAB_STYLE_CONVERTER)
+    modelslab_prompts: str | None = None  # ModelsLab prompt text
 
     # ID Converter-specific fields (for type=ID_CONVERTER_GLOSSARY or ID_CONVERTER_BATCH)
     original_text: str | None = None  # Full text for glossary analysis
@@ -174,7 +204,8 @@ class JobDocument(BaseModel):
     # Storyboard-specific fields (for type=STORYBOARD)
     source_text: str | None = None  # Source text for storyboard generation
     part_index: int | None = None  # Part index from story splitter
-    target_time: str | None = None  # Target duration (MM:SS format)
+    target_time: str | None = None  # Target duration (MM:SS format) — legacy, prefer clip_count
+    clip_count: int | None = None  # Exact number of clips to generate
     story_condition: str | None = None  # Story generation conditions
     image_condition: str | None = None  # Image prompt conditions
     video_condition: str | None = None  # Video prompt conditions
@@ -185,6 +216,8 @@ class JobDocument(BaseModel):
     background_instruction: str | None = None  # Background ID rules
     negative_instruction: str | None = None  # Negative prompts
     video_instruction: str | None = None  # Video prompt rules
+    image_instruction: str | None = None  # Image prompt package instructions
+    selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -407,15 +440,175 @@ class PanelJobSubmitRequest(BaseModel):
     session_id: str  # Session ID for real-time tracking
     panel_id: str  # Panel ID within session
     file_name: str  # Original filename
-    image_base64: str  # Base64 encoded source image
+    image_base64: str = ""  # Base64 encoded source image (empty for inpaint mode)
     mime_type: str = "image/png"  # MIME type of source image
     target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
-    refinement_mode: Literal["default", "zoom", "expand"] = "default"
+    refinement_mode: Literal["default", "zoom", "expand", "inpaint"] = "default"
     api_key: str | None = None  # Custom API key (optional)
+    provider: Literal["gemini", "gemini_flash", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
+    # Inpaint fields (only used when refinement_mode="inpaint")
+    inpaint_prompt: str | None = None
+    inpaint_mask_base64: str = ""  # Mask PNG as base64 — passed through task queue, NOT stored in Firestore
+    inpaint_source_url: str | None = None
+    inpaint_strength: float = 0.7
+    inpaint_width: int | None = None
+    inpaint_height: int | None = None
 
 
 class PanelJobStatusResponse(BaseModel):
     """Response model for panel job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Panel Colorizer Job Models
+# ============================================================================
+
+
+class PanelColorizerReferenceImage(BaseModel):
+    """A single reference image for colorization (character sheet)."""
+
+    base64: str  # Base64 encoded image data
+    mime_type: str = "image/png"  # MIME type
+
+
+class PanelColorizerJobSubmitRequest(BaseModel):
+    """Request model for submitting a panel colorizer job."""
+
+    project_id: str  # Project ID for S3 storage
+    session_id: str  # Session ID for real-time tracking
+    panel_id: str  # Panel ID within session
+    file_name: str  # Original filename
+    image_base64: str  # Base64 encoded source manga panel
+    mime_type: str = "image/png"  # MIME type of source image
+    reference_images: list[PanelColorizerReferenceImage] = []  # Character sheets for color extraction
+    global_prompt: str = ""  # Scene description (lighting, atmosphere)
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "16:9"
+    api_key: str | None = None  # Custom API key (optional)
+    provider: Literal["gemini", "gemini_flash", "grok", "z_image_turbo", "flux2_dev"] = "gemini"  # Image generation provider
+    time_of_day: str | None = None  # Lighting: "Morning", "Daylight", "Evening", "Night"
+    colorizer_mode: Literal["colorize", "remix"] = "colorize"  # colorize=default, remix=no master prompt
+
+
+class PanelColorizerJobStatusResponse(BaseModel):
+    """Response model for panel colorizer job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Style Converter (PixAI) Job Models
+# ============================================================================
+
+
+class StyleConverterJobSubmitRequest(BaseModel):
+    """Request model for submitting a style converter (pixAI img2img) job."""
+
+    project_id: str       # Project ID for S3 storage
+    session_id: str       # Session ID for real-time Firestore tracking
+    panel_id: str         # Panel ID within session
+    file_name: str        # Original filename
+    image_base64: str     # Base64 encoded source image
+    mime_type: str = "image/jpeg"
+    prompts: str          # PixAI prompt text
+    image_weight: float = 0.26
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "9:16"
+    api_key: str | None = None  # Custom PixAI key (optional, falls back to server key)
+
+
+class StyleConverterJobStatusResponse(BaseModel):
+    """Response model for style converter job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# Krea Style Converter Job Models
+# ============================================================================
+
+
+class KreaStyleConverterJobSubmitRequest(BaseModel):
+    """Request model for submitting a Krea AI style converter job."""
+
+    project_id: str       # Project ID for S3 storage
+    session_id: str       # Session ID for real-time Firestore tracking
+    panel_id: str         # Panel ID within session
+    file_name: str        # Original filename
+    image_base64: str     # Base64 encoded source image
+    mime_type: str = "image/jpeg"
+    prompts: str          # Krea AI prompt text
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "9:16"
+    api_key: str | None = None  # Custom Krea key (optional, falls back to server key)
+
+
+class KreaStyleConverterJobStatusResponse(BaseModel):
+    """Response model for Krea style converter job status queries."""
+
+    job_id: str
+    panel_id: str
+    session_id: str
+    status: JobStatus
+    progress: float = 0.0
+    image_url: str | None = None
+    s3_file_name: str | None = None
+    error: JobError | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+
+# ============================================================================
+# ModelsLab Style Converter Job Models
+# ============================================================================
+
+
+class ModelsLabStyleConverterJobSubmitRequest(BaseModel):
+    """Request model for submitting a ModelsLab style converter job."""
+
+    project_id: str       # Project ID for S3 storage
+    session_id: str       # Session ID for real-time Firestore tracking
+    panel_id: str         # Panel ID within session
+    file_name: str        # Original filename
+    image_base64: str     # Base64 encoded source image
+    mime_type: str = "image/jpeg"
+    prompts: str          # ModelsLab prompt text
+    target_aspect_ratio: Literal["1:1", "16:9", "9:16", "4:3", "3:4"] = "9:16"
+    api_key: str | None = None  # Custom ModelsLab key (optional, falls back to server key)
+
+
+class ModelsLabStyleConverterJobStatusResponse(BaseModel):
+    """Response model for ModelsLab style converter job status queries."""
 
     job_id: str
     panel_id: str
@@ -540,7 +733,7 @@ class PanelSplitterJobSubmitRequest(BaseModel):
     page_id: str  # Page ID for tracking
     page_index: int  # Page index in sequence
     file_name: str  # Original filename
-    image_base64: str  # Base64 encoded image
+    image_url: str  # S3/CloudFront URL of the uploaded page image
     reading_direction: Literal["rtl", "ltr"] = "rtl"
     api_key: str | None = None  # Custom API key (optional)
 
@@ -578,7 +771,7 @@ class PanelSplitterPageItem(BaseModel):
     page_id: str
     page_index: int
     file_name: str
-    image_base64: str
+    image_url: str
     reading_direction: Literal["rtl", "ltr"] | None = None  # Override batch-level
     api_key: str | None = None  # Override batch-level
 
@@ -612,7 +805,8 @@ class StoryboardJobSubmitRequest(BaseModel):
     project_id: str
     source_text: str  # Source text for storyboard generation
     part_index: int = 0  # Part index from story splitter
-    target_time: str = "03:00"  # Target duration (MM:SS format)
+    target_time: str = "03:00"  # Legacy — prefer clip_count
+    clip_count: int | None = None  # Exact number of clips to generate
     # Conditions
     story_condition: str = ""
     image_condition: str = ""
@@ -626,6 +820,8 @@ class StoryboardJobSubmitRequest(BaseModel):
     background_instruction: str = ""
     negative_instruction: str = ""
     video_instruction: str = ""
+    image_instruction: str = ""  # Image prompt package instructions
+    selected_trailer_script: str = ""  # JSON-stringified trailer script lines
     # API key
     api_key: str | None = None
 
@@ -637,6 +833,7 @@ class StoryboardClip(BaseModel):
     imagePrompt: str
     imagePromptEnd: str | None = None
     videoPrompt: str
+    videoApi: str = "Grok"
     soraVideoPrompt: str
     veoVideoPrompt: str = ""
     backgroundPrompt: str
@@ -651,7 +848,15 @@ class StoryboardClip(BaseModel):
     bgmEn: str
     length: str
     accumulatedTime: str
+    trailerScriptKo: str = ""
+    trailerScriptEn: str = ""
     referenceImageIndex: int = 0
+    refFileName: str = ""
+    pixAiPrompt: str = ""
+    facePresent: bool | None = None
+    storyDetailKo: str = ""
+    storyGroupLabel: str = ""
+    storyGroupSize: int | None = None
 
 
 class StoryboardScene(BaseModel):
@@ -716,6 +921,11 @@ class I2VStoryboardJobSubmitRequest(BaseModel):
     # Guides
     image_guide: str = ""
     video_guide: str = ""
+    # Additional instructions
+    custom_instruction: str = ""
+    background_instruction: str = ""
+    negative_instruction: str = ""
+    video_instruction: str = ""
     # API key
     api_key: str | None = None
 

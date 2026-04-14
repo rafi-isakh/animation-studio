@@ -1,5 +1,6 @@
 """Firestore service for job queue operations."""
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -22,6 +23,7 @@ from app.models.job import (
     JobStatus,
     JobSubmitRequest,
     JobType,
+    PanelColorizerJobSubmitRequest,
     PanelJobSubmitRequest,
     PanelSplitterJobSubmitRequest,
     PropDesignSheetJobSubmitRequest,
@@ -29,6 +31,9 @@ from app.models.job import (
     StorySplitterJobSubmitRequest,
     I2VStoryboardJobSubmitRequest,
     StoryboardEditorJobSubmitRequest,
+    StyleConverterJobSubmitRequest,
+    KreaStyleConverterJobSubmitRequest,
+    ModelsLabStyleConverterJobSubmitRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -134,6 +139,7 @@ class JobQueueService:
             provider_id=request.provider_id,
             prompt=request.prompt,
             image_url=request.image_url,
+            image_end_url=request.image_end_url,
             duration=request.duration,
             aspect_ratio=request.aspect_ratio,
             api_key_hash=hash_api_key(request.api_key),
@@ -324,7 +330,7 @@ class JobQueueService:
             project_id=request.project_id,  # Use actual project_id for S3 storage
             scene_index=0,  # Not used for panels
             clip_index=0,  # Not used for panels
-            provider_id="gemini",  # Currently only Gemini for panels
+            provider_id=request.provider,
             prompt="",  # Prompt is built in the handler
             aspect_ratio=request.target_aspect_ratio,
             api_key_hash=hash_api_key(request.api_key),
@@ -336,9 +342,17 @@ class JobQueueService:
             session_id=request.session_id,  # For real-time tracking
             panel_id=request.panel_id,
             file_name=request.file_name,
-            source_image_base64=request.image_base64,
+            # NOTE: image_base64 is passed through task queue, not stored in Firestore
+            # to avoid the 1MB document size limit (same pattern as panel splitter)
             source_mime_type=request.mime_type,
             refinement_mode=request.refinement_mode,
+            # Inpaint-specific fields (only set when refinement_mode="inpaint")
+            inpaint_prompt=request.inpaint_prompt,
+            inpaint_mask_url=None,  # Set by backend after uploading mask from base64
+            inpaint_source_url=request.inpaint_source_url,
+            inpaint_strength=request.inpaint_strength if request.refinement_mode == "inpaint" else None,
+            inpaint_width=request.inpaint_width,
+            inpaint_height=request.inpaint_height,
             max_retries=2,  # Fewer retries for panels
         )
 
@@ -346,6 +360,175 @@ class JobQueueService:
         await self._job_ref(job_id).set(job.model_dump(mode="json"))
 
         logger.info(f"Created panel job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_panel_colorizer_job(
+        self,
+        request: "PanelColorizerJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new panel colorizer job in the queue.
+
+        Args:
+            request: Panel colorizer job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.PANEL_COLORIZER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id=request.provider,
+            prompt="",  # Prompt is built in the handler
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Panel colorizer-specific fields (reuses panel fields)
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            global_prompt=request.global_prompt,
+            reference_image_count=len(request.reference_images),
+            time_of_day=request.time_of_day,
+            colorizer_mode=request.colorizer_mode,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created panel colorizer job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_style_converter_job(
+        self,
+        request: "StyleConverterJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """
+        Create a new style converter (pixAI) job in the queue.
+
+        Args:
+            request: Style converter job submission request
+            user_id: ID of the user creating the job
+
+        Returns:
+            Created JobDocument
+        """
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.STYLE_CONVERTER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="pixai",
+            prompt="",
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            # Reuses panel-editor fields for session/panel tracking
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            # Style converter-specific
+            pixai_prompts=request.prompts,
+            pixai_image_weight=request.image_weight,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_krea_style_converter_job(
+        self,
+        request: "KreaStyleConverterJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """Create a new Krea AI style converter job in the queue."""
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.KREA_STYLE_CONVERTER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="krea",
+            prompt="",
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            krea_prompts=request.prompts,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created Krea style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
+        return job
+
+    async def create_modelslab_style_converter_job(
+        self,
+        request: "ModelsLabStyleConverterJobSubmitRequest",
+        user_id: str,
+    ) -> JobDocument:
+        """Create a new ModelsLab style converter job in the queue."""
+        job_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        job = JobDocument(
+            id=job_id,
+            type=JobType.MODELSLAB_STYLE_CONVERTER,
+            project_id=request.project_id,
+            scene_index=0,
+            clip_index=0,
+            provider_id="modelslab",
+            prompt="",
+            aspect_ratio=request.target_aspect_ratio,
+            api_key_hash=hash_api_key(request.api_key),
+            status=JobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+            user_id=user_id,
+            session_id=request.session_id,
+            panel_id=request.panel_id,
+            file_name=request.file_name,
+            source_mime_type=request.mime_type,
+            modelslab_prompts=request.prompts,
+            max_retries=2,
+        )
+
+        await self._job_ref(job_id).set(job.model_dump(mode="json"))
+
+        logger.info(f"Created ModelsLab style converter job {job_id} for session {request.session_id}, panel {request.panel_id}")
         return job
 
     async def create_id_converter_glossary_job(
@@ -535,8 +718,8 @@ class JobQueueService:
             page_index=request.page_index,
             file_name=request.file_name,
             reading_direction=request.reading_direction,
-            # NOTE: image_base64 is passed through task queue, not stored in Firestore
-            # to avoid 1MB document size limit
+            # NOTE: image_url is passed through task queue (not stored here);
+            # the handler downloads the image from S3 directly
             max_retries=3,
         )
 
@@ -545,6 +728,69 @@ class JobQueueService:
 
         logger.info(f"Created panel splitter job {job_id} for page {request.page_id}")
         return job
+
+    async def create_panel_splitter_jobs_batch(
+        self,
+        requests: list[tuple["PanelSplitterJobSubmitRequest", str]],
+        user_id: str,
+        batch_id: str,
+    ) -> list["JobDocument"]:
+        """
+        Create multiple panel splitter jobs in a single Firestore WriteBatch commit.
+
+        All documents are written in one RPC instead of N individual set() calls,
+        which prevents 429 quota errors on large batches.
+
+        Args:
+            requests: List of (PanelSplitterJobSubmitRequest, image_url) tuples
+            user_id: ID of the user creating the jobs
+            batch_id: Shared batch ID for all jobs
+
+        Returns:
+            List of created JobDocument objects (in the same order as requests)
+        """
+        now = datetime.now(timezone.utc)
+        jobs: list[JobDocument] = []
+
+        # Build all JobDocument objects
+        FIRESTORE_BATCH_LIMIT = 500
+        for request, _ in requests:
+            job_id = str(uuid.uuid4())
+            job = JobDocument(
+                id=job_id,
+                type=JobType.PANEL_SPLITTER,
+                project_id=request.project_id,
+                scene_index=0,
+                clip_index=0,
+                provider_id="gemini",
+                prompt="",
+                aspect_ratio="",
+                api_key_hash=hash_api_key(request.api_key),
+                status=JobStatus.PENDING,
+                created_at=now,
+                updated_at=now,
+                user_id=user_id,
+                batch_id=batch_id,
+                page_id=request.page_id,
+                page_index=request.page_index,
+                file_name=request.file_name,
+                reading_direction=request.reading_direction,
+                max_retries=3,
+            )
+            jobs.append(job)
+
+        # Commit in chunks to stay within Firestore's 500-write-per-batch limit
+        for chunk_start in range(0, len(jobs), FIRESTORE_BATCH_LIMIT):
+            chunk = jobs[chunk_start : chunk_start + FIRESTORE_BATCH_LIMIT]
+            write_batch = self.db.batch()
+            for job in chunk:
+                write_batch.set(self._job_ref(job.id), job.model_dump(mode="json"))
+            await write_batch.commit()
+            if chunk_start + FIRESTORE_BATCH_LIMIT < len(jobs):
+                await asyncio.sleep(0.1)
+
+        logger.info(f"Batch-created {len(jobs)} panel splitter jobs (batch_id={batch_id})")
+        return jobs
 
     async def create_storyboard_job(
         self,
@@ -582,6 +828,7 @@ class JobQueueService:
             source_text=request.source_text,
             part_index=request.part_index,
             target_time=request.target_time,
+            clip_count=request.clip_count,
             story_condition=request.story_condition,
             image_condition=request.image_condition,
             video_condition=request.video_condition,
@@ -592,6 +839,8 @@ class JobQueueService:
             background_instruction=request.background_instruction,
             negative_instruction=request.negative_instruction,
             video_instruction=request.video_instruction,
+            image_instruction=request.image_instruction,
+            selected_trailer_script=request.selected_trailer_script,
             max_retries=3,
         )
 
@@ -644,6 +893,10 @@ class JobQueueService:
             sound_condition=request.sound_condition,
             image_guide=request.image_guide,
             video_guide=request.video_guide,
+            custom_instruction=request.custom_instruction,
+            background_instruction=request.background_instruction,
+            negative_instruction=request.negative_instruction,
+            video_instruction=request.video_instruction,
             max_retries=3,
         )
 
@@ -1235,12 +1488,12 @@ class StorySplitsService:
         self.db = get_db()
 
     def _doc_ref(self, project_id: str) -> DocumentReference:
-        """Get document reference for mithril/storySplits."""
+        """Get document reference for storySplits/data."""
         return (
             self.db.collection("projects")
             .document(project_id)
-            .collection("mithril")
-            .document("storySplits")
+            .collection("storySplits")
+            .document("data")
         )
 
     async def save_story_splits(
@@ -1410,6 +1663,7 @@ class StoryboardService:
                     "videoPrompt": clip.get("videoPrompt", ""),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
                     "veoVideoPrompt": clip.get("veoVideoPrompt", ""),
+                    "pixAiPrompt": clip.get("pixAiPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),
                     "dialogue": clip.get("dialogue", ""),
@@ -1545,10 +1799,17 @@ class I2VScriptService:
                 clip_data = {
                     "clipIndex": clip_index,
                     "referenceImageIndex": clip.get("referenceImageIndex", 0),
+                    "refFileName": clip.get("refFileName", ""),
+                    "pixAiPrompt": clip.get("pixAiPrompt", ""),
+                    "facePresent": clip.get("facePresent"),
                     "story": clip.get("story", ""),
+                    "storyDetailKo": clip.get("storyDetailKo", ""),
+                    "storyGroupLabel": clip.get("storyGroupLabel", ""),
+                    "storyGroupSize": clip.get("storyGroupSize"),
                     "imagePrompt": clip.get("imagePrompt", ""),
                     "imagePromptEnd": clip.get("imagePromptEnd", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
+                    "videoApi": clip.get("videoApi", "Grok"),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),

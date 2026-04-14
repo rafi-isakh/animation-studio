@@ -21,6 +21,8 @@ import {
   DeleteVideoResponse,
   ClearProjectRequest,
   ClearProjectResponse,
+  CopyProjectFilesRequest,
+  CopyProjectFilesResponse,
   CharacterImageSubtype,
   ImageGenImageSubtype,
   I2VImageSubtype,
@@ -37,11 +39,13 @@ import {
   getImageGenEditedKey,
   getI2VPageKey,
   getI2VPanelKey,
+  getI2VPanelEditorKey,
 } from './types';
 
 const IMAGE_API_URL = '/api/mithril/s3/image';
 const VIDEO_API_URL = '/api/mithril/s3/video';
 const CLEAR_PROJECT_API_URL = '/api/mithril/s3/clear-project';
+const COPY_PROJECT_API_URL = '/api/mithril/s3/copy-project';
 
 // ============================================================================
 // Character Images
@@ -413,6 +417,34 @@ export async function clearAllProjectFiles(projectId: string): Promise<number> {
   }
 
   return result.deletedCount;
+}
+
+/**
+ * Copy all S3 files from one project to another across image/video buckets.
+ * Used by project duplication to keep generated assets independent.
+ */
+export async function copyAllProjectFiles(
+  sourceProjectId: string,
+  destinationProjectId: string
+): Promise<number> {
+  const request: CopyProjectFilesRequest = {
+    sourceProjectId,
+    destinationProjectId,
+  };
+
+  const response = await fetch(COPY_PROJECT_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: CopyProjectFilesResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to copy project files');
+  }
+
+  return result.copiedCount;
 }
 
 // ============================================================================
@@ -1083,28 +1115,36 @@ export async function uploadI2VPageImage(
   base64: string,
   mimeType = 'image/webp'
 ): Promise<string> {
-  const request: UploadImageRequest = {
-    projectId,
-    imageType: 'i2v',
-    i2vSubtype: 'page',
-    pageIndex,
-    base64,
-    mimeType,
-  };
+  const key = getI2VPageKey(projectId, pageIndex);
 
-  const response = await fetch(IMAGE_API_URL, {
+  // Request a presigned PUT URL — avoids routing base64 through Next.js body parser
+  // which has a 4 MB limit (problematic for tall webtoon pages).
+  const presignRes = await fetch('/api/mithril/s3/presign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
+    body: JSON.stringify({ key, contentType: mimeType }),
   });
 
-  const result: UploadImageResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to upload I2V page image');
+  const presignData = await presignRes.json();
+  if (!presignRes.ok) {
+    throw new Error(presignData.error || 'Failed to get presigned upload URL');
   }
 
-  return result.url;
+  // Convert base64 → binary and PUT directly to S3 (bypasses Next.js entirely)
+  const binaryStr = atob(base64);
+  const bytes = Uint8Array.from(binaryStr, (c) => c.charCodeAt(0));
+
+  const uploadRes = await fetch(presignData.presignedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': mimeType },
+    body: bytes,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error('Failed to upload I2V page image to S3');
+  }
+
+  return presignData.fileUrl;
 }
 
 /**
@@ -1219,6 +1259,71 @@ export async function clearAllI2VImages(projectId: string): Promise<void> {
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to clear I2V images');
+  }
+}
+
+// ============================================================================
+// I2V Panel Editor Original Images
+// ============================================================================
+
+/**
+ * Upload a panel editor original image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VPanelEditorImage(
+  projectId: string,
+  panelEditorId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel-editor',
+    panelEditorId,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload panel editor image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Delete a panel editor original image from S3
+ */
+export async function deleteI2VPanelEditorImage(
+  projectId: string,
+  panelEditorId: string
+): Promise<void> {
+  const request: DeleteImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'panel-editor',
+    panelEditorId,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: DeleteImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete panel editor image');
   }
 }
 
@@ -1339,6 +1444,42 @@ export async function uploadI2VStoryboardAssetImage(
 }
 
 /**
+ * Upload an I2V storyboard reference image to S3 (custom user-uploaded reference per clip)
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadI2VStoryboardReferenceImage(
+  projectId: string,
+  sceneIndex: number,
+  clipIndex: number,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'i2v',
+    i2vSubtype: 'storyboard-reference',
+    i2vSceneIndex: sceneIndex,
+    i2vClipIndex: clipIndex,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload I2V storyboard reference image');
+  }
+
+  return result.url;
+}
+
+/**
  * Delete an I2V storyboard frame image from S3
  */
 export async function deleteI2VStoryboardFrameImage(
@@ -1439,4 +1580,5 @@ export {
   getImageGenEditedKey,
   getI2VPageKey,
   getI2VPanelKey,
+  getI2VPanelEditorKey,
 };

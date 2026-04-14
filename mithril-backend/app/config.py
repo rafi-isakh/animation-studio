@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     # Provider API Keys (fallback)
     sora_api_key: str = ""
     gemini_api_key: str = ""
+    xai_api_key: str = ""       # xAI API key (grok panel image generation)
+    xai_video_api_key: str = ""  # xAI API key (grok video generation)
+    modelslab_api_key: str = ""  # ModelsLab API key (z-image-turbo)
+    worldlabs_api_key: str = ""  # WorldLabs API key (3D world generation)
+    pixai_api_key: str = ""      # PixAI API key (style converter)
+    krea_api_key: str = ""       # Krea AI API key (krea style converter)
 
     # Application
     debug: bool = False

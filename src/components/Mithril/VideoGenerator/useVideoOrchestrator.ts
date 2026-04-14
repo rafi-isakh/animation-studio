@@ -9,9 +9,10 @@ interface SubmitJobParams {
   projectId: string;
   sceneIndex: number;
   clipIndex: number;
-  providerId: 'sora' | 'veo3';
+  providerId: 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v';
   prompt: string;
   imageUrl?: string;
+  imageEndUrl?: string;
   duration: number;
   aspectRatio: '16:9' | '9:16';
   apiKey?: string;
@@ -31,6 +32,7 @@ interface SubmitJobResponse {
   jobId: string;
   status: string;
   createdAt: string;
+  resolvedImageUrl?: string | null;
 }
 
 interface SubmitBatchResponse {
@@ -101,7 +103,12 @@ export function useVideoOrchestrator({
       return;
     }
 
-    const unsubscribe = subscribeToProjectJobs(projectId, (jobs: JobQueueDocument[]) => {
+    const unsubscribe = subscribeToProjectJobs(projectId, (allJobs: JobQueueDocument[]) => {
+      // Only process video jobs — panel, image, bg, etc. jobs share the same
+      // project_id and can have the same scene/clip indices, causing false failures.
+      // Legacy video jobs may have no `type` field, so we allow those through too.
+      const jobs = allJobs.filter((job) => !job.type || job.type === 'video');
+
       const isInitial = initialSnapshotRef.current;
 
       if (isInitial) {
@@ -213,7 +220,10 @@ export function useVideoOrchestrator({
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to cancel job');
+      // Job already in a terminal state — treat as success since it's no longer running
+      const msg: string = data.error || '';
+      if (msg.includes('cannot be cancelled') || msg.includes('already') ) return;
+      throw new Error(msg || 'Failed to cancel job');
     }
   }, []);
 

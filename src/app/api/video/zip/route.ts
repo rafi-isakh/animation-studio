@@ -12,6 +12,7 @@ interface ClipInfo {
   s3FileName: string;
   sceneIndex: number;
   clipIndex: number;
+  downloadFileName?: string;
 }
 
 interface ZipRequest {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
 
         if (response.Body) {
           const arrayBuffer = await response.Body.transformToByteArray();
-          const fileName = `scene_${clip.sceneIndex + 1}_clip_${clip.clipIndex + 1}.mp4`;
+          const fileName = clip.downloadFileName ?? `scene_${clip.sceneIndex + 1}_clip_${clip.clipIndex + 1}.mp4`;
           zip.file(fileName, arrayBuffer, { compression: "STORE" });
         }
       },

@@ -25,8 +25,6 @@ import {
 import {
   getMetadata,
   updateCurrentStage as updateCurrentStageFirestore,
-  updateCustomApiKey as updateCustomApiKeyFirestore,
-  updateVideoApiKey as updateVideoApiKeyFirestore,
   getChapter,
   getStorySplits,
   saveStorySplits,
@@ -69,6 +67,7 @@ import {
   getMangaPanels,
 } from "./services/firestore";
 import type { UploadType } from "./services/firestore/types";
+import { deleteAllBackgroundImages } from "./services/s3";
 
 const TOTAL_STAGES = 8;
 
@@ -165,6 +164,12 @@ interface GenerateStoryboardParams {
   backgroundInstruction?: string;
   negativeInstruction?: string;
   videoInstruction?: string;
+  // NSFW storyboard extra params
+  imageInstruction?: string;
+  clipCount?: string;
+  // Trailer-specific params
+  imagePromptQA?: string;
+  selectedTrailerScript?: string;
 }
 
 // Types for shared state
@@ -222,6 +227,7 @@ interface MithrilContextProps {
   // BgSheet Generator (Stage 4)
   bgSheetGenerator: BgSheetGeneratorState;
   startBgSheetAnalysis: (text: string, styleKeyword: string, backgroundBasePrompt: string) => Promise<BgSheetBackground[]>;
+  cancelBgSheetAnalysis: () => void;
   clearBgSheetAnalysis: () => void;
   setBgSheetResult: (result: BgSheetResultMetadata) => void;
 
@@ -243,6 +249,11 @@ interface MithrilContextProps {
 
   // Reload data from Firestore
   reloadFromFirestore: () => Promise<void>;
+
+  // Splitter crop event bus: ImageSplitter fires this after saving a re-crop;
+  // PanelEditor listens and refreshes the affected workspace panel in-place.
+  splitterCropUpdates: Array<{ pageIndex: number; panelIndex: number; s3Url: string; ts: number }>;
+  notifySplitterCropSaved: (pageIndex: number, panelIndex: number, s3Url: string) => void;
 }
 
 const MithrilContext = createContext<MithrilContextProps | undefined>(undefined);
@@ -268,6 +279,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     // If stage exists but is tool-only, redirect to stage 5 (PropDesigner)
     if (stageConfig && !isPipelineStage(stageConfig)) {
       return 5;
+    }
+    // If the stage no longer exists (e.g. removed stage), fall back to the last pipeline stage.
+    if (!stageConfig) {
+      const pipelineStages = getPipelineStages(projectType);
+      return pipelineStages[pipelineStages.length - 1]?.id ?? 1;
     }
     return stage;
   }, [projectType]);
@@ -367,6 +383,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     error: null,
     result: null,
   });
+  const bgSheetAnalysisAbortRef = useRef<AbortController | null>(null);
 
   // Character Sheet Generator state (Stage 3)
   const [characterSheetGenerator, setCharacterSheetGenerator] = useState<CharacterSheetGeneratorState>({
@@ -422,8 +439,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           const normalized = normalizeStageForPipeline(metadata.currentStage || 1);
           setCurrentStageState(normalized);
         }
-        setCustomApiKeyState(metadata.customApiKey || "");
-        setVideoApiKeyState(metadata.videoApiKey || "");
+        // API keys are intentionally not loaded from Firestore (kept in-memory only)
       }
 
       // Load chapter data (including uploadType)
@@ -459,7 +475,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         setStageResults(prev => ({ ...prev, 2: splitResult }));
       } else if (storySplitsData?.jobId) {
         // No results yet but there's an active job - restore tracking state
-        console.log("[MithrilContext] Restoring story splitter job tracking:", storySplitsData.jobId);
         storySplitterJobIdRef.current = storySplitsData.jobId;
         setStorySplitterJobId(storySplitsData.jobId);
         setStorySplitter(prev => ({
@@ -472,8 +487,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // the Firestore subscription fired before we restored the jobId
         try {
           const response = await fetch(`/api/story-splitter/orchestrator/status?jobId=${storySplitsData.jobId}`);
+
+          if (!response.ok) {
+            // Job no longer exists in the backend (404, etc.) - clear loading state
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({ ...prev, isLoading: false, error: null }));
+          } else {
           const jobStatus = await response.json();
-          console.log("[MithrilContext] Fetched story splitter job status on mount:", jobStatus);
 
           if (jobStatus.status === "completed" && jobStatus.parts) {
             // Job completed while we were away - update state with results
@@ -492,10 +513,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             setStorySplitter(prev => ({
               ...prev,
               isLoading: false,
-              error: jobStatus.error || "Story splitting failed",
+              error: (typeof jobStatus.error === 'object' ? jobStatus.error?.message : jobStatus.error) || "Story splitting failed",
+            }));
+          } else if (jobStatus.status === "cancelled" || !["pending", "submitted", "polling", "preparing", "generating", "uploading"].includes(jobStatus.status)) {
+            // Job is in a terminal non-recoverable state or unknown status - clear loading
+            storySplitterJobIdRef.current = null;
+            setStorySplitterJobId(null);
+            setStorySplitter(prev => ({
+              ...prev,
+              isLoading: false,
+              error: null,
             }));
           }
           // If status is pending/generating, keep loading state - subscription will handle updates
+          }
         } catch (statusErr) {
           console.error("[MithrilContext] Error fetching story splitter job status:", statusErr);
           // Job might not exist anymore - clear loading state
@@ -573,25 +604,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
 
       // Load storyboard data
-      console.log("[MithrilContext:loadFromFirestore] Loading storyboard data for project:", currentProjectId);
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
-      console.log("[MithrilContext:loadFromFirestore] Storyboard meta:", {
-        hasMeta: !!storyboardMeta,
-        jobId: storyboardMeta?.jobId,
-        generatedAt: storyboardMeta?.generatedAt,
-      });
 
       if (storyboardMeta) {
         const scenes = await getScenes(currentProjectId);
         const voicePrompts = await getVoicePrompts(currentProjectId);
-        console.log("[MithrilContext:loadFromFirestore] Loaded scenes and voicePrompts:", {
-          sceneCount: scenes.length,
-          voicePromptCount: voicePrompts.length,
-        });
 
         // Check if there are existing results or an active job
         if (scenes.length > 0) {
-          console.log("[MithrilContext:loadFromFirestore] Has existing scenes - loading clips...");
           // Load clips for each scene
           const scenesWithClips: Scene[] = await Promise.all(
             scenes.map(async (scene) => {
@@ -605,10 +625,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   characterInfo: clip.characterInfo,
-                dialogue: clip.dialogue,
+                  dialogue: clip.dialogue,
                   dialogueEn: clip.dialogueEn,
                   narration: clip.narration || "",
                   narrationEn: clip.narrationEn || "",
@@ -645,17 +666,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           // Store original for reset functionality
           setOriginalStoryboard(storyboardData);
-          console.log("[MithrilContext:loadFromFirestore] Scenes loaded successfully:", {
-            totalScenes: scenesWithClips.length,
-            totalClips: scenesWithClips.reduce((acc, s) => acc + s.clips.length, 0),
-          });
         } else if (storyboardMeta.jobId) {
           // No results yet but there's an active job - restore tracking state
-          console.log("[MithrilContext:loadFromFirestore] No scenes but has jobId - restoring job tracking:", storyboardMeta.jobId);
-          console.log("[MithrilContext:loadFromFirestore] Setting storyboardJobIdRef and state...");
           storyboardJobIdRef.current = storyboardMeta.jobId;
           setStoryboardJobId(storyboardMeta.jobId);
-          console.log("[MithrilContext:loadFromFirestore] storyboardJobIdRef.current is now:", storyboardJobIdRef.current);
 
           setStoryboardGenerator(prev => ({
             ...prev,
@@ -665,25 +679,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           // Manually fetch job status to handle the race condition where
           // the Firestore subscription fired before we restored the jobId
-          console.log("[MithrilContext:loadFromFirestore] Fetching job status from API...");
           try {
             const response = await fetch(`/api/storyboard/orchestrator/status?jobId=${storyboardMeta.jobId}`);
             const jobStatus = await response.json();
-            console.log("[MithrilContext:loadFromFirestore] API job status response:", {
-              status: jobStatus.status,
-              hasScenes: !!jobStatus.scenes,
-              sceneCount: jobStatus.scenes?.length,
-              error: jobStatus.error,
-            });
 
             if (jobStatus.status === "completed" && jobStatus.scenes) {
-              console.log("[MithrilContext:loadFromFirestore] Job was completed - applying results");
               // Job completed while we were away - update state with results
               storyboardJobIdRef.current = null;
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
@@ -692,6 +698,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   videoPrompt: clip.videoPrompt,
                   soraVideoPrompt: clip.soraVideoPrompt,
                   veoVideoPrompt: clip.veoVideoPrompt || "",
+                  pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
                   dialogue: clip.dialogue,
@@ -704,6 +711,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   bgmEn: clip.bgmEn,
                   length: clip.length,
                   accumulatedTime: clip.accumulatedTime,
+                  trailerScriptKo: clip.trailerScriptKo || "",
+                  trailerScriptEn: clip.trailerScriptEn || "",
                 })),
               }));
 
@@ -776,6 +785,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             designSheetPrompt: prop.designSheetPrompt,
             designSheetImageRef: prop.designSheetImageRef,
             referenceImageRef: prop.referenceImageRef,
+            referenceImageRefs: prop.referenceImageRefs,
           })),
           detectedIds: detectedIds.map(d => ({
             id: d.id,
@@ -888,29 +898,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [currentProjectId, router, searchParams]);
 
-  // Wrapper for setCustomApiKey that also updates Firestore
-  const setCustomApiKey = useCallback(async (key: string) => {
+  // API keys are kept in-memory only (not persisted to Firestore)
+  const setCustomApiKey = useCallback((key: string) => {
     setCustomApiKeyState(key);
-    if (currentProjectId) {
-      try {
-        await updateCustomApiKeyFirestore(currentProjectId, key);
-      } catch (error) {
-        console.error("Error updating custom API key in Firestore:", error);
-      }
-    }
-  }, [currentProjectId]);
+  }, []);
 
-  // Wrapper for setVideoApiKey that also updates Firestore
-  const setVideoApiKey = useCallback(async (key: string) => {
+  const setVideoApiKey = useCallback((key: string) => {
     setVideoApiKeyState(key);
-    if (currentProjectId) {
-      try {
-        await updateVideoApiKeyFirestore(currentProjectId, key);
-      } catch (error) {
-        console.error("Error updating video API key in Firestore:", error);
-      }
-    }
-  }, [currentProjectId]);
+  }, []);
 
   // Helper to clear specific stage results
   const clearStageResult = useCallback((stage: number) => {
@@ -935,16 +930,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           return;
         }
 
-        console.log("[MithrilContext] Story splitter job update:", update);
 
-        if (update.status === "completed" && update.parts) {
-          // Job completed - update state with results
+        if (update.status === "completed") {
+          // Job completed - read results from storySplits document (not job_queue, avoids 1MB limit)
           storySplitterJobIdRef.current = null;
           setStorySplitterJobId(null);
-          setStorySplitter({
-            isLoading: false,
-            error: null,
-            result: { parts: update.parts },
+          getStorySplits(job.project_id).then((storySplitsData) => {
+            const parts = storySplitsData?.parts ?? [];
+            const result = { parts };
+            setStorySplitter({ isLoading: false, error: null, result });
+            setStageResults(prev => ({ ...prev, 2: result }));
+          }).catch(() => {
+            setStorySplitter(prev => ({ ...prev, isLoading: false }));
           });
         } else if (update.status === "failed") {
           // Job failed
@@ -977,17 +974,12 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     storyboardInitialSnapshotRef.current = true;
     storyboardProcessedJobIdsRef.current = new Set();
 
-    console.log("[MithrilContext:StoryboardSubscription] Setting up subscription for project:", currentProjectId);
 
     const processStoryboardUpdate = (update: ReturnType<typeof mapStoryboardJobToUpdate>, isInitialSnapshot: boolean = false) => {
       // Skip already-processed jobs
       if (storyboardProcessedJobIdsRef.current.has(update.jobId)) return;
 
       if (update.status === "completed" && update.scenes) {
-        console.log("[MithrilContext:StoryboardSubscription] JOB COMPLETED - processing results:", {
-          sceneCount: update.scenes.length,
-          voicePromptCount: update.voicePrompts?.length || 0,
-        });
 
         storyboardProcessedJobIdsRef.current.add(update.jobId);
 
@@ -1005,6 +997,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             videoPrompt: clip.videoPrompt,
             soraVideoPrompt: clip.soraVideoPrompt,
             veoVideoPrompt: clip.veoVideoPrompt || "",
+            pixAiPrompt: clip.pixAiPrompt || "",
             backgroundPrompt: clip.backgroundPrompt,
             backgroundId: clip.backgroundId,
             dialogue: clip.dialogue,
@@ -1017,6 +1010,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             bgmEn: clip.bgmEn,
             length: clip.length,
             accumulatedTime: clip.accumulatedTime,
+            trailerScriptKo: clip.trailerScriptKo || "",
+            trailerScriptEn: clip.trailerScriptEn || "",
           })),
         }));
 
@@ -1052,7 +1047,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (!isInitialSnapshot) {
           (async () => {
             try {
-              console.log("[MithrilContext:StoryboardSave] Starting save — projectId=", currentProjectId, "sceneCount=", update.scenes!.length);
               await clearStoryboard(currentProjectId);
               await saveStoryboardMeta(currentProjectId, undefined, undefined, normalizedCharacterIdSummary, normalizedGenre);
               await saveVoicePrompts(currentProjectId, update.voicePrompts || []);
@@ -1070,6 +1064,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     videoPrompt: clip.videoPrompt || "",
                     soraVideoPrompt: clip.soraVideoPrompt || "",
                     veoVideoPrompt: clip.veoVideoPrompt || "",
+                    pixAiPrompt: clip.pixAiPrompt || "",
                     backgroundPrompt: clip.backgroundPrompt || "",
                     backgroundId: clip.backgroundId || "",
                     dialogue: clip.dialogue || "",
@@ -1082,16 +1077,16 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     bgmEn: clip.bgmEn || "",
                     length: clip.length || "",
                     accumulatedTime: clip.accumulatedTime || "",
+                    trailerScriptKo: clip.trailerScriptKo || "",
+                    trailerScriptEn: clip.trailerScriptEn || "",
                   });
                 }
               }
-              console.log("[MithrilContext:StoryboardSave] COMPLETE — sceneCount=", update.scenes!.length);
             } catch (saveErr) {
               console.error("[MithrilContext:StoryboardSave] ERROR saving storyboard:", saveErr);
             }
           })();
         } else {
-          console.log("[MithrilContext:StoryboardSubscription] Skipping Firestore save for initial snapshot replay — data already persisted");
         }
       } else if (update.status === "failed") {
         storyboardProcessedJobIdsRef.current.add(update.jobId);
@@ -1120,11 +1115,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const isInitial = storyboardInitialSnapshotRef.current;
       storyboardInitialSnapshotRef.current = false;
 
-      console.log("[MithrilContext:StoryboardSubscription] Received jobs update:", {
-        jobCount: jobs.length,
-        currentTrackedJobId: currentJobId,
-        isInitialSnapshot: isInitial,
-      });
 
       if (isInitial && !currentJobId) {
         // Initial snapshot fired before loadFromFirestore restored the jobId.
@@ -1136,7 +1126,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           if (isInFlight) {
             // Re-track the in-flight job
-            console.log("[MithrilContext:StoryboardSubscription] Initial snapshot - re-tracking in-flight job:", update.jobId);
             storyboardJobIdRef.current = update.jobId;
             setStoryboardJobId(update.jobId);
             setStoryboardGenerator(prev => ({
@@ -1147,7 +1136,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           } else if (isTerminal) {
             // Queue terminal job for processing — loadFromFirestore will handle it
             // via the status API, but process it here too as a fallback
-            console.log("[MithrilContext:StoryboardSubscription] Initial snapshot - processing terminal job:", update.jobId, update.status);
             processStoryboardUpdate(update, true);
           }
         });
@@ -1167,7 +1155,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     return () => {
-      console.log("[MithrilContext:StoryboardSubscription] Cleaning up subscription for project:", currentProjectId);
       unsubscribe();
     };
   }, [currentProjectId]);
@@ -1246,7 +1233,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Store job ID for tracking (both ref and state)
       storySplitterJobIdRef.current = data.jobId || null;
       setStorySplitterJobId(data.jobId || null);
-      console.log("[MithrilContext] Story splitter job submitted:", data.jobId);
 
       // Save jobId to Firestore so it persists across page navigations
       if (data.jobId) {
@@ -1289,15 +1275,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Storyboard Generator methods
   const startStoryboardGeneration = useCallback(async (params: GenerateStoryboardParams) => {
-    console.log("[MithrilContext:startStoryboardGeneration] Starting with params:", {
-      sourceTextLength: params.sourceText?.length,
-      targetTime: params.targetTime,
-      hasCustomInstruction: !!params.customInstruction,
-      projectId: currentProjectId,
-    });
 
     if (!params.sourceText) {
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No source text");
       setStoryboardGenerator(prev => ({
         ...prev,
         error: "No source text provided. Please select a part from Stage 2.",
@@ -1306,7 +1285,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     if (!currentProjectId) {
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR: No project ID");
       setStoryboardGenerator(prev => ({
         ...prev,
         error: "No project selected.",
@@ -1314,7 +1292,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    console.log("[MithrilContext:startStoryboardGeneration] Setting initial generating state");
     setStoryboardGenerator({
       isGenerating: true,
       error: null,
@@ -1325,7 +1302,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
 
     try {
-      console.log("[MithrilContext:startStoryboardGeneration] Submitting job to orchestrator...");
       // Submit job to orchestrator
       const response = await fetch("/api/storyboard/orchestrator/submit", {
         method: "POST",
@@ -1347,6 +1323,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           backgroundInstruction: params.backgroundInstruction,
           negativeInstruction: params.negativeInstruction,
           videoInstruction: params.videoInstruction,
+          imageInstruction: params.imageInstruction,
+          clipCount: params.clipCount,
+          // Trailer-specific params
+          imagePromptQA: params.imagePromptQA || "",
+          selectedTrailerScript: params.selectedTrailerScript || "",
           // API key
           apiKey: customApiKey,
         }),
@@ -1355,34 +1336,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "API request failed");
 
-      console.log("[MithrilContext:startStoryboardGeneration] Orchestrator response:", {
-        ok: response.ok,
-        status: response.status,
-        jobId: data.jobId,
-      });
 
       // Store job ID for tracking (both ref and state)
-      console.log("[MithrilContext:startStoryboardGeneration] Setting job ID refs:", {
-        jobId: data.jobId,
-        previousRefValue: storyboardJobIdRef.current,
-      });
       storyboardJobIdRef.current = data.jobId || null;
       setStoryboardJobId(data.jobId || null);
-      console.log("[MithrilContext:startStoryboardGeneration] Job ID set - ref now:", storyboardJobIdRef.current);
 
       // Save jobId to Firestore so it persists across page navigations
       if (data.jobId) {
-        console.log("[MithrilContext:startStoryboardGeneration] Saving jobId to Firestore meta...");
         await saveStoryboardMeta(currentProjectId, data.jobId);
-        console.log("[MithrilContext:startStoryboardGeneration] Firestore meta saved");
       }
 
       // Job is now running in background - UI will update via Firestore subscription
-      console.log("[MithrilContext:startStoryboardGeneration] Job submitted successfully, waiting for subscription updates");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred.";
-      console.log("[MithrilContext:startStoryboardGeneration] ERROR:", errorMessage);
       setStoryboardGenerator(prev => ({
         ...prev,
         isGenerating: false,
@@ -1484,6 +1451,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               videoPrompt: clip.videoPrompt || "",
               soraVideoPrompt: clip.soraVideoPrompt || "",
               veoVideoPrompt: clip.veoVideoPrompt || "",
+              pixAiPrompt: clip.pixAiPrompt || "",
               backgroundPrompt: clip.backgroundPrompt || "",
               backgroundId: clip.backgroundId || "",
               characterInfo: clip.characterInfo || "",
@@ -1520,10 +1488,6 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [currentProjectId]);
 
   const clearStoryboardGeneration = useCallback(async () => {
-    console.log("[MithrilContext:clearStoryboardGeneration] Clearing storyboard state:", {
-      previousJobIdRef: storyboardJobIdRef.current,
-      previousSceneCount: storyboardGenerator.scenes.length,
-    });
 
     // Clear job tracking
     storyboardJobIdRef.current = null;
@@ -1541,16 +1505,13 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (currentProjectId) {
       try {
-        console.log("[MithrilContext:clearStoryboardGeneration] Clearing Firestore storyboard...");
         await clearStoryboard(currentProjectId);
-        console.log("[MithrilContext:clearStoryboardGeneration] Firestore cleared");
       } catch (error) {
         console.error("Error clearing storyboard from Firestore:", error);
       }
     }
 
     clearStageResult(5);
-    console.log("[MithrilContext:clearStoryboardGeneration] Clear complete");
   }, [currentProjectId, clearStageResult, storyboardGenerator.scenes.length]);
 
   // Update a specific clip's prompt field
@@ -1641,6 +1602,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       return [];
     }
 
+    bgSheetAnalysisAbortRef.current?.abort();
+    const abortController = new AbortController();
+    bgSheetAnalysisAbortRef.current = abortController;
+
     setBgSheetGenerator({
       isAnalyzing: true,
       error: null,
@@ -1652,6 +1617,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
+        signal: abortController.signal,
       });
 
       const data = await response.json();
@@ -1720,6 +1686,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       return backgroundsWithImages;
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return [];
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
       setBgSheetGenerator(prev => ({
         ...prev,
@@ -1739,14 +1706,24 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (currentProjectId) {
       try {
+        const backgrounds = await getBackgrounds(currentProjectId);
+        await Promise.allSettled(
+          backgrounds.map(bg => deleteAllBackgroundImages(currentProjectId, bg.id))
+        );
         await clearBgSheet(currentProjectId);
       } catch (error) {
-        console.error("Error clearing bg sheet from Firestore:", error);
+        console.error("Error clearing bg sheet:", error);
       }
     }
 
     clearStageResult(4);
   }, [currentProjectId, clearStageResult]);
+
+  const cancelBgSheetAnalysis = useCallback(() => {
+    bgSheetAnalysisAbortRef.current?.abort();
+    bgSheetAnalysisAbortRef.current = null;
+    setBgSheetGenerator(prev => ({ ...prev, isAnalyzing: false }));
+  }, []);
 
   const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
     setBgSheetGenerator(prev => ({ ...prev, result }));
@@ -1950,6 +1927,20 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     await loadFromFirestore();
   }, [loadFromFirestore]);
 
+  // Splitter crop event bus
+  const [splitterCropUpdates, setSplitterCropUpdates] = useState<
+    Array<{ pageIndex: number; panelIndex: number; s3Url: string; ts: number }>
+  >([]);
+  const notifySplitterCropSaved = useCallback(
+    (pageIndex: number, panelIndex: number, s3Url: string) => {
+      setSplitterCropUpdates((prev) => [
+        ...prev,
+        { pageIndex, panelIndex, s3Url, ts: Date.now() },
+      ]);
+    },
+    []
+  );
+
   return (
     <MithrilContext.Provider
       value={{
@@ -1996,6 +1987,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         // BgSheet Generator
         bgSheetGenerator,
         startBgSheetAnalysis,
+        cancelBgSheetAnalysis,
         clearBgSheetAnalysis,
         setBgSheetResult,
         // Character Sheet Generator
@@ -2013,6 +2005,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         isStageSkipped,
         // Reload
         reloadFromFirestore,
+        // Splitter crop event bus
+        splitterCropUpdates,
+        notifySplitterCropSaved,
       }}
     >
       {children}

@@ -11,7 +11,7 @@ interface PanelSplitterSubmitRequest {
   pageId: string;
   pageIndex: number;
   fileName: string;
-  imageBase64: string;
+  imageUrl: string;
   readingDirection: "rtl" | "ltr";
   apiKey?: string;
 }
@@ -22,7 +22,7 @@ interface PanelSplitterBatchSubmitRequest {
     pageId: string;
     pageIndex: number;
     fileName: string;
-    imageBase64: string;
+    imageUrl: string;
   }>;
   readingDirection: "rtl" | "ltr";
   apiKey?: string;
@@ -65,7 +65,6 @@ async function handleSingleSubmit(
   body: PanelSplitterSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[PanelSplitterOrchestrator] Submitting single job to:", `${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit`);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit`, {
     method: "POST",
@@ -80,14 +79,13 @@ async function handleSingleSubmit(
       page_id: body.pageId,
       page_index: body.pageIndex,
       file_name: body.fileName,
-      image_base64: body.imageBase64,
+      image_url: body.imageUrl,
       reading_direction: body.readingDirection,
       api_key: body.apiKey,
     }),
   });
 
   const responseText = await response.text();
-  console.log("[PanelSplitterOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
   let data;
   try {
@@ -118,7 +116,6 @@ async function handleBatchSubmit(
   body: PanelSplitterBatchSubmitRequest,
   session: { userId: string; email?: string }
 ) {
-  console.log("[PanelSplitterOrchestrator] Submitting batch of", body.pages.length, "jobs to:", `${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit-batch`);
 
   const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/panel-splitter-jobs/submit-batch`, {
     method: "POST",
@@ -134,7 +131,7 @@ async function handleBatchSubmit(
         page_id: page.pageId,
         page_index: page.pageIndex,
         file_name: page.fileName,
-        image_base64: page.imageBase64,
+        image_url: page.imageUrl,
       })),
       reading_direction: body.readingDirection,
       api_key: body.apiKey,
@@ -142,7 +139,6 @@ async function handleBatchSubmit(
   });
 
   const responseText = await response.text();
-  console.log("[PanelSplitterOrchestrator] Batch response status:", response.status, "body:", responseText.substring(0, 500));
 
   let data;
   try {

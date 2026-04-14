@@ -27,11 +27,11 @@ export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode
 
 export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
 
-export type I2VImageSubtype = 'page' | 'panel' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset';
+export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset' | 'storyboard-reference';
 
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -60,6 +60,10 @@ export interface UploadImageRequest {
   // For i2v storyboard assets
   assetId?: string;
   assetType?: 'character' | 'background';
+  // For i2v panel-editor originals
+  panelEditorId?: string;
+  // For csv-frame images
+  csvFrameIndex?: number;
   // Image data
   base64: string;
   mimeType?: string;
@@ -74,7 +78,7 @@ export interface UploadImageResponse {
 
 export interface DeleteImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame';
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode
@@ -103,6 +107,10 @@ export interface DeleteImageRequest {
   // For i2v storyboard assets
   assetId?: string;
   assetType?: 'character' | 'background';
+  // For i2v panel-editor originals
+  panelEditorId?: string;
+  // For csv-frame images
+  csvFrameIndex?: number;
 }
 
 export interface DeleteImageResponse {
@@ -145,6 +153,17 @@ export interface ClearProjectResponse {
   error?: string;
 }
 
+export interface CopyProjectFilesRequest {
+  sourceProjectId: string;
+  destinationProjectId: string;
+}
+
+export interface CopyProjectFilesResponse {
+  success: boolean;
+  copiedCount: number;
+  error?: string;
+}
+
 // S3 Key generators (used both client and server side)
 export const S3_BASE_PATH = 'mithril';
 
@@ -166,6 +185,10 @@ export function getBackgroundReferenceImageKey(projectId: string, bgId: string):
 
 export function getStoryboardImageKey(projectId: string, sceneIndex: number, clipIndex: number): string {
   return `${S3_BASE_PATH}/${projectId}/storyboard/${sceneIndex}_${clipIndex}.webp`;
+}
+
+export function getCsvFrameImageKey(projectId: string, frameIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/csv-frames/${frameIndex}.webp`;
 }
 
 export function getVideoKey(projectId: string, clipId: string): string {
@@ -319,10 +342,33 @@ export function getI2VPagesFolderPrefix(projectId: string): string {
 }
 
 /**
+ * Get S3 key prefix for a specific I2V page (matches both legacy and job-suffixed keys).
+ * Legacy: `{pageIndex}.webp`  New: `{pageIndex}_{jobId}.webp`
+ */
+export function getI2VPagePrefix(projectId: string, pageIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/pages/${pageIndex}`;
+}
+
+/**
  * Get S3 folder prefix for I2V panels (for deleting all panels)
  */
 export function getI2VPanelsFolderPrefix(projectId: string): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/panels/`;
+}
+
+/**
+ * Get S3 key prefix for a specific I2V panel (matches both legacy and job-suffixed keys).
+ * Legacy: `{pageIndex}_{panelIndex}.webp`  New: `{pageIndex}_{panelIndex}_{jobId}.webp`
+ */
+export function getI2VPanelPrefix(projectId: string, pageIndex: number, panelIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panels/${pageIndex}_${panelIndex}`;
+}
+
+/**
+ * Get S3 key for I2V panel-editor original image
+ */
+export function getI2VPanelEditorKey(projectId: string, panelEditorId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/panel-editor/${panelEditorId}.webp`;
 }
 
 /**
@@ -355,6 +401,13 @@ export function getI2VStoryboardFrameEndKey(projectId: string, sceneIndex: numbe
  */
 export function getI2VStoryboardAssetKey(projectId: string, assetId: string, assetType: 'character' | 'background'): string {
   return `${S3_BASE_PATH}/${projectId}/i2v/storyboard/assets/${assetType}/${assetId}.webp`;
+}
+
+/**
+ * Get S3 key for I2V storyboard reference image (custom user-uploaded reference per clip)
+ */
+export function getI2VStoryboardReferenceKey(projectId: string, sceneIndex: number, clipIndex: number): string {
+  return `${S3_BASE_PATH}/${projectId}/i2v/storyboard/references/${sceneIndex}_${clipIndex}.webp`;
 }
 
 /**

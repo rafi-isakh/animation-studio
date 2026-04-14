@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
     const body: CancelJobRequest = await request.json();
 
     // Forward to orchestrator backend
-    console.log("[StorySplitterOrchestrator] Cancelling job:", body.jobId);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/story-splitter-jobs/${body.jobId}/cancel`, {
       method: "POST",
@@ -37,7 +36,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[StorySplitterOrchestrator] Cancel response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

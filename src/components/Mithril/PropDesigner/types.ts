@@ -12,6 +12,7 @@ export type PropCategory = 'character' | 'object';
 export interface PropContext {
   clipId: string; // e.g., "1-1", "2-3"
   text: string; // The text snippet where the ID appears
+  refFileName?: string; // Reference image filename from CSV column Q
 }
 
 // Detected ID from storyboard text (before full prop analysis)
@@ -64,6 +65,16 @@ export interface Prop {
   variantVisuals?: string; // e.g., "Longer hair, darker outfit"
 }
 
+// Detection session - each detection creates a new session
+export interface DetectionSession {
+  id: string;
+  name: string; // e.g. "Character Sheet #1", "Object Sheet #2"
+  type: PropCategory;
+  props: Prop[];
+  timestamp: number;
+  isMinimized: boolean;
+}
+
 // Metadata stored in context for navigation persistence
 export interface PropMetadata {
   id: string;
@@ -100,11 +111,21 @@ export interface PropDesignerSettings {
   genre: string;
 }
 
+// Session metadata for persistence
+export interface DetectionSessionMetadata {
+  id: string;
+  name: string;
+  type: PropCategory;
+  props: PropMetadata[];
+  timestamp: number;
+}
+
 // Complete result metadata for context
 export interface PropDesignerResultMetadata {
   props: PropMetadata[];
   settings: PropDesignerSettings;
   detectedIds: DetectedId[];
+  sessions?: DetectionSessionMetadata[];
 }
 
 // State managed in MithrilContext

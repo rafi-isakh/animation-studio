@@ -60,6 +60,18 @@ const aspectRatios = [
   { value: "1:1", label: "Square (1:1)" },
 ];
 
+const BACKGROUND_ANGLES = [
+  "Front View",
+  "Worm View",
+  "Character A View",
+  "Character B View",
+  "Rear View",
+  "Bird's Eye View",
+  "Over-Shoulder A",
+  "Over-Shoulder B",
+  "Floor Close-up",
+];
+
 export default function ImageGenerator() {
   const {
     currentStage,
@@ -70,7 +82,7 @@ export default function ImageGenerator() {
     isLoading: isContextLoading,
     propDesignerGenerator,
   } = useMithril();
-  const { language, dictionary } = useLanguage();
+const { language, dictionary } = useLanguage();
   const { toast } = useToast();
   const { trackImageGeneration, isClockedIn } = useCostTracker();
 
@@ -107,6 +119,7 @@ export default function ImageGenerator() {
   const framesRef = useRef<ImageGenFrame[]>([]);
   const isBatchRunningRef = useRef(false);
   const isMountedRef = useRef(true);
+  const isLoadingDataRef = useRef(false);
 
   // Keep refs in sync
   useEffect(() => {
@@ -147,6 +160,8 @@ export default function ImageGenerator() {
           };
         })
       );
+    } else {
+      setCharacterAssets([]);
     }
 
     // Load backgrounds from Stage 6
@@ -162,15 +177,17 @@ export default function ImageGenerator() {
           })),
         }))
       );
+    } else {
+      setBackgroundAssets([]);
     }
   }, [propDesignerGenerator.result, getStageResult]);
 
   // Reload assets whenever PropDesigner or Stage 6 data changes
   useEffect(() => {
-    if (currentStage === 7 && hasLoaded) {
+    if (currentStage === 7) {
       loadAssets();
     }
-  }, [currentStage, hasLoaded, loadAssets]);
+  }, [currentStage, loadAssets]);
 
   // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
@@ -246,6 +263,7 @@ export default function ImageGenerator() {
   useEffect(() => {
     if (currentStage !== 7) {
       setHasLoaded(false);
+      isLoadingDataRef.current = false;
       return;
     }
 
@@ -255,8 +273,12 @@ export default function ImageGenerator() {
     if (hasLoaded) {
       return;
     }
+    if (isLoadingDataRef.current) {
+      return;
+    }
 
     const loadData = async () => {
+      isLoadingDataRef.current = true;
       setIsLoadingData(true);
       setError(null);
 
@@ -284,7 +306,6 @@ export default function ImageGenerator() {
           });
           // Load local assets metadata (lazy loading - base64 loaded on-demand during generation)
           if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
-            console.log(`[ImageGen] Found ${savedMeta.localAssets.length} replacement assets (lazy loading enabled)`);
             // Deduplicate by id (keep last entry) to prevent stale duplicates
             const seen = new Map<string, LocalAssetRef>();
             savedMeta.localAssets.forEach((asset) => {
@@ -293,7 +314,8 @@ export default function ImageGenerator() {
                 name: asset.name,
                 mimeType: 'image/webp',
                 category: asset.category,
-                imageUrl: asset.imageUrl,
+                imageUrl: asset.imageUrl || undefined,
+                isRemoved: !!asset.isRemoved,
               });
             });
             setLocalAssets(Array.from(seen.values()));
@@ -505,12 +527,13 @@ export default function ImageGenerator() {
         console.error("Error loading ImageGen data:", err);
         setError("Failed to load data. Please try again.");
       } finally {
+        isLoadingDataRef.current = false;
         setIsLoadingData(false);
       }
     };
 
     loadData();
-  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult, settings]);
+  }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult]);
 
   // Group frames by shotGroup for display
   const groupedFrames = useMemo(() => {
@@ -548,7 +571,6 @@ export default function ImageGenerator() {
         if (currentProjectId) {
           try {
             await deleteImageGenFrameImage(currentProjectId, frameId);
-            console.log(`[ImageGen] Deleted old frame image for: ${frameId}`);
           } catch (error) {
             console.warn(`[ImageGen] Failed to delete old frame image (may not exist):`, error);
           }
@@ -572,7 +594,6 @@ export default function ImageGenerator() {
             // Lazy load base64 if not already loaded
             let bgBase64 = localBg.base64;
             if (!bgBase64 && localBg.imageUrl) {
-              console.log(`[ImageGen] Lazy loading background asset: ${localBg.id} from ${localBg.imageUrl}`);
               try {
                 const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(localBg.imageUrl)}`;
                 const response = await fetch(proxyUrl);
@@ -585,7 +606,6 @@ export default function ImageGenerator() {
                       a.id === localBg.id ? { ...a, base64: data.base64, mimeType: data.contentType || 'image/webp' } : a
                     )
                   );
-                  console.log(`[ImageGen] ✓ Lazy loaded background ${localBg.id}, base64 length: ${bgBase64?.length}`);
                 }
               } catch (err) {
                 console.error(`[ImageGen] ✗ Failed to lazy load background ${localBg.id}:`, err);
@@ -648,7 +668,6 @@ export default function ImageGenerator() {
 
         // Check local uploaded/replacement character assets FIRST (priority over Prop Designer)
         const localCharacters = localAssets.filter((a) => a.category === "character");
-        console.log(`[ImageGen] Checking ${localCharacters.length} local/replacement character assets against prompt: "${promptText.substring(0, 100)}..."`);
         
         for (const asset of localCharacters) {
           const escapedId = asset.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -660,12 +679,15 @@ export default function ImageGenerator() {
           const nameMatch = regexName.test(promptText);
           
           if (idMatch || nameMatch) {
-            console.log(`[ImageGen] ✓ Matched replacement asset: id="${asset.id}", name="${asset.name}" (idMatch=${idMatch}, nameMatch=${nameMatch}), hasBase64=${!!asset.base64}, base64Length=${asset.base64?.length || 0}`);
+            // Explicitly removed original asset: match it to block PropDesigner fallback.
+            if (asset.isRemoved) {
+              matchedCharacterIds.add(asset.id);
+              continue;
+            }
             
             // Lazy load base64 if not already loaded
             let assetBase64 = asset.base64;
             if (!assetBase64 && asset.imageUrl) {
-              console.log(`[ImageGen] Lazy loading base64 for asset: ${asset.id} from ${asset.imageUrl}`);
               try {
                 const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(asset.imageUrl)}`;
                 const response = await fetch(proxyUrl);
@@ -678,7 +700,6 @@ export default function ImageGenerator() {
                       a.id === asset.id ? { ...a, base64: data.base64, mimeType: data.contentType || 'image/webp' } : a
                     )
                   );
-                  console.log(`[ImageGen] ✓ Lazy loaded asset ${asset.id}, base64 length: ${assetBase64?.length}`);
                 }
               } catch (err) {
                 console.error(`[ImageGen] ✗ Failed to lazy load asset ${asset.id}:`, err);
@@ -698,7 +719,6 @@ export default function ImageGenerator() {
                 base64: compressed.base64,
                 mimeType: compressed.mimeType,
               });
-              console.log(`[ImageGen] Added compressed replacement image for: ${asset.id}, compressed length: ${compressed.base64.length}`);
             } catch (err) {
               console.warn(`[ImageGen] Compression failed for ${asset.id}, using original:`, err);
               // Fall back to original if compression fails
@@ -710,17 +730,14 @@ export default function ImageGenerator() {
             // Mark this ID as matched so Prop Designer won't add it again
             matchedCharacterIds.add(asset.id);
           } else {
-            console.log(`[ImageGen] ✗ No match for replacement asset: id="${asset.id}", name="${asset.name}"`);
           }
         }
 
         // Check Prop Designer character & object assets (skip if already matched from local assets)
-        console.log(`[ImageGen] Checking ${characterAssets.length} PropDesigner character/object assets (already matched: ${matchedCharacterIds.size})`);
         
         for (const char of characterAssets) {
           // Skip if this character was already matched from local assets (replacement)
           if (matchedCharacterIds.has(char.id)) {
-            console.log(`[ImageGen] ⏭ Skipping PropDesigner asset "${char.id}" - using replacement instead`);
             continue;
           }
 
@@ -732,7 +749,6 @@ export default function ImageGenerator() {
           const regexName = new RegExp(`(^|[^a-zA-Z0-9가-힣])${escapedName}(?![a-zA-Z0-9가-힣])`, "i");
 
           if (regexId.test(promptText) || regexName.test(promptText)) {
-            console.log(`[ImageGen] ✓ Matched PropDesigner asset: id="${char.id}", name="${char.name}"`);
             // Character found in prompt, fetch and compress their image
             if (char.imageUrl) {
               try {
@@ -985,6 +1001,17 @@ export default function ImageGenerator() {
       const localAssetsForFirestore = await Promise.all(
         localAssets.map(async (asset) => {
           try {
+            // Keep explicit "removed original" markers as-is (no upload needed)
+            if (asset.isRemoved) {
+              return {
+                id: asset.id,
+                name: asset.name,
+                imageUrl: "",
+                category: asset.category,
+                isRemoved: true,
+              };
+            }
+
             // If asset already has an imageUrl, reuse it (no need to re-upload)
             if (asset.imageUrl) {
               return {
@@ -992,6 +1019,7 @@ export default function ImageGenerator() {
                 name: asset.name,
                 imageUrl: asset.imageUrl,
                 category: asset.category,
+                isRemoved: false,
               };
             }
             
@@ -1013,6 +1041,7 @@ export default function ImageGenerator() {
               name: asset.name,
               imageUrl,
               category: asset.category,
+              isRemoved: false,
             };
           } catch (err) {
             console.error(`Failed to upload replacement asset ${asset.id}:`, err);
@@ -1027,6 +1056,7 @@ export default function ImageGenerator() {
         name: string;
         imageUrl: string;
         category: 'character' | 'background';
+        isRemoved?: boolean;
       }>;
 
       await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, successfulAssets);
@@ -1196,6 +1226,42 @@ export default function ImageGenerator() {
   const handleRefChange = useCallback((id: string, value: string) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, refFrame: value } : f)));
   }, []);
+
+  const handleUseRemix = useCallback(async (frameId: string) => {
+    const frame = frames.find((f) => f.id === frameId);
+    if (!frame || !frame.remixImageUrl || !currentProjectId) return;
+
+    const newImageUrl = frame.remixImageUrl;
+    const now = Date.now();
+
+    setFrames((prev) =>
+      prev.map((f) =>
+        f.id === frameId
+          ? { ...f, imageUrl: newImageUrl, imageBase64: frame.remixImageBase64, remixImageUrl: null, remixImageBase64: null, imageUpdatedAt: now }
+          : f
+      )
+    );
+
+    try {
+      await saveImageGenFrame(currentProjectId, frame.id, {
+        sceneIndex: frame.sceneIndex,
+        clipIndex: frame.clipIndex,
+        frameLabel: frame.frameLabel,
+        frameNumber: frame.frameNumber,
+        shotGroup: frame.shotGroup,
+        prompt: frame.prompt,
+        backgroundId: frame.backgroundId,
+        refFrame: frame.refFrame,
+        imageRef: newImageUrl,
+        imageUpdatedAt: now,
+        status: "completed",
+        remixPrompt: frame.remixPrompt || "",
+        remixImageRef: null,
+      });
+    } catch (err) {
+      console.error("Failed to save use-remix state:", err);
+    }
+  }, [frames, currentProjectId]);
 
   const handleDownload = useCallback((id: string, isRemix?: boolean) => {
     const frame = frames.find((f) => f.id === id);
@@ -1426,15 +1492,17 @@ export default function ImageGenerator() {
     const asset = localAssets.find((a) => a.id === assetId);
     if (!asset) return;
 
-    // Delete from S3 if project exists
-    if (currentProjectId) {
+    // Delete replacement from S3 if project exists (skip for removal markers)
+    if (currentProjectId && !asset.isRemoved) {
       try {
         await deleteImageGenReplacementAsset(currentProjectId, assetId, asset.category);
       } catch (err) {
         console.warn(`Failed to delete replacement asset from S3:`, err);
       }
+    }
 
-      // Update Firestore to remove the asset from localAssets
+    // Update Firestore to remove the asset from localAssets
+    if (currentProjectId) {
       try {
         const remainingAssets = localAssets
           .filter((a) => a.id !== assetId)
@@ -1443,11 +1511,11 @@ export default function ImageGenerator() {
             name: a.name,
             imageUrl: a.imageUrl || "",
             category: a.category,
+            isRemoved: !!a.isRemoved,
           }))
-          .filter((a) => a.imageUrl); // Only include assets that have been saved to S3
+          .filter((a) => a.isRemoved || !!a.imageUrl);
         
         await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, remainingAssets);
-        console.log(`[ImageGen] Updated Firestore after removing asset ${assetId}`);
       } catch (err) {
         console.warn(`Failed to update Firestore after removing asset:`, err);
       }
@@ -1497,9 +1565,52 @@ export default function ImageGenerator() {
     [toast]
   );
 
+  // Remove original PropDesigner character/prop image (can be restored later)
+  const handleRemoveOriginalCharacterAsset = useCallback(async (assetId: string, assetName: string) => {
+    const updatedAssets: LocalAssetRef[] = [
+      ...localAssets.filter((a) => a.id !== assetId),
+      {
+        id: assetId,
+        name: assetName,
+        mimeType: "image/webp",
+        category: "character",
+        isRemoved: true,
+      },
+    ];
+
+    setLocalAssets(updatedAssets);
+
+    if (currentProjectId) {
+      try {
+        const localAssetsForFirestore = updatedAssets
+          .map((a) => ({
+            id: a.id,
+            name: a.name,
+            imageUrl: a.imageUrl || "",
+            category: a.category,
+            isRemoved: !!a.isRemoved,
+          }))
+          .filter((a) => a.isRemoved || !!a.imageUrl);
+        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, localAssetsForFirestore);
+      } catch (err) {
+        console.warn(`Failed to persist removed original asset ${assetId}:`, err);
+      }
+    }
+
+    toast({
+      title: "Original Hidden",
+      description: `"${assetName}" will no longer be used as a reference image.`,
+      variant: "default",
+    });
+  }, [localAssets, currentProjectId, settings.stylePrompt, settings.aspectRatio, toast]);
+
   // Check if an asset has been replaced
   const isAssetReplaced = useCallback(
     (assetId: string) => localAssets.some((a) => a.id === assetId),
+    [localAssets]
+  );
+  const isAssetRemoved = useCallback(
+    (assetId: string) => !!localAssets.find((a) => a.id === assetId)?.isRemoved,
     [localAssets]
   );
 
@@ -1508,7 +1619,7 @@ export default function ImageGenerator() {
   const localCharacterAssets = useMemo(
     () => {
       const propDesignerIds = new Set(characterAssets.map((c) => c.id));
-      return localAssets.filter((a) => a.category === "character" && !propDesignerIds.has(a.id));
+      return localAssets.filter((a) => a.category === "character" && !a.isRemoved && !propDesignerIds.has(a.id));
     },
     [localAssets, characterAssets]
   );
@@ -1518,6 +1629,10 @@ export default function ImageGenerator() {
       return localAssets.filter((a) => a.category === "background" && !bgSheetIds.has(a.id));
     },
     [localAssets, backgroundAssets]
+  );
+  const visibleCharacterAssets = useMemo(
+    () => characterAssets.filter((c) => !isAssetRemoved(c.id)),
+    [characterAssets, isAssetRemoved]
   );
 
   // Loading state
@@ -1693,7 +1808,7 @@ export default function ImageGenerator() {
         <div className="bg-slate-800/60 rounded-xl p-4 border border-yellow-500/30">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-[10px] font-black text-yellow-500 uppercase">
-              Characters & Props ({characterAssets.length + localCharacterAssets.length})
+              Characters & Props ({visibleCharacterAssets.length + localCharacterAssets.length})
             </h3>
             <label className="cursor-pointer bg-yellow-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors">
               UPLOAD
@@ -1706,21 +1821,26 @@ export default function ImageGenerator() {
               />
             </label>
           </div>
-          {characterAssets.length === 0 && localCharacterAssets.length === 0 ? (
+          {visibleCharacterAssets.length === 0 && localCharacterAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
               No assets - upload or use Prop Designer
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
               {/* Prop Designer characters & objects */}
-              {characterAssets.map((char) => {
+              {visibleCharacterAssets.map((char) => {
                 const replaced = isAssetReplaced(char.id);
+                const removed = isAssetRemoved(char.id);
                 const replacementAsset = localAssets.find((a) => a.id === char.id);
                 // For display: use base64 if loaded, otherwise use imageUrl
                 const replacementSrc = replacementAsset?.base64 
                   ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}` 
                   : replacementAsset?.imageUrl || "";
-                const hasImage = replaced ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl) : !!char.imageUrl;
+                const hasImage = removed
+                  ? false
+                  : replaced
+                  ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl)
+                  : !!char.imageUrl;
                 return (
                   <div
                     key={char.id}
@@ -1745,12 +1865,20 @@ export default function ImageGenerator() {
                         <button
                           onClick={() => handleRemoveAsset(char.id)}
                           className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                          title="Remove replacement"
+                          title={removed ? "Restore original image" : "Remove replacement"}
                         >
                           ×
                         </button>
                       ) : (
-                        <label className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                        <>
+                          <button
+                            onClick={() => handleRemoveOriginalCharacterAsset(char.id, char.name)}
+                            className="absolute top-1 left-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            title="Remove original image"
+                          >
+                            x
+                          </button>
+                          <label className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                           title="Replace with your image"
                         >
                           ↑
@@ -1761,10 +1889,11 @@ export default function ImageGenerator() {
                             className="hidden"
                           />
                         </label>
+                        </>
                       )}
                       {replaced && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">
-                          <span className="text-[7px] font-black text-white uppercase">Replaced</span>
+                        <div className={`absolute bottom-0 left-0 right-0 py-0.5 text-center ${removed ? "bg-red-600/80" : "bg-green-600/80"}`}>
+                          <span className="text-[7px] font-black text-white uppercase">{removed ? "Removed" : "Replaced"}</span>
                         </div>
                       )}
                     </div>
@@ -1838,14 +1967,28 @@ export default function ImageGenerator() {
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
               {/* Stage 4 backgrounds */}
-              {backgroundAssets.map((bg) =>
-                bg.angles?.map((angle, angleIndex) => {
+              {(() => {
+                // Sort backgrounds by name (same as BgSheetGenerator) to compute consistent slot labels
+                const sortedBgs = [...backgroundAssets].sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true })
+                );
+
+                // Flatten all bg.angles across all backgrounds into a single list
+                const allEntries = sortedBgs.flatMap((bg, bgSortedIndex) =>
+                  (bg.angles || []).map((angle) => ({ bg, bgSortedIndex, angle }))
+                );
+
+                return allEntries.map(({ bg, bgSortedIndex, angle }, angleIndex) => {
+                  const standardAngleIndex = BACKGROUND_ANGLES.indexOf(angle.angle);
+                  const slotLabel = standardAngleIndex >= 0
+                    ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                    : angle.angle;
                   const angleId = angle.angle;
                   const replaced = isAssetReplaced(angleId);
                   const replacementAsset = localAssets.find((a) => a.id === angleId);
                   // For display: use base64 if loaded, otherwise use imageUrl
-                  const replacementSrc = replacementAsset?.base64 
-                    ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}` 
+                  const replacementSrc = replacementAsset?.base64
+                    ? `data:${replacementAsset.mimeType};base64,${replacementAsset.base64}`
                     : replacementAsset?.imageUrl || "";
                   const hasImage = replaced ? (!!replacementAsset?.base64 || !!replacementAsset?.imageUrl) : !!angle.imageRef;
                   return (
@@ -1854,7 +1997,7 @@ export default function ImageGenerator() {
                       className={`bg-slate-900 rounded-lg overflow-hidden border group relative ${
                         replaced ? "border-green-500" : "border-slate-700"
                       }`}
-                      title={`${bg.name} - ${angle.angle}`}
+                      title={`${bg.name} - ${slotLabel}`}
                     >
                       <div className="aspect-video bg-black/40 relative">
                         {hasImage ? (
@@ -1884,7 +2027,7 @@ export default function ImageGenerator() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${angle.angle}`, "background")}
+                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${slotLabel}`, "background")}
                               className="hidden"
                             />
                           </label>
@@ -1897,13 +2040,13 @@ export default function ImageGenerator() {
                       </div>
                       <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
                         <span className="text-[8px] text-cyan-200 font-bold truncate block">
-                          {angle.angle}
+                          {slotLabel}
                         </span>
                       </div>
                     </div>
                   );
-                })
-              )}
+                });
+              })()}
               {/* Locally uploaded backgrounds */}
               {localBackgroundAssets.map((asset) => {
                 // Use base64 if available, otherwise fall back to imageUrl
@@ -2092,6 +2235,7 @@ export default function ImageGenerator() {
                       onRefChange={handleRefChange}
                       onGenerate={generateFrame}
                       onRemix={() => {}}
+                      onUseRemix={handleUseRemix}
                       onEdit={() => {}}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}

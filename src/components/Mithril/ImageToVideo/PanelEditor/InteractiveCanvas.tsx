@@ -181,6 +181,7 @@ export const InteractiveCanvas = forwardRef<
             ref={imageRef}
             src={src}
             alt="Content"
+            crossOrigin="anonymous"
             className="pointer-events-none select-none max-w-full max-h-full object-contain"
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,

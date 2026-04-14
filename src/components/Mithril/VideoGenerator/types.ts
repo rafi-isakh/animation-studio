@@ -16,7 +16,9 @@ export interface VideoClip {
   veoVideoPrompt: string; // Veo-specific prompt
   customPrompt?: string; // User-edited prompt (overrides provider-specific prompts)
   length: string; // "1초" or "2초"
-  imageBase64: string | null; // From ImageGen (Stage 6)
+  imageBase64: string | null; // From ImageGen (Stage 6) — start frame
+  imageEndBase64?: string | null; // End frame (optional override)
+  customDuration?: number | null; // User-selected duration override
   videoUrl: string | null;
   jobId: string | null;
   s3FileName: string | null; // S3 filename for permanent storage

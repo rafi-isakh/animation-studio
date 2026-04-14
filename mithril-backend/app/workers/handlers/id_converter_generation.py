@@ -119,12 +119,23 @@ async def process_glossary_analysis(
 
         # Call Gemini for glossary analysis
         logger.info(f"[ID-CONV-GLOSSARY] {job_id} - Calling Gemini API for entity extraction...")
-        entities = await _analyze_glossary_with_gemini(
+        entities, _usage = await _analyze_glossary_with_gemini(
             job.original_text or "",
             job.file_uri,
             api_key
         )
         logger.info(f"[ID-CONV-GLOSSARY] {job_id} - ✓ Extracted {len(entities)} entities")
+
+        try:
+            from app.services.credits import get_credits_service, get_text_cost
+            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
+            await get_credits_service().record_credit(
+                user_id=job.user_id, project_id=job.project_id,
+                job_id=job.id, job_type=job.type.value,
+                provider_id="gemini_text", cost_usd=_cost,
+            )
+        except Exception:
+            logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
         # Save to project's idConverter document
         logger.debug(f"[ID-CONV-GLOSSARY] {job_id} - Updating idConverter document in project")
@@ -250,7 +261,7 @@ Return a JSON object containing a list of entities.
         raise VideoJobError.provider_error("Empty response from Gemini API")
 
     result = json.loads(response_text)
-    return result.get("entities", [])
+    return result.get("entities", []), response.usage_metadata
 
 
 async def _handle_glossary_cancellation(
@@ -451,7 +462,7 @@ async def process_batch_conversion(
 
             # Convert chunk
             try:
-                translated_text = await _convert_chunk_with_gemini(
+                translated_text, _usage = await _convert_chunk_with_gemini(
                     chunk.get("originalText", ""),
                     job.glossary_result or [],
                     prev_text,
@@ -462,6 +473,17 @@ async def process_batch_conversion(
                 logger.error(f"[ID-CONV-BATCH] {job_id} - ✗ Chunk {i + 1} failed: {e}")
                 chunks_data[i]["status"] = "error"
                 raise
+
+            try:
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini_text", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
             # Update chunk data
             chunks_data[i]["translatedText"] = translated_text
@@ -570,7 +592,7 @@ PREVIOUS CONTEXT (for continuity):
         ]
     )
 
-    return response.text or ""
+    return response.text or "", response.usage_metadata
 
 
 async def _handle_batch_cancellation(

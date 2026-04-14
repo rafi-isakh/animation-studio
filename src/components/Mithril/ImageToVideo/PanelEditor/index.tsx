@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
 import { ControlBar } from './ControlBar';
@@ -9,6 +9,13 @@ import { PanelCard } from './PanelCard';
 import { usePanelEditor } from './usePanelEditor';
 import { useMithril } from '../../MithrilContext';
 import { ProcessingStatus, PanelData } from './types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcnUI/Select';
 
 // Helper to read file to base64 for saving JSON
 const fileToBase64 = (file: File): Promise<string> => {
@@ -50,21 +57,33 @@ export default function PanelEditor() {
 
   const {
     state,
-    apiKey,
-    setApiKey,
+    provider,
+    setProvider,
+    isLoadingSplitterPanels,
+    isLoadingPanels,
     addFilesToLibrary,
+    removeFileFromLibrary,
+    clearFileLibrary,
+    importFileFromLibrary,
+    importAllFromLibrary,
     addPanelsFromManifest,
     addPanels,
+    loadPanels,
     removePanel,
     updateConfig,
     processAllPanels,
     cancelProcessing,
+    cancelPanel,
     retryPanel,
     refinePanel,
+    inpaintPanel,
+    remixPanel,
+    clearPanels,
     successCount,
   } = usePanelEditor({ projectId: currentProjectId || '' });
 
   const { fileLibrary, panels, config, isProcessing } = state;
+  const workspaceRef = useRef<HTMLDivElement>(null);
 
   // Bulk Download ZIP
   const handleDownloadAll = useCallback(async () => {
@@ -76,22 +95,10 @@ export default function PanelEditor() {
     const zip = new JSZip();
     const usedNames = new Set<string>();
 
-    for (const panel of successfulPanels) {
-      // Logic to preserve original filename
-      let originalName = panel.fileName;
-      const lastDotIndex = originalName.lastIndexOf('.');
-      let baseName =
-        lastDotIndex !== -1
-          ? originalName.substring(0, lastDotIndex)
-          : originalName;
-
-      // Ensure unique filenames in zip
-      let fileName = `${baseName}-edited.png`;
-      let counter = 1;
-      while (usedNames.has(fileName)) {
-        fileName = `${baseName}-edited-${counter}.png`;
-        counter++;
-      }
+    for (let i = 0; i < successfulPanels.length; i++) {
+      const panel = successfulPanels[i];
+      const globalIndex = panels.indexOf(panel);
+      const fileName = `${String(globalIndex + 1).padStart(3, '0')}.png`;
       usedNames.add(fileName);
 
       // resultUrl can be data:image/png;base64,..., blob:, or https:// (S3)
@@ -101,7 +108,10 @@ export default function PanelEditor() {
       } else if (panel.resultUrl?.startsWith('blob:') || panel.resultUrl?.startsWith('http')) {
         // Handle blob URLs and remote URLs (S3)
         try {
-          const response = await fetch(panel.resultUrl);
+          const fetchUrl = panel.resultUrl.startsWith('http')
+            ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+            : panel.resultUrl;
+          const response = await fetch(fetchUrl);
           const blob = await response.blob();
           zip.file(fileName, blob);
         } catch (err) {
@@ -133,7 +143,15 @@ export default function PanelEditor() {
     try {
       const serializablePanels = await Promise.all(
         panels.map(async (p) => {
-          const base64Original = await fileToBase64(p.file);
+          let file = p.file;
+          if (!file && p.originalImageRef) {
+            const res = await fetch(`/api/mithril/s3/proxy?url=${encodeURIComponent(p.originalImageRef)}`);
+            if (res.ok) {
+              const blob = await res.blob();
+              file = new File([blob], p.fileName, { type: blob.type || 'image/jpeg' });
+            }
+          }
+          const base64Original = file ? await fileToBase64(file) : '';
           return {
             id: p.id,
             status: p.status,
@@ -141,7 +159,7 @@ export default function PanelEditor() {
             error: p.error,
             originalData: base64Original,
             originalName: p.fileName,
-            originalType: p.file.type,
+            originalType: file?.type ?? 'image/jpeg',
           };
         })
       );
@@ -179,29 +197,25 @@ export default function PanelEditor() {
     reader.onload = (ev) => {
       try {
         const json = JSON.parse(ev.target?.result as string);
-        if (json.config) updateConfig(json.config);
         if (json.panels && Array.isArray(json.panels)) {
           const loadedPanels: PanelData[] = json.panels.map((p: any) => {
-            const file = base64ToFile(
+            const panelFile = base64ToFile(
               p.originalData,
               p.originalName,
               p.originalType
             );
             return {
               id: p.id || uuidv4(),
-              file: file,
-              previewUrl: URL.createObjectURL(file),
+              file: panelFile,
+              previewUrl: URL.createObjectURL(panelFile),
               fileName: p.originalName,
-              status: p.status,
+              status: p.status || ProcessingStatus.Idle,
               resultUrl: p.resultUrl,
               error: p.error,
             };
           });
-          // Clear existing panels first then add loaded ones
-          // This is a simplified approach; a more robust solution would use the reducer
-          loadedPanels.forEach((panel) => {
-            addPanels([panel.file]);
-          });
+          // Clear existing panels and load with full metadata preserved
+          loadPanels(loadedPanels, json.config);
         }
       } catch (err) {
         console.error('Failed to load project', err);
@@ -222,12 +236,68 @@ export default function PanelEditor() {
         </p>
       </div>
 
+      {/* Settings: Provider */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="max-w-xs">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+            AI Provider
+          </label>
+          <Select
+            value={provider}
+            onValueChange={(v) => setProvider(v as 'gemini' | 'gemini_flash' | 'grok' | 'z_image_turbo' | 'flux2_dev')}
+            disabled={state.isProcessing}
+          >
+            <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select provider" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+              <SelectItem value="gemini" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Nano Banana Pro <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3-pro-image-preview)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Google — image editing with source image</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="gemini_flash" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Nano Banana 2 <span className="text-gray-500 dark:text-gray-400 font-normal">(gemini-3.1-flash-image-preview)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Google — fast image generation at low latency</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="grok" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Grok Aurora <span className="text-gray-500 dark:text-gray-400 font-normal">(grok-2-image-1212)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">xAI — vision analysis + image generation</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="z_image_turbo" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Z-Image Turbo <span className="text-gray-500 dark:text-gray-400 font-normal">(z-image-turbo)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — fast image-to-image transformation</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="flux2_dev" className="cursor-pointer">
+                <div className="flex flex-col">
+                  <span className="font-medium">Flux2 Dev <span className="text-gray-500 dark:text-gray-400 font-normal">(flux-2-dev)</span></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">ModelsLab — Flux2 image-to-image</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {(provider === 'grok' || provider === 'z_image_turbo' || provider === 'flux2_dev') && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+              Enter your {provider === 'grok' ? 'xAI' : 'ModelsLab'} API key in the field above
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Control Bar */}
       <ControlBar
         config={config}
         onConfigChange={updateConfig}
         onProcessAll={processAllPanels}
         onCancel={cancelProcessing}
+        onClearAll={clearPanels}
         onDownloadAll={handleDownloadAll}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
@@ -239,40 +309,68 @@ export default function PanelEditor() {
       {/* Data Storage Section */}
       <FileLibrary
         files={fileLibrary}
+        isLoading={isLoadingSplitterPanels}
         onFilesAdded={addFilesToLibrary}
+        onRemoveFile={removeFileFromLibrary}
+        onImportFile={importFileFromLibrary}
+        onClearStorage={clearFileLibrary}
+        onImportAll={importAllFromLibrary}
         onManifestLoaded={addPanelsFromManifest}
       />
 
       {/* Workspace / Processing Section */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <div ref={workspaceRef} className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Workspace</h3>
           <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
             {panels.length} items
           </span>
         </div>
 
-        {panels.length === 0 ? (
+        {isLoadingPanels ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+            <p className="text-lg animate-pulse">Restoring workspace...</p>
+          </div>
+        ) : panels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
             <p className="text-lg">
               Upload files or load via manifest to begin
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {panels.map((panel) => (
-              <PanelCard
-                key={panel.id}
-                panel={panel}
-                onRemove={removePanel}
-                onRetry={retryPanel}
-                onRefine={refinePanel}
-                targetRatio={config.targetAspectRatio}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-6">
+              {panels.map((panel, index) => (
+                <PanelCard
+                  key={panel.id}
+                  panel={panel}
+                  index={index}
+                  onRemove={removePanel}
+                  onCancel={cancelPanel}
+                  onRetry={retryPanel}
+                  onRefine={refinePanel}
+                  onInpaint={inpaintPanel}
+                  onRemix={remixPanel}
+                  targetRatio={config.targetAspectRatio}
+                />
+              ))}
+            </div>
+            <div className="sticky bottom-2 flex justify-end">
+              <button
+                onClick={() => workspaceRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                </svg>
+                Top
+              </button>
+            </div>
+          </>
         )}
       </div>
+
+
     </div>
   );
 }

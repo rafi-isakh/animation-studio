@@ -9,14 +9,13 @@ import { ToastProvider } from '@/hooks/use-toast';
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { MithrilAuthProvider } from "@/components/Mithril/auth";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import MithrilSidebar from "@/components/Mithril/MithrilSidebar";
 
 interface RootLayoutProps {
     children: ReactNode;
 }
 
 export const metadata: Metadata = {
-    title: '투니즈 Toonyz',
+    title: 'Mithril',
     description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
     manifest: '/manifest.json',
     openGraph: {
@@ -56,6 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
                 />
+                <meta name='probely-verification' content='2ce69ec2-3d2a-48ac-af88-41cee1e23f49' />
             </head>
             <body className="antialiased dark">
                 <GoogleAnalytics />
@@ -65,14 +65,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <MithrilAuthProvider>
                             <ProjectProvider>
                                 <div className="relative font-pretendard pretendard-jp pretendard-std">
-                                    {/* Sidebar - hidden on mobile */}
-                                    <div className="hidden md:block">
-                                        <MithrilSidebar />
-                                    </div>
-                                    {/* Main content with left padding for sidebar on desktop */}
-                                    <div className="md:pl-[72px]">
-                                        {children}
-                                    </div>
+                                    {children}
                                     <Analytics />
                                 </div>
                             </ProjectProvider>

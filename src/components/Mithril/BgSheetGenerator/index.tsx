@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet } from "../services/firestore";
-import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage } from "../services/s3";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles } from "../services/firestore";
+import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage, deleteBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
   Sparkles,
@@ -23,6 +23,7 @@ import {
   FileUp,
   Package,
   FileJson,
+  Shuffle,
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -30,6 +31,33 @@ import BgSheetImageEditor from "./BgSheetImageEditor";
 import { useBgOrchestrator, type AngleUpdate } from "./useBgOrchestrator";
 import { getActiveProjectBgJobs, mapBgJobToAngleUpdate } from "../services/firestore/jobQueue";
 import type { Background, BgSheetResultMetadata, ReferenceAnalysis } from "./types";
+
+// Auto pilot session persistence (localStorage)
+interface AutoPilotSession {
+  bgIds: string[];
+  currentIndex: number;
+  startedAt: number;
+}
+const autoPilotStorageKey = (projectId: string) => `mithril:autopilot:${projectId}`;
+const AUTOPILOT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 h
+function readAutoPilotSession(projectId: string): AutoPilotSession | null {
+  try {
+    const raw = localStorage.getItem(autoPilotStorageKey(projectId));
+    if (!raw) return null;
+    const s: AutoPilotSession = JSON.parse(raw);
+    if (Date.now() - s.startedAt > AUTOPILOT_MAX_AGE_MS) {
+      localStorage.removeItem(autoPilotStorageKey(projectId));
+      return null;
+    }
+    return s;
+  } catch { return null; }
+}
+function writeAutoPilotSession(projectId: string, s: AutoPilotSession) {
+  try { localStorage.setItem(autoPilotStorageKey(projectId), JSON.stringify(s)); } catch {}
+}
+function clearAutoPilotSession(projectId: string) {
+  try { localStorage.removeItem(autoPilotStorageKey(projectId)); } catch {}
+}
 
 // 9 specialized camera angles matching storyboard production workflow
 const BACKGROUND_ANGLES = [
@@ -89,14 +117,23 @@ const angleToDetailedPrompt: Record<string, string> = {
 interface LoaderProps {
   dictionary: Dictionary;
   language: Language;
+  onCancel?: () => void;
 }
 
-const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
+const Loader: React.FC<LoaderProps> = ({ dictionary, language, onCancel }) => (
   <div className="flex flex-col items-center justify-center space-y-4 py-8">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#DB2777]"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">
       {phrase(dictionary, "bgsheet_ai_analyzing", language)}
     </p>
+    {onCancel && (
+      <button
+        onClick={onCancel}
+        className="mt-2 px-4 py-1.5 text-sm rounded-lg border border-[#272727] bg-[#211F21] text-gray-400 hover:text-[#E8E8E8] hover:border-[#DB2777] transition-colors"
+      >
+        Cancel
+      </button>
+    )}
   </div>
 );
 
@@ -179,18 +216,23 @@ const downloadImage = (base64: string, filename: string): void => {
   document.body.removeChild(link);
 };
 
+const downloadImageFromUrl = async (url: string, filename: string): Promise<void> => {
+  const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
+  const { base64, contentType } = await proxyResponse.json();
+  const link = document.createElement("a");
+  link.href = `data:${contentType};base64,${base64}`;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 // === Phase 7: Import/Export Utilities ===
 
-// CSV Import data structure - one view per CSV row (storyboard style)
-interface CsvViewData {
-  angle: string;      // Background ID from CSV (e.g., "1-1", "1-3-1")
-  csvContext: string; // Storyboard context (Image Prompt from CSV)
-}
-
+// CSV Import data structure - only name and description (angles always use the 9 standard perspectives)
 interface CsvBackgroundData {
   name: string;
   description: string;
-  views: CsvViewData[]; // Array of views, one per CSV row
 }
 
 // Parse CSV content into rows, handling multi-line quoted fields
@@ -264,20 +306,19 @@ const DEFAULT_CSV_COLUMN_MAPPING: CsvColumnMapping = {
   imagePromptCol: 7,
 };
 
-// CSV Import parser - parses storyboard CSV to extract backgrounds
-// Each CSV row becomes a separate storyboard view (not fixed 9 angles)
+// CSV Import parser - parses storyboard CSV to extract background names and descriptions only.
+// Angles are always the 9 standard perspectives regardless of CSV content.
 const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping = DEFAULT_CSV_COLUMN_MAPPING): Map<string, CsvBackgroundData> => {
-  // Map: background name -> { name, description, views: CsvViewData[] }
+  // Map: background name -> { name, description }
   const result = new Map<string, CsvBackgroundData>();
-  const bgOrder: string[] = []; // Track order of backgrounds as they appear
 
   const rows = parseCsvRows(csvContent);
   if (rows.length <= 1) return result; // Only header or empty
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
-  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
-  const minCols = Math.max(backgroundIdCol, backgroundPromptCol, imagePromptCol) + 1;
+  const { backgroundIdCol, backgroundPromptCol } = columnMapping;
+  const minCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
 
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
@@ -286,22 +327,18 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
 
     const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
     const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
-    const storyboardContext = fields[imagePromptCol]?.trim() || "";
 
     let bgPrefix = "";
-    let fullId = "";
 
     // Match pattern like "1-1", "1-3", "2-5-1"
     const match = bgIdRaw.match(/^(\d+)-(.+)$/);
 
     if (match) {
       bgPrefix = match[1];
-      fullId = bgIdRaw; // Use the exact imported ID
       lastBgPrefix = bgPrefix;
-    } else if (!bgIdRaw && lastBgPrefix && (bgPrompt || storyboardContext)) {
-      // Implicit row for previous BG (row with empty ID but has data)
+    } else if (!bgIdRaw && lastBgPrefix && bgPrompt) {
+      // Implicit row for previous BG (row with empty ID but has description)
       bgPrefix = lastBgPrefix;
-      fullId = `${bgPrefix}-x`;
     } else {
       continue; // Skip rows without valid Background ID
     }
@@ -309,12 +346,7 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     const bgName = `Background ${bgPrefix}`;
 
     if (!result.has(bgName)) {
-      result.set(bgName, {
-        name: bgName,
-        description: "",
-        views: [],
-      });
-      bgOrder.push(bgName);
+      result.set(bgName, { name: bgName, description: "" });
     }
 
     const existingData = result.get(bgName)!;
@@ -322,14 +354,6 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     // Update description if we have a better one (longer)
     if (bgPrompt && bgPrompt.length > existingData.description.length) {
       existingData.description = bgPrompt;
-    }
-
-    // Add view for this CSV row (one row = one storyboard frame)
-    if (storyboardContext || bgIdRaw) {
-      existingData.views.push({
-        angle: fullId,
-        csvContext: storyboardContext,
-      });
     }
   }
 
@@ -369,7 +393,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -413,8 +437,17 @@ export default function BgSheetGenerator() {
   // Master reference generation state (per background)
   const [isGeneratingMaster, setIsGeneratingMaster] = useState<Record<string, boolean>>({});
 
+  // Master reference remix state (per background)
+  const [isRemixingMaster, setIsRemixingMaster] = useState<Record<string, boolean>>({});
+  const [remixPrompts, setRemixPrompts] = useState<Record<string, string>>({});
+
   // Batch prompt planning state (per background)
   const [isPlanningPrompts, setIsPlanningPrompts] = useState<Record<string, boolean>>({});
+
+  // Auto pilot state
+  const [isAutoPiloting, setIsAutoPiloting] = useState(false);
+  const autoPilotAbortRef = useRef(false);
+  const hasCheckedResumeRef = useRef(false);
 
   // Sequential generation stop control (per background)
   const stopGenerationRef = useRef<Record<string, boolean>>({});
@@ -428,7 +461,12 @@ export default function BgSheetGenerator() {
 
   // Track active jobs: Map<`${bgId}-${angle}`, jobId>
   const activeJobsRef = useRef<Map<string, string>>(new Map());
+  // Resolvers for awaiting job completion in the concurrency-limited loop
+  const jobCompletionResolversRef = useRef<Map<string, () => void>>(new Map());
   const isMountedRef = useRef(true);
+  // Mirror backgrounds state for use in callbacks without stale closures
+  const backgroundsRef = useRef<Background[]>([]);
+  useEffect(() => { backgroundsRef.current = backgrounds; }, [backgrounds]);
 
   // Handle angle updates from orchestrator
   const handleAngleUpdate = useCallback((update: AngleUpdate) => {
@@ -476,6 +514,22 @@ export default function BgSheetGenerator() {
 
       updatedBgs[bgIndex] = { ...bg, images: updatedImages };
 
+      // Persist to Firestore when job completes so hard refresh loads images correctly
+      if (update.status === "completed" && hasNewImageUrl && currentProjectId) {
+        const baseUrl = update.imageUrl!.split('?')[0];
+        const bgData = backgroundsRef.current.find(b => b.id === update.bgId);
+        const imgData = bgData?.images.find(i => i.angle === update.angle);
+        updateBackgroundAngleImage(
+          currentProjectId,
+          update.bgId,
+          update.angle,
+          baseUrl,
+          imgData?.prompt || "",
+          update.bgName,
+          bgData?.description,
+        ).catch(console.error);
+      }
+
       // Sync to MithrilContext when job completes successfully (so navigation preserves new image)
       if (update.status === "completed" && hasNewImageUrl) {
         const metadata: BgSheetResultMetadata = {
@@ -505,6 +559,8 @@ export default function BgSheetGenerator() {
     // Cleanup on completion/failure (no success toast to avoid noise with batch generation)
     if (update.status === "completed" && isTrackedJob) {
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     } else if (update.status === "failed" && isTrackedJob) {
       toast({
         variant: "destructive",
@@ -512,8 +568,10 @@ export default function BgSheetGenerator() {
         description: `${update.bgName} - ${update.angle}: ${update.error || "Unknown error"}`,
       });
       activeJobsRef.current.delete(angleKey);
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
-  }, [toast, setBgSheetResult, setStageResult]);
+  }, [toast, setBgSheetResult, setStageResult, currentProjectId]);
 
   // Initialize orchestrator hook
   const { submitJob: submitBgJob, submitBatch: submitBgBatch, cancelJob: cancelBgJob, pendingUpdates: bgPendingUpdates, clearPendingUpdates: clearBgPendingUpdates } = useBgOrchestrator({
@@ -545,7 +603,6 @@ export default function BgSheetGenerator() {
     const loadActiveJobs = async () => {
       try {
         const activeJobs = await getActiveProjectBgJobs(currentProjectId);
-        console.log(`[BgSheet] Found ${activeJobs.length} active bg jobs`);
 
         activeJobs.forEach(job => {
           if (job.bg_id && job.bg_angle) {
@@ -577,6 +634,14 @@ export default function BgSheetGenerator() {
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps -- We intentionally want the latest ref value at cleanup time
       abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  // Cleanup: stop auto pilot loop on unmount WITHOUT clearing the localStorage session
+  // (so it can be resumed when the component remounts)
+  useEffect(() => {
+    return () => {
+      autoPilotAbortRef.current = true;
     };
   }, []);
 
@@ -673,7 +738,7 @@ export default function BgSheetGenerator() {
                 if (firestoreBg && (firestoreBg.referenceImageRef || firestoreBg.referenceAnalysis || firestoreBg.plannedPrompts)) {
                   return {
                     ...bg,
-                    referenceImageUrl: firestoreBg.referenceImageRef || bg.referenceImageUrl,
+                    referenceImageUrl: firestoreBg.referenceImageRef ? `${firestoreBg.referenceImageRef}?t=${Date.now()}` : bg.referenceImageUrl,
                     referenceAnalysis: firestoreBg.referenceAnalysis || bg.referenceAnalysis,
                     plannedPrompts: firestoreBg.plannedPrompts || bg.plannedPrompts,
                   };
@@ -694,6 +759,39 @@ export default function BgSheetGenerator() {
 
     hydrateFromContext();
   }, [contextResult, currentProjectId]);
+
+  // Resume auto pilot if a session was in progress before navigation
+  useEffect(() => {
+    if (isLoadingData || backgrounds.length === 0 || !currentProjectId) return;
+    if (isAutoPiloting) return;
+    if (hasCheckedResumeRef.current) return;
+
+    const session = readAutoPilotSession(currentProjectId);
+    if (!session) {
+      hasCheckedResumeRef.current = true;
+      return;
+    }
+
+    if (session.currentIndex >= session.bgIds.length) {
+      clearAutoPilotSession(currentProjectId);
+      hasCheckedResumeRef.current = true;
+      return;
+    }
+
+    // Wait for backgrounds to have reference data before resuming.
+    // Don't mark as checked yet — retry when backgrounds update.
+    const eligible = backgrounds.filter(
+      bg => bg.referenceImageBase64 || bg.referenceImageUrl
+    );
+    if (eligible.length === 0) return;
+
+    hasCheckedResumeRef.current = true;
+    toast({
+      title: "Auto Pilot resuming",
+      description: `Continuing from background ${session.currentIndex + 1} of ${session.bgIds.length}…`,
+    });
+    handleAutoPilot(session);
+  }, [isLoadingData, backgrounds, currentProjectId, isAutoPiloting]);
 
   const handleReferenceImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -1425,6 +1523,73 @@ export default function BgSheetGenerator() {
     }
   };
 
+  // Remix master reference image via Gemini (image-to-image variation)
+  const handleRemixMasterRef = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+    if (!bg || isRemixingMaster[bgId]) return;
+
+    // Get reference image base64
+    let refBase64 = bg.referenceImageBase64;
+    if (!refBase64 && bg.referenceImageUrl) {
+      try {
+        const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(bg.referenceImageUrl.split("?")[0])}`;
+        const imageResponse = await fetch(proxyUrl);
+        if (imageResponse.ok) {
+          const blob = await imageResponse.blob();
+          refBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          setBackgrounds(bgs => bgs.map(b => b.id === bgId ? { ...b, referenceImageBase64: refBase64 } : b));
+        }
+      } catch (e) {
+        console.error("Failed to fetch reference image for remix:", e);
+      }
+    }
+
+    if (!refBase64) {
+      toast({ variant: "destructive", title: "No reference image to remix" });
+      return;
+    }
+
+    setIsRemixingMaster(prev => ({ ...prev, [bgId]: true }));
+
+    try {
+      const userInstruction = remixPrompts[bgId]?.trim();
+      const prompt = userInstruction
+        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`
+        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+
+      const response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referenceImageBase64: refBase64, prompt, customApiKey: customApiKey || undefined }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      await handleSetReferenceImage(bgId, data.imageBase64);
+
+      toast({
+        variant: "success",
+        title: "Reference Remixed",
+        description: bg.name,
+      });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
+      toast({
+        variant: "destructive",
+        title: phrase(dictionary, "bgsheet_toast_image_failed", language),
+        description: errorMessage,
+      });
+    } finally {
+      setIsRemixingMaster(prev => ({ ...prev, [bgId]: false }));
+    }
+  };
+
   // Remove reference image (also deletes from S3 and Firestore)
   const handleRemoveReference = async (bgId: string) => {
     const bg = backgrounds.find(b => b.id === bgId);
@@ -1627,6 +1792,38 @@ export default function BgSheetGenerator() {
     setIsSaved(false);
   };
 
+  // Clear all generated images in a single panel
+  const handleClearPanelImages = async (bgId: string) => {
+    const bg = backgrounds.find(b => b.id === bgId);
+    const imagesWithUrls = bg?.images.filter(img => img.imageUrl) ?? [];
+
+    setBackgrounds(prev => prev.map(b =>
+      b.id !== bgId ? b : {
+        ...b,
+        images: b.images.map(img => ({
+          ...img,
+          imageBase64: "",
+          imageUrl: undefined,
+          isGenerating: false,
+          isFinalized: false,
+        }))
+      }
+    ));
+    setIsSaved(false);
+
+    if (currentProjectId && imagesWithUrls.length > 0) {
+      try {
+        await Promise.all(
+          imagesWithUrls.map(img => deleteBackgroundImage(currentProjectId, bgId, img.angle))
+        );
+        await clearBackgroundAngles(currentProjectId, bgId);
+        setIsSaved(true);
+      } catch (error) {
+        console.error("Failed to delete panel images from storage:", error);
+      }
+    }
+  };
+
   // Clear planned prompts
   const handleClearPlannedPrompts = (bgId: string) => {
     setBackgrounds(bgs => bgs.map(bg =>
@@ -1676,6 +1873,100 @@ export default function BgSheetGenerator() {
       title: phrase(dictionary, "bgsheet_prompts_applied", language) || "Prompts Applied",
       description: phrase(dictionary, "bgsheet_planned_prompts_copied", language) || "Planned prompts copied to all image cards",
     });
+  };
+
+  // Auto pilot: plan prompts → apply → generate for each eligible background
+  const handleAutoPilot = async (resumeFromSession?: AutoPilotSession) => {
+    const eligibleBgs = backgrounds.filter(
+      bg => bg.referenceImageBase64 || bg.referenceImageUrl
+    );
+    if (eligibleBgs.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No reference images found",
+        description: "Add a reference image to at least one background first.",
+      });
+      return;
+    }
+
+    const startIndex = resumeFromSession?.currentIndex ?? 0;
+
+    if (currentProjectId) {
+      writeAutoPilotSession(currentProjectId, {
+        bgIds: eligibleBgs.map(bg => bg.id),
+        currentIndex: startIndex,
+        startedAt: resumeFromSession?.startedAt ?? Date.now(),
+      });
+    }
+
+    setIsAutoPiloting(true);
+    autoPilotAbortRef.current = false;
+
+    for (let i = startIndex; i < eligibleBgs.length; i++) {
+      const bg = eligibleBgs[i];
+      if (autoPilotAbortRef.current) break;
+
+      // Persist progress before any async work so navigation mid-step resumes here
+      if (currentProjectId) {
+        writeAutoPilotSession(currentProjectId, {
+          bgIds: eligibleBgs.map(b => b.id),
+          currentIndex: i,
+          startedAt: resumeFromSession?.startedAt ?? Date.now(),
+        });
+      }
+
+      // Step 1: Plan prompts (skip if already planned)
+      if (!bg.plannedPrompts || bg.plannedPrompts.length === 0) {
+        await handlePlanPrompts(bg.id);
+      }
+
+      if (autoPilotAbortRef.current) break;
+
+      // Step 2: Apply planned prompts using fresh state from ref
+      const freshBg = backgroundsRef.current.find(b => b.id === bg.id);
+      if (freshBg?.plannedPrompts && freshBg.plannedPrompts.length > 0) {
+        handleApplyPlannedPrompts(bg.id);
+      }
+
+      if (autoPilotAbortRef.current) break;
+
+      // Step 3: Generate all views
+      await handleGenerateBackgroundsSequential(bg.id);
+    }
+
+    // Only clear the session if the loop completed naturally (not aborted by unmount or cancel)
+    if (!autoPilotAbortRef.current && currentProjectId) clearAutoPilotSession(currentProjectId);
+    if (!autoPilotAbortRef.current) setIsAutoPiloting(false);
+  };
+
+  const handleCancelAutoPilot = () => {
+    autoPilotAbortRef.current = true;
+    setIsAutoPiloting(false);
+    // Also stop any in-progress sequential generation triggered by auto-pilot
+    backgrounds.forEach(bg => {
+      stopGenerationRef.current[bg.id] = true;
+    });
+    if (currentProjectId) clearAutoPilotSession(currentProjectId);
+  };
+
+  const handleCancelImageGeneration = async (bgId: string, angle: string) => {
+    const angleKey = `${bgId}-${angle}`;
+    const jobId = activeJobsRef.current.get(angleKey);
+    if (jobId) {
+      try {
+        await cancelBgJob({ jobId });
+      } catch (e) {
+        console.warn("[BgSheet] Failed to cancel job:", e);
+      }
+      activeJobsRef.current.delete(angleKey);
+    }
+    setBackgrounds(prevBgs =>
+      prevBgs.map(bg =>
+        bg.id === bgId
+          ? { ...bg, images: bg.images.map(img => img.angle === angle ? { ...img, isGenerating: false } : img) }
+          : bg
+      )
+    );
   };
 
   // Toggle prompt textbox visibility for an image card
@@ -1969,26 +2260,18 @@ export default function BgSheetGenerator() {
     try {
       let response;
 
-      if (refImage) {
-        // Use image-to-image generation with reference for consistency
-        const refPrompt = `Background consistent with the reference image style. ${prompt}`;
-        response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            referenceImageBase64: refImage,
-            prompt: refPrompt,
-            customApiKey: customApiKey || undefined
-          }),
-        });
-      } else {
-        // Use text-only generation
-        response = await fetch("/api/generate_bg_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, aspectRatio: "16:9", customApiKey: customApiKey || undefined }),
-        });
-      }
+      const refPrompt = refImage
+        ? `Background consistent with the reference image style. ${prompt}`
+        : prompt;
+      response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceImageBase64: refImage || undefined,
+          prompt: refPrompt,
+          customApiKey: customApiKey || undefined,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
@@ -2029,6 +2312,10 @@ export default function BgSheetGenerator() {
             : bg
         )
       );
+      // Resolve the sequential generation promise (direct mode doesn't use orchestrator callbacks)
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      jobCompletionResolversRef.current.get(angleKey)?.();
+      jobCompletionResolversRef.current.delete(angleKey);
     }
   };
 
@@ -2087,15 +2374,32 @@ export default function BgSheetGenerator() {
       }
     });
 
-    // Generate images one by one
+    // Generate images with max 3 concurrent in-flight jobs
+    const MAX_CONCURRENT = 3;
+    const inFlight = new Set<Promise<void>>();
+
     for (const idx of indicesToGenerate) {
-      // Check if stop was requested
-      if (stopGenerationRef.current[bgId]) {
-        break;
+      if (stopGenerationRef.current[bgId]) break;
+
+      // Wait until a slot is free
+      while (inFlight.size >= MAX_CONCURRENT) {
+        await Promise.race(inFlight);
       }
 
-      await handleGenerateSingleView(bgId, idx);
+      // Create a completion promise bridged from the Firestore callback
+      const imageInfo = backgroundsRef.current.find(b => b.id === bgId)?.images[idx];
+      if (!imageInfo) continue;
+      const angleKey = `${bgId}-${imageInfo.angle}`;
+      const p: Promise<void> = new Promise<void>((resolve) => {
+        jobCompletionResolversRef.current.set(angleKey, resolve);
+        handleGenerateSingleView(bgId, idx);
+      });
+      inFlight.add(p);
+      p.finally(() => inFlight.delete(p));
     }
+
+    // Wait for remaining in-flight jobs to complete
+    await Promise.all(inFlight);
 
     // Clear sequential generation state
     setBackgrounds(prev => prev.map(b =>
@@ -2170,47 +2474,28 @@ export default function BgSheetGenerator() {
       const existingBgNames = new Set(backgrounds.map(bg => bg.name));
       const updatedBackgrounds: Background[] = [];
 
-      // Update existing backgrounds - merge new views from CSV
+      // Update existing backgrounds - update description from CSV if better
       for (const bg of backgrounds) {
         const csvBgData = importedData.get(bg.name);
         if (csvBgData) {
-          // Find existing angles to avoid duplicates
-          const existingAngles = new Set(bg.images.map(img => img.angle));
-
-          // Add new views from CSV that don't already exist
-          const newImages = csvBgData.views
-            .filter(view => !existingAngles.has(view.angle))
-            .map(view => ({
-              angle: view.angle,
-              prompt: "",
-              imageBase64: "",
-              imageUrl: undefined,
-              isGenerating: false,
-              isActive: true,
-              isFinalized: false,
-              characterPrompt: "",
-              csvContext: view.csvContext,
-            }));
-
           updatedBackgrounds.push({
             ...bg,
             description: csvBgData.description || bg.description,
-            images: [...bg.images, ...newImages],
           });
         } else {
           updatedBackgrounds.push(bg);
         }
       }
 
-      // Create new backgrounds from CSV that don't exist yet
+      // Create new backgrounds from CSV that don't exist yet (always 9 standard angles)
       for (const [bgName, csvBgData] of importedData) {
         if (!existingBgNames.has(bgName)) {
           const newBg: Background = {
             id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             name: csvBgData.name,
             description: csvBgData.description,
-            images: csvBgData.views.map(view => ({
-              angle: view.angle,
+            images: BACKGROUND_ANGLES.map(angle => ({
+              angle,
               prompt: "",
               imageBase64: "",
               imageUrl: undefined,
@@ -2218,7 +2503,6 @@ export default function BgSheetGenerator() {
               isActive: true,
               isFinalized: false,
               characterPrompt: "",
-              csvContext: view.csvContext,
             })),
           };
           updatedBackgrounds.push(newBg);
@@ -2290,16 +2574,14 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Parse storyboard clips to extract backgrounds
-    // Map: background prefix (e.g., "1", "2") -> { name, description, views }
-    const bgMap = new Map<string, { name: string; description: string; views: { angle: string; csvContext: string }[] }>();
+    // Parse storyboard clips to extract background names and descriptions only
+    const bgMap = new Map<string, { name: string; description: string }>();
     const bgOrder: string[] = [];
 
     for (const scene of scenes) {
       for (const clip of scene.clips) {
         const bgIdRaw = clip.backgroundId?.trim() || "";
         const bgPrompt = clip.backgroundPrompt?.trim() || "";
-        const imagePrompt = clip.imagePrompt?.trim() || "";
 
         if (!bgIdRaw) continue;
 
@@ -2311,11 +2593,7 @@ export default function BgSheetGenerator() {
         const bgName = `Background ${bgPrefix}`;
 
         if (!bgMap.has(bgName)) {
-          bgMap.set(bgName, {
-            name: bgName,
-            description: "",
-            views: [],
-          });
+          bgMap.set(bgName, { name: bgName, description: "" });
           bgOrder.push(bgName);
         }
 
@@ -2324,15 +2602,6 @@ export default function BgSheetGenerator() {
         // Update description if we have a better one (longer)
         if (bgPrompt && bgPrompt.length > bgData.description.length) {
           bgData.description = bgPrompt;
-        }
-
-        // Add view for this angle only if not already present (multiple clips can share the same backgroundId)
-        const existingView = bgData.views.find(v => v.angle === bgIdRaw);
-        if (!existingView) {
-          bgData.views.push({
-            angle: bgIdRaw,
-            csvContext: imagePrompt,
-          });
         }
       }
     }
@@ -2346,15 +2615,15 @@ export default function BgSheetGenerator() {
       return;
     }
 
-    // Create backgrounds from parsed data
+    // Create backgrounds with the 9 standard perspective angles
     const newBackgrounds: Background[] = bgOrder.map(bgName => {
       const bgData = bgMap.get(bgName)!;
       return {
         id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: bgData.name,
         description: bgData.description,
-        images: bgData.views.map(view => ({
-          angle: view.angle,
+        images: BACKGROUND_ANGLES.map(angle => ({
+          angle,
           prompt: "",
           imageBase64: "",
           imageUrl: undefined,
@@ -2362,7 +2631,6 @@ export default function BgSheetGenerator() {
           isActive: true,
           isFinalized: false,
           characterPrompt: "",
-          csvContext: view.csvContext,
         })),
       };
     });
@@ -2530,28 +2798,32 @@ export default function BgSheetGenerator() {
     const zip = new JSZip();
     let imageCount = 0;
 
-    for (const bg of backgrounds) {
+    const sortedBgs = [...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+    for (const [bgIdx, bg] of sortedBgs.entries()) {
       // Create folder for each background
-      const folderName = bg.name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+      const folderName = bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase();
       const folder = zip.folder(folderName);
+      const bgNum = bgIdx + 1;
 
       for (const img of bg.images) {
         // Skip deactivated frames
         if (img.isActive === false) continue;
 
+        const angleNum = BACKGROUND_ANGLES.indexOf(img.angle) + 1;
+        const fileName = `${bgNum}-${angleNum}.jpg`;
+
         if (img.imageBase64) {
           // Add base64 image to zip
-          const fileName = `${img.angle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.jpg`;
           folder?.file(fileName, img.imageBase64, { base64: true });
           imageCount++;
         } else if (img.imageUrl) {
-          // For S3 URLs, we need to fetch the image
+          // For S3/CloudFront URLs, fetch via proxy to bypass CORS
           try {
-            const response = await fetch(img.imageUrl);
-            if (response.ok) {
-              const blob = await response.blob();
-              const fileName = `${img.angle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.jpg`;
-              folder?.file(fileName, blob);
+            const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(img.imageUrl)}`);
+            if (proxyResponse.ok) {
+              const { base64 } = await proxyResponse.json();
+              folder?.file(fileName, base64, { base64: true });
               imageCount++;
             }
           } catch (err) {
@@ -2752,7 +3024,7 @@ export default function BgSheetGenerator() {
       )}
 
       {/* Loader */}
-      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} />}
+      {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} onCancel={cancelBgSheetAnalysis} />}
 
       {/* Results */}
       {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
@@ -2795,6 +3067,24 @@ export default function BgSheetGenerator() {
                 <Sparkles className="w-4 h-4" />
                 <span>{phrase(dictionary, "bgsheet_generate_all", language)}</span>
               </button>
+              {isAutoPiloting ? (
+                <button
+                  onClick={handleCancelAutoPilot}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#211F21] border border-[#272727] text-[#E8E8E8] font-medium rounded-lg transition-colors text-sm hover:bg-[#272727]"
+                >
+                  <span className="animate-pulse text-[#DB2777]">●</span>
+                  <span>Auto Pilot</span>
+                  <span className="text-gray-500 text-xs">Cancel</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleAutoPilot()}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-colors text-sm"
+                >
+                  <span>▶</span>
+                  <span>Auto Pilot</span>
+                </button>
+              )}
               <button
                 onClick={() => exportToCSV(backgrounds)}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
@@ -2836,7 +3126,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {backgrounds.map((bg) => (
+            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"
@@ -2858,9 +3148,27 @@ export default function BgSheetGenerator() {
                 {/* Master Reference Panel */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
-                    </h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {phrase(dictionary, "bgsheet_master_reference", language) || "Master Reference"}
+                      </h4>
+                      {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
+                        <button
+                          onClick={() => {
+                            const filename = `${bg.name.replace(/[^a-z0-9-]/gi, "_").toLowerCase()}_ref.jpg`;
+                            if (bg.referenceImageBase64) {
+                              downloadImage(bg.referenceImageBase64, filename);
+                            } else if (bg.referenceImageUrl) {
+                              downloadImageFromUrl(bg.referenceImageUrl, filename);
+                            }
+                          }}
+                          className="p-0.5 text-gray-400 hover:text-[#E8E8E8] transition-colors"
+                          title="Download reference"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                     {(bg.referenceImageBase64 || bg.referenceImageUrl) && (
                       <button
                         onClick={() => handleRemoveReference(bg.id)}
@@ -2875,13 +3183,66 @@ export default function BgSheetGenerator() {
                   {(bg.referenceImageBase64 || bg.referenceImageUrl) ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Column: Image */}
-                      <div>
+                      <div className="flex flex-col gap-2">
                         <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                           <img
                             src={bg.referenceImageBase64 ? `data:image/jpeg;base64,${bg.referenceImageBase64}` : bg.referenceImageUrl}
                             alt="Master Reference"
                             className="w-full h-full object-cover"
                           />
+                        </div>
+                        {/* Remix prompt input */}
+                        <input
+                          type="text"
+                          value={remixPrompts[bg.id] || ""}
+                          onChange={(e) => setRemixPrompts(prev => ({ ...prev, [bg.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleRemixMasterRef(bg.id); }}
+                          placeholder="Remix instruction (e.g. make it night time)…"
+                          className="w-full px-2 py-1.5 text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                        {/* Replace reference buttons */}
+                        <div className="flex gap-2">
+                          <label className="flex-1 cursor-pointer">
+                            <div className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg border border-dashed border-gray-300 dark:border-gray-500 transition-colors">
+                              <Upload className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {phrase(dictionary, "bgsheet_upload_reference", language) || "Upload"}
+                              </span>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleUploadReference(bg.id, e)}
+                              className="hidden"
+                            />
+                          </label>
+                          <button
+                            onClick={() => handleRemixMasterRef(bg.id)}
+                            disabled={isRemixingMaster[bg.id] || isGeneratingMaster[bg.id]}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 rounded-lg border border-purple-500/20 transition-colors disabled:opacity-50"
+                            title="Remix reference with Gemini"
+                          >
+                            {isRemixingMaster[bg.id] ? (
+                              <div className="w-3 h-3 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                            ) : (
+                              <Shuffle className="w-3 h-3" />
+                            )}
+                            <span className="text-xs">Remix</span>
+                          </button>
+                          <button
+                            onClick={() => handleGenerateMasterRef(bg.id)}
+                            disabled={isGeneratingMaster[bg.id] || isRemixingMaster[bg.id]}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[#DB2777]/10 hover:bg-[#DB2777]/20 text-[#DB2777] rounded-lg border border-[#DB2777]/20 transition-colors disabled:opacity-50"
+                          >
+                            {isGeneratingMaster[bg.id] ? (
+                              <div className="w-3 h-3 border-2 border-[#DB2777]/30 border-t-[#DB2777] rounded-full animate-spin" />
+                            ) : (
+                              <Sparkles className="w-3 h-3" />
+                            )}
+                            <span className="text-xs">
+                              {phrase(dictionary, "bgsheet_generate_reference", language) || "Regenerate"}
+                            </span>
+                          </button>
                         </div>
                       </div>
 
@@ -3032,6 +3393,16 @@ export default function BgSheetGenerator() {
                         {phrase(dictionary, "bgsheet_plan_text", language) || "Plan Text"}
                       </button>
                     )}
+                    {/* Clear Images Button */}
+                    {bg.images.some(img => img.imageBase64 || img.imageUrl) && (
+                      <button
+                        onClick={() => handleClearPanelImages(bg.id)}
+                        className="text-xs bg-gray-500/10 text-gray-400 px-3 py-1 rounded-full border border-gray-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
+                        title="Clear all generated images in this panel"
+                      >
+                        Clear Images
+                      </button>
+                    )}
                     {/* Sequential Render / Stop Button */}
                     {bg.isSequentiallyGenerating ? (
                       <button
@@ -3079,6 +3450,10 @@ export default function BgSheetGenerator() {
                     const isActive = img.isActive !== false;
                     const isFinalized = img.isFinalized === true;
                     const globalFrameNum = frameNumbers[`${bg.id}-${idx}`];
+                    const standardAngleIndex = BACKGROUND_ANGLES.indexOf(img.angle);
+                    const slotLabel = standardAngleIndex >= 0
+                      ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
+                      : img.angle;
 
                     return (
                       <div
@@ -3099,14 +3474,16 @@ export default function BgSheetGenerator() {
                               {/* Hover overlay for edit/download/set-as-ref */}
                               {!img.isGenerating && !isFinalized && (
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                                  {img.imageBase64 && (
+                                  {(img.imageBase64 || img.imageUrl) && (
                                     <button
-                                      onClick={() =>
-                                        downloadImage(
-                                          img.imageBase64,
-                                          `${bg.name}_${img.angle}.jpg`
-                                        )
-                                      }
+                                      onClick={() => {
+                                        const filename = `${slotLabel}.jpg`;
+                                        if (img.imageBase64) {
+                                          downloadImage(img.imageBase64, filename);
+                                        } else if (img.imageUrl) {
+                                          downloadImageFromUrl(img.imageUrl, filename);
+                                        }
+                                      }}
                                       className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white"
                                       title={phrase(dictionary, "download", language)}
                                     >
@@ -3138,6 +3515,12 @@ export default function BgSheetGenerator() {
                                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm">
                                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
                                   <span className="mt-2 text-xs text-white">{phrase(dictionary, "bgsheet_generating", language)}</span>
+                                  <button
+                                    onClick={() => handleCancelImageGeneration(bg.id, img.angle)}
+                                    className="mt-2 px-3 py-1 text-xs rounded border border-white/30 text-white/70 hover:text-white hover:border-white/60 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               )}
                             </>
@@ -3145,6 +3528,12 @@ export default function BgSheetGenerator() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DB2777]"></div>
                               <span className="mt-2 text-xs text-gray-400">{phrase(dictionary, "bgsheet_generating", language)}</span>
+                              <button
+                                onClick={() => handleCancelImageGeneration(bg.id, img.angle)}
+                                className="mt-2 px-3 py-1 text-xs rounded border border-[#272727] bg-[#211F21] text-gray-400 hover:text-[#E8E8E8] hover:border-[#DB2777] transition-colors"
+                              >
+                                Cancel
+                              </button>
                             </div>
                           ) : (
                             <button
@@ -3155,12 +3544,12 @@ export default function BgSheetGenerator() {
                               <span className="group-hover:text-[#DB2777] transition-colors">
                                 {phrase(dictionary, "bgsheet_click_to_generate", language) || "Click to generate"}
                               </span>
-                              <span className="text-[10px] mt-1 opacity-60">{img.angle}</span>
+                              <span className="text-[10px] mt-1 opacity-60">{slotLabel}</span>
                             </button>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pointer-events-none">
                             <span className="text-[10px] font-medium text-white">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
                         </div>
@@ -3185,7 +3574,7 @@ export default function BgSheetGenerator() {
                             </button>
                             {/* Angle Label */}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded truncate border border-gray-200 dark:border-gray-600">
-                              {img.angle}
+                              {slotLabel}
                             </span>
                           </div>
 

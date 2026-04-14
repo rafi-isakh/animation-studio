@@ -20,12 +20,17 @@ interface StoryboardSubmitRequest {
   videoGuide?: string;
   // New configuration
   targetTime?: string;
+  clipCount?: number;
   customInstruction?: string;
   backgroundInstruction?: string;
   negativeInstruction?: string;
   videoInstruction?: string;
+  imageInstruction?: string;
   // API key
   apiKey?: string;
+  // Trailer-specific params
+  imagePromptQA?: string;
+  selectedTrailerScript?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -63,17 +68,19 @@ export async function POST(request: NextRequest) {
       video_guide: body.videoGuide || "",
       // New configuration
       target_time: body.targetTime || "03:00",
+      clip_count: body.clipCount ?? null,
       custom_instruction: body.customInstruction || "",
       background_instruction: body.backgroundInstruction || "",
       negative_instruction: body.negativeInstruction || "",
       video_instruction: body.videoInstruction || "",
+      image_instruction: body.imageInstruction || "",
       // API key
       api_key: body.apiKey,
+      // Trailer-specific params
+      image_prompt_qa: body.imagePromptQA || "",
+      selected_trailer_script: body.selectedTrailerScript || "",
     };
 
-    console.log("[StoryboardOrchestrator] Submitting job to:", endpoint);
-    console.log("[StoryboardOrchestrator] Text length:", body.sourceText.length);
-    console.log("[StoryboardOrchestrator] Target time:", body.targetTime || "03:00");
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -87,7 +94,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[StoryboardOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

@@ -2,6 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import JSZip from 'jszip';
+import * as XLSX from 'xlsx';
 import { useMithril } from '../../MithrilContext';
 import { scriptWriterReducer, initialState } from './reducer';
 import { blobToBase64, compressBase64Image, isUrl } from './utils/imageCompression';
@@ -13,6 +14,7 @@ import type {
   VoicePrompt,
   PanelData,
   GenerationConditions,
+  GenerationInstructions,
   StyleGuides,
   Continuity,
 } from './types';
@@ -32,6 +34,11 @@ import {
   getMangaPages,
   getMangaPanels,
 } from '../../services/firestore';
+import { uploadI2VPanelImage, uploadI2VStoryboardReferenceImage } from '../../services/s3/images';
+
+function getPanelSplitterStyleFileName(index: number): string {
+  return `${String(index + 1).padStart(3, '0')}.png`;
+}
 
 export function useScriptWriter() {
   const { getStageResult, setStageResult, currentProjectId, customApiKey } = useMithril();
@@ -52,12 +59,10 @@ export function useScriptWriter() {
 
   // Handle real-time job updates from Firestore subscription
   const handleJobUpdate = useCallback((update: StoryboardJobUpdate) => {
-    console.log('[ScriptWriter] handleJobUpdate called:', { status: update.status, jobId: update.jobId, hasScenes: !!update.scenes });
 
     // For in-progress statuses, ensure the UI shows generating state
     const inProgressStatuses = ['pending', 'submitted', 'polling', 'preparing', 'generating', 'uploading'];
     if (inProgressStatuses.includes(update.status)) {
-      console.log('[ScriptWriter] In-progress status detected, dispatching START_GENERATING');
       dispatch({ type: 'START_GENERATING' });
       return;
     }
@@ -65,7 +70,6 @@ export function useScriptWriter() {
     if (update.status === 'completed' && update.scenes) {
       // Map referenceImageIndex to actual panel images
       const currentPanels = allPanelsRef.current;
-      console.log('[ScriptWriter] Job completed, mapping scenes with', currentPanels.length, 'panels available');
       const updatedScenes: Scene[] = update.scenes.map((scene) => ({
         ...scene,
         clips: scene.clips.map((clip) => {
@@ -77,7 +81,7 @@ export function useScriptWriter() {
           ) {
             refImage = currentPanels[clip.referenceImageIndex].imageBase64;
           }
-          return { ...clip, referenceImage: refImage };
+          return { ...clip, referenceImage: refImage, videoApi: clip.videoApi || 'Grok' };
         }),
       }));
 
@@ -90,10 +94,8 @@ export function useScriptWriter() {
       setStageResult(2, { scenes: updatedScenes, voicePrompts });
       // No need to save to Firestore - backend already saved to i2vScript subcollection
     } else if (update.status === 'failed') {
-      console.log('[ScriptWriter] Job failed');
       dispatch({ type: 'GENERATION_ERROR' });
     } else if (update.status === 'cancelled') {
-      console.log('[ScriptWriter] Job cancelled');
       dispatch({ type: 'GENERATION_ERROR' });
     }
   }, [setStageResult]);
@@ -116,11 +118,9 @@ export function useScriptWriter() {
   useEffect(() => {
     if (!orchestrator.pendingUpdate) return;
     if (allPanelsRef.current.length === 0) {
-      console.log('[ScriptWriter] pendingUpdate exists but panels not loaded yet, waiting...', { status: orchestrator.pendingUpdate.status });
       return;
     }
 
-    console.log('[ScriptWriter] Applying pendingUpdate now, panels available:', allPanelsRef.current.length);
     handleJobUpdate(orchestrator.pendingUpdate);
     orchestrator.clearPendingUpdate();
   }, [orchestrator.pendingUpdate, handleJobUpdate, orchestrator.clearPendingUpdate]);
@@ -139,10 +139,6 @@ export function useScriptWriter() {
         }
 
         // Load config from meta
-        dispatch({
-          type: 'SET_TARGET_DURATION',
-          duration: meta.targetDuration || '03:00',
-        });
         if (meta.sourceText) {
           dispatch({ type: 'SET_SOURCE_TEXT', text: meta.sourceText });
         }
@@ -155,6 +151,15 @@ export function useScriptWriter() {
             sound: meta.soundCondition || '',
           },
         });
+        dispatch({
+          type: 'SET_INSTRUCTIONS',
+          instructions: {
+            custom: meta.customInstruction || '',
+            background: meta.backgroundInstruction || '',
+            negative: meta.negativeInstruction || '',
+            video: meta.videoInstruction || '',
+          },
+        });
 
         // Load scenes
         const firestoreScenes = await getI2VScenes(currentProjectId);
@@ -164,9 +169,14 @@ export function useScriptWriter() {
           const firestoreClips = await getI2VClips(currentProjectId, scene.sceneIndex);
           const clips: Continuity[] = firestoreClips.map((c) => ({
             story: c.story || '',
+            storyDetailKo: c.storyDetailKo || '',
+            storyGroupLabel: c.storyGroupLabel || '',
+            storyGroupSize: c.storyGroupSize,
             imagePrompt: c.imagePrompt || '',
             imagePromptEnd: c.imagePromptEnd,
             videoPrompt: c.videoPrompt || '',
+            videoApi: c.videoApi || 'Grok',
+            pixAiPrompt: c.pixAiPrompt || '',
             soraVideoPrompt: c.soraVideoPrompt || '',
             dialogue: c.dialogue || '',
             dialogueEn: c.dialogueEn || '',
@@ -179,6 +189,11 @@ export function useScriptWriter() {
             backgroundPrompt: c.backgroundPrompt || '',
             backgroundId: c.backgroundId || '',
             referenceImageIndex: c.referenceImageIndex,
+            referenceImageUrl: c.referenceImageUrl,
+            refFileName: c.refFileName || '',
+            facePresent: c.facePresent,
+            // If a custom reference image URL was saved, use it directly (skip panel index lookup)
+            referenceImage: c.referenceImageUrl || undefined,
           }));
 
           loadedScenes.push({
@@ -207,14 +222,12 @@ export function useScriptWriter() {
 
         // Check for any active I2V storyboard jobs (restore generating state)
         const activeJobs = await getActiveProjectI2VStoryboardJobs(currentProjectId);
-        console.log('[ScriptWriter] loadFromFirestore: active jobs query returned', activeJobs.length, 'jobs:', activeJobs.map(j => ({ id: j.id, status: j.status })));
         if (activeJobs.length > 0) {
           // Sort by created_at descending and take the most recent
           const sortedJobs = activeJobs.sort((a, b) =>
             (b.created_at || '').localeCompare(a.created_at || '')
           );
           const latestJob = sortedJobs[0];
-          console.log('[ScriptWriter] loadFromFirestore: restoring active job', latestJob.id, 'status:', latestJob.status);
           orchestratorRef.current.setActiveJobId(latestJob.id);
           dispatch({ type: 'START_GENERATING' });
         }
@@ -479,10 +492,6 @@ export function useScriptWriter() {
     dispatch({ type: 'SET_GENRE', genre });
   }, []);
 
-  const setTargetDuration = useCallback((duration: string) => {
-    dispatch({ type: 'SET_TARGET_DURATION', duration });
-  }, []);
-
   const setSourceText = useCallback((text: string) => {
     dispatch({ type: 'SET_SOURCE_TEXT', text });
   }, []);
@@ -493,6 +502,10 @@ export function useScriptWriter() {
 
   const setGuides = useCallback((guides: Partial<StyleGuides>) => {
     dispatch({ type: 'SET_GUIDES', guides });
+  }, []);
+
+  const setInstructions = useCallback((instructions: Partial<GenerationInstructions>) => {
+    dispatch({ type: 'SET_INSTRUCTIONS', instructions });
   }, []);
 
   // UI toggles
@@ -513,12 +526,16 @@ export function useScriptWriter() {
   ) => {
     // Save metadata (Firestore doesn't accept undefined, use empty string or omit)
     await saveI2VScriptMeta(projectId, {
-      targetDuration: config.targetDuration,
+      targetDuration: '',
       sourceText: config.sourceText || '',
       storyCondition: config.conditions.story || '',
       imageCondition: config.conditions.image || '',
       videoCondition: config.conditions.video || '',
       soundCondition: config.conditions.sound || '',
+      customInstruction: config.instructions.custom || '',
+      backgroundInstruction: config.instructions.background || '',
+      negativeInstruction: config.instructions.negative || '',
+      videoInstruction: config.instructions.video || '',
     });
 
     // Save voice prompts
@@ -536,10 +553,18 @@ export function useScriptWriter() {
         const clip = scene.clips[clipIndex];
         await saveI2VClip(projectId, sceneIndex, clipIndex, {
           referenceImageIndex: clip.referenceImageIndex ?? 0,
+          referenceImageUrl: clip.referenceImageUrl,
+          refFileName: clip.refFileName,
+          pixAiPrompt: clip.pixAiPrompt,
+          facePresent: clip.facePresent,
           story: clip.story || '',
+          storyDetailKo: clip.storyDetailKo,
+          storyGroupLabel: clip.storyGroupLabel,
+          storyGroupSize: clip.storyGroupSize,
           imagePrompt: clip.imagePrompt || '',
           imagePromptEnd: clip.imagePromptEnd || '',
           videoPrompt: clip.videoPrompt || '',
+          videoApi: clip.videoApi || 'Grok',
           soraVideoPrompt: clip.soraVideoPrompt || '',
           dialogue: clip.dialogue || '',
           dialogueEn: clip.dialogueEn || '',
@@ -560,8 +585,12 @@ export function useScriptWriter() {
   const generate = useCallback(async () => {
     const currentState = stateRef.current;
 
-    if (allPanels.length === 0) {
-      throw new Error('No panel images available. Please upload panels or complete Stage 1.');
+    if (allPanels.length === 0 && !currentState.config.sourceText) {
+      throw new Error('No panel images available. Please upload panels or source file (.txt).');
+    }
+
+    if (!currentProjectId) {
+      throw new Error('No project selected.');
     }
 
     dispatch({ type: 'START_GENERATING' });
@@ -574,9 +603,10 @@ export function useScriptWriter() {
       const panelLabels: string[] = [];
 
       for (const panel of allPanels) {
+        let panelUrl = '';
         if (isUrl(panel.imageBase64)) {
           // S3 URL - use directly
-          panelUrls.push(panel.imageBase64);
+          panelUrl = panel.imageBase64;
         } else {
           // Base64 panel (imported) - upload to S3 first
           let imageData = panel.imageBase64;
@@ -584,24 +614,18 @@ export function useScriptWriter() {
             imageData = await compressBase64Image(imageData, 800, 0.7);
           }
 
-          const uploadResponse = await fetch('/api/mithril/s3/image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              projectId: currentProjectId,
-              imageBase64: imageData,
-              folder: 'i2v/imported-panels',
-            }),
-          });
-
-          if (!uploadResponse.ok) {
-            throw new Error(`Failed to upload panel ${panel.id} to S3`);
-          }
-
-          const uploadData = await uploadResponse.json();
-          panelUrls.push(uploadData.url);
+          const idx = allPanels.indexOf(panel);
+          panelUrl = await uploadI2VPanelImage(
+            currentProjectId,
+            0, // pageIndex — imported panels don't have pages
+            idx,
+            imageData,
+          );
         }
-        panelLabels.push(panel.label);
+
+        panelUrls.push(panelUrl);
+        const idx = allPanels.indexOf(panel);
+        panelLabels.push(getPanelSplitterStyleFileName(idx));
       }
 
       // Submit job to orchestrator
@@ -609,13 +633,16 @@ export function useScriptWriter() {
         panelUrls,
         panelLabels,
         sourceText: currentState.config.sourceText || undefined,
-        targetDuration: currentState.config.targetDuration,
         storyCondition: currentState.config.conditions.story,
         imageCondition: currentState.config.conditions.image,
         videoCondition: currentState.config.conditions.video,
         soundCondition: currentState.config.conditions.sound,
         imageGuide: currentState.config.guides.image || undefined,
         videoGuide: currentState.config.guides.video || undefined,
+        customInstruction: currentState.config.instructions.custom || undefined,
+        backgroundInstruction: currentState.config.instructions.background || undefined,
+        negativeInstruction: currentState.config.instructions.negative || undefined,
+        videoInstruction: currentState.config.instructions.video || undefined,
       });
 
       if (!result.success) {
@@ -641,20 +668,50 @@ export function useScriptWriter() {
     dispatch({ type: 'START_SPLITTING' });
 
     try {
+      // Strip heavy fields (referenceImage, etc.) to avoid exceeding body size limit
+      const lightScenes = currentState.result.scenes.map((scene) => ({
+        sceneTitle: scene.sceneTitle,
+        clips: scene.clips.map((clip) => ({
+          story: clip.story,
+          imagePrompt: clip.imagePrompt,
+        })),
+      }));
+
       const response = await fetch('/api/manga/split-start-end', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenes: currentState.result.scenes }),
+        body: JSON.stringify({ scenes: lightScenes, apiKey: customApiKey }),
         signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to split frames');
+        let errorMessage = `Failed to split frames (${response.status})`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      const updatedScenes: Scene[] = data.scenes || [];
+      const returnedScenes = data.scenes || [];
+
+      // Apply split results back to the full scenes (preserving all original fields)
+      const updatedScenes: Scene[] = currentState.result.scenes.map((scene, sIdx) => ({
+        ...scene,
+        clips: scene.clips.map((clip, cIdx) => {
+          const returned = returnedScenes[sIdx]?.clips?.[cIdx];
+          if (!returned) return clip;
+          return {
+            ...clip,
+            imagePrompt: returned.imagePrompt ?? clip.imagePrompt,
+            imagePromptEnd: returned.imagePromptEnd,
+          };
+        }),
+      }));
 
       dispatch({ type: 'FINISH_SPLITTING', scenes: updatedScenes });
       setStageResult(2, { scenes: updatedScenes, voicePrompts: currentState.result.voicePrompts });
@@ -695,6 +752,64 @@ export function useScriptWriter() {
       }
     }
   }, [currentProjectId]);
+
+  // Upload a new reference image to S3 and persist the URL
+  const replaceReferenceImage = useCallback(
+    async (sceneIndex: number, clipIndex: number, base64: string) => {
+      if (!currentProjectId) return;
+
+      const url = await uploadI2VStoryboardReferenceImage(currentProjectId, sceneIndex, clipIndex, base64);
+
+      const currentState = stateRef.current;
+      if (!currentState.result) return;
+
+      const updatedScenes = currentState.result.scenes.map((scene, sIdx) => {
+        if (sIdx !== sceneIndex) return scene;
+        return {
+          ...scene,
+          clips: scene.clips.map((clip, cIdx) => {
+            if (cIdx !== clipIndex) return clip;
+            return { ...clip, referenceImage: url, referenceImageUrl: url };
+          }),
+        };
+      });
+
+      dispatch({ type: 'UPDATE_SCENES', scenes: updatedScenes });
+      setStageResult(2, { scenes: updatedScenes, voicePrompts: currentState.result.voicePrompts });
+
+      // Persist the URL to Firestore immediately
+      const clip = updatedScenes[sceneIndex]?.clips[clipIndex];
+      if (clip) {
+        await saveI2VClip(currentProjectId, sceneIndex, clipIndex, {
+          referenceImageIndex: clip.referenceImageIndex ?? 0,
+          referenceImageUrl: url,
+          refFileName: clip.refFileName,
+          pixAiPrompt: clip.pixAiPrompt,
+          facePresent: clip.facePresent,
+          story: clip.story || '',
+          storyDetailKo: clip.storyDetailKo,
+          storyGroupLabel: clip.storyGroupLabel,
+          storyGroupSize: clip.storyGroupSize,
+          imagePrompt: clip.imagePrompt || '',
+          imagePromptEnd: clip.imagePromptEnd || '',
+          videoPrompt: clip.videoPrompt || '',
+          videoApi: clip.videoApi || 'Grok',
+          soraVideoPrompt: clip.soraVideoPrompt || '',
+          dialogue: clip.dialogue || '',
+          dialogueEn: clip.dialogueEn || '',
+          sfx: clip.sfx || '',
+          sfxEn: clip.sfxEn || '',
+          bgm: clip.bgm || '',
+          bgmEn: clip.bgmEn || '',
+          length: clip.length || '',
+          accumulatedTime: clip.accumulatedTime || '',
+          backgroundPrompt: clip.backgroundPrompt || '',
+          backgroundId: clip.backgroundId || '',
+        });
+      }
+    },
+    [currentProjectId, setStageResult]
+  );
 
   // Update a clip
   const updateClip = useCallback(
@@ -760,11 +875,12 @@ export function useScriptWriter() {
         'Accumulated Time',
         'Background ID',
         'Background Prompt',
-        ...(textOnly ? [] : ['Reference Image']),
         'Story',
         'Image Prompt (Start)',
         ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
         'Video Prompt',
+        'Pix AI',
+        'Video API',
         'Sora Video Prompt',
         'Dialogue (Ko)',
         'Dialogue (En)',
@@ -772,31 +888,30 @@ export function useScriptWriter() {
         'SFX (En)',
         'BGM (Ko)',
         'BGM (En)',
+        ...(textOnly ? [] : ['Reference Image', 'Reference Image Source']),
       ];
 
+      let globalClipCounter = 1;
       const rows = scenes.flatMap((scene, sIdx) =>
-        scene.clips.map((clip, cIdx) => {
+        scene.clips.map((clip) => {
           const row = [
             escapeCSV(`Scene ${sIdx + 1}: ${scene.sceneTitle}`),
-            escapeCSV(`${sIdx + 1}-${cIdx + 1}`),
+            escapeCSV(String(globalClipCounter++).padStart(3, '0')),
             escapeCSV(clip.length),
             escapeCSV(clip.accumulatedTime),
             escapeCSV(clip.backgroundId),
             escapeCSV(clip.backgroundPrompt),
+            escapeCSV(clip.story),
+            escapeCSV(clip.imagePrompt),
           ];
-
-          if (!textOnly) {
-            const ref = clip.referenceImage || '';
-            row.push(escapeCSV(ref.startsWith('blob:') ? '[Image Blob]' : ref));
-          }
-
-          row.push(escapeCSV(clip.story), escapeCSV(clip.imagePrompt));
 
           if (hasEndPrompts) row.push(escapeCSV(clip.imagePromptEnd || ''));
 
           row.push(
             escapeCSV(clip.videoPrompt),
-            escapeCSV(clip.soraVideoPrompt),
+            escapeCSV(clip.pixAiPrompt || ''),
+            escapeCSV(clip.videoApi || 'Grok'),
+            escapeCSV(clip.soraVideoPrompt || ''),
             escapeCSV(clip.dialogue),
             escapeCSV(clip.dialogueEn),
             escapeCSV(clip.sfx),
@@ -804,6 +919,18 @@ export function useScriptWriter() {
             escapeCSV(clip.bgm),
             escapeCSV(clip.bgmEn)
           );
+
+          if (!textOnly) {
+            row.push(
+              escapeCSV(
+                clip.referenceImageIndex !== undefined
+                  ? getPanelSplitterStyleFileName(clip.referenceImageIndex)
+                  : ''
+              ),
+              escapeCSV(clip.referenceImageUrl || clip.referenceImage || '')
+            );
+          }
+
           return row.join(',');
         })
       );
@@ -820,6 +947,91 @@ export function useScriptWriter() {
     []
   );
 
+  // Export XLSX
+  const exportXLSX = useCallback(
+    (textOnly: boolean = false) => {
+      const currentState = stateRef.current;
+      if (!currentState.result?.scenes.length) return;
+
+      const { scenes } = currentState.result;
+      const hasEndPrompts = scenes.some((scene) =>
+        scene.clips.some((clip) => !!clip.imagePromptEnd)
+      );
+
+      const headers = [
+        'Scene',
+        'Clip',
+        'Length',
+        'Accumulated Time',
+        'Background ID',
+        'Background Prompt',
+        'Story',
+        'Image Prompt (Start)',
+        ...(hasEndPrompts ? ['Image Prompt (End)'] : []),
+        'Video Prompt',
+        'Pix AI',
+        'Video API',
+        'Sora Video Prompt',
+        'Dialogue (Ko)',
+        'Dialogue (En)',
+        'SFX (Ko)',
+        'SFX (En)',
+        'BGM (Ko)',
+        'BGM (En)',
+        ...(textOnly ? [] : ['Reference Image', 'Reference Image Source']),
+      ];
+
+      let globalClipCounter = 1;
+      const rows = scenes.flatMap((scene, sIdx) =>
+        scene.clips.map((clip) => {
+          const row: (string | number)[] = [
+            `Scene ${sIdx + 1}: ${scene.sceneTitle}`,
+            String(globalClipCounter++).padStart(3, '0'),
+            clip.length ?? '',
+            clip.accumulatedTime ?? '',
+            clip.backgroundId ?? '',
+            clip.backgroundPrompt ?? '',
+            clip.story ?? '',
+            clip.imagePrompt ?? '',
+          ];
+
+          if (hasEndPrompts) row.push(clip.imagePromptEnd || '');
+
+          row.push(
+            clip.videoPrompt ?? '',
+            clip.pixAiPrompt || '',
+            clip.videoApi || 'Grok',
+            clip.soraVideoPrompt || '',
+            clip.dialogue ?? '',
+            clip.dialogueEn ?? '',
+            clip.sfx ?? '',
+            clip.sfxEn ?? '',
+            clip.bgm ?? '',
+            clip.bgmEn ?? ''
+          );
+
+          if (!textOnly) {
+            row.push(
+              clip.referenceImageIndex !== undefined
+                ? getPanelSplitterStyleFileName(clip.referenceImageIndex)
+                : '',
+              clip.referenceImageUrl || clip.referenceImage || ''
+            );
+          }
+
+          return row;
+        })
+      );
+
+      const wsData = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Storyboard');
+      XLSX.writeFile(wb, textOnly ? 'storyboard_text_only.xlsx' : 'storyboard_full.xlsx');
+    },
+    []
+  );
+
   // Derived state
   const hasEndPrompts = useMemo(() => {
     return (
@@ -830,6 +1042,52 @@ export function useScriptWriter() {
   }, [state.result]);
 
   const hasResults = !!state.result?.scenes.length;
+
+  const exportJSON = useCallback(() => {
+    const currentState = stateRef.current;
+    if (!currentState.result?.scenes.length) return;
+
+    const payload = {
+      scenes: currentState.result.scenes,
+      voicePrompts: currentState.result.voicePrompts,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'storyboard.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const importJSON = useCallback(async (file: File) => {
+    const raw = await file.text();
+    const parsed = JSON.parse(raw);
+
+    const scenes: Scene[] = Array.isArray(parsed?.scenes)
+      ? parsed.scenes.map((scene: Scene) => ({
+          sceneTitle: scene.sceneTitle || 'Scene',
+          clips: Array.isArray(scene.clips)
+            ? scene.clips.map((clip: Continuity) => ({
+                ...clip,
+                videoApi: clip.videoApi || 'Grok',
+              }))
+            : [],
+        }))
+      : [];
+
+    const voicePrompts: VoicePrompt[] = Array.isArray(parsed?.voicePrompts)
+      ? parsed.voicePrompts
+      : [];
+
+    dispatch({ type: 'FINISH_GENERATING', result: { scenes, voicePrompts } });
+    setStageResult(2, { scenes, voicePrompts });
+
+    if (currentProjectId) {
+      await saveToFirestore(currentProjectId, stateRef.current.config, scenes, voicePrompts);
+    }
+  }, [currentProjectId, setStageResult]);
 
   return {
     // State
@@ -847,10 +1105,10 @@ export function useScriptWriter() {
 
     // Actions - Config
     setGenre,
-    setTargetDuration,
     setSourceText,
     setConditions,
     setGuides,
+    setInstructions,
 
     // Actions - UI
     toggleConditions,
@@ -864,8 +1122,12 @@ export function useScriptWriter() {
     generate,
     splitStartEnd,
     updateClip,
+    replaceReferenceImage,
     cancel,
     clear,
     exportCSV,
+    exportXLSX,
+    exportJSON,
+    importJSON,
   };
 }

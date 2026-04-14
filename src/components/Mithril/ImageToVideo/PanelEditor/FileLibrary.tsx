@@ -1,17 +1,27 @@
 "use client";
 
 import React, { useState } from 'react';
-import { UploadIcon, DocumentTextIcon } from './Icons';
+import { UploadIcon, DocumentTextIcon, PlayIcon } from './Icons';
 
 interface FileLibraryProps {
   files: Record<string, File>;
+  isLoading?: boolean;
   onFilesAdded: (files: File[]) => void;
+  onRemoveFile: (fileName: string) => void;
+  onImportFile: (fileName: string) => void;
+  onClearStorage: () => void;
+  onImportAll: () => void;
   onManifestLoaded: (filesToProcess: File[]) => void;
 }
 
 export const FileLibrary: React.FC<FileLibraryProps> = ({
   files,
+  isLoading = false,
   onFilesAdded,
+  onRemoveFile,
+  onImportFile,
+  onClearStorage,
+  onImportAll,
   onManifestLoaded,
 }) => {
   const [isDraggingImages, setIsDraggingImages] = useState(false);
@@ -131,20 +141,49 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
         <div className="p-4 border-b border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 flex justify-between items-center">
           <h2 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
             Data Storage{' '}
-            <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
-              {fileList.length} files
-            </span>
+            {isLoading ? (
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Loading panels...
+              </span>
+            ) : (
+              <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">
+                {fileList.length} files
+              </span>
+            )}
           </h2>
-          <label className="cursor-pointer text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white px-3 py-1.5 rounded-lg transition-colors">
-            + Add Images
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageInputChange}
-            />
-          </label>
+          <div className="flex gap-2">
+            {fileList.length > 0 && (
+              <button
+                onClick={onClearStorage}
+                className="text-xs bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-300 px-3 py-1.5 rounded-lg transition-colors border border-red-300/60 dark:border-red-700/60"
+              >
+                Clear Storage
+              </button>
+            )}
+            {fileList.length > 0 && (
+              <button
+                onClick={onImportAll}
+                className="text-xs bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-[#DB2777] px-3 py-1.5 rounded-lg transition-colors border border-[#DB2777]/30 flex items-center gap-1.5"
+              >
+                <PlayIcon className="w-3 h-3" />
+                Push All to Workspace
+              </button>
+            )}
+            <label className="cursor-pointer text-xs bg-[#DB2777] hover:bg-[#BE185D] text-white px-3 py-1.5 rounded-lg transition-colors">
+              + Add Images
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageInputChange}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0 relative">
@@ -162,10 +201,10 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
             >
               <UploadIcon />
               <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
-                Drag & Drop panel images here
+                {isLoading ? 'Loading panels from Image Splitter...' : 'Drag & Drop panel images here'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500">
-                They will be stored here until you upload a manifest.
+                {isLoading ? 'This may take a moment.' : 'Panels from Image Splitter are loaded automatically.'}
               </p>
             </div>
           ) : (
@@ -176,12 +215,32 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
                     key={`${filename}-${idx}`}
                     className="px-3 py-2 bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded flex items-center justify-between group transition-colors"
                   >
-                    <span className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate select-all">
+                    <span className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate select-all flex-1 min-w-0 mr-2">
                       {filename}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                      {(files[filename].size / 1024).toFixed(0)}KB
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-gray-500 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                        {(files[filename].size / 1024).toFixed(0)}KB
+                      </span>
+                      <button
+                        onClick={() => onImportFile(filename)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#DB2777] dark:hover:text-[#DB2777] transition-all p-0.5 rounded"
+                        title="Push to workspace"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => onRemoveFile(filename)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all p-0.5 rounded"
+                        title="Remove from library"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -251,8 +310,8 @@ export const FileLibrary: React.FC<FileLibraryProps> = ({
 
         <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-300 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-500">
           <p>1. Upload images to Data Storage.</p>
-          <p>2. Upload text file with filenames (one per line).</p>
-          <p>3. App will auto-queue matching files.</p>
+          <p>2. &quot;Push All&quot; OR upload .txt manifest.</p>
+          <p>3. Files appear in Workspace for conversion.</p>
         </div>
       </div>
     </div>

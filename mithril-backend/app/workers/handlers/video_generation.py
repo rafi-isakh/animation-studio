@@ -157,6 +157,14 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
         if not settings.gemini_api_key:
             raise VideoJobError.invalid_request("No Gemini API key configured")
         return settings.gemini_api_key
+    elif job.provider_id == "grok_i2v":
+        if not settings.xai_video_api_key:
+            raise VideoJobError.invalid_request("No xAI video API key configured")
+        return settings.xai_video_api_key
+    elif job.provider_id in ("wan_i2v", "wan22_i2v", "grok_imagine_i2v"):
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured")
+        return settings.modelslab_api_key
     else:
         raise VideoJobError.invalid_request(f"Unknown provider: {job.provider_id}")
 
@@ -176,6 +184,7 @@ async def _stage_submit(
     request = VideoSubmitRequest(
         prompt=job.prompt,
         image_url=job.image_url,
+        image_end_url=job.image_end_url,
         duration=job.duration,
         aspect_ratio=job.aspect_ratio,
     )
@@ -190,6 +199,18 @@ async def _stage_submit(
         result = await provider.submit_job(request, api_key)
     except Exception as e:
         raise classify_exception(e)
+
+    # Track credit usage
+    try:
+        from app.services.credits import get_credits_service, get_video_cost
+        _cost = get_video_cost(job.provider_id, job.duration)
+        await get_credits_service().record_credit(
+            user_id=job.user_id, project_id=job.project_id,
+            job_id=job.id, job_type=job.type.value,
+            provider_id=job.provider_id, cost_usd=_cost,
+        )
+    except Exception:
+        logger.warning(f"Failed to record credit for job {job.id}", exc_info=True)
 
     # Update state
     state_machine.transition_to(JobStatus.SUBMITTED)

@@ -93,36 +93,20 @@ STRICT NEGATIVE CONSTRAINTS (YOU MUST NOT DO THESE):
     return prompt
 
 
-async def generate_panel_image(
+async def _generate_panel_image_gemini(
     image_base64: str,
     mime_type: str,
     prompt: str,
     aspect_ratio: str,
     api_key: str,
 ) -> bytes:
-    """
-    Generate panel image using Gemini API.
-
-    Args:
-        image_base64: Base64 encoded source image
-        mime_type: MIME type of source image
-        prompt: Generation prompt
-        aspect_ratio: Target aspect ratio
-        api_key: Gemini API key
-
-    Returns:
-        Generated image as bytes
-    """
+    """Generate panel image using Gemini API."""
     from google import genai
     from google.genai import types
 
-    # Initialize client
     client = genai.Client(api_key=api_key)
+    model = "gemini-3-pro-image-preview"
 
-    # Model for image generation
-    model = "gemini-2.0-flash-exp-image-generation"
-
-    # Build content with image and prompt
     contents = [
         types.Part.from_bytes(
             data=base64.b64decode(image_base64),
@@ -131,21 +115,17 @@ async def generate_panel_image(
         types.Part.from_text(text=prompt),
     ]
 
-    # Generate config
     generate_config = types.GenerateContentConfig(
         response_modalities=["IMAGE", "TEXT"],
-        # Note: aspect_ratio may need to be handled differently based on API version
     )
 
-    # Call Gemini API
     response = await client.aio.models.generate_content(
         model=model,
         contents=contents,
         config=generate_config,
     )
 
-    # Extract image from response
-    if response.candidates and response.candidates[0].content.parts:
+    if response.candidates and response.candidates[0].content and response.candidates[0].content.parts:
         for part in response.candidates[0].content.parts:
             if part.inline_data and part.inline_data.data:
                 return part.inline_data.data
@@ -153,10 +133,167 @@ async def generate_panel_image(
     raise VideoJobError.provider_error("No image data found in Gemini response")
 
 
+async def _generate_panel_image_gemini_flash(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using Gemini 3.1 Flash Image Preview API."""
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=api_key)
+    model = "gemini-3.1-flash-image-preview"
+
+    contents = [
+        types.Part.from_bytes(
+            data=base64.b64decode(image_base64),
+            mime_type=mime_type,
+        ),
+        types.Part.from_text(text=prompt),
+    ]
+
+    generate_config = types.GenerateContentConfig(
+        response_modalities=["IMAGE", "TEXT"],
+    )
+
+    response = await client.aio.models.generate_content(
+        model=model,
+        contents=contents,
+        config=generate_config,
+    )
+
+    if response.candidates and response.candidates[0].content and response.candidates[0].content.parts:
+        for part in response.candidates[0].content.parts:
+            if part.inline_data and part.inline_data.data:
+                return part.inline_data.data
+
+    raise VideoJobError.provider_error("No image data found in Gemini Flash response")
+
+
+async def _generate_panel_image_grok(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using xAI grok-imagine-image.
+
+    xAI SDK accepts the source image as a base64 data URI directly —
+    no S3 upload required.
+    """
+    from app.providers.image.grok import generate_grok_panel
+
+    return await generate_grok_panel(
+        image_base64=image_base64,
+        mime_type=mime_type,
+        prompt=prompt,
+        aspect_ratio=aspect_ratio,
+        api_key=api_key,
+    )
+
+
+async def _generate_panel_image_z_image_turbo(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using ModelsLab z-image-turbo (v6 img2img).
+
+    ModelsLab requires a publicly accessible URL for the source image,
+    so we upload the source panel to S3 first to obtain a CloudFront URL.
+    """
+    import time
+    from app.providers.image.z_image_turbo import generate_z_image_turbo_panel
+    from app.services.s3 import upload_image
+
+    source_bytes = base64.b64decode(image_base64)
+
+    # Derive file extension from MIME type
+    ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+    ext = ext_map.get(mime_type, "png")
+
+    # Upload source image to S3 so ModelsLab can fetch it via URL
+    timestamp = int(time.time() * 1000)
+    source_s3_key = f"mithril/temp/z-image-turbo-source/{timestamp}.{ext}"
+    source_url = await upload_image(source_bytes, source_s3_key, mime_type)
+    logger.info(f"[Z-IMAGE-TURBO] Uploaded source panel to S3: {source_url}")
+
+    return await generate_z_image_turbo_panel(
+        source_url=source_url,
+        prompt=prompt,
+        aspect_ratio=aspect_ratio,
+        api_key=api_key,
+    )
+
+
+async def _generate_panel_image_flux2_dev(
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Generate panel image using ModelsLab Flux2 Dev (v6 img2img).
+
+    ModelsLab requires a publicly accessible URL for the source image,
+    so we upload the source panel to S3 first to obtain a CloudFront URL.
+    """
+    import time
+    from app.providers.image.flux2_dev import generate_flux2_dev_panel
+    from app.services.s3 import upload_image
+
+    source_bytes = base64.b64decode(image_base64)
+
+    # Derive file extension from MIME type
+    ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+    ext = ext_map.get(mime_type, "png")
+
+    # Upload source image to S3 so ModelsLab can fetch it via URL
+    timestamp = int(time.time() * 1000)
+    source_s3_key = f"mithril/temp/flux2-dev-source/{timestamp}.{ext}"
+    source_url = await upload_image(source_bytes, source_s3_key, mime_type)
+    logger.info(f"[FLUX2-DEV] Uploaded source panel to S3: {source_url}")
+
+    return await generate_flux2_dev_panel(
+        source_url=source_url,
+        prompt=prompt,
+        aspect_ratio=aspect_ratio,
+        api_key=api_key,
+    )
+
+
+async def generate_panel_image_for_provider(
+    provider_id: str,
+    image_base64: str,
+    mime_type: str,
+    prompt: str,
+    aspect_ratio: str,
+    api_key: str,
+) -> bytes:
+    """Dispatch panel image generation to the appropriate provider."""
+    if provider_id == "grok":
+        return await _generate_panel_image_grok(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    if provider_id == "z_image_turbo":
+        return await _generate_panel_image_z_image_turbo(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    if provider_id == "flux2_dev":
+        return await _generate_panel_image_flux2_dev(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    if provider_id == "gemini_flash":
+        return await _generate_panel_image_gemini_flash(image_base64, mime_type, prompt, aspect_ratio, api_key)
+    return await _generate_panel_image_gemini(image_base64, mime_type, prompt, aspect_ratio, api_key)
+
+
 async def process_panel_generation(
     job_id: str,
+    image_base64: str,
     worker_id: str = "worker-1",
     custom_api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """
     Main panel generation pipeline.
@@ -192,29 +329,25 @@ async def process_panel_generation(
     # Initialize state machine
     state_machine = JobStateMachine(job_id, job.status)
 
-    # Mark job as being processed by this worker
-    await job_queue_service.update_job(job_id, worker_id=worker_id)
-
     try:
-        # === CHECKPOINT 1: Before preparing ===
-        await check_cancellation(job_id)
+        # === CHECKPOINT 1: In-memory check using freshly-loaded job (no extra Firestore read) ===
+        if job.cancellation_requested:
+            logger.info(f"Cancellation detected for panel job {job_id}")
+            raise CancellationRequested(f"Job {job_id} was cancelled by user")
 
         # Get API key
         api_key = _get_api_key(job, custom_api_key)
 
-        # === Stage 1: Prepare - build prompt ===
-        prompt = await _stage_prepare(job, state_machine)
+        # === Stage 1: Prepare - build prompt (worker_id recorded here, merged with PREPARING write) ===
+        prompt = await _stage_prepare(job, state_machine, worker_id=worker_id)
 
-        # === CHECKPOINT 2: Before generating ===
+        # === CHECKPOINT 2: Re-read from Firestore before the slow AI call ===
         await check_cancellation(job_id)
 
         # === Stage 2: Generate image ===
-        image_bytes = await _stage_generate(job, prompt, api_key, state_machine)
+        image_bytes = await _stage_generate(job, image_base64, prompt, api_key, state_machine, inpaint_mask_base64)
 
-        # === CHECKPOINT 3: Before upload ===
-        await check_cancellation(job_id)
-
-        # === Stage 3: Upload to S3 ===
+        # === Stage 3: Upload to S3 (no checkpoint — upload is fast and non-retryable) ===
         result = await _stage_upload(job, image_bytes, state_machine)
 
         # === Stage 4: Complete ===
@@ -237,12 +370,12 @@ async def process_panel_generation(
 
     except VideoJobError as e:
         logger.error(f"[PANEL-GEN] {job_id} - VideoJobError: {e.code.value} - {e.message}")
-        return await _handle_error(job, e, state_machine, custom_api_key)
+        return await _handle_error(job, e, state_machine, image_base64, custom_api_key, inpaint_mask_base64)
 
     except Exception as e:
         logger.exception(f"[PANEL-GEN] {job_id} - Unexpected error: {type(e).__name__}: {str(e)}")
         video_error = classify_exception(e)
-        return await _handle_error(job, video_error, state_machine, custom_api_key)
+        return await _handle_error(job, video_error, state_machine, image_base64, custom_api_key, inpaint_mask_base64)
 
 
 def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
@@ -250,10 +383,30 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
 
     Priority:
     1. Custom API key passed through task queue
-    2. Fallback to environment variable settings
+    2. Fallback to environment variable settings (provider-specific)
     """
     if custom_api_key:
         return custom_api_key
+
+    if job.provider_id == "grok":
+        if not settings.xai_api_key:
+            raise VideoJobError.invalid_request("No xAI API key configured for Grok provider")
+        return settings.xai_api_key
+
+    if job.refinement_mode == "inpaint":
+        if not settings.gemini_api_key:
+            raise VideoJobError.invalid_request("No Gemini API key configured for inpaint")
+        return settings.gemini_api_key
+
+    if job.provider_id == "z_image_turbo":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured for Z-Image Turbo provider")
+        return settings.modelslab_api_key
+
+    if job.provider_id == "flux2_dev":
+        if not settings.modelslab_api_key:
+            raise VideoJobError.invalid_request("No ModelsLab API key configured for Flux2 Dev provider")
+        return settings.modelslab_api_key
 
     if not settings.gemini_api_key:
         raise VideoJobError.invalid_request("No Gemini API key configured")
@@ -263,6 +416,7 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
 async def _stage_prepare(
     job: JobDocument,
     state_machine: JobStateMachine,
+    worker_id: str | None = None,
 ) -> str:
     """Stage 1: Build prompt for panel transformation."""
     job_queue_service = get_job_queue_service()
@@ -270,55 +424,88 @@ async def _stage_prepare(
     logger.info(f"[PANEL-GEN] {job.id} - Stage 1: PREPARING (building prompt)")
 
     state_machine.transition_to(JobStatus.PREPARING)
-    await job_queue_service.update_job_status(job.id, JobStatus.PREPARING, progress=0.1)
+    # Merge worker_id recording into this write to avoid a separate update_job call
+    extra: dict = {"worker_id": worker_id} if worker_id else {}
+    await job_queue_service.update_job_status(job.id, JobStatus.PREPARING, progress=0.1, **extra)
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to PREPARING in Firestore")
 
-    # Build the transformation prompt
-    prompt = build_panel_prompt(
-        target_aspect_ratio=job.aspect_ratio,
-        refinement_mode=job.refinement_mode or "default",
-    )
+    # Build the transformation prompt (no intermediate progress write — saves 1 Firestore write)
+    if job.refinement_mode == "inpaint":
+        prompt = job.inpaint_prompt or ""
+    else:
+        prompt = build_panel_prompt(
+            target_aspect_ratio=job.aspect_ratio,
+            refinement_mode=job.refinement_mode or "default",
+        )
 
-    await job_queue_service.update_job(job.id, progress=0.2)
     logger.info(f"[PANEL-GEN] {job.id} - Stage 1 complete: prompt built")
     return prompt
 
 
 async def _stage_generate(
     job: JobDocument,
+    image_base64: str,
     prompt: str,
     api_key: str,
     state_machine: JobStateMachine,
+    inpaint_mask_base64: str = "",
 ) -> bytes:
-    """Stage 2: Generate image using Gemini."""
+    """Stage 2: Generate image using the selected provider."""
     job_queue_service = get_job_queue_service()
 
-    logger.info(f"[PANEL-GEN] {job.id} - Stage 2: GENERATING image with Gemini")
+    provider_id = job.provider_id or "gemini"
+    logger.info(f"[PANEL-GEN] {job.id} - Stage 2: GENERATING image with {provider_id}")
 
     state_machine.transition_to(JobStatus.GENERATING)
     await job_queue_service.update_job_status(job.id, JobStatus.GENERATING, progress=0.3)
     logger.debug(f"[PANEL-GEN] {job.id} - Status updated to GENERATING in Firestore")
 
-    # Validate we have source image
-    if not job.source_image_base64:
-        raise VideoJobError.invalid_request("No source image provided")
-
     # Generate image
-    logger.info(f"[PANEL-GEN] {job.id} - Calling Gemini API...")
+    logger.info(f"[PANEL-GEN] {job.id} - Calling API (mode={job.refinement_mode})...")
     try:
-        image_bytes = await generate_panel_image(
-            image_base64=job.source_image_base64,
-            mime_type=job.source_mime_type or "image/png",
-            prompt=prompt,
-            aspect_ratio=job.aspect_ratio,
-            api_key=api_key,
-        )
+        if job.refinement_mode == "inpaint":
+            from app.providers.image.inpaint import generate_inpaint_panel
+
+            if not job.inpaint_source_url:
+                raise VideoJobError.invalid_request("Inpaint job missing source_url")
+            if not inpaint_mask_base64:
+                raise VideoJobError.invalid_request("Inpaint job missing mask base64")
+
+            image_bytes = await generate_inpaint_panel(
+                source_url=job.inpaint_source_url,
+                mask_base64=inpaint_mask_base64,
+                prompt=prompt,
+                api_key=api_key,
+            )
+        else:
+            if not image_base64:
+                raise VideoJobError.invalid_request("No source image provided")
+
+            image_bytes = await generate_panel_image_for_provider(
+                provider_id=provider_id,
+                image_base64=image_base64,
+                mime_type=job.source_mime_type or "image/jpeg",
+                prompt=prompt,
+                aspect_ratio=job.aspect_ratio,
+                api_key=api_key,
+            )
         logger.info(f"[PANEL-GEN] {job.id} - Image generated successfully: {len(image_bytes)} bytes")
     except Exception as e:
-        logger.error(f"[PANEL-GEN] {job.id} - Gemini API error: {type(e).__name__}: {str(e)}")
+        logger.error(f"[PANEL-GEN] {job.id} - API error: {type(e).__name__}: {str(e)}")
         raise classify_exception(e)
 
-    await job_queue_service.update_job(job.id, progress=0.7)
+    try:
+        from app.services.credits import get_credit_cost, get_credits_service
+        _cost = get_credit_cost(job.type.value, provider_id)
+        await get_credits_service().record_credit(
+            user_id=job.user_id, project_id=job.project_id,
+            job_id=job.id, job_type=job.type.value,
+            provider_id=provider_id, cost_usd=_cost,
+        )
+    except Exception:
+        logger.warning(f"Failed to record credit for job {job.id}", exc_info=True)
+
+    # No intermediate progress write here — UPLOADING stage will set progress=0.8
     return image_bytes
 
 
@@ -372,7 +559,6 @@ async def _stage_complete(
 
     state_machine.transition_to(JobStatus.COMPLETED)
 
-    # Update job queue - also clear the source_image_base64 to save space
     logger.debug(f"[PANEL-GEN] {job.id} - Updating job_queue status to COMPLETED")
     await job_queue_service.update_job_status(
         job.id,
@@ -380,12 +566,6 @@ async def _stage_complete(
         image_url=result["image_url"],
         s3_file_name=result["s3_file_name"],
         progress=1.0,
-    )
-
-    # Clear source image from Firestore to save space
-    await job_queue_service.update_job(
-        job.id,
-        unset_fields=["source_image_base64"],
     )
 
     logger.info(f"[PANEL-GEN] {job.id} - Job queue updated")
@@ -412,7 +592,9 @@ async def _handle_error(
     job: JobDocument,
     error: VideoJobError,
     state_machine: JobStateMachine,
+    image_base64: str = "",
     custom_api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """Handle job error with potential retry."""
     from app.workers.tasks import retry_failed_panel_job
@@ -450,8 +632,8 @@ async def _handle_error(
             error_retryable=True,
         )
 
-        # Queue retry task with delay and API key
-        await retry_failed_panel_job.kiq(job.id, delay, custom_api_key)
+        # Queue retry task with delay, image, and API key
+        await retry_failed_panel_job.kiq(job.id, delay, image_base64, custom_api_key, inpaint_mask_base64)
 
         return {
             "job_id": job.id,

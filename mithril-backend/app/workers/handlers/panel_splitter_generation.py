@@ -7,6 +7,7 @@ import json
 import logging
 import uuid
 
+import httpx
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -16,6 +17,7 @@ from app.core.errors import (
     VideoJobError,
     classify_exception,
 )
+from app.core.retry import RetryState
 from app.core.state_machine import JobStateMachine
 from app.models.job import JobDocument, JobStatus
 from app.services.firestore import get_job_queue_service
@@ -26,7 +28,7 @@ settings = get_settings()
 
 # Concurrency control: limit to 3 concurrent panel splitter jobs per worker
 # This prevents API rate limit issues and reduces memory pressure
-PANEL_SPLITTER_CONCURRENCY = 3
+PANEL_SPLITTER_CONCURRENCY = 1
 _panel_splitter_semaphore: asyncio.Semaphore | None = None
 
 
@@ -38,7 +40,7 @@ def get_panel_splitter_semaphore() -> asyncio.Semaphore:
         logger.info(f"[PANEL-SPLITTER] Initialized concurrency semaphore (max {PANEL_SPLITTER_CONCURRENCY})")
     return _panel_splitter_semaphore
 
-MODEL_NAME = "gemini-2.5-flash"  # Flash for speed
+MODEL_NAME = "gemini-3-pro-preview"
 
 
 class CancellationRequested(Exception):
@@ -76,6 +78,26 @@ def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
     if not settings.gemini_api_key:
         raise VideoJobError.invalid_request("No Gemini API key configured")
     return settings.gemini_api_key
+
+
+WEBP_MAX_DIM = 16383  # WebP encoder hard limit per dimension
+
+
+def fit_for_webp(image: Image.Image) -> Image.Image:
+    """Scale image down proportionally if either dimension exceeds the WebP limit.
+
+    Only triggers for images larger than 16383px in any direction (e.g. very
+    long webtoon pages). Has no effect on normal-sized images.
+    """
+    w, h = image.size
+    if w <= WEBP_MAX_DIM and h <= WEBP_MAX_DIM:
+        return image
+    scale = min(WEBP_MAX_DIM / w, WEBP_MAX_DIM / h)
+    logger.warning(
+        f"[PANEL-SPLITTER] Image {w}×{h} exceeds WebP limit, "
+        f"scaling to {int(w * scale)}×{int(h * scale)}"
+    )
+    return image.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
 
 
 def optimize_image_for_ai(image: Image.Image, max_size: int = 1600) -> Image.Image:
@@ -213,12 +235,87 @@ Exclude:
                 "label": panel.get("label", "")
             })
 
-    return valid_panels
+    return valid_panels, response.usage_metadata
+
+
+async def _handle_error(
+    job: JobDocument,
+    error: VideoJobError,
+    state_machine: JobStateMachine,
+    image_url: str,
+    custom_api_key: str | None = None,
+) -> dict:
+    """Handle job error with potential retry."""
+    from app.workers.tasks import retry_failed_panel_splitter_job
+
+    job_queue_service = get_job_queue_service()
+
+    logger.error(f"[PANEL-SPLITTER] [{job.id}] Error: {error.code.value} - {error.message}")
+
+    retry_state = RetryState(
+        max_retries=job.max_retries,
+        retry_count=job.retry_count,
+    )
+    retry_state.record_failure(error.code.value, error.message)
+
+    if error.retryable and retry_state.can_retry():
+        delay = retry_state.get_next_delay(error.code)
+        logger.info(
+            f"[PANEL-SPLITTER] [{job.id}] Will retry in {delay:.1f}s "
+            f"(attempt {retry_state.retry_count}/{retry_state.max_retries})"
+        )
+
+        state_machine.transition_to(JobStatus.FAILED)
+        await job_queue_service.update_job(
+            job.id,
+            status=JobStatus.PENDING.value,
+            retry_count=retry_state.retry_count,
+            error_code=error.code.value,
+            error_message=error.message,
+            error_retryable=True,
+        )
+
+        await retry_failed_panel_splitter_job.kiq(
+            job.id, image_url, delay, custom_api_key
+        )
+
+        return {
+            "job_id": job.id,
+            "status": "retry_scheduled",
+            "retry_after": delay,
+            "attempt": retry_state.retry_count,
+        }
+    else:
+        logger.warning(f"[PANEL-SPLITTER] [{job.id}] Moving to DLQ after {retry_state.retry_count} attempts")
+
+        state_machine.transition_to(JobStatus.FAILED)
+        await job_queue_service.update_job_status(
+            job.id,
+            JobStatus.FAILED,
+            error_code=error.code.value,
+            error_message=error.message,
+            error_retryable=False,
+        )
+
+        await job_queue_service.move_to_dlq(
+            job.id,
+            error.code.value,
+            error.message,
+            retry_state.failure_history,
+        )
+
+        return {
+            "job_id": job.id,
+            "status": "failed",
+            "error_code": error.code.value,
+            "error_message": error.message,
+            "moved_to_dlq": True,
+        }
 
 
 async def process_panel_splitter(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     custom_api_key: str | None = None,
     worker_id: str = "worker-1",
 ) -> dict:
@@ -226,7 +323,7 @@ async def process_panel_splitter(
     Detect panels in a manga/comic page and crop them.
 
     Steps:
-    1. Decode base64 image
+    1. Download image from S3 URL
     2. Optimize image for AI (max 1600x1600)
     3. Call Gemini with panel detection prompt
     4. Crop panels from original image
@@ -235,7 +332,7 @@ async def process_panel_splitter(
 
     Args:
         job_id: The job ID to process
-        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        image_url: S3/CloudFront URL of the page image (uploaded by frontend)
         custom_api_key: Optional custom API key (passed through task queue)
         worker_id: ID of the worker processing this job
 
@@ -248,13 +345,13 @@ async def process_panel_splitter(
 
     async with semaphore:
         return await _process_panel_splitter_impl(
-            job_id, image_base64, custom_api_key, worker_id
+            job_id, image_url, custom_api_key, worker_id
         )
 
 
 async def _process_panel_splitter_impl(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     custom_api_key: str | None = None,
     worker_id: str = "worker-1",
 ) -> dict:
@@ -285,11 +382,16 @@ async def _process_panel_splitter_impl(
         # Check for cancellation before processing
         await check_cancellation(job_id)
 
-        # 1. Decode base64 image (passed through task queue, not from Firestore)
-        if not image_base64:
-            raise ValueError("No source image provided")
+        # 1. Download image from S3/CloudFront URL (frontend uploads to S3 first)
+        if not image_url:
+            raise ValueError("No source image URL provided")
 
-        image_data = base64.b64decode(image_base64)
+        logger.info(f"[PANEL-SPLITTER] {job_id} - Downloading image from {image_url[:80]}...")
+        async with httpx.AsyncClient(timeout=60.0) as http:
+            resp = await http.get(image_url)
+            resp.raise_for_status()
+            image_data = resp.content
+
         original_image = Image.open(io.BytesIO(image_data))
         logger.info(f"[PANEL-SPLITTER] {job_id} - Original image size: {original_image.size}")
 
@@ -305,12 +407,23 @@ async def _process_panel_splitter_impl(
         # Check for cancellation before AI call
         await check_cancellation(job_id)
 
-        panels = await detect_panels_with_gemini(
+        panels, _usage = await detect_panels_with_gemini(
             optimized_image,
             job.reading_direction or "rtl",
             api_key,
         )
         logger.info(f"[PANEL-SPLITTER] {job_id} - Detected {len(panels)} panels")
+
+        try:
+            from app.services.credits import get_credits_service, get_text_cost
+            _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
+            await get_credits_service().record_credit(
+                user_id=job.user_id, project_id=job.project_id,
+                job_id=job.id, job_type=job.type.value,
+                provider_id="gemini_text", cost_usd=_cost,
+            )
+        except Exception:
+            logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
         # Check for cancellation after AI call
         await check_cancellation(job_id)
@@ -331,28 +444,15 @@ async def _process_panel_splitter_impl(
                 "panel_count": 0,
             }
 
-        # 4. UPLOADING: Upload source page and crop panels to S3
+        # 4. UPLOADING: Crop panels and upload to S3
+        #    (Source page is already on S3 — uploaded by frontend before submission)
         state_machine.transition_to(JobStatus.UPLOADING)
         await job_queue_service.update_job_status(job_id, JobStatus.UPLOADING, progress=0.4)
         logger.info(f"[PANEL-SPLITTER] {job_id} - Status updated to UPLOADING")
 
-        # Upload source page image to S3 (use same path structure as frontend expects)
-        # Frontend expects: mithril/{projectId}/i2v/pages/{pageIndex}.webp
-        page_s3_key = f"mithril/{job.project_id}/i2v/pages/{job.page_index}.webp"
-        page_buffer = io.BytesIO()
-        original_image.save(page_buffer, format="WEBP", quality=90)
-        page_buffer.seek(0)
-
-        try:
-            page_image_url = await upload_image(page_buffer.getvalue(), page_s3_key, "image/webp")
-            logger.info(f"[PANEL-SPLITTER] {job_id} - Uploaded source page to {page_image_url}")
-        except Exception as e:
-            logger.warning(f"[PANEL-SPLITTER] {job_id} - Failed to upload source page: {e}")
-            page_image_url = None
-
-        # Update job with page image URL
-        if page_image_url:
-            await job_queue_service.update_job(job_id, image_url=page_image_url)
+        # Store the page image URL on the job (already on S3, no re-upload needed)
+        page_image_url = image_url
+        await job_queue_service.update_job(job_id, image_url=page_image_url)
 
         await job_queue_service.update_job_status(job_id, JobStatus.UPLOADING, progress=0.5)
 
@@ -369,13 +469,12 @@ async def _process_panel_splitter_impl(
                 logger.warning(f"[PANEL-SPLITTER] {job_id} - Failed to crop panel {i}: {e}")
                 continue
 
-            # Upload to S3 (use same path structure as frontend expects)
-            # Frontend expects: mithril/{projectId}/i2v/panels/{pageIndex}_{panelIndex}.webp
+            # Upload to S3. Include job_id prefix for cache-busting (same reason as page key).
             panel_id = str(uuid.uuid4())
-            s3_key = f"mithril/{job.project_id}/i2v/panels/{job.page_index}_{i}.webp"
+            s3_key = f"mithril/{job.project_id}/i2v/panels/{job.page_index}_{i}_{job_id[:8]}.webp"
 
             buffer = io.BytesIO()
-            cropped.save(buffer, format="WEBP", quality=90)
+            fit_for_webp(cropped).save(buffer, format="WEBP", quality=90)
             buffer.seek(0)
 
             try:
@@ -425,25 +524,11 @@ async def _process_panel_splitter_impl(
             "status": "cancelled",
         }
 
+    except VideoJobError as e:
+        logger.error(f"[PANEL-SPLITTER] {job_id} - VideoJobError: {e.code.value} - {e.message}")
+        return await _handle_error(job, e, state_machine, image_url, custom_api_key)
+
     except Exception as e:
-        logger.exception(f"[PANEL-SPLITTER] {job_id} - Error during processing: {e}")
-
-        # Classify the error
-        error_info = classify_exception(e)
-
-        # Update job status to failed
-        await job_queue_service.update_job_status(
-            job_id,
-            JobStatus.FAILED,
-            error_code=error_info.code.value,
-            error_message=str(e),
-            error_retryable=error_info.retryable,
-        )
-
-        return {
-            "job_id": job_id,
-            "status": "failed",
-            "error": str(e),
-            "error_code": error_info.code.value,
-            "retryable": error_info.retryable,
-        }
+        logger.exception(f"[PANEL-SPLITTER] {job_id} - Unexpected error: {type(e).__name__}: {str(e)}")
+        video_error = classify_exception(e)
+        return await _handle_error(job, video_error, state_machine, image_url, custom_api_key)

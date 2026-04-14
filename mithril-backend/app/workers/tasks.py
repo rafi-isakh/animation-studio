@@ -288,7 +288,12 @@ async def retry_failed_prop_design_sheet_job(
 
 
 @broker.task
-async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
+async def process_panel_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+    inpaint_mask_base64: str = "",
+) -> dict:
     """
     Main panel editor generation task.
 
@@ -300,6 +305,7 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
 
     Args:
         job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
         api_key: Optional custom API key (passed through task queue, not stored)
 
     Returns:
@@ -311,7 +317,7 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
     logger.info(f"[{worker_id}] Processing panel job: {job_id} (custom_key: {bool(api_key)})")
 
     try:
-        result = await process_panel_generation(job_id, worker_id, api_key)
+        result = await process_panel_generation(job_id, image_base64, worker_id, api_key, inpaint_mask_base64)
         logger.info(f"[{worker_id}] Panel job {job_id} finished with status: {result.get('status')}")
         return result
 
@@ -328,7 +334,9 @@ async def process_panel_job(job_id: str, api_key: str | None = None) -> dict:
 async def retry_failed_panel_job(
     job_id: str,
     delay_seconds: float = 0,
+    image_base64: str = "",
     api_key: str | None = None,
+    inpaint_mask_base64: str = "",
 ) -> dict:
     """
     Retry a failed panel job after a delay.
@@ -336,7 +344,9 @@ async def retry_failed_panel_job(
     Args:
         job_id: The job ID to retry
         delay_seconds: Delay before processing
+        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
         api_key: Optional API key (if not provided, uses settings fallback)
+        inpaint_mask_base64: Mask base64 for inpaint jobs (passed through task queue)
 
     Returns:
         dict with status and result information
@@ -347,7 +357,177 @@ async def retry_failed_panel_job(
         logger.info(f"Waiting {delay_seconds}s before retrying panel job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_panel_job(job_id, api_key)
+    return await process_panel_job(job_id, image_base64, api_key, inpaint_mask_base64)
+
+
+# ============================================================================
+# Style Converter (PixAI) Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_style_converter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main style converter task (pixAI img2img).
+
+    Pipeline:
+    1. Upload source image to S3
+    2. Submit pixAI img2img task
+    3. Poll until completed
+    4. Fetch result image bytes
+    5. Upload result to S3
+    6. Update Firestore with CloudFront URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (not stored in Firestore to avoid 1 MB limit)
+        api_key: Optional custom PixAI key (falls back to PIXAI_API_KEY env var)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.style_converter_generation import process_style_converter_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing style converter job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_style_converter_generation(job_id, image_base64, worker_id, api_key)
+        logger.info(f"[{worker_id}] Style converter job {job_id} finished with status: {result.get('status')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in style converter job {job_id}")
+        return {"job_id": job_id, "status": "error", "error": str(e)}
+
+
+@broker.task
+async def retry_failed_style_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    api_key: str | None = None,
+) -> dict:
+    import asyncio
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
+    return await process_style_converter_job(job_id, image_base64, api_key)
+
+
+# ============================================================================
+# Krea Style Converter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_krea_style_converter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main Krea AI style converter task (img2img).
+
+    Pipeline:
+    1. Submit Krea AI img2img task with base64 image
+    2. Poll until completed
+    3. Download result image
+    4. Upload result to S3
+    5. Update Firestore with CloudFront URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (not stored in Firestore to avoid 1 MB limit)
+        api_key: Optional custom Krea key (falls back to KREA_API_KEY env var)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.krea_style_converter_generation import process_krea_style_converter_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing Krea style converter job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_krea_style_converter_generation(job_id, image_base64, worker_id, api_key)
+        logger.info(f"[{worker_id}] Krea style converter job {job_id} finished with status: {result.get('status')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in Krea style converter job {job_id}")
+        return {"job_id": job_id, "status": "error", "error": str(e)}
+
+
+@broker.task
+async def retry_failed_krea_style_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    api_key: str | None = None,
+) -> dict:
+    import asyncio
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
+    return await process_krea_style_converter_job(job_id, image_base64, api_key)
+
+
+# ============================================================================
+# ModelsLab Style Converter Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_modelslab_style_converter_job(
+    job_id: str,
+    image_base64: str,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main ModelsLab style converter task (img2img via flux-klien-9B).
+
+    Pipeline:
+    1. Upload source image to S3 (ModelsLab requires a public URL)
+    2. Submit ModelsLab img2img task
+    3. Poll until completed
+    4. Download result image
+    5. Upload result to S3
+    6. Update Firestore with CloudFront URL
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (not stored in Firestore to avoid 1 MB limit)
+        api_key: Optional custom ModelsLab key (falls back to MODELSLAB_API_KEY env var)
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.modelslab_style_converter_generation import process_modelslab_style_converter_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing ModelsLab style converter job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_modelslab_style_converter_generation(job_id, image_base64, worker_id, api_key)
+        logger.info(f"[{worker_id}] ModelsLab style converter job {job_id} finished with status: {result.get('status')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in ModelsLab style converter job {job_id}")
+        return {"job_id": job_id, "status": "error", "error": str(e)}
+
+
+@broker.task
+async def retry_failed_modelslab_style_converter_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    api_key: str | None = None,
+) -> dict:
+    import asyncio
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
+    return await process_modelslab_style_converter_job(job_id, image_base64, api_key)
 
 
 # ============================================================================
@@ -671,7 +851,7 @@ async def retry_failed_i2v_storyboard_job(
 @broker.task
 async def process_panel_splitter_job(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     api_key: str | None = None,
 ) -> dict:
     """
@@ -686,7 +866,7 @@ async def process_panel_splitter_job(
 
     Args:
         job_id: The job ID in Firestore job_queue collection
-        image_base64: Base64 encoded image (passed through task queue to avoid Firestore 1MB limit)
+        image_url: S3/CloudFront URL of the page image (uploaded by frontend)
         api_key: Optional custom API key (passed through task queue, not stored)
 
     Returns:
@@ -696,10 +876,10 @@ async def process_panel_splitter_job(
 
     logger.info(f"[PANEL-SPLITTER-TASK] ========== Starting panel splitter job {job_id} ==========")
     logger.info(f"[PANEL-SPLITTER-TASK] Has custom API key: {bool(api_key)}")
-    logger.info(f"[PANEL-SPLITTER-TASK] Image base64 length: {len(image_base64) if image_base64 else 0}")
+    logger.info(f"[PANEL-SPLITTER-TASK] Image URL: {image_url[:80] if image_url else 'None'}...")
 
     try:
-        result = await process_panel_splitter(job_id, image_base64, api_key)
+        result = await process_panel_splitter(job_id, image_url, api_key)
         logger.info(f"[PANEL-SPLITTER-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
         return result
     except Exception as e:
@@ -714,7 +894,7 @@ async def process_panel_splitter_job(
 @broker.task
 async def retry_failed_panel_splitter_job(
     job_id: str,
-    image_base64: str,
+    image_url: str,
     delay_seconds: int = 0,
     api_key: str | None = None,
 ) -> dict:
@@ -730,7 +910,72 @@ async def retry_failed_panel_splitter_job(
         logger.info(f"Waiting {delay_seconds}s before retrying panel splitter job {job_id}")
         await asyncio.sleep(delay_seconds)
 
-    return await process_panel_splitter_job(job_id, image_base64, api_key)
+    return await process_panel_splitter_job(job_id, image_url, api_key)
+
+
+# ============================================================================
+# Panel Colorizer Tasks
+# ============================================================================
+
+
+@broker.task
+async def process_panel_colorizer_job(
+    job_id: str,
+    image_base64: str,
+    reference_images: list[dict] | None = None,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Main panel colorizer generation task.
+
+    Colorizes B&W manga panels into full-color anime-style images.
+
+    Args:
+        job_id: The job ID in Firestore job_queue collection
+        image_base64: Base64 encoded image (passed through task queue)
+        reference_images: List of {base64, mime_type} dicts for color references
+        api_key: Optional custom API key
+
+    Returns:
+        dict with status and result information
+    """
+    from app.workers.handlers.panel_colorizer_generation import process_panel_colorizer_generation
+
+    worker_id = get_worker_id()
+    logger.info(f"[{worker_id}] Processing panel colorizer job: {job_id} (custom_key: {bool(api_key)})")
+
+    try:
+        result = await process_panel_colorizer_generation(
+            job_id, image_base64, reference_images or [], worker_id, api_key
+        )
+        logger.info(f"[{worker_id}] Panel colorizer job {job_id} finished: {result.get('status')}")
+        return result
+
+    except Exception as e:
+        logger.exception(f"[{worker_id}] Unhandled error in panel colorizer job {job_id}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
+async def retry_failed_panel_colorizer_job(
+    job_id: str,
+    delay_seconds: float = 0,
+    image_base64: str = "",
+    reference_images: list[dict] | None = None,
+    api_key: str | None = None,
+) -> dict:
+    """Retry a failed panel colorizer job after a delay."""
+    import asyncio
+
+    if delay_seconds > 0:
+        logger.info(f"Waiting {delay_seconds}s before retrying panel colorizer job {job_id}")
+        await asyncio.sleep(delay_seconds)
+
+    return await process_panel_colorizer_job(job_id, image_base64, reference_images, api_key)
 
 
 # ============================================================================

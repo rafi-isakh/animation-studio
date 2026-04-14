@@ -23,12 +23,17 @@ import {
   getPropReferenceImageKey,
   getPropFolderPrefix,
   getI2VPageKey,
+  getI2VPagePrefix,
   getI2VPanelKey,
+  getI2VPanelPrefix,
   getI2VFolderPrefix,
   getI2VStoryboardFrameKey,
   getI2VStoryboardFrameEndKey,
   getI2VStoryboardAssetKey,
+  getI2VStoryboardReferenceKey,
   getI2VStoryboardFolderPrefix,
+  getI2VPanelEditorKey,
+  getCsvFrameImageKey,
 } from "@/components/Mithril/services/s3/types";
 
 export const dynamic = 'force-dynamic';
@@ -117,6 +122,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
         s3Key = getStoryboardImageKey(projectId, sceneIndex, clipIndex);
         break;
       }
+      case "csv-frame": {
+        const { csvFrameIndex } = body;
+        if (csvFrameIndex === undefined) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "csvFrameIndex is required for csv-frame images" },
+            { status: 400 }
+          );
+        }
+        s3Key = getCsvFrameImageKey(projectId, csvFrameIndex);
+        break;
+      }
       case "style-slot": {
         const { slotIndex } = body;
         if (slotIndex === undefined) {
@@ -170,7 +186,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType, panelEditorId } = body;
         switch (i2vSubtype) {
           case "panel":
             if (pageIndex === undefined || panelIndex === undefined) {
@@ -180,6 +196,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
               );
             }
             s3Key = getI2VPanelKey(projectId, pageIndex, panelIndex);
+            break;
+          case "panel-editor":
+            if (!panelEditorId) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "panelEditorId is required for panel-editor images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VPanelEditorKey(projectId, panelEditorId);
             break;
           case "page":
             if (pageIndex === undefined) {
@@ -216,6 +241,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
               );
             }
             s3Key = getI2VStoryboardAssetKey(projectId, assetId, assetType);
+            break;
+          case "storyboard-reference":
+            if (i2vSceneIndex === undefined || i2vClipIndex === undefined) {
+              return NextResponse.json(
+                { success: false, s3Key: "", url: "", error: "i2vSceneIndex and i2vClipIndex are required for i2v storyboard reference images" },
+                { status: 400 }
+              );
+            }
+            s3Key = getI2VStoryboardReferenceKey(projectId, i2vSceneIndex, i2vClipIndex);
             break;
           default:
             return NextResponse.json(
@@ -370,6 +404,17 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
         keysToDelete = [getStoryboardImageKey(projectId, sceneIndex, clipIndex)];
         break;
       }
+      case "csv-frame": {
+        const { csvFrameIndex } = body;
+        if (csvFrameIndex === undefined) {
+          return NextResponse.json(
+            { success: false, deletedKeys: [], error: "csvFrameIndex is required for csv-frame images" },
+            { status: 400 }
+          );
+        }
+        keysToDelete = [getCsvFrameImageKey(projectId, csvFrameIndex)];
+        break;
+      }
       case "style-slot": {
         const { slotIndex } = body;
         if (slotIndex === undefined) {
@@ -445,16 +490,43 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
         break;
       }
       case "i2v": {
-        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType } = body;
+        const { i2vSubtype, pageIndex, panelIndex, i2vSceneIndex, i2vClipIndex, assetId, assetType, panelEditorId } = body;
         switch (i2vSubtype) {
+          case "panel-editor":
+            if (panelEditorId) {
+              keysToDelete = [getI2VPanelEditorKey(projectId, panelEditorId)];
+            }
+            break;
           case "panel":
             if (pageIndex !== undefined && panelIndex !== undefined) {
-              keysToDelete = [getI2VPanelKey(projectId, pageIndex, panelIndex)];
+              // Use prefix listing to catch both legacy keys ({pageIndex}_{panelIndex}.webp)
+              // and job-suffixed keys ({pageIndex}_{panelIndex}_{jobId}.webp).
+              const panelPrefix = getI2VPanelPrefix(projectId, pageIndex, panelIndex);
+              const panelList = await s3Client.send(
+                new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: panelPrefix })
+              );
+              if (panelList.Contents) {
+                const panelPattern = new RegExp(`/${pageIndex}_${panelIndex}(\\.webp|_[^/]+\\.webp)$`);
+                keysToDelete = panelList.Contents
+                  .map(obj => obj.Key!)
+                  .filter(key => key && panelPattern.test(key));
+              }
             }
             break;
           case "page":
             if (pageIndex !== undefined) {
-              keysToDelete = [getI2VPageKey(projectId, pageIndex)];
+              // Use prefix listing to catch both legacy keys ({pageIndex}.webp)
+              // and job-suffixed keys ({pageIndex}_{jobId}.webp).
+              const pagePrefix = getI2VPagePrefix(projectId, pageIndex);
+              const pageList = await s3Client.send(
+                new ListObjectsV2Command({ Bucket: BUCKET_NAME, Prefix: pagePrefix })
+              );
+              if (pageList.Contents) {
+                const pagePattern = new RegExp(`/${pageIndex}(\\.webp|_[^/]+\\.webp)$`);
+                keysToDelete = pageList.Contents
+                  .map(obj => obj.Key!)
+                  .filter(key => key && pagePattern.test(key));
+              }
             }
             break;
           case "storyboard-frame":
@@ -470,6 +542,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
           case "storyboard-asset":
             if (assetId && assetType) {
               keysToDelete = [getI2VStoryboardAssetKey(projectId, assetId, assetType)];
+            }
+            break;
+          case "storyboard-reference":
+            if (i2vSceneIndex !== undefined && i2vClipIndex !== undefined) {
+              keysToDelete = [getI2VStoryboardReferenceKey(projectId, i2vSceneIndex, i2vClipIndex)];
             }
             break;
           default:

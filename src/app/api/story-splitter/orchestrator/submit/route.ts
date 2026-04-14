@@ -36,9 +36,6 @@ export async function POST(request: NextRequest) {
       api_key: body.apiKey,
     };
 
-    console.log("[StorySplitterOrchestrator] Submitting job to:", endpoint);
-    console.log("[StorySplitterOrchestrator] Text length:", body.text.length);
-    console.log("[StorySplitterOrchestrator] Num parts:", body.numParts || 8);
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -52,7 +49,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[StorySplitterOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

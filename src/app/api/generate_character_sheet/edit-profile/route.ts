@@ -105,9 +105,6 @@ Generate the edited image now.`;
 
     parts.push({ text: systemPrompt });
 
-    console.log("[edit-profile] Model: gemini-3-pro-image-preview");
-    console.log("[edit-profile] Edit prompt:", editPrompt);
-    console.log("[edit-profile] Has style reference:", !!styleReferenceBase64);
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

@@ -129,6 +129,9 @@ export async function saveMangaPage(
     createdAt: Timestamp.now(),
     // Store original page ID for matching with job queue
     ...(input.originalPageId ? { originalPageId: input.originalPageId } : {}),
+    // Store dimensions for proper resize calculations
+    ...(input.width ? { width: input.width } : {}),
+    ...(input.height ? { height: input.height } : {}),
   });
 
   return pageId;
@@ -181,9 +184,51 @@ export async function saveMangaPanel(
     box_2d: input.box_2d,
     label: input.label,
     imageRef: input.imageRef || '',
+    ...(input.storyboard ? { storyboard: input.storyboard } : {}),
   });
 
   return panelId;
+}
+
+/**
+ * Replace all panels for a page with a normalized ordered list.
+ */
+export async function replaceMangaPanels(
+  projectId: string,
+  pageIndex: number,
+  panels: SaveMangaPanelInput[]
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  const existingPanels = await getMangaPanels(projectId, pageIndex);
+  for (const panel of existingPanels) {
+    const panelRef = getPanelRef(projectId, pageIndex, panel.panelIndex);
+    batch.delete(panelRef);
+  }
+
+  panels.forEach((panel, panelIndex) => {
+    const panelRef = getPanelRef(projectId, pageIndex, panelIndex);
+    batch.set(panelRef, {
+      id: `panel_${panelIndex}`,
+      panelIndex,
+      box_2d: panel.box_2d,
+      label: String(panelIndex + 1),
+      imageRef: panel.imageRef || '',
+      ...(panel.storyboard ? { storyboard: panel.storyboard } : {}),
+    });
+  });
+
+  const pageRef = getPageRef(projectId, pageIndex);
+  batch.set(
+    pageRef,
+    {
+      panelCount: panels.length,
+      status: panels.length > 0 ? 'completed' : 'pending',
+    },
+    { merge: true }
+  );
+
+  await batch.commit();
 }
 
 /**
@@ -222,6 +267,79 @@ export async function clearImageSplitter(projectId: string): Promise<void> {
   // Delete image splitter metadata
   const imageSplitterRef = getImageSplitterRef(projectId);
   batch.delete(imageSplitterRef);
+
+  await batch.commit();
+}
+
+/**
+ * Reset analyzed ImageSplitter data while keeping uploaded page entries.
+ * Clears all panel documents and resets each page to pending with panelCount = 0.
+ */
+export async function resetImageSplitterAnalysis(
+  projectId: string,
+  readingDirection: ReadingDirection
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  const pages = await getMangaPages(projectId);
+
+  for (const page of pages) {
+    const panels = await getMangaPanels(projectId, page.pageIndex);
+    for (const panel of panels) {
+      const panelRef = getPanelRef(projectId, page.pageIndex, panel.panelIndex);
+      batch.delete(panelRef);
+    }
+
+    const pageRef = getPageRef(projectId, page.pageIndex);
+    batch.set(
+      pageRef,
+      {
+        status: 'pending',
+        panelCount: 0,
+      },
+      { merge: true }
+    );
+  }
+
+  const imageSplitterRef = getImageSplitterRef(projectId);
+  batch.set(
+    imageSplitterRef,
+    {
+      readingDirection,
+      totalPages: pages.length,
+      totalPanels: 0,
+      generatedAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
+
+  await batch.commit();
+}
+
+/**
+ * Reset analyzed data for one page while keeping the uploaded page entry.
+ */
+export async function resetMangaPageAnalysis(
+  projectId: string,
+  pageIndex: number
+): Promise<void> {
+  const batch = writeBatch(db);
+  const panels = await getMangaPanels(projectId, pageIndex);
+
+  for (const panel of panels) {
+    const panelRef = getPanelRef(projectId, pageIndex, panel.panelIndex);
+    batch.delete(panelRef);
+  }
+
+  const pageRef = getPageRef(projectId, pageIndex);
+  batch.set(
+    pageRef,
+    {
+      panelCount: 0,
+      status: 'pending',
+    },
+    { merge: true }
+  );
 
   await batch.commit();
 }

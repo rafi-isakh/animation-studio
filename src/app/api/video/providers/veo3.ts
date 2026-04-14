@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { s3Client } from "@/utils/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getVideoUrl } from "@/utils/urls";
+import { fetchImageAsBase64 as fetchImageAsBase64WithMime } from "@/utils/fetchImage";
 
 const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
@@ -41,18 +42,6 @@ function isUrl(str: string): boolean {
 }
 
 /**
- * Fetch image from URL and return as base64
- */
-async function fetchImageAsBase64(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image from URL: ${response.status}`);
-  }
-  const buffer = await response.arrayBuffer();
-  return Buffer.from(buffer).toString("base64");
-}
-
-/**
  * Resize image to exact Veo 3 dimensions
  */
 async function resizeImageToVeo3Dimensions(
@@ -63,7 +52,7 @@ async function resizeImageToVeo3Dimensions(
   // Handle both S3 URLs and base64 strings
   let base64: string;
   if (isUrl(imageInput)) {
-    base64 = await fetchImageAsBase64(imageInput);
+    ({ base64 } = await fetchImageAsBase64WithMime(imageInput));
   } else {
     base64 = imageInput;
   }
@@ -166,18 +155,12 @@ export async function submitToVeo3(
     };
   }
 
-  console.log("[veo3] Submitting video generation job...");
-  console.log("[veo3] Model: veo-3.1-generate-preview");
-  console.log("[veo3] Duration:", veo3Duration, "seconds");
-  console.log("[veo3] Aspect ratio:", aspectRatio);
-  console.log("[veo3] Has image:", !!imageBase64);
 
   // Submit the video generation job
   // Cast to unknown first to avoid type incompatibility
   const models = ai.models as unknown as { generateVideos: (body: unknown) => Promise<{ name?: string; operationName?: string; id?: string; operationId?: string }> };
   const operation = await models.generateVideos(requestBody);
 
-  console.log("[veo3] Operation response:", JSON.stringify(operation, null, 2));
 
   // The operation.name is the job ID we'll use to poll status
   // Try different property names that the SDK might use
@@ -188,7 +171,6 @@ export async function submitToVeo3(
     throw new Error("Failed to get operation ID from Veo 3 response");
   }
 
-  console.log("[veo3] Job submitted successfully. Operation name:", jobId);
 
   return {
     jobId,
@@ -209,7 +191,6 @@ export async function checkVeo3Status(
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
-  console.log("[veo3] Checking status for operation:", jobId);
 
   // Use REST API directly to poll operation status
   // The SDK methods don't work reliably for operation polling
@@ -232,7 +213,6 @@ export async function checkVeo3Status(
   }
 
   const operation = await response.json();
-  console.log("[veo3] Operation response:", JSON.stringify(operation, null, 2));
 
   // Determine status
   let status: "pending" | "running" | "completed" | "failed";
@@ -248,7 +228,6 @@ export async function checkVeo3Status(
     status = "running";
   }
 
-  console.log("[veo3] Operation status:", status, "done:", operation.done);
 
   const result: Veo3StatusResult = {
     jobId,
@@ -265,7 +244,6 @@ export async function checkVeo3Status(
         throw new Error("No video URI in response");
       }
 
-      console.log("[veo3] Downloading video from:", videoUri);
 
       // Download the video directly from the URI
       // Add API key if not already in the URL
@@ -282,7 +260,6 @@ export async function checkVeo3Status(
       const videoArrayBuffer = await videoResponse.arrayBuffer();
       const videoBuffer = Buffer.from(videoArrayBuffer);
 
-      console.log("[veo3] Video downloaded, size:", videoBuffer.length, "bytes");
 
       // Generate unique filename with jobId for traceability
       // Replace slashes in jobId since it contains path-like structure
@@ -298,7 +275,6 @@ export async function checkVeo3Status(
       };
 
       await s3Client.send(new PutObjectCommand(uploadParams));
-      console.log("[veo3] Video uploaded to S3:", s3FileName);
 
       // Return CloudFront URL for permanent access
       result.videoUrl = getVideoUrl(s3FileName);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { PanelData, ProcessingStatus, AspectRatio } from './types';
 import {
   TrashIcon,
@@ -10,22 +10,34 @@ import {
   PlayIcon,
   ZoomInIcon,
   ArrowsExpandIcon,
+  XMarkIcon,
+  PaintBrushIcon,
 } from './Icons';
+
 import { InteractiveCanvas, InteractiveCanvasHandle } from './InteractiveCanvas';
+import { InpaintModal } from './InpaintModal';
 
 interface PanelCardProps {
   panel: PanelData;
+  index: number;
   onRemove: (id: string) => void;
+  onCancel: (id: string) => void;
   onRetry: (id: string) => void;
   onRefine: (id: string, mode: 'zoom' | 'expand') => void;
+  onInpaint: (id: string, maskDataUrl: string, prompt: string, strength: number, width: number, height: number) => void;
+  onRemix?: (id: string, remixPrompt: string) => Promise<void>;
   targetRatio: AspectRatio;
 }
 
 export const PanelCard: React.FC<PanelCardProps> = ({
   panel,
+  index,
   onRemove,
+  onCancel,
   onRetry,
   onRefine,
+  onInpaint,
+  onRemix,
   targetRatio,
 }) => {
   const isIdle = panel.status === ProcessingStatus.Idle;
@@ -34,21 +46,32 @@ export const PanelCard: React.FC<PanelCardProps> = ({
   const isError = panel.status === ProcessingStatus.Error;
 
   const canvasRef = useRef<InteractiveCanvasHandle>(null);
+  const [isInpaintOpen, setIsInpaintOpen] = useState(false);
+  const [remixOpen, setRemixOpen] = useState(false);
+  const [remixPrompt, setRemixPrompt] = useState('');
+  const [remixLoading, setRemixLoading] = useState(false);
+
+  const handleRunRemix = async () => {
+    if (!onRemix || !remixPrompt.trim() || remixLoading) return;
+    setRemixLoading(true);
+    try {
+      await onRemix(panel.id, remixPrompt.trim());
+      setRemixOpen(false);
+      setRemixPrompt('');
+    } finally {
+      setRemixLoading(false);
+    }
+  };
 
   const handleDownload = () => {
-    if (canvasRef.current && panel.resultUrl) {
-      // Construct filename: original-name-edited.png
-      const nameParts = panel.fileName.split('.');
-      if (nameParts.length > 1) nameParts.pop(); // remove ext
-      const baseName = nameParts.join('.');
-      const fileName = `${baseName}-edited.png`;
+    const fileName = `${String(index + 1).padStart(3, '0')}.png`;
 
+    if (canvasRef.current && panel.resultUrl) {
       canvasRef.current.download(fileName);
     } else if (panel.resultUrl) {
-      // Fallback
       const link = document.createElement('a');
       link.href = panel.resultUrl;
-      link.download = `panel-editor-${panel.id}.png`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -66,6 +89,16 @@ export const PanelCard: React.FC<PanelCardProps> = ({
           {panel.fileName}
         </span>
         <div className="flex items-center gap-2">
+          {isProcessing && (
+            <button
+              onClick={() => onCancel(panel.id)}
+              className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 border border-red-300 dark:border-red-500/50 rounded-lg transition-colors"
+              title="Cancel"
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+              Cancel
+            </button>
+          )}
           {isError && (
             <button
               onClick={() => onRetry(panel.id)}
@@ -130,7 +163,11 @@ export const PanelCard: React.FC<PanelCardProps> = ({
               <div className="w-full h-full flex flex-col relative items-center justify-center">
                 <InteractiveCanvas
                   ref={canvasRef}
-                  src={panel.resultUrl}
+                  src={
+                    panel.resultUrl.startsWith('http')
+                      ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.resultUrl)}`
+                      : panel.resultUrl
+                  }
                   targetRatio={targetRatio}
                   className="w-full"
                   maxHeight={400}
@@ -143,6 +180,44 @@ export const PanelCard: React.FC<PanelCardProps> = ({
                 >
                   <DownloadIcon />
                 </button>
+                {onRemix && (
+                  <div className="w-full mt-3 flex flex-col gap-2">
+                    <button
+                      onClick={() => setRemixOpen((prev) => !prev)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-pink-600 dark:text-pink-300 border border-pink-400/50 dark:border-pink-600/50 hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-600/10 rounded-full transition-colors self-start"
+                    >
+                      <svg className={`w-3.5 h-3.5 transition-transform ${remixOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      Remix
+                    </button>
+                    {remixOpen && (
+                      <div className="flex flex-col gap-2">
+                        <textarea
+                          value={remixPrompt}
+                          onChange={(e) => setRemixPrompt(e.target.value)}
+                          placeholder="Describe changes to apply…"
+                          rows={3}
+                          className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:border-[#DB2777] focus:ring-1 focus:ring-[#DB2777] transition-all resize-none"
+                        />
+                        <button
+                          onClick={handleRunRemix}
+                          disabled={remixLoading || !remixPrompt.trim()}
+                          className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-white bg-[#DB2777] hover:bg-[#BE185D] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                        >
+                          {remixLoading ? (
+                            <>
+                              <RefreshIcon className="w-4 h-4" spin />
+                              Remixing…
+                            </>
+                          ) : (
+                            'Run Remix'
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : isProcessing ? (
               <div className="flex flex-col items-center gap-2 p-6 text-center">
@@ -179,7 +254,7 @@ export const PanelCard: React.FC<PanelCardProps> = ({
 
           {/* Quick Actions Footer */}
           {isSuccess && (
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-2 justify-center flex-wrap">
               <button
                 onClick={() => onRefine(panel.id, 'zoom')}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-[#DB2777]/10 dark:hover:bg-[#DB2777]/20 text-gray-700 dark:text-gray-300 hover:text-[#DB2777] rounded-lg border border-gray-300 dark:border-gray-700 hover:border-[#DB2777]/50 transition-all text-xs font-medium"
@@ -196,7 +271,27 @@ export const PanelCard: React.FC<PanelCardProps> = ({
                 <ArrowsExpandIcon className="w-4 h-4" />
                 Refine: Expand
               </button>
+              <button
+                onClick={() => setIsInpaintOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:border-orange-500/50 transition-all text-xs font-medium"
+                title="AI: Paint over a region to regenerate it"
+              >
+                <PaintBrushIcon className="w-4 h-4" />
+                Inpaint
+              </button>
             </div>
+          )}
+
+          {/* Inpaint Modal */}
+          {isInpaintOpen && (panel.resultUrl || panel.originalImageRef) && (
+            <InpaintModal
+              imageUrl={(panel.resultUrl || panel.originalImageRef)!}
+              onSubmit={(maskDataUrl, prompt, strength, width, height) => {
+                setIsInpaintOpen(false);
+                onInpaint(panel.id, maskDataUrl, prompt, strength, width, height);
+              }}
+              onClose={() => setIsInpaintOpen(false)}
+            />
           )}
         </div>
       </div>

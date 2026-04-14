@@ -11,7 +11,6 @@ interface I2VStoryboardSubmitRequest {
   panelUrls: string[];
   panelLabels: string[];
   sourceText?: string;
-  targetDuration?: string;
   // Conditions
   storyCondition?: string;
   imageCondition?: string;
@@ -20,6 +19,11 @@ interface I2VStoryboardSubmitRequest {
   // Guides
   imageGuide?: string;
   videoGuide?: string;
+  // Instructions
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
   // API key
   apiKey?: string;
 }
@@ -37,9 +41,9 @@ export async function POST(request: NextRequest) {
 
     const body: I2VStoryboardSubmitRequest = await request.json();
 
-    if (!body.panelUrls || !Array.isArray(body.panelUrls) || body.panelUrls.length === 0) {
+    if (!Array.isArray(body.panelUrls)) {
       return NextResponse.json(
-        { error: "panelUrls is required and must be a non-empty array" },
+        { error: "panelUrls must be an array" },
         { status: 400 }
       );
     }
@@ -50,7 +54,6 @@ export async function POST(request: NextRequest) {
       panel_urls: body.panelUrls,
       panel_labels: body.panelLabels || [],
       source_text: body.sourceText || "",
-      target_duration: body.targetDuration || "03:00",
       // Conditions
       story_condition: body.storyCondition || "",
       image_condition: body.imageCondition || "",
@@ -59,13 +62,15 @@ export async function POST(request: NextRequest) {
       // Guides
       image_guide: body.imageGuide || "",
       video_guide: body.videoGuide || "",
+      // Instructions
+      custom_instruction: body.customInstruction || "",
+      background_instruction: body.backgroundInstruction || "",
+      negative_instruction: body.negativeInstruction || "",
+      video_instruction: body.videoInstruction || "",
       // API key
       api_key: body.apiKey,
     };
 
-    console.log("[I2VStoryboardOrchestrator] Submitting job to:", endpoint);
-    console.log("[I2VStoryboardOrchestrator] Panel count:", body.panelUrls.length);
-    console.log("[I2VStoryboardOrchestrator] Target duration:", body.targetDuration || "03:00");
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -79,7 +84,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[I2VStoryboardOrchestrator] Response status:", response.status, "body:", responseText.substring(0, 500));
 
     let data;
     try {

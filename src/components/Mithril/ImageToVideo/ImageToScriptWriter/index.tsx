@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Loader2,
   Sparkles,
@@ -18,12 +18,18 @@ import {
 import { useScriptWriter } from "./useScriptWriter";
 import { StoryboardTable } from "./StoryboardTable";
 import { GENRE_PRESETS } from "./constants";
+import type { GenrePreset } from "./types";
 
 // Re-export types for external consumers
 export type { Continuity, VoicePrompt, Scene, GenerationResult } from "./types";
 
 export default function ImageToScriptWriter() {
+  const PRESET_STORAGE_KEY = "mithril_i2v_genre_presets_v1";
   const mangaInputRef = useRef<HTMLInputElement>(null);
+  const jsonImportRef = useRef<HTMLInputElement>(null);
+  const [sourceTextFilename, setSourceTextFilename] = useState<string | null>(null);
+  const [showPresetEditor, setShowPresetEditor] = useState(false);
+  const [presetOptions, setPresetOptions] = useState<GenrePreset[]>(GENRE_PRESETS);
 
   const {
     state,
@@ -32,10 +38,10 @@ export default function ImageToScriptWriter() {
     hasEndPrompts,
     hasResults,
     setGenre,
-    setTargetDuration,
     setSourceText,
     setConditions,
     setGuides,
+    setInstructions,
     toggleConditions,
     toggleGuides,
     uploadMangaFiles,
@@ -45,10 +51,62 @@ export default function ImageToScriptWriter() {
     clear,
     splitStartEnd,
     updateClip,
+    replaceReferenceImage,
     exportCSV,
+    exportXLSX,
+    exportJSON,
+    importJSON,
   } = useScriptWriter();
 
   const { config, ui, processing, mangaImages, result } = state;
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(PRESET_STORAGE_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as GenrePreset[];
+      if (!Array.isArray(parsed)) return;
+
+      const byId = new Map(parsed.map((preset) => [preset.id, preset]));
+      setPresetOptions(
+        GENRE_PRESETS.map((preset) => ({
+          ...preset,
+          ...(byId.get(preset.id) || {}),
+        }))
+      );
+    } catch {
+      setPresetOptions(GENRE_PRESETS);
+    }
+  }, []);
+
+  const persistPresets = (next: GenrePreset[]) => {
+    setPresetOptions(next);
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const handlePresetFieldChange = (
+    presetId: string,
+    field: keyof Pick<GenrePreset, "name" | "description" | "story" | "image" | "video" | "sound">,
+    value: string
+  ) => {
+    const next = presetOptions.map((preset) =>
+      preset.id === presetId ? { ...preset, [field]: value } : preset
+    );
+    persistPresets(next);
+  };
+
+  const handleGenreSelect = (genreId: string) => {
+    setGenre(genreId);
+    const selected = presetOptions.find((preset) => preset.id === genreId);
+    if (!selected) return;
+
+    setConditions({
+      story: selected.story,
+      image: selected.image,
+      video: selected.video,
+      sound: selected.sound,
+    });
+  };
 
   // Handle manga panel upload
   const handleMangaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +119,19 @@ export default function ImageToScriptWriter() {
       alert(error instanceof Error ? error.message : "Failed to upload files");
     }
 
+    if (e.target) e.target.value = "";
+  };
+
+  // Read a .txt file into a string and call setter
+  const handleFileInstruction = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (value: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => setter(event.target?.result as string ?? "");
+    reader.readAsText(file);
     if (e.target) e.target.value = "";
   };
 
@@ -80,6 +151,17 @@ export default function ImageToScriptWriter() {
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to split frames");
     }
+  };
+
+  const handleJsonImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await importJSON(file);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to import JSON");
+    }
+    e.target.value = "";
   };
 
   return (
@@ -112,9 +194,9 @@ export default function ImageToScriptWriter() {
             </p>
           </div>
         </div>
-        {totalPanels === 0 && (
+        {totalPanels === 0 && !config.sourceText && (
           <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
-            Upload panels below or complete the Panel Splitter stage first
+            Upload panels below or the source text first
           </p>
         )}
       </div>
@@ -194,20 +276,6 @@ export default function ImageToScriptWriter() {
 
       {/* Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Target Duration */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Target Duration (MM:SS)
-          </label>
-          <input
-            type="text"
-            value={config.targetDuration}
-            onChange={(e) => setTargetDuration(e.target.value)}
-            placeholder="03:00"
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-          />
-        </div>
-
         {/* Genre Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -215,30 +283,160 @@ export default function ImageToScriptWriter() {
           </label>
           <select
             value={config.genre}
-            onChange={(e) => setGenre(e.target.value)}
+            onChange={(e) => handleGenreSelect(e.target.value)}
             className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
           >
-            {GENRE_PRESETS.map((preset) => (
+            {presetOptions.map((preset) => (
               <option key={preset.id} value={preset.id}>
                 {preset.name} - {preset.description}
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={() => setShowPresetEditor((prev) => !prev)}
+            className="mt-2 text-xs text-cyan-500 hover:text-cyan-400"
+          >
+            {showPresetEditor ? "Hide Preset Editor" : "Edit Custom Presets"}
+          </button>
         </div>
       </div>
+
+      {showPresetEditor && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50 space-y-4">
+          {presetOptions
+            .filter((preset) => preset.id === "custom-1" || preset.id === "custom-2")
+            .map((preset) => (
+              <div key={preset.id} className="border border-gray-300 dark:border-gray-600 rounded-md p-3 space-y-2">
+                <input
+                  value={preset.name}
+                  onChange={(e) => handlePresetFieldChange(preset.id, "name", e.target.value)}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  placeholder="Preset name"
+                />
+                <textarea
+                  value={preset.story}
+                  onChange={(e) => handlePresetFieldChange(preset.id, "story", e.target.value)}
+                  rows={2}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  placeholder="Story condition"
+                />
+                <textarea
+                  value={preset.image}
+                  onChange={(e) => handlePresetFieldChange(preset.id, "image", e.target.value)}
+                  rows={2}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  placeholder="Image condition"
+                />
+                <textarea
+                  value={preset.video}
+                  onChange={(e) => handlePresetFieldChange(preset.id, "video", e.target.value)}
+                  rows={2}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  placeholder="Video condition"
+                />
+                <textarea
+                  value={preset.sound}
+                  onChange={(e) => handlePresetFieldChange(preset.id, "sound", e.target.value)}
+                  rows={2}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  placeholder="Sound condition"
+                />
+              </div>
+            ))}
+        </div>
+      )}
 
       {/* Source Text (Optional) */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Source Text (Optional)
         </label>
-        <textarea
-          value={config.sourceText}
-          onChange={(e) => setSourceText(e.target.value)}
-          placeholder="Paste original story text here for better context..."
-          rows={4}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => document.getElementById('source-text-file-input')?.click()}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            원본 텍스트 파일 업로드 (.txt)
+          </button>
+          <input
+            id="source-text-file-input"
+            type="file"
+            accept=".txt"
+            className="hidden"
+            onChange={(e) => {
+              const filename = e.target.files?.[0]?.name ?? null;
+              handleFileInstruction(e, (v) => { setSourceText(v); setSourceTextFilename(filename); });
+            }}
+          />
+          {sourceTextFilename && (
+            <span className="text-xs text-green-500">✓ {sourceTextFilename}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Custom Instructions (Story Flow)
+          </label>
+          <textarea
+            value={config.instructions.custom}
+            onChange={(e) => setInstructions({ custom: e.target.value })}
+            placeholder="강조하거나 누락하고 싶은 흐름을 적어주세요..."
+            rows={3}
+            className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Background ID Spec (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ background: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.background && (
+              <p className="text-xs text-cyan-500 mt-1">✓ Spec loaded ({config.instructions.background.length} chars)</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Negative Prompt (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ negative: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.negative && (
+              <p className="text-xs text-red-500 mt-1">✓ Spec loaded ({config.instructions.negative.length} chars)</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Video Prompt Spec (.txt)
+            </label>
+            <input
+              type="file"
+              accept=".txt"
+              onChange={(e) => handleFileInstruction(e, (v) => setInstructions({ video: v }))}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+            />
+            {config.instructions.video && (
+              <p className="text-xs text-blue-500 mt-1">✓ Spec loaded ({config.instructions.video.length} chars)</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Conditions (Collapsible) */}
@@ -339,7 +537,7 @@ export default function ImageToScriptWriter() {
       <div className="flex justify-end gap-4 flex-wrap">
         <button
           onClick={handleGenerate}
-          disabled={processing.isGenerating || totalPanels === 0}
+          disabled={processing.isGenerating || (totalPanels === 0 && !config.sourceText)}
           className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {processing.isGenerating ? (
@@ -395,12 +593,44 @@ export default function ImageToScriptWriter() {
             </button>
 
             <button
+              onClick={() => exportXLSX(false)}
+              className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Export XLSX
+            </button>
+
+            <button
+              onClick={exportJSON}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg flex items-center gap-2 text-sm"
+            >
+              <Download className="w-4 h-4" />
+              Export JSON
+            </button>
+
+            <button
+              onClick={() => jsonImportRef.current?.click()}
+              className="px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg flex items-center gap-2 text-sm"
+            >
+              <Upload className="w-4 h-4" />
+              Import JSON
+            </button>
+            <input
+              ref={jsonImportRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={handleJsonImport}
+            />
+
+            <button
               onClick={() => exportCSV(true)}
               className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg flex items-center gap-2 text-sm"
             >
               <Download className="w-4 h-4" />
               CSV (Text Only)
             </button>
+
 
             <button
               onClick={clear}
@@ -420,6 +650,7 @@ export default function ImageToScriptWriter() {
         voicePrompts={result?.voicePrompts || []}
         hasEndPrompt={hasEndPrompts}
         onUpdateClip={updateClip}
+        onReplaceReferenceImage={replaceReferenceImage}
       />
     </div>
   );

@@ -1,9 +1,14 @@
 // Continuity data for each clip in the storyboard
 export interface Continuity {
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;
+  videoApi?: string;
+  pixAiPrompt?: string;
   soraVideoPrompt: string;
   dialogue: string;
   dialogueEn: string;
@@ -17,6 +22,9 @@ export interface Continuity {
   backgroundId: string;
   referenceImage?: string;
   referenceImageIndex?: number;
+  referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image (persisted)
+  refFileName?: string;
+  facePresent?: boolean;
   panelCoordinates?: number[];
 }
 
@@ -63,13 +71,21 @@ export interface StyleGuides {
   video: string;
 }
 
+// Additional instruction fields (file-uploadable specs)
+export interface GenerationInstructions {
+  custom: string;      // Story flow instructions
+  background: string;  // Background ID spec
+  negative: string;    // Negative prompts (absolute prohibitions)
+  video: string;       // Video prompt rules spec
+}
+
 // Configuration state
 export interface ScriptWriterConfig {
   genre: string;
-  targetDuration: string;
   sourceText: string;
   conditions: GenerationConditions;
   guides: StyleGuides;
+  instructions: GenerationInstructions;
 }
 
 // UI state

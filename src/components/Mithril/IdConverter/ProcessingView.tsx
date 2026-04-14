@@ -101,7 +101,6 @@ export function ProcessingView({
       return;
     }
 
-    console.log("[ProcessingView] Job update for our job:", update.jobId, "status:", update.status);
 
     if (update.status === "generating") {
       setIsProcessing(true);
@@ -259,7 +258,6 @@ export function ProcessingView({
       // Set ref first (synchronous) so job updates are accepted immediately
       batchJobIdRef.current = result.jobId || null;
       setBatchJobId(result.jobId || null);
-      console.log("[ProcessingView] Batch job submitted:", result.jobId);
 
       // Notify parent to persist the jobId to Firestore (for resume after page refresh)
       if (result.jobId && onBatchJobStarted) {

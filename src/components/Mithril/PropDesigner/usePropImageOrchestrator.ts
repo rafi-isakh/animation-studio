@@ -114,14 +114,6 @@ export function usePropImageOrchestrator({
    */
   const submitJob = useCallback(async (params: SubmitPropDesignJobParams): Promise<SubmitJobResponse> => {
     try {
-      console.log('[PropDesignOrchestrator] submitJob called with params:', {
-        propId: params.propId,
-        propName: params.propName,
-        promptLength: params.prompt?.length,
-        referenceImages: params.referenceImages?.length || 0,
-        genre: params.genre,
-        styleKeyword: params.styleKeyword,
-      });
 
       const response = await fetch('/api/prop-design/orchestrator/submit', {
         method: 'POST',

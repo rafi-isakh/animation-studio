@@ -43,14 +43,14 @@ export default function DetectionPanel({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">
+            <span className="text-[10px] font-black text-[#DB2777] uppercase tracking-widest">
               Characters ({characters.length})
             </span>
           </div>
           <button
             onClick={onDetectCharacters}
             disabled={isAnalyzingCharacters || isAnalyzingObjects || characters.length === 0}
-            className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-700 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors flex items-center gap-1.5"
           >
             {isAnalyzingCharacters ? (
               <>

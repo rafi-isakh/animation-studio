@@ -12,8 +12,6 @@ export interface ProjectMetadata {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   currentStage: number;
-  customApiKey?: string;
-  videoApiKey?: string;
   ownerId: string; // User ID who owns this project
 }
 
@@ -26,8 +24,6 @@ export interface CreateProjectInput {
 export interface UpdateProjectInput {
   name?: string;
   currentStage?: number;
-  customApiKey?: string;
-  videoApiKey?: string;
 }
 
 // ============================================
@@ -320,6 +316,7 @@ export interface ClipDocument {
   videoPrompt: string;
   soraVideoPrompt: string;
   veoVideoPrompt: string;
+  pixAiPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -359,6 +356,7 @@ export interface ImageGenDocument {
     name: string;
     imageUrl: string; // S3 URL instead of base64
     category: 'character' | 'background';
+    isRemoved?: boolean;
   }>;
 }
 
@@ -378,6 +376,10 @@ export interface ImageGenFrameDocument {
   remixPrompt: string;
   remixImageRef: string | null;
   editedImageRef: string | null;
+  // NSFW variant fields
+  promptVariant?: 'A' | 'B' | 'C';
+  clipNumber?: number;
+  isFinalized?: boolean;
 }
 
 export interface SaveImageGenFrameInput {
@@ -395,6 +397,10 @@ export interface SaveImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  // NSFW variant fields
+  promptVariant?: 'A' | 'B' | 'C';
+  clipNumber?: number;
+  isFinalized?: boolean;
 }
 
 export interface UpdateImageGenFrameInput {
@@ -407,6 +413,7 @@ export interface UpdateImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  isFinalized?: boolean;
 }
 
 // ============================================
@@ -567,6 +574,7 @@ export interface SaveClipInput {
   videoPrompt: string;
   soraVideoPrompt: string;
   veoVideoPrompt: string;
+  pixAiPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
   characterInfo?: string;
@@ -580,6 +588,8 @@ export interface SaveClipInput {
   bgmEn: string;
   length: string;
   accumulatedTime: string;
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   imageRef?: string;
   selectedBgId?: string | null;
 }
@@ -591,6 +601,7 @@ export interface UpdateClipInput {
   videoPrompt?: string;
   soraVideoPrompt?: string;
   veoVideoPrompt?: string;
+  pixAiPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
   characterInfo?: string;
@@ -604,6 +615,8 @@ export interface UpdateClipInput {
   bgmEn?: string;
   length?: string;
   accumulatedTime?: string;
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   imageRef?: string;
   selectedBgId?: string | null;
 }
@@ -689,6 +702,7 @@ export interface MangaPanelDocument {
   box_2d: number[]; // [ymin, xmin, ymax, xmax] in 0-1000 scale
   label: string;
   imageRef?: string; // S3 URL for cropped panel image
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 export interface MangaPageDocument {
@@ -701,6 +715,8 @@ export interface MangaPageDocument {
   panelCount: number;
   createdAt: Timestamp;
   originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface ImageSplitterDocument {
@@ -716,12 +732,15 @@ export interface SaveMangaPageInput {
   readingDirection: ReadingDirection;
   status?: MangaPanelStatus;
   originalPageId?: string; // Original page ID from local state (for matching with job queue)
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface SaveMangaPanelInput {
   box_2d: number[];
   label: string;
   imageRef?: string;
+  storyboard?: { text: string }; // Auto-generated script/transcription
 }
 
 // ============================================
@@ -735,6 +754,10 @@ export interface I2VScriptDocument {
   imageCondition: string;
   videoCondition: string;
   soundCondition: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
   generatedAt: Timestamp;
 }
 
@@ -746,12 +769,20 @@ export interface I2VSceneDocument {
 export interface I2VClipDocument {
   clipIndex: number;
   referenceImageIndex: number; // Reference to source panel
+  referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image
+  refFileName?: string;
+  pixAiPrompt?: string;
+  facePresent?: boolean;
   // Story content
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   // Prompts
   imagePrompt: string;
   imagePromptEnd?: string; // Optional end frame prompt for split frames
   videoPrompt: string;
+  videoApi?: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;
@@ -780,6 +811,10 @@ export interface SaveI2VScriptInput {
   imageCondition: string;
   videoCondition: string;
   soundCondition: string;
+  customInstruction?: string;
+  backgroundInstruction?: string;
+  negativeInstruction?: string;
+  videoInstruction?: string;
 }
 
 export interface SaveI2VSceneInput {
@@ -788,10 +823,18 @@ export interface SaveI2VSceneInput {
 
 export interface SaveI2VClipInput {
   referenceImageIndex: number;
+  referenceImageUrl?: string; // S3 URL if user uploaded a custom reference image
+  refFileName?: string;
+  pixAiPrompt?: string;
+  facePresent?: boolean;
   story: string;
+  storyDetailKo?: string;
+  storyGroupLabel?: string;
+  storyGroupSize?: number;
   imagePrompt: string;
   imagePromptEnd?: string; // Optional end frame prompt for split frames
   videoPrompt: string;
+  videoApi?: string;
   soraVideoPrompt: string;
   backgroundPrompt: string;
   backgroundId: string;

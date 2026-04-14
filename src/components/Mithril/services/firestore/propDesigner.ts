@@ -301,12 +301,10 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
   // Step 1: Delete all prop images from S3 first
   try {
     const props = await getProps(projectId);
-    console.log(`[clearPropDesigner] Deleting ${props.length} props from S3`);
     
     for (const prop of props) {
       try {
         await deletePropImages(projectId, prop.id);
-        console.log(`[clearPropDesigner] Deleted S3 images for prop: ${prop.id}`);
       } catch (error) {
         console.warn(`[clearPropDesigner] Failed to delete S3 images for prop ${prop.id}:`, error);
       }

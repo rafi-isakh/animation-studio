@@ -44,22 +44,3 @@ export async function updateCurrentStage(
   await updateMetadata(projectId, { currentStage: stage });
 }
 
-/**
- * Update custom API key (for image/text generation)
- */
-export async function updateCustomApiKey(
-  projectId: string,
-  apiKey: string
-): Promise<void> {
-  await updateMetadata(projectId, { customApiKey: apiKey });
-}
-
-/**
- * Update video API key (for video generation)
- */
-export async function updateVideoApiKey(
-  projectId: string,
-  apiKey: string
-): Promise<void> {
-  await updateMetadata(projectId, { videoApiKey: apiKey });
-}

@@ -13,6 +13,7 @@ import {
   Settings,
   Globe,
   Shield,
+  CreditCard,
 } from "lucide-react"
 import Image from "next/image"
 import { useMithrilAuth } from '@/components/Mithril/auth';
@@ -47,6 +48,14 @@ export function MithrilSidebar() {
           text={phrase(dictionary, "sidebar_admin", language) || "Admin"}
           active={pathname.startsWith('/mithril/admin')}
           href="/mithril/admin"
+        />
+      )}
+      {isAdmin && (
+        <SidebarItem
+          icon={<CreditCard size={20} />}
+          text="Credits"
+          active={pathname.startsWith('/mithril/credits')}
+          href="/mithril/credits"
         />
       )}
       <SidebarItem

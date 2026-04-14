@@ -110,8 +110,6 @@ Additional character details: ${prompt}
 
     parts.push({ text: masterSheetPrompt });
 
-    console.log("[generate-master-sheet] Model: gemini-3-pro-image-preview");
-    console.log("[generate-master-sheet] Has style reference:", !!styleReferenceBase64);
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

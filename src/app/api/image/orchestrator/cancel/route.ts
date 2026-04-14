@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to orchestrator backend
-    console.log("[ImageOrchestrator] Cancelling job:", body.jobId);
 
     const response = await fetch(`${ORCHESTRATOR_URL}/api/v1/image-jobs/${body.jobId}/cancel`, {
       method: "POST",
@@ -44,7 +43,6 @@ export async function POST(request: NextRequest) {
     });
 
     const responseText = await response.text();
-    console.log("[ImageOrchestrator] Cancel response status:", response.status);
 
     let data;
     try {

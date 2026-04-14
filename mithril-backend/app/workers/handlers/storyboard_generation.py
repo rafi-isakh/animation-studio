@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from google import genai
@@ -23,6 +24,10 @@ settings = get_settings()
 MODEL_NAME = "gemini-2.5-pro"
 
 IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles"
+PIXAI_PROMPT_SUFFIX = "Maintain the original eyes and hair color. Do not change cultural nuance, don't render random Japanese elements that didn't exist"
+VIDEO_PROMPT_SUFFIX = "Don't generate random Japanese element"
+
+BATCH_SIZE = 50  # Max panels per Gemini call; above this, batch automatically
 
 
 class CancellationRequested(Exception):
@@ -79,6 +84,75 @@ def _append_suffix(prompt: str) -> str:
     return f"{trimmed}{connector}{IMAGE_PROMPT_SUFFIX}"
 
 
+def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
+    """Split source text into batches of at most batch_size [PANEL XXX] blocks."""
+    parts = re.split(r'(?=\[PANEL \d+\])', source_text)
+    if parts and not re.match(r'\[PANEL \d+\]', parts[0].strip()):
+        header = parts[0]
+        panel_parts = parts[1:]
+    else:
+        header = ""
+        panel_parts = parts
+
+    batches = []
+    for i in range(0, len(panel_parts), batch_size):
+        group = panel_parts[i : i + batch_size]
+        batch_header = re.sub(
+            r'총 분석된 패널 수:\s*\d+개',
+            f'총 분석된 패널 수: {len(group)}개',
+            header,
+        )
+        batches.append(batch_header + "".join(group))
+    return batches
+
+
+def _extract_continuation_context(result: dict) -> dict:
+    """Extract state from a completed batch result needed by the next batch."""
+    scenes = result.get("scenes", [])
+    last_background_id = ""
+    last_accumulated_time = "00:00"
+    last_scene_title = ""
+
+    for scene in scenes:
+        if scene.get("sceneTitle"):
+            last_scene_title = scene["sceneTitle"]
+        for clip in scene.get("clips", []):
+            if clip.get("backgroundId", "").strip():
+                last_background_id = clip["backgroundId"].strip()
+            if clip.get("accumulatedTime", "").strip():
+                last_accumulated_time = clip["accumulatedTime"].strip()
+
+    return {
+        "last_background_id": last_background_id,
+        "last_accumulated_time": last_accumulated_time,
+        "last_scene_title": last_scene_title,
+        "scene_count": len(scenes),
+        "character_id_summary": result.get("characterIdSummary", []),
+    }
+
+
+def _merge_batch_results(batch_results: list[dict]) -> dict:
+    """Merge multiple batch results into a single storyboard result dict."""
+    merged_scenes: list[dict] = []
+    seen_voice_prompts: set[str] = set()
+    merged_voice_prompts: list[dict] = []
+
+    for batch_result in batch_results:
+        merged_scenes.extend(batch_result.get("scenes", []))
+        for vp in batch_result.get("voicePrompts", []):
+            key = vp.get("promptKo", "")
+            if key and key not in seen_voice_prompts:
+                seen_voice_prompts.add(key)
+                merged_voice_prompts.append(vp)
+
+    return {
+        "scenes": merged_scenes,
+        "voicePrompts": merged_voice_prompts,
+        "characterIdSummary": batch_results[-1].get("characterIdSummary", []),
+        "genre": batch_results[0].get("genre", ""),
+    }
+
+
 async def process_storyboard(
     job_id: str,
     custom_api_key: str | None = None,
@@ -112,7 +186,7 @@ async def process_storyboard(
 
     logger.info(f"[STORYBOARD] Job {job_id} loaded: project={job.project_id}, status={job.status}")
     logger.info(f"[STORYBOARD] Text length: {len(job.source_text or '')} chars")
-    logger.info(f"[STORYBOARD] Target time: {job.target_time}")
+    logger.info(f"[STORYBOARD] Clip count: {job.clip_count}, Target time: {job.target_time}")
 
     # Initialize state machine
     state_machine = JobStateMachine(job_id, job.status)
@@ -132,10 +206,74 @@ async def process_storyboard(
         # Check for cancellation before AI call
         await check_cancellation(job_id)
 
-        # Call Gemini for storyboard generation
-        logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
-        result = await _generate_storyboard_with_gemini(job, api_key)
-        logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
+        # Detect panel count to decide batching
+        source_text = job.source_text or ""
+        panel_count = len(re.findall(r'\[PANEL \d+\]', source_text))
+        logger.info(f"[STORYBOARD] {job_id} - Detected {panel_count} panels in source text")
+
+        if panel_count > BATCH_SIZE:
+            # Batched path: split into chunks, run sequential Gemini calls
+            batches = _split_source_into_batches(source_text, BATCH_SIZE)
+            total_batches = len(batches)
+            logger.info(f"[STORYBOARD] {job_id} - Batching into {total_batches} calls (BATCH_SIZE={BATCH_SIZE})")
+
+            batch_results = []
+            total_usage_input = 0
+            total_usage_output = 0
+            continuation_context = None
+
+            for batch_idx, batch_text in enumerate(batches):
+                await check_cancellation(job_id)
+                batch_progress = 0.2 + (0.7 * (batch_idx / total_batches))
+                await job_queue_service.update_job_status(
+                    job_id, JobStatus.GENERATING, progress=round(batch_progress, 2)
+                )
+                logger.info(f"[STORYBOARD] {job_id} - Batch {batch_idx + 1}/{total_batches}")
+
+                batch_result, batch_usage = await _generate_storyboard_with_gemini(
+                    job, api_key,
+                    source_text_override=batch_text,
+                    continuation_context=continuation_context,
+                )
+                total_usage_input += batch_usage.prompt_token_count or 0
+                total_usage_output += batch_usage.candidates_token_count or 0
+                batch_results.append(batch_result)
+                continuation_context = _extract_continuation_context(batch_result)
+                logger.info(
+                    f"[STORYBOARD] {job_id} - Batch {batch_idx + 1} done: "
+                    f"{sum(len(s.get('clips', [])) for s in batch_result.get('scenes', []))} clips"
+                )
+
+            try:
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, total_usage_input, total_usage_output)
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini_text", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
+
+            result = _merge_batch_results(batch_results)
+            logger.info(f"[STORYBOARD] {job_id} - Merged: {len(result.get('scenes', []))} scenes total")
+
+        else:
+            # Single-call path (original behavior)
+            logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
+            result, _usage = await _generate_storyboard_with_gemini(job, api_key)
+            logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
+
+            try:
+                from app.services.credits import get_credits_service, get_text_cost
+                _cost = get_text_cost(MODEL_NAME, _usage.prompt_token_count or 0, _usage.candidates_token_count or 0)
+                await get_credits_service().record_credit(
+                    user_id=job.user_id, project_id=job.project_id,
+                    job_id=job.id, job_type=job.type.value,
+                    provider_id="gemini_text", cost_usd=_cost,
+                )
+            except Exception:
+                logger.warning(f"Failed to record credit for job {job_id}", exc_info=True)
 
         # Check for cancellation after AI call
         await check_cancellation(job_id)
@@ -208,6 +346,8 @@ async def process_storyboard(
 async def _generate_storyboard_with_gemini(
     job: JobDocument,
     api_key: str,
+    source_text_override: str | None = None,
+    continuation_context: dict | None = None,
 ) -> dict:
     """
     Call Gemini API to generate storyboard.
@@ -215,19 +355,25 @@ async def _generate_storyboard_with_gemini(
     Args:
         job: Job document with all parameters
         api_key: Gemini API key
+        source_text_override: If provided, replaces job.source_text (used for batching)
+        continuation_context: If provided, injects continuation state into the prompt
 
     Returns:
         dict with scenes and voicePrompts
     """
     client = genai.Client(api_key=api_key)
 
-    # Parse target time
-    target_time = job.target_time or "03:00"
-    parts = target_time.split(":")
-    minutes = int(parts[0]) if len(parts) > 0 else 3
-    seconds = int(parts[1]) if len(parts) > 1 else 0
-    total_seconds = minutes * 60 + seconds
-    estimated_clip_count = round(total_seconds / 1.8)  # ~1.8 seconds per clip average
+    # Determine exact clip count — clip_count takes priority over target_time
+    if job.clip_count and job.clip_count > 0:
+        exact_clip_count = job.clip_count
+    else:
+        # Fall back to target_time-based estimate for legacy jobs
+        target_time = job.target_time or "03:00"
+        parts = target_time.split(":")
+        minutes = int(parts[0]) if len(parts) > 0 else 3
+        seconds = int(parts[1]) if len(parts) > 1 else 0
+        total_seconds = minutes * 60 + seconds
+        exact_clip_count = round(total_seconds / 1.8)
 
     # Build conditions
     story_condition = job.story_condition or ""
@@ -240,14 +386,35 @@ async def _generate_storyboard_with_gemini(
     background_instruction = job.background_instruction or ""
     negative_instruction = job.negative_instruction or ""
     video_instruction = job.video_instruction or ""
-    source_text = job.source_text or ""
+    image_instruction = job.image_instruction or ""
+    selected_trailer_script = job.selected_trailer_script or ""
+    source_text = source_text_override if source_text_override is not None else (job.source_text or "")
+
+    continuation_block = ""
+    if continuation_context:
+        char_summary_text = json.dumps(
+            continuation_context.get("character_id_summary", []),
+            ensure_ascii=False, indent=2
+        )
+        continuation_block = f"""
+**[이전 배치에서 이어지는 콘티입니다 - 연속성 필수 유지]**
+이 텍스트는 전체 원본의 일부입니다. 아래 이전 배치의 마지막 상태에서 자연스럽게 이어가야 합니다.
+
+- **backgroundId 시작점**: "{continuation_context.get('last_background_id', '')}" 다음 번호부터 시작하십시오.
+- **accumulatedTime 시작점**: "{continuation_context.get('last_accumulated_time', '00:00')}" 이후부터 누적 시간을 계산하십시오.
+- **이전 마지막 씬 제목**: "{continuation_context.get('last_scene_title', '')}"
+- **이전 씬 수**: {continuation_context.get('scene_count', 0)}개
+- **캐릭터 ID 요약 (일관성 유지)**:
+{char_summary_text}
+"""
 
     prompt = f"""
-    다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 {estimated_clip_count}개의 클립으로 구성된, 정확히 {total_seconds}초({target_time}) 분량의 애니메이션 콘티를 제작해 주세요.
-    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다.
+    다음 원본 텍스트를 기반으로 애니메이션 콘티를 제작해 주세요.
+    전체 클립의 수는 **정확히 {exact_clip_count}개**여야 합니다. 이 숫자는 절대적인 요구사항입니다 — 누적 시간에 관계없이 반드시 {exact_clip_count}개의 클립을 생성해야 합니다. 적게 생성하는 것은 허용되지 않습니다.
+    각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다.
 
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
-    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오. 대사가 있는 경우, "1~2초 역동성 규칙"은 **무시**하고 아래 규칙이 **최우선**입니다.
+    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오.
 
     | dialogueEn 단어 수 | 할당 시간 | 비고 |
     | :--- | :--- | :--- |
@@ -269,6 +436,7 @@ async def _generate_storyboard_with_gemini(
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
 
     5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
+    스토리나 대사에서 캐릭터가 떨고있거나(shivering), 기침하거나(coughing), 눈물을 흘리거나(tears flowing) 등 신체적/감정적 상태가 암시되는 경우, 해당 키워드를 반드시 videoPrompt에 명시하십시오.
 
     6. **dialogue**: 한국어 대사. 규칙: {sound_condition}
 
@@ -292,6 +460,8 @@ async def _generate_storyboard_with_gemini(
       - **캐릭터 + 대사가 있는 클립**: `Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"`
       - **배경만 있는 클립 (캐릭터 없음)**: `Fixed lo-fi static background wallpaper, slow dolly-in`
       - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: `Static storybook lofi wallpaper, narration says "[narrationEn 내용]"`
+
+    20. **pixAiPrompt**: PixAI 애니메이션 스타일 이미지 생성 AI용 영어 프롬프트. imagePrompt의 핵심 시각 요소(캐릭터 ID, 동작, 카메라 앵글, 배경, 분위기)를 PixAI에 적합하게 간결하게 재작성합니다.
 
     13. **length**: "1초", "2초", "4초" 형식
 
@@ -334,6 +504,25 @@ async def _generate_storyboard_with_gemini(
     {video_instruction}
     ''' if video_instruction else ''}
 
+    {f'''
+    **[이미지 프롬프트 패키지 지시사항]**
+    {image_instruction}
+    ''' if image_instruction else ''}
+
+    {f'''
+    **[CRITICAL: 트레일러 스크립트 배치 규칙]**
+    - 사용자가 선택한 트레일러 스크립트(Trailer Script)가 제공됩니다.
+    - 이 스크립트의 각 라인을 적절한 클립의 `trailerScriptKo` 필드에 하나씩 배치하십시오.
+    - 스크립트 라인 수보다 클립 수가 많을 수 있으므로, 내용과 어울리지 않거나 여백이 필요한 클립의 `trailerScriptKo` 필드는 비워두어도 됩니다.
+    - `trailerScriptEn` 필드에는 `trailerScriptKo`에 배치된 스크립트의 영문 번역본을 작성하십시오.
+    - 기존의 `dialogue`, `narration` 필드는 원본 텍스트와의 대조를 위해 유지되므로, 트레일러 스크립트와 별개로 위 규칙에 따라 작성하십시오.
+
+    **[선택된 트레일러 스크립트]**
+    {selected_trailer_script}
+    ''' if selected_trailer_script else ''}
+
+    {continuation_block}
+
     원본 텍스트:
     ---
     {source_text}
@@ -360,6 +549,7 @@ async def _generate_storyboard_with_gemini(
                                     "videoPrompt": {"type": "STRING"},
                                     "soraVideoPrompt": {"type": "STRING"},
                                     "veoVideoPrompt": {"type": "STRING"},
+                                    "pixAiPrompt": {"type": "STRING"},
                                     "dialogue": {"type": "STRING"},
                                     "dialogueEn": {"type": "STRING"},
                                     "narration": {"type": "STRING"},
@@ -372,12 +562,15 @@ async def _generate_storyboard_with_gemini(
                                     "accumulatedTime": {"type": "STRING"},
                                     "backgroundPrompt": {"type": "STRING"},
                                     "backgroundId": {"type": "STRING"},
+                                    "trailerScriptKo": {"type": "STRING"},
+                                    "trailerScriptEn": {"type": "STRING"},
                                 },
                                 "required": [
-                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt",
+                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
+                                    "trailerScriptKo", "trailerScriptEn",
                                 ],
                             },
                         },
@@ -428,6 +621,7 @@ async def _generate_storyboard_with_gemini(
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=response_schema,
+                    max_output_tokens=65536,
                 ),
             )
             break
@@ -458,7 +652,19 @@ async def _generate_storyboard_with_gemini(
             if bg_id and bg_id.strip():
                 clip["imagePrompt"] = f"{clip['imagePrompt']}\n\nBackground ID: {bg_id}"
 
-    return result
+            # Append VIDEO_PROMPT_SUFFIX to videoPrompt
+            vp = clip.get("videoPrompt", "").strip()
+            if vp:
+                connector = " " if (vp.endswith('.') or vp.endswith(',')) else ", "
+                clip["videoPrompt"] = f"{vp}{connector}{VIDEO_PROMPT_SUFFIX}"
+            else:
+                clip["videoPrompt"] = VIDEO_PROMPT_SUFFIX
+
+            # Append PIXAI_PROMPT_SUFFIX to pixAiPrompt
+            raw = clip.get("pixAiPrompt", "").strip()
+            clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
+
+    return result, response.usage_metadata
 
 
 async def _save_storyboard(

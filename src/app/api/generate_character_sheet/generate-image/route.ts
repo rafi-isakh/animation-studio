@@ -41,8 +41,6 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    console.log("[generate-image] Model: gemini-3-pro-image-preview");
-    console.log("[generate-image] Aspect ratio:", aspectRatio);
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",

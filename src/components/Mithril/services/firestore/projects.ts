@@ -4,6 +4,7 @@ import {
   addDoc,
   getDoc,
   getDocs,
+  setDoc,
   updateDoc,
   deleteDoc,
   Timestamp,
@@ -12,6 +13,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
+import { getProjectPrefix } from '../s3/types';
 import {
   ProjectMetadata,
   CreateProjectInput,
@@ -26,6 +28,24 @@ export interface UserContext {
 }
 
 const PROJECTS_COLLECTION = 'projects';
+
+function getDocRefFromPath(pathSegments: string[]) {
+  const [firstSegment, ...remainingSegments] = pathSegments;
+  if (!firstSegment) {
+    throw new Error('Document path cannot be empty');
+  }
+
+  return doc(db, firstSegment, ...remainingSegments);
+}
+
+function getCollectionRefFromPath(pathSegments: string[]) {
+  const [firstSegment, ...remainingSegments] = pathSegments;
+  if (!firstSegment) {
+    throw new Error('Collection path cannot be empty');
+  }
+
+  return collection(db, firstSegment, ...remainingSegments);
+}
 
 /**
  * Create a new project
@@ -173,6 +193,415 @@ export async function updateCurrentStage(
   user?: UserContext
 ): Promise<void> {
   await updateProject(projectId, { currentStage: stage }, user);
+}
+
+function shouldResetCopyField(fieldName: string): boolean {
+  const normalized = fieldName.toLowerCase();
+  if (normalized.endsWith('jobid')) return true;
+  if (normalized === 'sessionid') return true;
+  if (normalized === 'originalpageid') return true;
+  return false;
+}
+
+function transformCopiedValue(value: unknown, sourcePrefix: string, destinationPrefix: string): unknown {
+  if (typeof value === 'string') {
+    return value.includes(sourcePrefix)
+      ? value.replaceAll(sourcePrefix, destinationPrefix)
+      : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => transformCopiedValue(item, sourcePrefix, destinationPrefix));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const sourceObject = value as Record<string, unknown>;
+  const transformed: Record<string, unknown> = {};
+
+  for (const [key, nestedValue] of Object.entries(sourceObject)) {
+    if (shouldResetCopyField(key)) {
+      continue;
+    }
+
+    transformed[key] = transformCopiedValue(nestedValue, sourcePrefix, destinationPrefix);
+  }
+
+  return transformed;
+}
+
+async function copyDocumentIfExists(
+  sourcePath: string[],
+  destinationPath: string[],
+  sourcePrefix: string,
+  destinationPrefix: string
+): Promise<void> {
+  const sourceRef = getDocRefFromPath(sourcePath);
+  const sourceSnapshot = await getDoc(sourceRef);
+
+  if (!sourceSnapshot.exists()) {
+    return;
+  }
+
+  const destinationRef = getDocRefFromPath(destinationPath);
+  const sourceData = sourceSnapshot.data();
+  const transformedData = transformCopiedValue(sourceData, sourcePrefix, destinationPrefix) as Record<string, unknown>;
+
+  await setDoc(destinationRef, transformedData);
+}
+
+async function copyCollectionWithNested(
+  sourcePath: string[],
+  destinationPath: string[],
+  sourcePrefix: string,
+  destinationPrefix: string,
+  copyNested?: (sourceDocPath: string[], destinationDocPath: string[]) => Promise<void>
+): Promise<void> {
+  const sourceCollectionRef = getCollectionRefFromPath(sourcePath);
+  const sourceSnapshot = await getDocs(sourceCollectionRef);
+
+  for (const sourceDoc of sourceSnapshot.docs) {
+    const destinationDocPath = [...destinationPath, sourceDoc.id];
+    const destinationRef = getDocRefFromPath(destinationDocPath);
+    const transformedData = transformCopiedValue(
+      sourceDoc.data(),
+      sourcePrefix,
+      destinationPrefix
+    ) as Record<string, unknown>;
+
+    await setDoc(destinationRef, transformedData);
+
+    if (copyNested) {
+      await copyNested([...sourcePath, sourceDoc.id], destinationDocPath);
+    }
+  }
+}
+
+/**
+ * Duplicate a project and all Firestore input/generated data.
+ * S3 media copy is handled separately by the S3 service.
+ */
+export async function copyProject(
+  sourceProjectId: string,
+  newName: string,
+  user?: UserContext
+): Promise<ProjectMetadata> {
+  const sourceProject = await getProject(sourceProjectId, user);
+
+  if (!sourceProject) {
+    throw new Error('Project not found');
+  }
+
+  const trimmedName = newName.trim();
+  if (!trimmedName) {
+    throw new Error('Project name is required');
+  }
+
+  const now = Timestamp.now();
+  const destinationProjectData = {
+    name: trimmedName,
+    projectType: sourceProject.projectType,
+    ownerId: sourceProject.ownerId,
+    createdAt: now,
+    updatedAt: now,
+    currentStage: sourceProject.currentStage || 1,
+  };
+
+  const destinationProjectRef = await addDoc(collection(db, PROJECTS_COLLECTION), destinationProjectData);
+  const destinationProjectId = destinationProjectRef.id;
+  const sourcePrefix = getProjectPrefix(sourceProjectId);
+  const destinationPrefix = getProjectPrefix(destinationProjectId);
+
+  try {
+    // Single-doc stage roots
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'chapter', 'data'],
+      ['projects', destinationProjectId, 'chapter', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'idConverter', 'data'],
+      ['projects', destinationProjectId, 'idConverter', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'storySplits', 'data'],
+      ['projects', destinationProjectId, 'storySplits', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'characterSheet', 'settings'],
+      ['projects', destinationProjectId, 'characterSheet', 'settings'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'propDesigner', 'settings'],
+      ['projects', destinationProjectId, 'propDesigner', 'settings'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'bgSheet', 'settings'],
+      ['projects', destinationProjectId, 'bgSheet', 'settings'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'storyboard', 'data'],
+      ['projects', destinationProjectId, 'storyboard', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'storyboard', 'voicePrompts'],
+      ['projects', destinationProjectId, 'storyboard', 'voicePrompts'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'storyboard', 'video'],
+      ['projects', destinationProjectId, 'storyboard', 'video'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'imageGen', 'settings'],
+      ['projects', destinationProjectId, 'imageGen', 'settings'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'imageSplitter', 'data'],
+      ['projects', destinationProjectId, 'imageSplitter', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'panelEditor', 'data'],
+      ['projects', destinationProjectId, 'panelEditor', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'i2vScript', 'data'],
+      ['projects', destinationProjectId, 'i2vScript', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'i2vScript', 'voicePrompts'],
+      ['projects', destinationProjectId, 'i2vScript', 'voicePrompts'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'i2vStoryboard', 'data'],
+      ['projects', destinationProjectId, 'i2vStoryboard', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'i2vStoryboard', 'voicePrompts'],
+      ['projects', destinationProjectId, 'i2vStoryboard', 'voicePrompts'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'i2vVideo', 'data'],
+      ['projects', destinationProjectId, 'i2vVideo', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'csvVideo', 'data'],
+      ['projects', destinationProjectId, 'csvVideo', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'nsfwVideo', 'data'],
+      ['projects', destinationProjectId, 'nsfwVideo', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyDocumentIfExists(
+      ['projects', sourceProjectId, 'styleConverter', 'data'],
+      ['projects', destinationProjectId, 'styleConverter', 'data'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    // Collections and nested collections
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'characterSheet', 'settings', 'characters'],
+      ['projects', destinationProjectId, 'characterSheet', 'settings', 'characters'],
+      sourcePrefix,
+      destinationPrefix,
+      async (sourceCharacterPath, destinationCharacterPath) => {
+        await copyCollectionWithNested(
+          [...sourceCharacterPath, 'modes'],
+          [...destinationCharacterPath, 'modes'],
+          sourcePrefix,
+          destinationPrefix
+        );
+      }
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'propDesigner', 'settings', 'props'],
+      ['projects', destinationProjectId, 'propDesigner', 'settings', 'props'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'propDesigner', 'settings', 'detectedIds'],
+      ['projects', destinationProjectId, 'propDesigner', 'settings', 'detectedIds'],
+      sourcePrefix,
+      destinationPrefix
+    );
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'bgSheet', 'settings', 'backgrounds'],
+      ['projects', destinationProjectId, 'bgSheet', 'settings', 'backgrounds'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'storyboard', 'data', 'scenes'],
+      ['projects', destinationProjectId, 'storyboard', 'data', 'scenes'],
+      sourcePrefix,
+      destinationPrefix,
+      async (sourceScenePath, destinationScenePath) => {
+        await copyCollectionWithNested(
+          [...sourceScenePath, 'clips'],
+          [...destinationScenePath, 'clips'],
+          sourcePrefix,
+          destinationPrefix
+        );
+      }
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'storyboard', 'video', 'clips'],
+      ['projects', destinationProjectId, 'storyboard', 'video', 'clips'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'imageGen', 'settings', 'frames'],
+      ['projects', destinationProjectId, 'imageGen', 'settings', 'frames'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'imageSplitter', 'data', 'pages'],
+      ['projects', destinationProjectId, 'imageSplitter', 'data', 'pages'],
+      sourcePrefix,
+      destinationPrefix,
+      async (sourcePagePath, destinationPagePath) => {
+        await copyCollectionWithNested(
+          [...sourcePagePath, 'panels'],
+          [...destinationPagePath, 'panels'],
+          sourcePrefix,
+          destinationPrefix
+        );
+      }
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'panelEditor', 'data', 'panels'],
+      ['projects', destinationProjectId, 'panelEditor', 'data', 'panels'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'i2vScript', 'data', 'scenes'],
+      ['projects', destinationProjectId, 'i2vScript', 'data', 'scenes'],
+      sourcePrefix,
+      destinationPrefix,
+      async (sourceScenePath, destinationScenePath) => {
+        await copyCollectionWithNested(
+          [...sourceScenePath, 'clips'],
+          [...destinationScenePath, 'clips'],
+          sourcePrefix,
+          destinationPrefix
+        );
+      }
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'i2vStoryboard', 'data', 'assets'],
+      ['projects', destinationProjectId, 'i2vStoryboard', 'data', 'assets'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'i2vStoryboard', 'data', 'scenes'],
+      ['projects', destinationProjectId, 'i2vStoryboard', 'data', 'scenes'],
+      sourcePrefix,
+      destinationPrefix,
+      async (sourceScenePath, destinationScenePath) => {
+        await copyCollectionWithNested(
+          [...sourceScenePath, 'clips'],
+          [...destinationScenePath, 'clips'],
+          sourcePrefix,
+          destinationPrefix
+        );
+      }
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'i2vVideo', 'data', 'clips'],
+      ['projects', destinationProjectId, 'i2vVideo', 'data', 'clips'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'csvVideo', 'data', 'clips'],
+      ['projects', destinationProjectId, 'csvVideo', 'data', 'clips'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'nsfwVideo', 'data', 'clips'],
+      ['projects', destinationProjectId, 'nsfwVideo', 'data', 'clips'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await copyCollectionWithNested(
+      ['projects', sourceProjectId, 'styleConverter', 'data', 'panels'],
+      ['projects', destinationProjectId, 'styleConverter', 'data', 'panels'],
+      sourcePrefix,
+      destinationPrefix
+    );
+
+    await updateDoc(doc(db, PROJECTS_COLLECTION, destinationProjectId), {
+      updatedAt: Timestamp.now(),
+    });
+
+    const copiedProject = await getProject(destinationProjectId, user);
+    if (!copiedProject) {
+      throw new Error('Failed to fetch copied project');
+    }
+
+    return copiedProject;
+  } catch (error) {
+    await deleteProject(destinationProjectId).catch(() => {});
+    throw error;
+  }
 }
 
 /**

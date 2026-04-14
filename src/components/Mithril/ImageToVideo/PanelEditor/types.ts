@@ -18,12 +18,13 @@ export enum ProcessingStatus {
 // Individual panel data structure
 export interface PanelData {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   fileName: string;
   status: ProcessingStatus;
   resultUrl?: string;
   error?: string;
+  originalImageRef?: string; // S3 URL for original image (for persistence across navigation)
 }
 
 // App configuration
@@ -49,11 +50,14 @@ export interface PanelEditorState {
 // Action types for reducer
 export type PanelEditorAction =
   | { type: 'ADD_FILES_TO_LIBRARY'; files: File[] }
+  | { type: 'REMOVE_FILE_FROM_LIBRARY'; fileName: string }
   | { type: 'ADD_PANELS'; panels: PanelData[] }
+  | { type: 'CLEAR_FILE_LIBRARY' }
   | { type: 'REMOVE_PANEL'; id: string }
   | { type: 'UPDATE_PANEL'; id: string; updates: Partial<PanelData> }
   | { type: 'SET_CONFIG'; config: Partial<PanelEditorConfig> }
   | { type: 'SET_PROCESSING'; isProcessing: boolean }
   | { type: 'SET_PROGRESS'; progress: ProcessingProgress }
+  | { type: 'CLEAR_ALL_DATA' }
   | { type: 'CLEAR_PANELS' }
   | { type: 'RESET_STATE' };

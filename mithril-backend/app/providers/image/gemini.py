@@ -16,6 +16,9 @@ from app.providers.image.base import (
 
 logger = logging.getLogger(__name__)
 
+# Limit concurrent Gemini API calls per worker to avoid rate-limit errors
+_GEMINI_SEMAPHORE = asyncio.Semaphore(5)
+
 # Gemini image constraints
 GEMINI_IMAGE_CONSTRAINTS = ImageProviderConstraints(
     aspect_ratios=["16:9", "9:16", "1:1"],
@@ -57,7 +60,7 @@ class GeminiImageProvider(ImageProvider):
 
     @property
     def model_name(self) -> str:
-        return "gemini-2.5-flash-image"
+        return "gemini-3-pro-image-preview"
 
     @property
     def fallback_model_name(self) -> str:
@@ -74,7 +77,7 @@ class GeminiImageProvider(ImageProvider):
         """
         Generate an image using Gemini API.
 
-        Primary model: gemini-2.5-flash-image (supports reference images)
+        Primary model: gemini-3-pro-image-preview (supports reference images)
         Fallback: imagen-3.0-generate-001 (text-only, if primary fails with 403/404)
 
         Args:
@@ -138,7 +141,7 @@ class GeminiImageProvider(ImageProvider):
         logger.info(f"[GEMINI-IMAGE] Total parts built: {len(parts)} (1 text + {len(request.reference_images)} images)")
 
         try:
-            # Primary attempt: gemini-2.5-flash-image
+            # Primary attempt: gemini-3-pro-image-preview
             # This model supports both text-to-image and image-to-image (editing)
             logger.info(f"[GEMINI-IMAGE] Calling Gemini API with model: {self.model_name}")
             logger.debug(f"[GEMINI-IMAGE] Config: response_modalities=['IMAGE'], aspect_ratio={request.aspect_ratio}")
@@ -159,7 +162,8 @@ class GeminiImageProvider(ImageProvider):
                 )
 
             logger.debug(f"[GEMINI-IMAGE] Executing API call...")
-            response = await asyncio.to_thread(_generate)
+            async with _GEMINI_SEMAPHORE:
+                response = await asyncio.to_thread(_generate)
             logger.info(f"[GEMINI-IMAGE] ✓ API call completed")
 
             # Extract image from response
@@ -188,7 +192,7 @@ class GeminiImageProvider(ImageProvider):
                 raise ValueError(f"Model returned text instead of image: {response.text[:100]}")
 
             logger.error(f"[GEMINI-IMAGE] No image data found in response")
-            raise RuntimeError("No image returned from gemini-2.5-flash-image")
+            raise RuntimeError("No image returned from gemini-3-pro-image-preview")
 
         except Exception as e:
             error_msg = str(e)

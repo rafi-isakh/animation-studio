@@ -16,7 +16,6 @@ import VideoGeneratorOrchestrator from "./VideoGeneratorOrchestrator";
 const USE_ORCHESTRATOR = process.env.NEXT_PUBLIC_USE_VIDEO_ORCHESTRATOR === "true";
 
 // Debug log - remove after testing
-console.log("[VideoGenerator] USE_ORCHESTRATOR:", USE_ORCHESTRATOR, "env value:", process.env.NEXT_PUBLIC_USE_VIDEO_ORCHESTRATOR);
 
 export default function VideoGeneratorWrapper() {
   if (USE_ORCHESTRATOR) {

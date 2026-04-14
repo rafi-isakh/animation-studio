@@ -97,8 +97,6 @@ Current Scene: ${finalPrompt}
 
     parts.push({ text: systemInstruction });
 
-    console.log("[storyboard-editor/generate-image] Model: gemini-2.5-flash-image");
-    console.log("[storyboard-editor/generate-image] Aspect ratio:", aspectRatio);
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",

@@ -322,6 +322,30 @@ def generate_panel_filename(
     return f"mithril/{safe_project_id}/i2v/edited-panels/{safe_panel_id}_{timestamp}.png"
 
 
+def generate_panel_colorizer_filename(
+    project_id: str,
+    panel_id: str,
+    job_id: str,
+) -> str:
+    """
+    Generate a unique filename for a colorized panel image.
+
+    Args:
+        project_id: Project ID
+        panel_id: Panel ID
+        job_id: Job ID
+
+    Returns:
+        Filename like 'mithril/project123/i2v/colorized-panels/panel456_1234567890.png'
+    """
+    import time
+
+    timestamp = int(time.time() * 1000)
+    safe_project_id = project_id.replace("/", "_")
+    safe_panel_id = panel_id.replace("/", "_")
+    return f"mithril/{safe_project_id}/i2v/colorized-panels/{safe_panel_id}_{timestamp}.png"
+
+
 async def upload_reference_images(
     project_id: str,
     frame_id: str,

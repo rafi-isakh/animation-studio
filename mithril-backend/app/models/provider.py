@@ -30,6 +30,7 @@ class VideoSubmitRequest(BaseModel):
     prompt: str
     image_base64: str | None = None
     image_url: str | None = None  # Alternative to base64
+    image_end_url: str | None = None  # Optional end frame
     duration: int
     aspect_ratio: AspectRatio
 

@@ -7,7 +7,9 @@
       "WebFetch(domain:github.com)",
       "Bash(ls:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:docs.modelslab.com)",
+      "mcp__paper__write_html"
     ]
   }
 }

@@ -159,7 +159,7 @@ noChaptersAvailable,연재 중인 글이 없습니다.,連載中の章があり�
 chapters,연재글,連載中の章,Chapters,
 deleteChapterConfirm,정말로 연재글을 삭제하시겠습니까?,連載中の章を削除しますか?,Are you sure you want to delete the chapter?
 noComments,댓글이 없습니다.,コメントがありません。,There are no comments.
-signup,회원가입,,Welcome to Toonyz
+signup,회원가입,,Welcome to Mithril
 do_signup,로그인 · 회원가입,,Sign up or Login
 agree_terms,투니즈의 이용약관 및 개인정보 처리방침에 동의합니다,,I agree to the terms & privacy policy
 agree_marketing,마케팅 및 프로모션 이메일 수신에 동의합니다.,,I agree to receive marketing and promotional emails
@@ -645,6 +645,7 @@ table_image_prompt_end,이미지 프롬프트 (End),,Image Prompt (End)
 table_video_prompt,비디오 프롬프트,,Video Prompt
 table_sora_video_prompt,Dialog 비디오 프롬프트,,Dialog Video Prompt
 table_veo_video_prompt,Veo 비디오 프롬프트,,Veo Video Prompt
+table_pixai_prompt,PixAI 프롬프트,,PixAI Prompt
 table_dialogue_ko,대사 (Ko),,Dialogue (Ko)
 table_dialogue_en,대사 (En),,Dialogue (En)
 table_narration_ko,나레이션 (Ko),,Narration (Ko)
@@ -779,12 +780,15 @@ mithril_stage3,캐릭터 시트 생성기,,Character Sheet Generator
 mithril_stage4,스토리보드 생성기,,Storyboard Generator
 mithril_stage5_prop,프롭 디자이너,,Prop Designer
 mithril_stage5,배경 시트 생성기,,BG Sheet Generator
+mithril_stage5_3d_bg,3D 배경 스튜디오,,3D BG Studio
 mithril_stage6,이미지 생성기,,Image Generator
 mithril_stage7,비디오 생성기,,Video Generator
 mithril_i2v_stage1,패널 스플리터,,Panel Splitter
 mithril_i2v_stage2,패널 편집기,,Panel Editor
+mithril_i2v_stage2_colorizer,패널 컬러라이저,,Panel Colorizer
 mithril_i2v_stage3,스크립트 작성기,,Script Writer
 mithril_i2v_stage4,스토리보드 편집기,,Storyboard Editor
+mithril_i2v_stage_style_converter,스타일 변환기,,Style Converter
 mithril_i2v_stage5,비디오 생성기,,Video Generator
 mithril_previous,이전,,Previous
 mithril_next,다음,,Next
@@ -1024,4 +1028,18 @@ upload_type_novel_desc,여러 챕터로 분할이 필요한 소설,,Novel that n
 upload_type_chapter,단일 챕터,,Single Chapter
 upload_type_chapter_desc,분할 없이 바로 사용할 챕터,,Chapter ready to use without splitting
 storysplitter_skipped_notice,단일 챕터 모드가 선택되어 스토리 분할이 필요하지 않습니다.,,Story splitting is not needed for single chapter mode.
-storysplitter_go_to_next_stage,다음 단계로 이동,,Go to Next Stage
+storysplitter_go_to_next_stage,다음 단계로 이동,,Go to Next Stagecsv_step1_title,CSV 스크립트 가져오기,,Import Script (CSV)
+csv_step2_title,참조 이미지 업로드,,Upload Reference Images
+csv_step3_title,스토리보드,,Storyboard
+csv_import_upload_label,CSV 파일을 클릭하여 업로드,,Click to upload CSV Script
+csv_import_upload_hint,필요한 열: 프레임 번호, 프롬프트, 파일명 (선택: 대사, 효과음),,Expected columns: Frame Number, Prompt, Filename, (Optional) Dialogue, SFX
+csv_import_mapping_hint,CSV 열을 매핑해 주세요. 기본값은 템플릿 기준으로 자동 선택됩니다.,,Map your CSV columns. Defaults are auto-selected based on your template.
+csv_import_confirm,스토리보드 생성,,Create Storyboard
+csv_match_upload_label,이미지를 클릭하여 업로드 또는 교체,,Click to upload or replace images
+csv_match_upload_hint,파일명이 일치하는 이미지가 자동으로 매칭됩니다.,,Files with matching filenames will be updated automatically.
+csv_column_frame_number,프레임 번호,,Frame Number
+csv_column_prompt,Veo 프롬프트,,Veo Video Prompt
+csv_column_reference,참조 파일명,,Ref. Filename
+csv_column_dialogue,대사 (선택),,Dialogue (Optional)
+csv_column_sfx,효과음 (선택),,Sound Effect (Optional)
+csv_column_length,클립 길이 (선택),,Clip Length (Optional)

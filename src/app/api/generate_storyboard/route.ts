@@ -18,8 +18,8 @@ interface StoryboardRequest {
   videoInstruction?: string;
 }
 
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 2000;
+const MAX_RETRIES = 5;
+const INITIAL_RETRY_DELAY = 5000;
 
 const IMAGE_PROMPT_SUFFIX = "No vfx or visual effects, no dust particles";
 
@@ -76,6 +76,48 @@ async function generateStoryboardWithRetry(
     다음 원본 텍스트를 기반으로 총 5개의 '씬'과 반드시 ${estimatedClipCount}개의 클립으로 구성된, 정확히 ${totalSeconds}초(${targetTime}) 분량의 애니메이션 콘티를 제작해 주세요.
     각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다. 어떤 씬은 20개보다 많을 수도, 적을 수도 있습니다.
 
+    **[CRITICAL: 씬(Scene) 및 배경 구조 규칙]**
+    1. **씬 구분 (Scene Categorization)**: 각 씬은 **주요 장소(Main Location)**가 변경되는 지점을 기준으로 명확히 구분되어야 합니다. (예: Scene 1: 주인공의 방 -> Scene 2: 거리 -> Scene 3: 학교 교실). 씬 제목에 장소명을 포함하십시오.
+    2. **Background Prompt 상세화**: 'backgroundPrompt'는 **절대 요약하지 말고**, 해당 장소의 시각적 디테일, 조명, 날씨, 분위기, 건축 양식, 질감 등을 포함하여 **최대한 상세하고 길게(Detailed & Descriptive)** 작성해야 합니다.
+    3. **Background ID 매칭**: 'backgroundId'의 첫 번째 숫자는 **반드시 해당 씬(Scene) 번호와 일치해야 합니다**. (예: Scene 1의 모든 클립은 '1-X', Scene 2는 '2-X'로 시작).
+
+    **[CRITICAL: 캐릭터 및 아이템 ID 유지 규칙]**
+    - 원문에 대문자로 된 ID(예: LEON_PAST, MAGIC_ORB, ELISA_SMILE)가 있다면, **무조건** 해당 ID를 'imagePrompt'와 'soraVideoPrompt'에 그대로 사용하십시오.
+
+    **[CRITICAL: 나레이션 및 대사 생성 규칙]**
+    - **캐릭터 대사(dialogue)가 없는 클립의 경우, 해당 클립의 'story' 열 내용을 바탕으로 영상의 흐름을 설명하는 '나레이션(narration)'을 반드시 작성하십시오.**
+    - 캐릭터가 직접 말하는 장면(dialogue 존재)인 경우 나레이션은 비워두거나, 대사 전후의 상황을 설명하는 매우 짧은 나레이션만 포함하십시오.
+    - 모든 나레이션과 대사는 한국어(narration, dialogue)와 영어(narrationEn, dialogueEn)로 모두 작성해야 합니다.
+
+    **[CRITICAL: 비디오 프롬프트 발화 및 규칙]**
+    - 클립에 대사(dialogue)가 존재한다면, \`videoPrompt\`에 캐릭터가 말하는 동작을 무조건 포함하십시오.
+    - 비디오 프롬프트 생성 시, 아래 파일에서 제공된 [비디오 지시사항] 규칙을 엄격히 준수하십시오.
+
+    **[CRITICAL: Veo 비디오 프롬프트 생성 규칙]**
+    - 'veoVideoPrompt' 필드를 작성할 때, 아래 규칙을 엄격히 따르십시오.
+    - 'lofi', 'dolly in' 등 카메라 워킹 용어는 삭제하고, 모든 샷은 **'Static shot'**으로 통일하십시오.
+
+    **상황별 템플릿 적용 규칙 (우선순위 순서대로 적용):**
+
+    **1. 이동 동작(Walking, Running, Jumping)이 포함된 경우:**
+       - 'imagePrompt'에 walking, running, jumping 중 하나가 명확히 포함된 경우에만 적용:
+       - 대사 있음: \`Static shot of [DESCRIPTOR] [walking/running/jumping]. [Pronoun] says, "[English Dialogue]"\`
+       - 대사 없음: \`Static shot of [DESCRIPTOR] [walking/running/jumping]. Narration says, "[English Narration]"\`
+
+    **2. 이동 동작이 없는 경우 (그 외 모든 경우):**
+       - **중요**: 이동 동작이 없다면, 캐릭터의 다른 행동(standing, sitting, looking, speaking, crying, smiling 등)이나 상태를 묘사하지 마십시오.
+       - **오직 'Static shot of [DESCRIPTOR].' 형태로만 작성해야 합니다.**
+       - 대사 있음: \`Static shot of [DESCRIPTOR]. [Pronoun] says, "[English Dialogue]"\`
+       - 대사 없음: \`Static shot of [DESCRIPTOR]. Narration says, "[English Narration]"\`
+
+    **3. 캐릭터가 없는 배경 샷인 경우:**
+       - \`Static shot of [Background Description]. Narration says, "[English Narration]"\`
+       - (나레이션 없으면 뒷부분 생략)
+
+    **공통 사항:**
+    - 캐릭터 ID 대신 외형 묘사를 사용하십시오.
+    - 대사나 나레이션이 비어있다면 해당 부분은 출력하지 마십시오.
+
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
     모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오. 대사가 있는 경우, "1~2초 역동성 규칙"은 **무시**하고 아래 규칙이 **최우선**입니다.
 
@@ -102,27 +144,29 @@ async function generateStoryboardWithRetry(
     - 'voicePrompts' 키의 값은 주요 캐릭터들의 보이스 프롬프트가 포함된 객체 배열이어야 합니다. 각 객체는 'promptKo' (한국어 버전)와 'promptEn' (영어 버전) 키를 가져야 합니다. 이 프롬프트는 ElevenLabs에서 사용될 것이며, 각 캐릭터의 성격, 특성을 반영하고 참고할 만한 실제 인물의 목소리를 추천해야 합니다. **원문에서 언급된 모든 주요 캐릭터를 포함해야 합니다.** **참고 인물을 추천할 때, 'promptKo'에는 한국인을, 'promptEn'에는 미국인을 추천해야 합니다.**
     - 'characterIdSummary' 키의 값은 **모든 클립의 imagePrompt에 등장하는 모든 대문자 캐릭터 ID**를 분석하여 생성한 요약 리스트입니다. 각 객체는 'characterId'와 'description' 키를 가져야 합니다.
       **[characterIdSummary 생성 규칙]**:
-      1. **현재 시점의 주인공을 식별하고 가장 먼저 나열하되, "Protagonist. Default"라고 설명합니다.**
-      2. **각 캐릭터 그룹(예: LEON_*, KAIDEN_*, ELISA_*)에서 디폴트 버전을 먼저 식별합니다.** 디폴트는 가장 자주 등장하거나 현재 시점의 버전입니다.
-      3. **디폴트 캐릭터는 주인공과의 관계를 설명하고 "Default"를 추가합니다** (예: "Son of Protagonist. Default", "Husband of Protagonist. Default").
-      4. **변형(Variant) 캐릭터는 반드시 해당 캐릭터의 디폴트 ID를 기준으로 설명합니다. 주인공이 아닌 디폴트 ID와의 관계를 명시하세요:**
-         - 나이 변형: "6 year old version of [DEFAULT_ID]", "Adult past 25 year old version of [DEFAULT_ID]"
-         - 의상/상황 변형: "wearing [clothing description]" (디폴트 ID 언급 불필요), "[situational context]"
-      5. **각 설명은 한 줄로 간결하게 작성하며, 강조할 특징(나이, 의상, 상황)을 명확히 표현합니다.**
-      6. **올바른 예시 형식**:
-         - ELISA_PRESENT: Protagonist. Default
+      1. **현재 시점의 주인공을 식별하고 가장 먼저 나열합니다.**
+      2. **작성 형식 (Description)**:
+         - **Default Character**: "[Relation to Protagonist]. [Brief Physical Description]. Default"
+         - **Variant Character**: "[Age/Time/Clothing difference] version of [Target Default ID]"
+         - **중요**: Variant 캐릭터의 설명은 'Son of Protagonist' 같은 관계 묘사를 반복하지 말고, **오직 해당 인물의 Default ID를 기준으로** 어떤 버전인지만 명시하십시오.
+      3. **금지 사항 (Negative Constraints)**:
+         - **감정(Emotion)이나 표정(Facial Expression) 묘사 금지**: sad, crying, weary, cruel, innocent, happy 등 금지.
+         - **성격(Personality) 묘사 금지**: kind, arrogant, cute, evil 등 금지.
+         - 오직 객관적인 외형(머리색, 눈색, 의상)과 나이, 역할만 서술하십시오.
+      4. **올바른 예시 형식**:
+         - ELISA_PRESENT: Protagonist. Silver hair, garden dress. Default
          - ELISA_PAST_19: 19 year old version of ELISA_PRESENT
-         - LEON_PRESENT_CHILD: Son of Protagonist. Default
-         - LEON_PAST_CHILD: 6 year old version of LEON_PRESENT_CHILD
-         - LEON_PAST_ADULT: Adult past 25 year old version of LEON_PRESENT_CHILD
-         - KAIDEN_EMPEROR: Husband of Protagonist. Default
-         - KAIDEN_BALLROOM: Husband of Protagonist, wearing formal ballroom attire
-         - KAIDEN_EMPEROR_PAST: 25 year old version of KAIDEN_EMPEROR
-      7. **잘못된 예시 (따라하지 마시오)**:
+         - LEON_PRESENT_CHILD: Son of Protagonist. Blonde hair, blue eyes. Default
+         - LEON_PAST_CHILD: 6 years old version of LEON_PRESENT_CHILD
+         - LEON_PAST_ADULT: Adult 25 year old version of LEON_PRESENT_CHILD
+         - KAIDEN_EMPEROR: Husband of Protagonist. Black hair. Default
+         - KAIDEN_BALLROOM: Ballroom attire version of KAIDEN_EMPEROR
+      5. **잘못된 예시 (따라하지 마시오)**:
          - ❌ LEON_PAST_ADULT: 30 year old son of the protagonist (variant가 protagonist 언급)
          - ❌ LEON_PRESENT_CHILD: 10 year old version of LEON_PAST_ADULT. Default (default가 variant 언급)
-         - ✅ LEON_PRESENT_CHILD: Son of Protagonist. Default (default는 protagonist 관계)
-         - ✅ LEON_PAST_ADULT: Adult past 25 year old version of LEON_PRESENT_CHILD (variant는 default 언급)
+         - ❌ ELISA_PRESENT: Protagonist. Sad and weary expression. Default (감정/표정 묘사 금지)
+         - ✅ LEON_PRESENT_CHILD: Son of Protagonist. Blonde hair, blue eyes. Default (default는 protagonist 관계 + 외형)
+         - ✅ LEON_PAST_ADULT: Adult 25 year old version of LEON_PRESENT_CHILD (variant는 default 언급)
     - 'genre' 키의 값은 원본 텍스트의 장르를 분석하여 한국어와 영어로 모두 표기한 문자열입니다.
       **[genre 생성 규칙]**:
       1. **원본 텍스트의 배경, 설정, 분위기, 캐릭터 관계를 종합적으로 분석하여 가장 적합한 장르를 결정합니다.**
@@ -160,7 +204,7 @@ async function generateStoryboardWithRetry(
 
     3.  **backgroundId**:
         - 형식: "#-#[ -#]" (예: 1-1, 1-2, 1-1-1, 1-2-1).
-        - **첫 번째 숫자 (Background Number)**: 배경(backgroundPrompt)이 바뀔 때마다 1씩 증가합니다. 첫 번째 배경은 1로 시작합니다. 예: 첫 번째 장소(1-X), 두 번째 장소(2-X).
+        - **첫 번째 숫자 (Scene Number)**: **반드시 해당 씬(Scene) 번호와 일치해야 합니다**. (예: Scene 1의 모든 클립은 '1-X', Scene 2는 '2-X'로 시작).
         - **두 번째 숫자 (Shot Type)**: 다음 1~9 중 하나를 선택하여 적용합니다. 씬 내에서 연속적으로 같은 번호를 사용하지 말고 다양하게 변주하세요.
         - **세 번째 숫자 (Variation Index)**: **[필수 - 유니크 ID 규칙]**: 만약 씬 내에서 동일한 'Background Number-Shot Type' 조합이 다시 사용될 경우(예: 1-1이 쓰이고 나중에 또 1-1 앵글이 필요한 경우), 두 번째 등장부터는 반드시 뒤에 -1, -2, -3... 순서로 숫자를 덧붙여 **고유한 ID**를 생성해야 합니다. (예: 1-1 (최초) -> 1-1-1 (두번째) -> 1-1-2 (세번째)). 이는 같은 앵글 안에서도 미세한 연출 차이(Variation)를 주기 위함입니다.
           **중요: 대사(Dialogue)가 오가는 장면에서는 3, 4번(Close-up)에만 의존하지 말고, 7번과 8번(Over the shoulder shot)을 동등한 비율로 적극적으로 사용하여 단조로움을 피하세요.**
@@ -244,10 +288,7 @@ async function generateStoryboardWithRetry(
 
     17. **veoVideoPrompt**:
         - 반드시 영어로 작성해야 합니다.
-        - **지침**: Google Veo 비디오 AI용 프롬프트입니다. 다음 3가지 템플릿 중 하나를 선택하여 생성합니다:
-          - **캐릭터 + 대사가 있는 클립**: \`Static shot of [imagePrompt의 시각적 묘사], saying "[dialogueEn 내용]"\`
-          - **배경만 있는 클립 (캐릭터 없음)**: \`Fixed lo-fi static background wallpaper, slow dolly-in\`
-          - **캐릭터 + 나레이션이 있는 클립 (대사 없음)**: \`Static storybook lofi wallpaper, narration says "[narrationEn 내용]"\`
+        - **지침**: Google Veo 비디오 AI용 프롬프트입니다. 상단의 **[CRITICAL: Veo 비디오 프롬프트 생성 규칙]** 및 **상황별 템플릿 적용 규칙**을 엄격히 따르십시오.
 
     12. **soraVideoPrompt**:
         - 반드시 영어로 작성해야 합니다.
@@ -539,6 +580,7 @@ async function generateStoryboardWithRetry(
 
       // Check for transient errors that should be retried
       if (
+        errorMessage.includes("429") ||
         errorMessage.includes("503") ||
         errorMessage.includes("overloaded") ||
         errorMessage.includes("UNAVAILABLE") ||
@@ -612,6 +654,7 @@ export async function POST(request: NextRequest) {
     const errorMessage = String(error);
 
     if (
+      errorMessage.includes("429") ||
       errorMessage.includes("503") ||
       errorMessage.includes("overloaded") ||
       errorMessage.includes("UNAVAILABLE")

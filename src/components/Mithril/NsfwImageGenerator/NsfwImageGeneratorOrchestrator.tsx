@@ -680,8 +680,8 @@ export default function NsfwImageGeneratorOrchestrator() {
             createdAt: Date.now(),
           });
         } else {
-          const storyboardFrames = loadFramesFromStoryboard();
-          setFrames(storyboardFrames);
+          // No saved frames — show empty state, user can apply from storyboard or import via CSV
+          setFrames([]);
         }
 
         setHasLoaded(true);

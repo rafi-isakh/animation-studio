@@ -694,8 +694,8 @@ const { language, dictionary } = useLanguage();
             createdAt: Date.now(),
           });
         } else {
-          const storyboardFrames = loadFramesFromStoryboard();
-          setFrames(storyboardFrames);
+          // No saved frames — show empty state, user can apply from storyboard or import via CSV
+          setFrames([]);
         }
 
         setHasLoaded(true);
@@ -2480,7 +2480,7 @@ const { language, dictionary } = useLanguage();
                   No Frames
                 </h2>
                 <p className="text-sm text-slate-600 mt-2 text-center">
-                  Please complete Stage 5 (Storyboard) first
+                  Apply from Storyboard or import via CSV in the sidebar
                 </p>
               </div>
               <button
@@ -2493,7 +2493,7 @@ const { language, dictionary } = useLanguage();
               </button>
               {!getStageResult(4) && (
                 <p className="text-xs text-gray-400 mt-2">
-                  Complete Stage 5 (Storyboard) to enable this option
+                  Complete Storyboard stage to enable this, or use CSV Import in the sidebar
                 </p>
               )}
             </div>

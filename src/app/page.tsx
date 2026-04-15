@@ -205,7 +205,7 @@ export default function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50" style={{ background: 'linear-gradient(to bottom, rgba(8,8,8,0.96) 0%, transparent 100%)' }}>
         <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/favicon.svg" alt="Mithril" width={26} height={26} className="rounded" />
+            {/* <Image src="/favicon.svg" alt="Mithril" width={26} height={26} className="rounded" /> */}
             {/* <span className={`${cinzel.className} text-[14px] font-bold tracking-[0.14em] text-white`}>Rivell</span> */}
             <span className="font-semibold text-lg text-gray-800 dark:text-gray-100">Mithril</span>
             <span className="text-[11px] font-medium tracking-[0.18em] text-[#DB2777] border border-[#DB277740] px-1.5 py-0.5 rounded uppercase">Studio</span>

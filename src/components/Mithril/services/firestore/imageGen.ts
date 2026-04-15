@@ -64,7 +64,8 @@ export async function saveImageGenMeta(
     category: 'character' | 'background';
     isRemoved?: boolean;
   }>,
-  frameSource?: 'storyboard' | 'csv'
+  frameSource?: 'storyboard' | 'csv',
+  charNameOverrides?: Record<string, string>
 ): Promise<void> {
   const docRef = getImageGenRef(projectId);
 
@@ -82,6 +83,11 @@ export async function saveImageGenMeta(
   // Include frameSource if provided
   if (frameSource !== undefined) {
     data.frameSource = frameSource;
+  }
+
+  // Include charNameOverrides if provided
+  if (charNameOverrides !== undefined) {
+    data.charNameOverrides = charNameOverrides;
   }
 
   await setDoc(docRef, data, { merge: true });

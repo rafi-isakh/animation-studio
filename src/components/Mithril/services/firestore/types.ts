@@ -376,6 +376,7 @@ export interface ImageGenDocument {
     category: 'character' | 'background';
     isRemoved?: boolean;
   }>;
+  charNameOverrides?: Record<string, string>;
 }
 
 export interface ImageGenFrameDocument {
@@ -964,6 +965,7 @@ export interface I2VStoryboardClipDocument {
   imagePromptEnd?: string;
   videoPrompt: string;
   soraVideoPrompt: string;
+  veoVideoPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
   // Dialogue

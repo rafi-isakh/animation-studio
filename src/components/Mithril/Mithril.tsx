@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState, ComponentType } from "react";
+import { useRouter } from "next/navigation";
 import { Key, Eye, EyeOff, Clock, Download, RotateCcw } from "lucide-react";
 import { useMithrilAuth } from "@/components/Mithril/auth";
 import MithrilHeader from "./MithrilHeader";
+import { TYPE_CATEGORY_MAP } from "@/components/Mithril/ProjectListPage";
 import UploadManager from "./UploadManager";
 import IdConverter from "./IdConverter";
 import StorySplitter from "./StorySplitter";
@@ -177,16 +179,18 @@ function ApiKeyInput({ label, value, onChange, show, onToggleShow, placeholder }
 
 interface PrevNextButtonsProps {
   currentStage: number;
-  totalStages: number;
+  lastStageId: number;
   onPrev: () => void;
   onNext: () => void;
+  onFinish: () => void;
   prevLabel: string;
   nextLabel: string;
   finishLabel: string;
   stacked?: boolean;
 }
 
-function PrevNextButtons({ currentStage, totalStages, onPrev, onNext, prevLabel, nextLabel, finishLabel, stacked = false }: PrevNextButtonsProps) {
+function PrevNextButtons({ currentStage, lastStageId, onPrev, onNext, onFinish, prevLabel, nextLabel, finishLabel, stacked = false }: PrevNextButtonsProps) {
+  const isLastStage = currentStage === lastStageId;
   return (
     <div className={stacked ? "flex flex-col gap-2 w-full" : "flex gap-4 justify-center"}>
       <button
@@ -201,15 +205,14 @@ function PrevNextButtons({ currentStage, totalStages, onPrev, onNext, prevLabel,
         {prevLabel}
       </button>
       <button
-        onClick={onNext}
-        disabled={currentStage === totalStages}
+        onClick={isLastStage ? onFinish : onNext}
         className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${stacked ? "w-full" : ""} ${
-          currentStage === totalStages
-            ? "bg-[#DB2777]/50 text-white cursor-not-allowed"
+          isLastStage
+            ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
             : "bg-[#DB2777] text-white hover:bg-[#BE185D]"
         }`}
       >
-        {currentStage === totalStages ? finishLabel : nextLabel}
+        {isLastStage ? finishLabel : nextLabel}
       </button>
     </div>
   );
@@ -228,6 +231,7 @@ function PanelCard({ title, children, className = "" }: { title: string; childre
 }
 
 function MithrilContent() {
+  const router = useRouter();
   const {
     currentStage,
     setCurrentStage,
@@ -271,6 +275,14 @@ function MithrilContent() {
     })),
     [pipelineStages, dictionary, language]
   );
+  const lastStageId = useMemo(() => {
+    const unskipped = stages.filter(stage => !isStageSkipped(stage.id));
+    return unskipped[unskipped.length - 1]?.id ?? stages[stages.length - 1]?.id ?? 1;
+  }, [stages, isStageSkipped]);
+  const handleFinish = () => {
+    const category = TYPE_CATEGORY_MAP[projectType];
+    router.push(category ? `/projects?category=${category}` : "/projects");
+  };
 
   const currentStageConfig = stages.find(s => s.id === currentStage);
   const StageComponent = currentStageConfig ? STAGE_COMPONENTS[currentStageConfig.component] : null;
@@ -398,9 +410,10 @@ function MithrilContent() {
             <div className="flex-1" />
             <PrevNextButtons
               currentStage={currentStage}
-              totalStages={stages.length}
+              lastStageId={lastStageId}
               onPrev={goToPreviousStage}
               onNext={goToNextStage}
+              onFinish={handleFinish}
               prevLabel={prevLabel}
               nextLabel={nextLabel}
               finishLabel={finishLabel}
@@ -523,9 +536,10 @@ function MithrilContent() {
         <div className="p-4 pb-8">
           <PrevNextButtons
             currentStage={currentStage}
-            totalStages={stages.length}
+            lastStageId={lastStageId}
             onPrev={goToPreviousStage}
             onNext={goToNextStage}
+            onFinish={handleFinish}
             prevLabel={prevLabel}
             nextLabel={nextLabel}
             finishLabel={finishLabel}

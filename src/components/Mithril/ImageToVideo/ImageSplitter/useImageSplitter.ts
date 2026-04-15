@@ -69,6 +69,26 @@ function generateId(): string {
   return `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
+function getHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function isS3OrCloudfrontUrl(url: string): boolean {
+  const hostname = getHostname(url);
+  if (!hostname) return false;
+  return (
+    hostname === 's3.amazonaws.com' ||
+    hostname.endsWith('.s3.amazonaws.com') ||
+    hostname === 's3.ap-northeast-2.amazonaws.com' ||
+    hostname.endsWith('.s3.ap-northeast-2.amazonaws.com') ||
+    hostname.endsWith('.cloudfront.net')
+  );
+}
+
 // Helper: Get image dimensions from File
 function getImageDimensions(file: File): Promise<{ w: number; h: number }>;
 // Helper: Get image dimensions from URL (overload)
@@ -81,12 +101,7 @@ function getImageDimensions(fileOrUrl: File | string): Promise<{ w: number; h: n
 
     if (typeof fileOrUrl === 'string') {
       // Check if URL is S3/CloudFront URL that needs proxying
-      const isS3Url = (url: string) =>
-        url.includes('s3.amazonaws.com') ||
-        url.includes('s3.ap-northeast-2.amazonaws.com') ||
-        url.includes('cloudfront.net');
-
-      if (isS3Url(fileOrUrl)) {
+      if (isS3OrCloudfrontUrl(fileOrUrl)) {
         // Use proxy for S3 URLs to avoid CORS issues
         try {
           const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(fileOrUrl)}`;
@@ -1138,15 +1153,9 @@ export function useImageSplitter() {
     return new Promise(async (resolve, reject) => {
       const img = new Image();
 
-      // Helper to check if URL is an S3/CloudFront URL that needs proxying
-      const isS3Url = (url: string) =>
-        url.includes('s3.amazonaws.com') ||
-        url.includes('s3.ap-northeast-2.amazonaws.com') ||
-        url.includes('cloudfront.net');
-
       // Load source image through proxy if needed
       let imageSrc = sourceImageUrl;
-      if (isS3Url(sourceImageUrl)) {
+      if (isS3OrCloudfrontUrl(sourceImageUrl)) {
         try {
           const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(sourceImageUrl)}`;
           const response = await fetch(proxyUrl);
@@ -1226,12 +1235,6 @@ export function useImageSplitter() {
     const zip = new JSZip();
     let hasContent = false;
 
-    // Helper to check if URL is an S3/CloudFront URL that needs proxying
-    const isS3Url = (url: string) =>
-      url.includes('s3.amazonaws.com') ||
-      url.includes('s3.ap-northeast-2.amazonaws.com') ||
-      url.includes('cloudfront.net');
-
     // Calculate total panel count across all completed pages
     const totalPanelCount = completedPages.reduce((acc, p) => acc + p.panels.length, 0);
 
@@ -1284,7 +1287,7 @@ export function useImageSplitter() {
           } else if (panel.imageUrl) {
             // Fallback to stored panel image if source not available
             if (panel.imageUrl.startsWith('http://') || panel.imageUrl.startsWith('https://')) {
-              const fetchUrl = isS3Url(panel.imageUrl)
+              const fetchUrl = isS3OrCloudfrontUrl(panel.imageUrl)
                 ? `/api/mithril/s3/proxy?url=${encodeURIComponent(panel.imageUrl)}`
                 : panel.imageUrl;
 
@@ -1598,15 +1601,9 @@ export function useImageSplitter() {
     return new Promise(async (resolve) => {
       const img = new Image();
 
-      // Helper to check if URL is an S3/CloudFront URL that needs proxying
-      const isS3Url = (url: string) =>
-        url.includes('s3.amazonaws.com') ||
-        url.includes('s3.ap-northeast-2.amazonaws.com') ||
-        url.includes('cloudfront.net');
-
       // Use proxy for S3 URLs to avoid CORS issues, otherwise use direct URL
       let imageSrc = page.previewUrl;
-      if (isS3Url(page.previewUrl)) {
+      if (isS3OrCloudfrontUrl(page.previewUrl)) {
         // For S3 URLs, fetch through proxy and convert to blob URL
         try {
           const proxyUrl = `/api/mithril/s3/proxy?url=${encodeURIComponent(page.previewUrl)}`;

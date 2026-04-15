@@ -630,17 +630,33 @@ const { language, dictionary } = useLanguage();
               bgIdForPrompt = localBg.id;
             }
           } else {
-            // Check Stage 4 backgrounds (storyboard format: "1-3", "4-1-1", etc.)
-            // Find background by matching angle string directly
+            // Check Stage 6 backgrounds
+            // backgroundId is in "N-M" slot format (e.g. "1-3" = 1st bg sorted by name, 3rd angle)
+            // which matches the slot labels shown in the asset panel.
             let matchedAngle: { angle: string; imageRef: string } | undefined;
             let matchedBgName = "";
 
-            for (const bg of backgroundAssets) {
-              const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
-              if (angle?.imageRef) {
-                matchedAngle = angle;
-                matchedBgName = bg.name;
-                break;
+            const slotParts = frame.backgroundId.match(/^(\d+)-(\d+)$/);
+            if (slotParts) {
+              const bgIndex = parseInt(slotParts[1]) - 1;
+              const angleIndex = parseInt(slotParts[2]) - 1;
+              const sortedBgs = [...backgroundAssets].sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { numeric: true })
+              );
+              const matchedBg = sortedBgs[bgIndex];
+              if (matchedBg?.angles[angleIndex]?.imageRef) {
+                matchedAngle = matchedBg.angles[angleIndex];
+                matchedBgName = matchedBg.name;
+              }
+            } else {
+              // Fallback: backgroundId is a raw angle name (e.g. manually typed "Front View")
+              for (const bg of backgroundAssets) {
+                const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
+                if (angle?.imageRef) {
+                  matchedAngle = angle;
+                  matchedBgName = bg.name;
+                  break;
+                }
               }
             }
 

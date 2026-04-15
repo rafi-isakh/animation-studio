@@ -277,7 +277,7 @@ interface MithrilContextProps {
   pushPropsToAssets: () => Promise<void>;
   renameProp: (propId: string, newName: string) => Promise<void>;
   unpushProp: (propId: string) => Promise<void>;
-  unpushBg: (bgId: string) => Promise<void>;
+  unpushBg: (bgId: string, angle?: string) => Promise<void>;
 
   // Upload Type (novel vs chapter)
   uploadType: UploadType;
@@ -642,6 +642,9 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex,
+            pushedToAssets: bg.pushedToAssets,
+            pushedAngles: bg.pushedAngles,
             images: bg.angles.map(angle => ({
               angle: angle.angle,
               prompt: angle.prompt,
@@ -2009,7 +2012,22 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const setBgSheetResult = useCallback((result: BgSheetResultMetadata) => {
-    setBgSheetGenerator(prev => ({ ...prev, result }));
+    setBgSheetGenerator(prev => {
+      const existingMap = new Map(
+        (prev.result?.backgrounds ?? []).map(bg => [bg.id, { pushedToAssets: bg.pushedToAssets, pushedAngles: bg.pushedAngles }])
+      );
+      return {
+        ...prev,
+        result: {
+          ...result,
+          backgrounds: result.backgrounds.map(bg => ({
+            ...bg,
+            pushedToAssets: bg.pushedToAssets ?? existingMap.get(bg.id)?.pushedToAssets,
+            pushedAngles: bg.pushedAngles ?? existingMap.get(bg.id)?.pushedAngles,
+          })),
+        },
+      };
+    });
   }, []);
 
   // Character Sheet Generator methods
@@ -2222,11 +2240,11 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         ...prev,
         result: {
           ...prev.result,
-          backgrounds: prev.result.backgrounds.map(bg =>
-            (bg.partIndex ?? 0) === partIndex && bg.images.some(i => i.imageId)
-              ? { ...bg, pushedToAssets: true }
-              : bg
-          ),
+          backgrounds: prev.result.backgrounds.map(bg => {
+            if ((bg.partIndex ?? 0) !== partIndex || !bg.images.some(i => i.imageId)) return bg;
+            const pushedAngles = bg.images.filter(i => !!i.imageId).map(i => i.angle);
+            return { ...bg, pushedToAssets: true, pushedAngles };
+          }),
         },
       };
     });
@@ -2266,21 +2284,46 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, [currentProjectId]);
 
-  const unpushBg = useCallback(async (bgId: string) => {
+  const unpushBg = useCallback(async (bgId: string, angle?: string) => {
     if (!currentProjectId) return;
-    await updateBackground(currentProjectId, bgId, { pushedToAssets: false });
-    setBgSheetGenerator(prev => {
-      if (!prev.result) return prev;
-      return {
-        ...prev,
-        result: {
-          ...prev.result,
-          backgrounds: prev.result.backgrounds.map(bg =>
-            bg.id === bgId ? { ...bg, pushedToAssets: false } : bg
-          ),
-        },
-      };
-    });
+    if (angle) {
+      // Remove one specific angle; unpush background entirely if no angles remain
+      setBgSheetGenerator(prev => {
+        if (!prev.result) return prev;
+        const bg = prev.result.backgrounds.find(b => b.id === bgId);
+        const newPushedAngles = (bg?.pushedAngles ?? []).filter(a => a !== angle);
+        const stillPushed = newPushedAngles.length > 0;
+        updateBackground(currentProjectId, bgId, {
+          pushedAngles: newPushedAngles,
+          pushedToAssets: stillPushed,
+        }).catch(console.error);
+        return {
+          ...prev,
+          result: {
+            ...prev.result,
+            backgrounds: prev.result.backgrounds.map(b =>
+              b.id === bgId
+                ? { ...b, pushedAngles: newPushedAngles, pushedToAssets: stillPushed }
+                : b
+            ),
+          },
+        };
+      });
+    } else {
+      await updateBackground(currentProjectId, bgId, { pushedToAssets: false, pushedAngles: [] });
+      setBgSheetGenerator(prev => {
+        if (!prev.result) return prev;
+        return {
+          ...prev,
+          result: {
+            ...prev.result,
+            backgrounds: prev.result.backgrounds.map(bg =>
+              bg.id === bgId ? { ...bg, pushedToAssets: false, pushedAngles: [] } : bg
+            ),
+          },
+        };
+      });
+    }
   }, [currentProjectId]);
 
   // Navigation methods (follow pipeline order, skipping tool-only and skipped stages)

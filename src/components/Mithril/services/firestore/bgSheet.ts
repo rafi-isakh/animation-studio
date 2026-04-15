@@ -292,7 +292,8 @@ export async function pushBgsToAssets(projectId: string, partIndex: number): Pro
   const batch = writeBatch(db);
   for (const bg of toUpdate) {
     const docRef = getBackgroundRef(projectId, bg.id);
-    batch.set(docRef, { pushedToAssets: true }, { merge: true });
+    const pushedAngles = bg.angles.filter(a => !!a.imageRef).map(a => a.angle);
+    batch.set(docRef, { pushedToAssets: true, pushedAngles }, { merge: true });
   }
   await batch.commit();
 }

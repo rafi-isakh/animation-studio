@@ -61,6 +61,7 @@ export interface BackgroundMetadata {
   referenceAnalysis?: ReferenceAnalysis; // Spatial analysis of reference
   plannedPrompts?: string[];           // Array of 9 prompts
   pushedToAssets?: boolean;
+  pushedAngles?: string[];             // Individual angles pushed to assets
 }
 
 export interface BgSheetResultMetadata {

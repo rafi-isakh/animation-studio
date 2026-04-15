@@ -138,7 +138,7 @@ export default function SidebarAssetSection() {
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
     .flatMap((bg, bgSortedIndex) => (
       bg.images
-        .filter(i => !!i.imageId)
+        .filter(i => !!i.imageId && (!bg.pushedAngles || bg.pushedAngles.includes(i.angle)))
         .map(i => {
           const standardAngleIndex = BACKGROUND_ANGLES.indexOf(i.angle);
           const slotLabel = standardAngleIndex >= 0
@@ -191,7 +191,7 @@ export default function SidebarAssetSection() {
               key={`${bg.id}-${angle}`}
               imageUrl={imageUrl}
               name={slotLabel}
-              onRemove={() => unpushBg(bg.id)}
+              onRemove={() => unpushBg(bg.id, angle)}
             />
           ))}
         </Subsection>

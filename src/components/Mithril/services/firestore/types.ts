@@ -168,6 +168,7 @@ export interface BackgroundDocument {
   plannedPrompts?: string[]; // Array of 9 prompts
   partIndex?: number; // Which storyboard part this background belongs to (0-based)
   pushedToAssets?: boolean;
+  pushedAngles?: string[]; // Individual angles pushed to assets
 }
 
 // ============================================
@@ -584,6 +585,7 @@ export interface UpdateBackgroundInput {
   referenceAnalysis?: BackgroundReferenceAnalysis;
   plannedPrompts?: string[];
   pushedToAssets?: boolean;
+  pushedAngles?: string[];
 }
 
 export interface SaveSceneInput {

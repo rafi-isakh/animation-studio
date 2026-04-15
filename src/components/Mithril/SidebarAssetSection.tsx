@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, User, Package, ImageIcon, Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight, User, Package, ImageIcon, Pencil, X } from "lucide-react";
 import { useMithril } from "./MithrilContext";
 import type { PropMetadata } from "./PropDesigner/types";
 import type { BackgroundMetadata } from "./BgSheetGenerator/types";
@@ -10,9 +10,10 @@ interface AssetCardProps {
   imageUrl: string;
   name: string;
   onRename?: (newName: string) => Promise<void>;
+  onRemove?: () => Promise<void>;
 }
 
-function AssetCard({ imageUrl, name, onRename }: AssetCardProps) {
+function AssetCard({ imageUrl, name, onRename, onRemove }: AssetCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,15 +52,26 @@ function AssetCard({ imageUrl, name, onRename }: AssetCardProps) {
       ) : (
         <p className="flex-1 truncate text-xs font-medium text-gray-700 dark:text-gray-300">{name}</p>
       )}
-      {onRename && !editing && (
-        <button
-          onClick={() => { setDraft(name); setEditing(true); }}
-          className="shrink-0 text-gray-400 hover:text-gray-200 transition-colors"
-          title="Rename asset"
-        >
-          <Pencil className="h-3 w-3" />
-        </button>
-      )}
+      <div className="flex shrink-0 items-center gap-1">
+        {onRename && !editing && (
+          <button
+            onClick={() => { setDraft(name); setEditing(true); }}
+            className="text-gray-400 hover:text-gray-200 transition-colors"
+            title="Rename asset"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        )}
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="text-gray-400 hover:text-red-400 transition-colors"
+            title="Remove from assets"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -110,7 +122,7 @@ const BACKGROUND_ANGLES = [
 type BackgroundWithImage = { bg: BackgroundMetadata; imageUrl: string; angle: string; slotLabel: string };
 
 export default function SidebarAssetSection() {
-  const { propDesignerGenerator, bgSheetGenerator, renameProp } = useMithril();
+  const { propDesignerGenerator, bgSheetGenerator, renameProp, unpushProp, unpushBg } = useMithril();
 
   const allProps = propDesignerGenerator.result?.props ?? [];
   const characters = allProps.filter((p): p is PropWithImage =>
@@ -154,6 +166,7 @@ export default function SidebarAssetSection() {
               imageUrl={p.designSheetImageRef}
               name={p.name}
               onRename={newName => renameProp(p.id, newName)}
+              onRemove={() => unpushProp(p.id)}
             />
           ))}
         </Subsection>
@@ -166,6 +179,7 @@ export default function SidebarAssetSection() {
               imageUrl={p.designSheetImageRef}
               name={p.name}
               onRename={newName => renameProp(p.id, newName)}
+              onRemove={() => unpushProp(p.id)}
             />
           ))}
         </Subsection>
@@ -173,7 +187,12 @@ export default function SidebarAssetSection() {
       {backgrounds.length > 0 && (
         <Subsection label="Backgrounds" icon={<ImageIcon className="h-3.5 w-3.5" />} count={backgrounds.length}>
           {backgrounds.map(({ bg, imageUrl, angle, slotLabel }) => (
-            <AssetCard key={`${bg.id}-${angle}`} imageUrl={imageUrl} name={slotLabel} />
+            <AssetCard
+              key={`${bg.id}-${angle}`}
+              imageUrl={imageUrl}
+              name={slotLabel}
+              onRemove={() => unpushBg(bg.id)}
+            />
           ))}
         </Subsection>
       )}

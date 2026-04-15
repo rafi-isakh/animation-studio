@@ -583,6 +583,7 @@ export interface UpdateBackgroundInput {
   referenceImageRef?: string;
   referenceAnalysis?: BackgroundReferenceAnalysis;
   plannedPrompts?: string[];
+  pushedToAssets?: boolean;
 }
 
 export interface SaveSceneInput {

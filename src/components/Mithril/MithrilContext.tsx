@@ -69,6 +69,7 @@ import {
   savePropDesignerSettings,
   saveProp,
   updateProp,
+  updateBackground,
   saveDetectedIds,
   clearPropDesigner,
   pushPropsToAssets as pushPropsToAssetsFirestore,
@@ -275,6 +276,8 @@ interface MithrilContextProps {
   clearPropDesignerData: () => void;
   pushPropsToAssets: () => Promise<void>;
   renameProp: (propId: string, newName: string) => Promise<void>;
+  unpushProp: (propId: string) => Promise<void>;
+  unpushBg: (bgId: string) => Promise<void>;
 
   // Upload Type (novel vs chapter)
   uploadType: UploadType;
@@ -2246,6 +2249,40 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, [currentProjectId]);
 
+  const unpushProp = useCallback(async (propId: string) => {
+    if (!currentProjectId) return;
+    await updateProp(currentProjectId, propId, { pushedToAssets: false });
+    setPropDesignerGenerator(prev => {
+      if (!prev.result) return prev;
+      return {
+        ...prev,
+        result: {
+          ...prev.result,
+          props: prev.result.props.map(p =>
+            p.id === propId ? { ...p, pushedToAssets: false } : p
+          ),
+        },
+      };
+    });
+  }, [currentProjectId]);
+
+  const unpushBg = useCallback(async (bgId: string) => {
+    if (!currentProjectId) return;
+    await updateBackground(currentProjectId, bgId, { pushedToAssets: false });
+    setBgSheetGenerator(prev => {
+      if (!prev.result) return prev;
+      return {
+        ...prev,
+        result: {
+          ...prev.result,
+          backgrounds: prev.result.backgrounds.map(bg =>
+            bg.id === bgId ? { ...bg, pushedToAssets: false } : bg
+          ),
+        },
+      };
+    });
+  }, [currentProjectId]);
+
   // Navigation methods (follow pipeline order, skipping tool-only and skipped stages)
   const goToNextStage = useCallback(() => {
     const idx = pipelineStageIds.indexOf(currentStage);
@@ -2364,6 +2401,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
         clearPropDesignerData,
         pushPropsToAssets,
         renameProp,
+        unpushProp,
+        unpushBg,
         // Upload Type (novel vs chapter)
         uploadType,
         setUploadType,

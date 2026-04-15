@@ -153,6 +153,16 @@ export function useBgOrchestrator({
     };
   }, [projectId, enabled]);
 
+  const parseJsonResponse = useCallback(async (response: Response) => {
+    const text = await response.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      throw new Error('Failed to parse response JSON');
+    }
+  }, []);
+
   /**
    * Submit a single background generation job
    */
@@ -163,14 +173,14 @@ export function useBgOrchestrator({
       body: JSON.stringify(params),
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to submit bg job');
+      throw new Error(data?.error || 'Failed to submit bg job');
     }
 
-    return data;
-  }, []);
+    return data as SubmitJobResponse;
+  }, [parseJsonResponse]);
 
   /**
    * Submit multiple background generation jobs as a batch
@@ -186,14 +196,14 @@ export function useBgOrchestrator({
       }),
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to submit bg batch');
+      throw new Error(data?.error || 'Failed to submit bg batch');
     }
 
-    return data;
-  }, []);
+    return data as SubmitBatchResponse;
+  }, [parseJsonResponse]);
 
   /**
    * Cancel a job
@@ -205,12 +215,12 @@ export function useBgOrchestrator({
       body: JSON.stringify(params),
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to cancel job');
+      throw new Error(data?.error || 'Failed to cancel job');
     }
-  }, []);
+  }, [parseJsonResponse]);
 
   return {
     submitJob,

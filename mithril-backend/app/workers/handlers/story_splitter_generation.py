@@ -443,7 +443,8 @@ def find_split_point(sentence: str, text: str) -> int:
     """
     Locate the end index of a sentence within a larger text.
 
-    Uses normalization to tolerate minor differences in quotes/punctuation.
+    Tries exact match, then normalized match (tolerates quote/punctuation variants),
+    then fuzzy word-anchor match (handles minor AI rewrites).
     """
     if not sentence or not text:
         return -1
@@ -452,37 +453,74 @@ def find_split_point(sentence: str, text: str) -> int:
     if direct_index != -1:
         return direct_index + len(sentence)
 
-    normalized_sentence = normalize_string(sentence)
+    normalized_sentence = _normalize_string(sentence)
     if not normalized_sentence:
         return -1
 
-    normalized_text, index_map = build_normalized_mapping(text)
+    normalized_text, index_map = _build_normalized_mapping(text)
     normalized_index = normalized_text.find(normalized_sentence)
-    if normalized_index == -1:
+    if normalized_index != -1:
+        end_normalized_index = normalized_index + len(normalized_sentence) - 1
+        if end_normalized_index < len(index_map):
+            return index_map[end_normalized_index] + 1
+
+    return _fuzzy_find_split_point(normalized_sentence, normalized_text, index_map)
+
+
+def _fuzzy_find_split_point(norm_sentence: str, norm_text: str, index_map: list[int]) -> int:
+    """
+    Fuzzy fallback: anchor on the first 4 words, then verify the expected-length
+    window has ≥82% similarity. Handles cases where the AI slightly rephrases
+    the cliffhanger sentence.
+    """
+    import difflib
+
+    words = norm_sentence.split()
+    if len(words) < 3:
         return -1
 
-    end_normalized_index = normalized_index + len(normalized_sentence) - 1
-    if end_normalized_index >= len(index_map):
-        return -1
+    anchor = " ".join(words[:min(4, len(words))])
+    norm_sentence_lower = norm_sentence.lower()
+    norm_text_lower = norm_text.lower()
+    anchor_lower = anchor.lower()
+    sentence_len = len(norm_sentence)
 
-    return index_map[end_normalized_index] + 1
+    FUZZY_THRESHOLD = 0.82
+    search_start = 0
+    while True:
+        anchor_pos = norm_text_lower.find(anchor_lower, search_start)
+        if anchor_pos == -1:
+            break
+
+        expected_end = anchor_pos + sentence_len
+        if expected_end <= len(norm_text):
+            candidate = norm_text_lower[anchor_pos:expected_end]
+            ratio = difflib.SequenceMatcher(None, norm_sentence_lower, candidate).ratio()
+            if ratio >= FUZZY_THRESHOLD:
+                end_idx = expected_end - 1
+                if end_idx < len(index_map):
+                    return index_map[end_idx] + 1
+
+        search_start = anchor_pos + 1
+
+    return -1
 
 
-def normalize_string(value: str) -> str:
+def _normalize_string(value: str) -> str:
     builder: list[str] = []
     for char in value:
-        normalized = normalize_char(char)
+        normalized = _normalize_char(char)
         if normalized:
             builder.append(normalized)
     return "".join(builder)
 
 
-def build_normalized_mapping(text: str) -> tuple[str, list[int]]:
+def _build_normalized_mapping(text: str) -> tuple[str, list[int]]:
     normalized_chars: list[str] = []
     index_map: list[int] = []
 
     for index, char in enumerate(text):
-        normalized = normalize_char(char)
+        normalized = _normalize_char(char)
         if not normalized:
             continue
         for segment in normalized:
@@ -492,19 +530,19 @@ def build_normalized_mapping(text: str) -> tuple[str, list[int]]:
     return "".join(normalized_chars), index_map
 
 
-def normalize_char(char: str) -> str:
+def _normalize_char(char: str) -> str:
     if char == "\r":
         return ""
-    if char in {"“", "”"}:
-        return '"'
-    if char in {"‘", "’"}:
-        return "'"
-    if char in {"—", "–"}:
-        return "-"
-    if char == "…":
-        return "..."
-    if char in {"\u00A0", "\n", "\t", "\u2028", "\u2029"}:
-        return " "
     if char in {"\u200B", "\uFEFF"}:
         return ""
+    if char in {"\u00A0", "\n", "\t", "\u2028", "\u2029"}:
+        return " "
+    if char in {"\u201C", "\u201D"}:  # " "
+        return '"'
+    if char in {"\u2018", "\u2019"}:  # ' '
+        return "'"
+    if char in {"\u2014", "\u2013"}:  # — –
+        return "-"
+    if char == "\u2026":  # …
+        return "..."
     return char

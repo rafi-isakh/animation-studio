@@ -305,39 +305,76 @@ export async function POST(request: NextRequest) {
 }
 
 function findSplitPoint(sentence: string, text: string): number {
-  if (!sentence || !text) {
-    return -1;
-  }
+  if (!sentence || !text) return -1;
 
   const directIndex = text.indexOf(sentence);
-  if (directIndex !== -1) {
-    return directIndex + sentence.length;
-  }
+  if (directIndex !== -1) return directIndex + sentence.length;
 
   const normalizedSentence = normalizeString(sentence);
-  if (!normalizedSentence) {
-    return -1;
-  }
+  if (!normalizedSentence) return -1;
 
   const { normalizedText, indexMap } = buildNormalizedMapping(text);
   const normalizedIndex = normalizedText.indexOf(normalizedSentence);
-  if (normalizedIndex === -1) {
-    return -1;
+  if (normalizedIndex !== -1) {
+    const endNormalizedIndex = normalizedIndex + normalizedSentence.length - 1;
+    return indexMap[endNormalizedIndex] + 1;
   }
 
-  const endNormalizedIndex = normalizedIndex + normalizedSentence.length - 1;
-  const endOriginalIndex = indexMap[endNormalizedIndex];
+  return fuzzyFindSplitPoint(normalizedSentence, normalizedText, indexMap);
+}
 
-  return endOriginalIndex + 1;
+function fuzzyFindSplitPoint(normSentence: string, normText: string, indexMap: number[]): number {
+  const words = normSentence.split(/\s+/).filter((w) => w.length > 0);
+  if (words.length < 3) return -1;
+
+  const anchor = words.slice(0, Math.min(4, words.length)).join(" ");
+  const normSentenceLower = normSentence.toLowerCase();
+  const normTextLower = normText.toLowerCase();
+  const anchorLower = anchor.toLowerCase();
+  const sentenceLen = normSentence.length;
+
+  const FUZZY_THRESHOLD = 0.82;
+  let searchStart = 0;
+
+  while (true) {
+    const anchorPos = normTextLower.indexOf(anchorLower, searchStart);
+    if (anchorPos === -1) break;
+
+    const expectedEnd = anchorPos + sentenceLen;
+    if (expectedEnd <= normText.length) {
+      const candidate = normTextLower.slice(anchorPos, expectedEnd);
+      const ratio = wordOverlapRatio(normSentenceLower, candidate);
+      if (ratio >= FUZZY_THRESHOLD) {
+        const endIdx = expectedEnd - 1;
+        if (endIdx < indexMap.length) {
+          return indexMap[endIdx] + 1;
+        }
+      }
+    }
+
+    searchStart = anchorPos + 1;
+  }
+
+  return -1;
+}
+
+function wordOverlapRatio(a: string, b: string): number {
+  const aWords = a.split(/\s+/).filter((w) => w.length > 0);
+  const bWords = new Set(b.split(/\s+/).filter((w) => w.length > 0));
+  if (aWords.length === 0 || bWords.size === 0) return 0;
+
+  let matches = 0;
+  for (const w of aWords) {
+    if (bWords.has(w)) matches++;
+  }
+  return matches / Math.max(aWords.length, bWords.size);
 }
 
 function normalizeString(input: string): string {
   const builder: string[] = [];
   for (const char of input) {
     const mapped = normalizeChar(char);
-    if (mapped) {
-      builder.push(mapped);
-    }
+    if (mapped) builder.push(mapped);
   }
   return builder.join("");
 }
@@ -346,48 +383,44 @@ function buildNormalizedMapping(text: string) {
   const normalizedChars: string[] = [];
   const indexMap: number[] = [];
 
-  for (let i = 0; i < text.length; i += 1) {
-    const normalized = normalizeChar(text[i]);
-    if (!normalized) {
-      continue;
+  let i = 0;
+  for (const char of text) {
+    const normalized = normalizeChar(char);
+    if (normalized) {
+      for (const c of normalized) {
+        normalizedChars.push(c);
+        indexMap.push(i);
+      }
     }
-    for (const char of normalized) {
-      normalizedChars.push(char);
-      indexMap.push(i);
-    }
+    i++;
   }
 
-  return {
-    normalizedText: normalizedChars.join(""),
-    indexMap,
-  };
+  return { normalizedText: normalizedChars.join(""), indexMap };
 }
 
 function normalizeChar(char: string): string {
   switch (char) {
     case "\r":
-      return "";
-    case "\n":
-    case "\t":
-    case "\u2028":
-    case "\u2029":
-      return " ";
-    case "“":
-    case "”":
-      return '"';
-    case "‘":
-    case "’":
-      return "'";
-    case "—":
-    case "–":
-      return "-";
-    case "…":
-      return "...";
-    case "\u00A0":
-      return " ";
     case "\u200B":
     case "\uFEFF":
       return "";
+    case "\n":
+    case "\t":
+    case "\u00A0":
+    case "\u2028":
+    case "\u2029":
+      return " ";
+    case "\u201C":
+    case "\u201D":
+      return '"';
+    case "\u2018":
+    case "\u2019":
+      return "'";
+    case "\u2014":
+    case "\u2013":
+      return "-";
+    case "\u2026":
+      return "...";
     default:
       return char;
   }

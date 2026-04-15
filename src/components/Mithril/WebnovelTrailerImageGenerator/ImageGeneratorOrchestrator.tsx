@@ -129,6 +129,11 @@ export default function ImageGeneratorOrchestrator() {
 
   // Local uploaded assets state
   const [localAssets, setLocalAssets] = useState<LocalAssetRef[]>([]);
+  const [charNameOverrides, setCharNameOverrides] = useState<Record<string, string>>({});
+
+  // Inline asset name editing state
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
+  const [editingAssetName, setEditingAssetName] = useState<string>("");
 
   // Refs for stable references in async operations
   const framesRef = useRef<ImageGenFrame[]>([]);
@@ -457,6 +462,9 @@ export default function ImageGeneratorOrchestrator() {
               isRemoved: !!asset.isRemoved,
             }));
             setLocalAssets(assetMetadata);
+          }
+          if (savedMeta.charNameOverrides) {
+            setCharNameOverrides(savedMeta.charNameOverrides as Record<string, string>);
           }
         }
 
@@ -1595,6 +1603,44 @@ export default function ImageGeneratorOrchestrator() {
     [toast, currentProjectId, settings.stylePrompt, settings.aspectRatio]
   );
 
+  // Rename a locally uploaded asset
+  const handleRenameLocalAsset = useCallback(
+    async (assetId: string, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || !currentProjectId) return;
+      const updated = localAssets.map((a) => a.id === assetId ? { ...a, name: trimmed } : a);
+      setLocalAssets(updated);
+      await saveImageGenMeta(
+        currentProjectId,
+        settings.stylePrompt,
+        settings.aspectRatio,
+        updated
+          .filter((a) => a.isRemoved || !!a.imageUrl)
+          .map(({ id, name, imageUrl, category, isRemoved }) => ({ id, name, imageUrl: imageUrl ?? "", category, isRemoved }))
+      );
+    },
+    [localAssets, currentProjectId, settings.stylePrompt, settings.aspectRatio]
+  );
+
+  // Override the display name for a prop-designer character asset
+  const handleRenameCharAsset = useCallback(
+    async (assetId: string, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || !currentProjectId) return;
+      const updated = { ...charNameOverrides, [assetId]: trimmed };
+      setCharNameOverrides(updated);
+      await saveImageGenMeta(
+        currentProjectId,
+        settings.stylePrompt,
+        settings.aspectRatio,
+        undefined,
+        undefined,
+        updated
+      );
+    },
+    [charNameOverrides, currentProjectId, settings.stylePrompt, settings.aspectRatio]
+  );
+
   // Check if an asset has been replaced
   const isAssetReplaced = useCallback(
     (assetId: string) => localAssets.some((a) => a.id === assetId),
@@ -1919,9 +1965,27 @@ export default function ImageGeneratorOrchestrator() {
                       )}
                     </div>
                     <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
-                      <span className="text-[8px] text-yellow-200 font-bold truncate block">
-                        {char.name}
-                      </span>
+                      {editingAssetId === char.id ? (
+                        <input
+                          autoFocus
+                          className="text-[8px] text-yellow-200 font-bold w-full bg-transparent outline-none border-b border-yellow-400"
+                          value={editingAssetName}
+                          onChange={(e) => setEditingAssetName(e.target.value)}
+                          onBlur={() => { handleRenameCharAsset(char.id, editingAssetName); setEditingAssetId(null); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { handleRenameCharAsset(char.id, editingAssetName); setEditingAssetId(null); }
+                            else if (e.key === "Escape") setEditingAssetId(null);
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className="text-[8px] text-yellow-200 font-bold truncate block cursor-text"
+                          title="Double-click to rename"
+                          onDoubleClick={() => { setEditingAssetId(char.id); setEditingAssetName(charNameOverrides[char.id] ?? char.name); }}
+                        >
+                          {charNameOverrides[char.id] ?? char.name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -1951,9 +2015,27 @@ export default function ImageGeneratorOrchestrator() {
                       </button>
                     </div>
                     <div className="px-1 py-0.5 bg-slate-900 border-t border-yellow-500/50">
-                      <span className="text-[8px] text-yellow-200 font-bold truncate block">
-                        {asset.name}
-                      </span>
+                      {editingAssetId === asset.id ? (
+                        <input
+                          autoFocus
+                          className="text-[8px] text-yellow-200 font-bold w-full bg-transparent outline-none border-b border-yellow-400"
+                          value={editingAssetName}
+                          onChange={(e) => setEditingAssetName(e.target.value)}
+                          onBlur={() => { handleRenameLocalAsset(asset.id, editingAssetName); setEditingAssetId(null); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { handleRenameLocalAsset(asset.id, editingAssetName); setEditingAssetId(null); }
+                            else if (e.key === "Escape") setEditingAssetId(null);
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className="text-[8px] text-yellow-200 font-bold truncate block cursor-text"
+                          title="Double-click to rename"
+                          onDoubleClick={() => { setEditingAssetId(asset.id); setEditingAssetName(asset.name); }}
+                        >
+                          {asset.name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

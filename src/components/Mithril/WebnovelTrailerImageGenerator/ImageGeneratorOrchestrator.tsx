@@ -725,13 +725,26 @@ export default function ImageGeneratorOrchestrator() {
           referenceUrls.push(localBg.imageUrl);
         } else {
           // Check Stage 6 backgrounds
-          for (const bg of backgroundAssets) {
-            const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
-            if (angle?.imageRef) {
-              referenceUrls.push(angle.imageRef);
-              break;
+          // backgroundId is in "N-M" slot format (e.g. "1-3" = 1st bg sorted by name, 3rd angle)
+          // which matches the slot labels shown in the asset panel.
+          let matchedImageRef = "";
+          const slotParts = frame.backgroundId.match(/^(\d+)-(\d+)$/);
+          if (slotParts) {
+            const bgIndex = parseInt(slotParts[1]) - 1;
+            const angleIndex = parseInt(slotParts[2]) - 1;
+            const sortedBgs = [...backgroundAssets].sort((a, b) =>
+              a.name.localeCompare(b.name, undefined, { numeric: true })
+            );
+            const matchedBg = sortedBgs[bgIndex];
+            matchedImageRef = matchedBg?.angles[angleIndex]?.imageRef || "";
+          } else {
+            // Fallback: backgroundId is a raw angle name (e.g. manually typed "Front View")
+            for (const bg of backgroundAssets) {
+              const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
+              if (angle?.imageRef) { matchedImageRef = angle.imageRef; break; }
             }
           }
+          if (matchedImageRef) referenceUrls.push(matchedImageRef);
         }
       }
 

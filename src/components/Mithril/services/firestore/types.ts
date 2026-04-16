@@ -358,6 +358,7 @@ export interface ImageGenDocument {
     category: 'character' | 'background';
     isRemoved?: boolean;
   }>;
+  charNameOverrides?: Record<string, string>;
 }
 
 export interface ImageGenFrameDocument {

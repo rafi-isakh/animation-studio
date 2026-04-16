@@ -129,6 +129,11 @@ export default function ImageGeneratorOrchestrator() {
 
   // Local uploaded assets state
   const [localAssets, setLocalAssets] = useState<LocalAssetRef[]>([]);
+  const [charNameOverrides, setCharNameOverrides] = useState<Record<string, string>>({});
+
+  // Inline asset name editing state
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
+  const [editingAssetName, setEditingAssetName] = useState<string>("");
 
   // Refs for stable references in async operations
   const framesRef = useRef<ImageGenFrame[]>([]);
@@ -454,8 +459,12 @@ export default function ImageGeneratorOrchestrator() {
               mimeType: 'image/webp',
               category: asset.category,
               imageUrl: asset.imageUrl,
+              isRemoved: !!asset.isRemoved,
             }));
             setLocalAssets(assetMetadata);
+          }
+          if (savedMeta.charNameOverrides) {
+            setCharNameOverrides(savedMeta.charNameOverrides as Record<string, string>);
           }
         }
 
@@ -674,8 +683,8 @@ export default function ImageGeneratorOrchestrator() {
             createdAt: Date.now(),
           });
         } else {
-          const storyboardFrames = loadFramesFromStoryboard();
-          setFrames(storyboardFrames);
+          // No saved frames — show empty state, user can apply from storyboard or import via CSV
+          setFrames([]);
         }
 
         setHasLoaded(true);
@@ -716,13 +725,26 @@ export default function ImageGeneratorOrchestrator() {
           referenceUrls.push(localBg.imageUrl);
         } else {
           // Check Stage 6 backgrounds
-          for (const bg of backgroundAssets) {
-            const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
-            if (angle?.imageRef) {
-              referenceUrls.push(angle.imageRef);
-              break;
+          // backgroundId is in "N-M" slot format (e.g. "1-3" = 1st bg sorted by name, 3rd angle)
+          // which matches the slot labels shown in the asset panel.
+          let matchedImageRef = "";
+          const slotParts = frame.backgroundId.match(/^(\d+)-(\d+)$/);
+          if (slotParts) {
+            const bgIndex = parseInt(slotParts[1]) - 1;
+            const angleIndex = parseInt(slotParts[2]) - 1;
+            const sortedBgs = [...backgroundAssets].sort((a, b) =>
+              a.name.localeCompare(b.name, undefined, { numeric: true })
+            );
+            const matchedBg = sortedBgs[bgIndex];
+            matchedImageRef = matchedBg?.angles[angleIndex]?.imageRef || "";
+          } else {
+            // Fallback: backgroundId is a raw angle name (e.g. manually typed "Front View")
+            for (const bg of backgroundAssets) {
+              const angle = bg.angles.find((a) => a.angle === frame.backgroundId);
+              if (angle?.imageRef) { matchedImageRef = angle.imageRef; break; }
             }
           }
+          if (matchedImageRef) referenceUrls.push(matchedImageRef);
         }
       }
 
@@ -1594,11 +1616,92 @@ export default function ImageGeneratorOrchestrator() {
     [toast, currentProjectId, settings.stylePrompt, settings.aspectRatio]
   );
 
+  // Rename a locally uploaded asset
+  const handleRenameLocalAsset = useCallback(
+    async (assetId: string, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || !currentProjectId) return;
+      const updated = localAssets.map((a) => a.id === assetId ? { ...a, name: trimmed } : a);
+      setLocalAssets(updated);
+      await saveImageGenMeta(
+        currentProjectId,
+        settings.stylePrompt,
+        settings.aspectRatio,
+        updated
+          .filter((a) => a.isRemoved || !!a.imageUrl)
+          .map(({ id, name, imageUrl, category, isRemoved }) => ({ id, name, imageUrl: imageUrl ?? "", category, isRemoved }))
+      );
+    },
+    [localAssets, currentProjectId, settings.stylePrompt, settings.aspectRatio]
+  );
+
+  // Override the display name for a prop-designer character asset
+  const handleRenameCharAsset = useCallback(
+    async (assetId: string, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || !currentProjectId) return;
+      const updated = { ...charNameOverrides, [assetId]: trimmed };
+      setCharNameOverrides(updated);
+      await saveImageGenMeta(
+        currentProjectId,
+        settings.stylePrompt,
+        settings.aspectRatio,
+        undefined,
+        undefined,
+        updated
+      );
+    },
+    [charNameOverrides, currentProjectId, settings.stylePrompt, settings.aspectRatio]
+  );
+
   // Check if an asset has been replaced
   const isAssetReplaced = useCallback(
     (assetId: string) => localAssets.some((a) => a.id === assetId),
     [localAssets]
   );
+  const isAssetRemoved = useCallback(
+    (assetId: string) => !!localAssets.find((a) => a.id === assetId)?.isRemoved,
+    [localAssets]
+  );
+
+  // Remove an original asset (character or background) so it's excluded from generation
+  const handleRemoveOriginalAsset = useCallback(async (assetId: string, assetName: string, category: "character" | "background") => {
+    const updatedAssets: LocalAssetRef[] = [
+      ...localAssets.filter((a) => a.id !== assetId),
+      {
+        id: assetId,
+        name: assetName,
+        mimeType: "image/webp",
+        category,
+        isRemoved: true,
+      },
+    ];
+
+    setLocalAssets(updatedAssets);
+
+    if (currentProjectId) {
+      try {
+        const assetsForFirestore = updatedAssets
+          .map((a) => ({
+            id: a.id,
+            name: a.name,
+            imageUrl: a.imageUrl || "",
+            category: a.category,
+            isRemoved: !!a.isRemoved,
+          }))
+          .filter((a) => a.isRemoved || !!a.imageUrl);
+        await saveImageGenMeta(currentProjectId, settings.stylePrompt, settings.aspectRatio, assetsForFirestore);
+      } catch (err) {
+        console.warn(`Failed to persist removed original asset ${assetId}:`, err);
+      }
+    }
+
+    toast({
+      title: "Original Hidden",
+      description: `"${assetName}" will no longer be used as a reference image.`,
+      variant: "default",
+    });
+  }, [localAssets, currentProjectId, settings.stylePrompt, settings.aspectRatio, toast]);
 
   // Filter local assets by category
   const localCharacterAssets = useMemo(
@@ -1810,7 +1913,7 @@ export default function ImageGeneratorOrchestrator() {
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto no-scrollbar">
-              {characterAssets.map((char) => {
+              {characterAssets.filter((char) => !isAssetRemoved(char.id)).map((char) => {
                 const replaced = isAssetReplaced(char.id);
                 const replacementAsset = localAssets.find((a) => a.id === char.id);
                 const replacementSrc = replacementAsset?.base64
@@ -1846,18 +1949,27 @@ export default function ImageGeneratorOrchestrator() {
                           x
                         </button>
                       ) : (
-                        <label
-                          className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                          title="Replace with your image"
-                        >
-                          ^
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleReplaceAsset(e, char.id, char.name, "character")}
-                            className="hidden"
-                          />
-                        </label>
+                        <>
+                          <button
+                            onClick={() => handleRemoveOriginalAsset(char.id, char.name, "character")}
+                            className="absolute top-1 left-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            title="Remove original image"
+                          >
+                            x
+                          </button>
+                          <label
+                            className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            title="Replace with your image"
+                          >
+                            ^
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleReplaceAsset(e, char.id, char.name, "character")}
+                              className="hidden"
+                            />
+                          </label>
+                        </>
                       )}
                       {replaced && (
                         <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">
@@ -1866,9 +1978,27 @@ export default function ImageGeneratorOrchestrator() {
                       )}
                     </div>
                     <div className={`px-1 py-0.5 bg-slate-900 border-t ${replaced ? "border-green-500" : "border-slate-700"}`}>
-                      <span className="text-[8px] text-yellow-200 font-bold truncate block">
-                        {char.name}
-                      </span>
+                      {editingAssetId === char.id ? (
+                        <input
+                          autoFocus
+                          className="text-[8px] text-yellow-200 font-bold w-full bg-transparent outline-none border-b border-yellow-400"
+                          value={editingAssetName}
+                          onChange={(e) => setEditingAssetName(e.target.value)}
+                          onBlur={() => { handleRenameCharAsset(char.id, editingAssetName); setEditingAssetId(null); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { handleRenameCharAsset(char.id, editingAssetName); setEditingAssetId(null); }
+                            else if (e.key === "Escape") setEditingAssetId(null);
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className="text-[8px] text-yellow-200 font-bold truncate block cursor-text"
+                          title="Double-click to rename"
+                          onDoubleClick={() => { setEditingAssetId(char.id); setEditingAssetName(charNameOverrides[char.id] ?? char.name); }}
+                        >
+                          {charNameOverrides[char.id] ?? char.name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -1898,9 +2028,27 @@ export default function ImageGeneratorOrchestrator() {
                       </button>
                     </div>
                     <div className="px-1 py-0.5 bg-slate-900 border-t border-yellow-500/50">
-                      <span className="text-[8px] text-yellow-200 font-bold truncate block">
-                        {asset.name}
-                      </span>
+                      {editingAssetId === asset.id ? (
+                        <input
+                          autoFocus
+                          className="text-[8px] text-yellow-200 font-bold w-full bg-transparent outline-none border-b border-yellow-400"
+                          value={editingAssetName}
+                          onChange={(e) => setEditingAssetName(e.target.value)}
+                          onBlur={() => { handleRenameLocalAsset(asset.id, editingAssetName); setEditingAssetId(null); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { handleRenameLocalAsset(asset.id, editingAssetName); setEditingAssetId(null); }
+                            else if (e.key === "Escape") setEditingAssetId(null);
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className="text-[8px] text-yellow-200 font-bold truncate block cursor-text"
+                          title="Double-click to rename"
+                          onDoubleClick={() => { setEditingAssetId(asset.id); setEditingAssetName(asset.name); }}
+                        >
+                          {asset.name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -1913,7 +2061,7 @@ export default function ImageGeneratorOrchestrator() {
         <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/30">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-[10px] font-black text-cyan-400 uppercase">
-              Backgrounds ({backgroundAssets.reduce((acc, bg) => acc + (bg.angles?.length || 0), 0) + localBackgroundAssets.length})
+              Backgrounds ({backgroundAssets.reduce((acc, bg) => acc + (bg.angles || []).filter((a) => !isAssetRemoved(a.angle)).length, 0) + localBackgroundAssets.length})
             </h3>
             <label className="cursor-pointer bg-cyan-500 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full hover:bg-cyan-400 transition-colors">
               UPLOAD
@@ -1943,7 +2091,7 @@ export default function ImageGeneratorOrchestrator() {
                   (bg.angles || []).map((angle) => ({ bg, bgSortedIndex, angle }))
                 );
 
-                return allEntries.map(({ bg, bgSortedIndex, angle }, angleIndex) => {
+                return allEntries.filter(({ angle }) => !isAssetRemoved(angle.angle)).map(({ bg, bgSortedIndex, angle }, angleIndex) => {
                   const standardAngleIndex = BACKGROUND_ANGLES.indexOf(angle.angle);
                   const slotLabel = standardAngleIndex >= 0
                     ? `${bgSortedIndex + 1}-${standardAngleIndex + 1}`
@@ -1984,18 +2132,27 @@ export default function ImageGeneratorOrchestrator() {
                             x
                           </button>
                         ) : (
-                          <label
-                            className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                            title="Replace with your image"
-                          >
-                            ^
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${slotLabel}`, "background")}
-                              className="hidden"
-                            />
-                          </label>
+                          <>
+                            <button
+                              onClick={() => handleRemoveOriginalAsset(angleId, `${bg.name} - ${slotLabel}`, "background")}
+                              className="absolute top-1 left-1 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              title="Remove original image"
+                            >
+                              x
+                            </button>
+                            <label
+                              className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                              title="Replace with your image"
+                            >
+                              ^
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleReplaceAsset(e, angleId, `${bg.name} - ${slotLabel}`, "background")}
+                                className="hidden"
+                              />
+                            </label>
+                          </>
                         )}
                         {replaced && (
                           <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 py-0.5 text-center">

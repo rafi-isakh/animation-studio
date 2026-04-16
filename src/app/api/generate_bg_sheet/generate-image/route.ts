@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       model_id: MODEL_ID,
       prompt,
       negative_prompt:
-        "text, speech bubbles, word balloons, captions, watermarks, borders, panel borders, letterbox bars",
+        "text, speech bubbles, word balloons, captions, watermarks, borders, panel borders, letterbox bars, people, person, human, humans, man, woman, child, character, characters, face, faces, body, bodies, figure, figures, silhouette, silhouettes",
       width,
       height,
       samples: "1",

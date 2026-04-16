@@ -70,6 +70,26 @@ export async function POST(request: NextRequest) {
     // Build content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
+    const parseInlineImage = (refImage: string) => {
+      if (refImage.startsWith("data:image/")) {
+        const match = refImage.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.*)$/);
+        if (match) {
+          return { data: match[2], mimeType: match[1] };
+        }
+      }
+
+      if (refImage.includes("base64,")) {
+        const [prefix, data] = refImage.split("base64,");
+        const mimeMatch = prefix.match(/data:(image\/[a-zA-Z0-9+.-]+);/);
+        return {
+          data,
+          mimeType: mimeMatch?.[1] || "image/png",
+        };
+      }
+
+      return { data: refImage, mimeType: "image/png" };
+    };
+
     // Add visual continuity instruction if reference images are provided
     if (allReferenceImages.length > 0) {
       const continuityInstruction = `
@@ -86,15 +106,11 @@ Maintain consistent proportions, facial features, and outfit details across all 
 
       // Add all reference images
       for (const refImage of allReferenceImages) {
-        // Remove data:image/...;base64, prefix if exists
-        const base64Data = refImage.includes("base64,")
-          ? refImage.split("base64,")[1]
-          : refImage;
-
+        const { data, mimeType } = parseInlineImage(refImage);
         parts.push({
           inlineData: {
-            data: base64Data,
-            mimeType: "image/png",
+            data,
+            mimeType,
           },
         });
       }

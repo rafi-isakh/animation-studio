@@ -22,6 +22,7 @@ export interface ImageGenFrame {
   id: string; // UUID for React key and state matching
   sceneIndex: number; // From storyboard scene
   clipIndex: number; // From storyboard clip
+  partIndex?: number; // Storyboard part index
   frameLabel: string; // e.g., "1A", "1B", "2"
   frameNumber: string; // e.g., "001", "001A", "002"
   shotGroup: number; // Grouping for UI display

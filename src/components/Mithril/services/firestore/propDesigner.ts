@@ -197,6 +197,23 @@ export async function updateProp(
 }
 
 /**
+ * Mark all props with a generated design sheet as pushed to assets.
+ * Uses a writeBatch for atomicity.
+ */
+export async function pushPropsToAssets(projectId: string): Promise<void> {
+  const props = await getProps(projectId);
+  const toUpdate = props.filter(p => !!p.designSheetImageRef);
+  if (toUpdate.length === 0) return;
+
+  const batch = writeBatch(db);
+  for (const prop of toUpdate) {
+    const docRef = getPropRef(projectId, prop.id);
+    batch.set(docRef, { pushedToAssets: true }, { merge: true });
+  }
+  await batch.commit();
+}
+
+/**
  * Update prop design sheet image
  */
 export async function updatePropDesignSheetImage(
@@ -298,9 +315,15 @@ export async function updateDetectedIdCategory(
  * Also deletes all prop images from S3
  */
 export async function clearPropDesigner(projectId: string): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[clearPropDesigner] start", { projectId });
+  }
   // Step 1: Delete all prop images from S3 first
   try {
     const props = await getProps(projectId);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[clearPropDesigner] props_to_delete", { count: props.length });
+    }
     
     for (const prop of props) {
       try {
@@ -320,6 +343,9 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
   // Delete all props - wrap in try-catch to handle BloomFilter errors on empty collections
   try {
     const props = await getProps(projectId);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[clearPropDesigner] firestore_props_delete", { count: props.length });
+    }
     for (const prop of props) {
       const propRef = getPropRef(projectId, prop.id);
       batch.delete(propRef);

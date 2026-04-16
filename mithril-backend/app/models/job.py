@@ -178,9 +178,11 @@ class JobDocument(BaseModel):
 
     # Story Splitter-specific fields (for type=STORY_SPLITTER)
     story_text: str | None = None  # Full story text to split
+    story_text_s3_key: str | None = None  # S3 key for the uploaded story text
     guidelines: str | None = None  # Genre-specific splitting guidelines
     num_parts: int | None = None  # Number of parts to split into
     split_result: list[dict] | None = None  # Array of {text, cliffhangers} parts
+    split_result_s3_key: str | None = None  # S3 key for the JSON split result
 
     # Panel Splitter-specific fields (for type=PANEL_SPLITTER)
     page_id: str | None = None  # Page ID from frontend

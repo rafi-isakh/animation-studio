@@ -37,6 +37,7 @@ import {
   saveImageGenFrames,
   saveImageGenFrame,
   clearImageGen,
+  deleteImageGenFramesByPart,
 } from "../services/firestore/imageGen";
 import { getScenes, getClips } from "../services/firestore/storyboard";
 import {
@@ -96,6 +97,9 @@ export default function ImageGeneratorOrchestrator() {
     customApiKey,
     isLoading: isContextLoading,
     propDesignerGenerator,
+    getScenesForPart,
+    getGeneratedPartIndices,
+    getStoryPartIndices,
   } = useMithril();
 const { language, dictionary } = useLanguage();
   const { toast } = useToast();
@@ -117,6 +121,7 @@ const { language, dictionary } = useLanguage();
   const [bulkBackgroundId, setBulkBackgroundId] = useState("");
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
 
   // CSV Import state
   const [isCsvPanelOpen, setIsCsvPanelOpen] = useState(false);
@@ -171,6 +176,19 @@ const { language, dictionary } = useLanguage();
       frameToJobMap.current.clear();
     };
   }, []);
+
+  // Storyboard part indices
+  const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
+
+  // Auto-select a valid part when parts change
+  useEffect(() => {
+    const indices = storyPartIndices.length > 0 ? storyPartIndices : generatedPartIndices;
+    if (indices.length === 0) return;
+    if (!indices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(indices[indices.length - 1] ?? 0);
+    }
+  }, [storyPartIndices, generatedPartIndices, selectedPartIndex]);
 
   // Save a single completed frame to Firestore (called from onFrameUpdate)
   const saveCompletedFrame = useCallback(
@@ -331,6 +349,7 @@ const { language, dictionary } = useLanguage();
         bgResult.backgrounds.map((bg) => ({
           id: bg.id,
           name: bg.name,
+          partIndex: bg.partIndex,
           angles: bg.images.map((img) => ({
             angle: img.angle,
             imageRef: img.imageId || "",
@@ -350,9 +369,14 @@ const { language, dictionary } = useLanguage();
   }, [currentStage, loadAssets]);
 
   // Load frames from Stage 4 storyboard
-  const loadFramesFromStoryboard = useCallback(() => {
-    const storyboardData = getStageResult(4) as { scenes: Scene[] } | null;
-    if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
+  // If partIndex is provided, loads from that specific part; otherwise falls back to getStageResult(4)
+  const loadFramesFromStoryboard = useCallback((partIndex?: number) => {
+    const scenes: Scene[] | null =
+      partIndex !== undefined
+        ? getScenesForPart(partIndex)
+        : (getStageResult(4) as { scenes: Scene[] } | null)?.scenes ?? null;
+
+    if (!scenes || scenes.length === 0) {
       setError("No storyboard data found. Please complete Stage 4 first.");
       return [];
     }
@@ -360,7 +384,7 @@ const { language, dictionary } = useLanguage();
     const newFrames: ImageGenFrame[] = [];
     let shotGroup = 1;
 
-    storyboardData.scenes.forEach((scene, sceneIndex) => {
+    scenes.forEach((scene, sceneIndex) => {
       scene.clips.forEach((clip: Continuity, clipIndex) => {
         const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
@@ -370,6 +394,7 @@ const { language, dictionary } = useLanguage();
             id: uuidv4(),
             sceneIndex,
             clipIndex,
+            partIndex: partIndex ?? 0,
             frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
             frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
             shotGroup,
@@ -394,6 +419,7 @@ const { language, dictionary } = useLanguage();
             id: uuidv4(),
             sceneIndex,
             clipIndex,
+            partIndex: partIndex ?? 0,
             frameLabel: `${shotGroup}B`,
             frameNumber: `${frameNumber}B`,
             shotGroup,
@@ -417,7 +443,7 @@ const { language, dictionary } = useLanguage();
     });
 
     return newFrames;
-  }, [getStageResult]);
+  }, [getStageResult, getScenesForPart]);
 
   // Load data from Firestore or initialize from storyboard
   useEffect(() => {
@@ -464,15 +490,19 @@ const { language, dictionary } = useLanguage();
             aspectRatio: savedMeta.aspectRatio || "16:9",
           });
           if (savedMeta.localAssets && savedMeta.localAssets.length > 0) {
-            const assetMetadata: LocalAssetRef[] = savedMeta.localAssets.map((asset) => ({
-              id: asset.id,
-              name: asset.name,
-              mimeType: 'image/webp',
-              category: asset.category,
-              imageUrl: asset.imageUrl || undefined,
-              isRemoved: !!asset.isRemoved,
-            }));
-            setLocalAssets(assetMetadata);
+            // Deduplicate by id (keep last entry) to prevent stale duplicates
+            const seen = new Map<string, LocalAssetRef>();
+            savedMeta.localAssets.forEach((asset) => {
+              seen.set(asset.id, {
+                id: asset.id,
+                name: asset.name,
+                mimeType: 'image/webp',
+                category: asset.category,
+                imageUrl: asset.imageUrl || undefined,
+                isRemoved: !!asset.isRemoved,
+              });
+            });
+            setLocalAssets(Array.from(seen.values()));
           }
           if (savedMeta.charNameOverrides) {
             setCharNameOverrides(savedMeta.charNameOverrides as Record<string, string>);
@@ -509,16 +539,22 @@ const { language, dictionary } = useLanguage();
               editedImageUrl: sf.editedImageRef || null,
             }));
           } else {
-            const storyboardFrames = loadFramesFromStoryboard();
+            // Load storyboard frames for ALL parts so multi-part projects reload correctly.
+            const partsToLoad = getGeneratedPartIndices();
+            const allStoryboardFrames: ImageGenFrame[] = partsToLoad.length > 0
+              ? partsToLoad.flatMap((partIdx) => loadFramesFromStoryboard(partIdx))
+              : loadFramesFromStoryboard(); // fallback: active part only
 
-            if (storyboardFrames.length > 0) {
+            if (allStoryboardFrames.length > 0) {
+              // Key by "partIndex_frameLabel" so labels don't collide across parts
               const savedFrameMap = new Map<string, typeof savedFrames[0]>();
               savedFrames.forEach((f) => {
-                savedFrameMap.set(f.frameLabel, f);
+                savedFrameMap.set(`${f.partIndex ?? 0}_${f.frameLabel}`, f);
               });
 
-              mergedFrames = storyboardFrames.map((sbFrame) => {
-                const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
+              mergedFrames = allStoryboardFrames.map((sbFrame) => {
+                const key = `${sbFrame.partIndex ?? 0}_${sbFrame.frameLabel}`;
+                const savedFrame = savedFrameMap.get(key);
                 if (savedFrame) {
                   return {
                     ...sbFrame,
@@ -711,16 +747,43 @@ const { language, dictionary } = useLanguage();
     loadData();
   }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult]);
 
+  // All available part indices — prefer StorySplitter result, then storyboard context, then frames
+  const allPartIndices = useMemo(() => {
+    if (storyPartIndices.length > 0) return storyPartIndices;
+    if (generatedPartIndices.length > 0) return generatedPartIndices;
+    // Fall back to deriving from loaded frames
+    const parts = new Set(frames.map((f) => f.partIndex ?? 0));
+    return Array.from(parts).sort((a, b) => a - b);
+  }, [storyPartIndices, generatedPartIndices, frames]);
+
+  // Frames filtered to the selected part (when multi-part)
+  const displayedFrames = useMemo(
+    () =>
+      allPartIndices.length > 1
+        ? frames.filter((f) => (f.partIndex ?? 0) === selectedPartIndex)
+        : frames,
+    [frames, allPartIndices.length, selectedPartIndex]
+  );
+
+  // Background assets filtered to the selected part (when multi-part)
+  const filteredBackgroundAssets = useMemo(
+    () =>
+      allPartIndices.length > 1
+        ? backgroundAssets.filter((bg) => (bg.partIndex ?? 0) === selectedPartIndex)
+        : backgroundAssets,
+    [backgroundAssets, allPartIndices.length, selectedPartIndex]
+  );
+
   // Group frames by shotGroup for display
   const groupedFrames = useMemo(() => {
     const groups: Record<number, ImageGenFrame[]> = {};
-    frames.forEach((frame) => {
+    displayedFrames.forEach((frame) => {
       const group = frame.shotGroup || 0;
       if (!groups[group]) groups[group] = [];
       groups[group].push(frame);
     });
     return Object.entries(groups).sort((a, b) => Number(a[0]) - Number(b[0]));
-  }, [frames]);
+  }, [displayedFrames]);
 
   // Collect reference URLs for a frame (backgrounds + characters)
   const collectReferenceUrls = useCallback(
@@ -808,7 +871,7 @@ const { language, dictionary } = useLanguage();
 
       return referenceUrls;
     },
-    [localAssets, backgroundAssets, characterAssets]
+    [localAssets, backgroundAssets, characterAssets]  // use full backgroundAssets (filtered by frame.partIndex inside)
   );
 
   // Generate image for a single frame using orchestrator
@@ -1135,15 +1198,16 @@ const { language, dictionary } = useLanguage();
     });
   }, [currentProjectId, loadFramesFromStoryboard, setStageResult, toast]);
 
-  // Apply from storyboard
+  // Apply from storyboard - creates fresh frames for the selected part and saves to Firestore
   const handleApplyFromStoryboard = useCallback(async () => {
-    const storyboardFrames = loadFramesFromStoryboard();
+    const storyboardFrames = loadFramesFromStoryboard(selectedPartIndex);
     if (storyboardFrames.length === 0) {
       return;
     }
 
     const freshFrames = storyboardFrames.map((f) => ({
       ...f,
+      partIndex: selectedPartIndex,
       imageUrl: null,
       imageBase64: null,
       status: "pending" as const,
@@ -1153,18 +1217,23 @@ const { language, dictionary } = useLanguage();
       editedImageUrl: null,
     }));
 
-    setFrames(freshFrames);
+    // Replace only this part's frames, keeping other parts intact
+    setFrames((prev) => [
+      ...prev.filter((f) => (f.partIndex ?? 0) !== selectedPartIndex),
+      ...freshFrames,
+    ]);
     setError(null);
 
     if (currentProjectId) {
       try {
-        await clearImageGen(currentProjectId);
+        await deleteImageGenFramesByPart(currentProjectId, selectedPartIndex);
 
         const frameInputs = freshFrames.map((f) => ({
           id: f.id,
           input: {
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: selectedPartIndex,
             frameLabel: f.frameLabel,
             frameNumber: f.frameNumber,
             shotGroup: f.shotGroup,
@@ -1187,6 +1256,7 @@ const { language, dictionary } = useLanguage();
             id: f.id,
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: selectedPartIndex,
             frameLabel: f.frameLabel,
             imageRef: null,
             status: f.status,
@@ -1200,10 +1270,10 @@ const { language, dictionary } = useLanguage();
 
     toast({
       title: "Storyboard Applied",
-      description: `Loaded ${freshFrames.length} frames from storyboard.`,
+      description: `Loaded ${freshFrames.length} frames from Part ${selectedPartIndex + 1}.`,
       variant: "default",
     });
-  }, [currentProjectId, loadFramesFromStoryboard, settings, setStageResult, toast]);
+  }, [currentProjectId, loadFramesFromStoryboard, selectedPartIndex, settings, setStageResult, toast]);
 
   // Frame handlers
   const handlePromptChange = useCallback((id: string, value: string) => {
@@ -1868,10 +1938,10 @@ const { language, dictionary } = useLanguage();
   );
   const localBackgroundAssets = useMemo(
     () => {
-      const bgSheetIds = new Set(backgroundAssets.flatMap((bg) => bg.angles?.map((angle) => angle.angle) || []));
+      const bgSheetIds = new Set(filteredBackgroundAssets.flatMap((bg) => bg.angles?.map((angle) => angle.angle) || []));
       return localAssets.filter((a) => a.category === "background" && !bgSheetIds.has(a.id));
     },
-    [localAssets, backgroundAssets]
+    [localAssets, filteredBackgroundAssets]
   );
   const visibleCharacterAssets = useMemo(
     () => characterAssets.filter((c) => !isAssetRemoved(c.id)),
@@ -2238,7 +2308,7 @@ const { language, dictionary } = useLanguage();
               />
             </label>
           </div>
-          {backgroundAssets.length === 0 && localBackgroundAssets.length === 0 ? (
+          {filteredBackgroundAssets.length === 0 && localBackgroundAssets.length === 0 ? (
             <p className="text-[10px] text-slate-500 italic text-center py-2">
               No backgrounds - upload or complete Stage 4
             </p>
@@ -2246,7 +2316,7 @@ const { language, dictionary } = useLanguage();
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
               {(() => {
                 // Sort backgrounds by name (same as BgSheetGenerator) to compute consistent slot labels
-                const sortedBgs = [...backgroundAssets].sort((a, b) =>
+                const sortedBgs = [...filteredBackgroundAssets].sort((a, b) =>
                   a.name.localeCompare(b.name, undefined, { numeric: true })
                 );
 
@@ -2430,8 +2500,27 @@ const { language, dictionary } = useLanguage();
       <div className="flex-1 min-w-0 bg-slate-900/40 rounded-2xl border border-slate-700/50 shadow-inner h-[calc(100vh-6rem)] flex flex-col">
         {/* Sticky Header */}
         <div className="flex-shrink-0 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 p-4">
+          {/* Part selector - visible when at least one storyboard part exists */}
+          {allPartIndices.length >= 1 && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs text-gray-400 dark:text-gray-500">Part:</span>
+              {allPartIndices.map((partIdx) => (
+                <button
+                  key={partIdx}
+                  onClick={() => setSelectedPartIndex(partIdx)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    selectedPartIndex === partIdx
+                      ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                      : "text-gray-400 hover:text-[#E8E8E8]"
+                  }`}
+                >
+                  {partIdx + 1}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-black text-cyan-400 uppercase tracking-widest">
+            <h2 className="text-xl font-black text-white-400 uppercase tracking-widest">
               Storyboard
             </h2>
             <div className="flex items-center gap-2">
@@ -2485,13 +2574,13 @@ const { language, dictionary } = useLanguage();
               </div>
               <button
                 onClick={handleApplyFromStoryboard}
-                disabled={!getStageResult(4)}
+                disabled={getScenesForPart(selectedPartIndex).length === 0}
                 className="mt-6 px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
                 Apply From Storyboard
               </button>
-              {!getStageResult(4) && (
+              {getScenesForPart(selectedPartIndex).length === 0 && (
                 <p className="text-xs text-gray-400 mt-2">
                   Complete Storyboard stage to enable this, or use CSV Import in the sidebar
                 </p>

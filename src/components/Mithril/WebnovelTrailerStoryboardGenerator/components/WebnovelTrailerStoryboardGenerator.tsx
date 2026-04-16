@@ -202,16 +202,17 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
 
 export default function WebnovelTrailerStoryboardGenerator() {
   const {
-    setStageResult,
     getStageResult,
     storyboardGenerator,
     startStoryboardGeneration,
     splitStartEndFrames,
     importStoryboard,
     clearStoryboardGeneration,
+    setActiveStoryboardPartIndex,
+    getGeneratedPartIndices,
     isStageSkipped,
   } = useMithril();
-  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
+  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre, activePartIndex } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -275,7 +276,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
   // State from Stage 2 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
-  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [selectedSourcePartIndex, setSelectedSourcePartIndex] = useState<number>(0);
+  const generatedPartIndices = getGeneratedPartIndices();
 
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
@@ -323,12 +325,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
     loadParts();
   }, [getStageResult, isStageSkipped, currentProjectId]);
 
-  // Sync context results to stage results for downstream stages
-  useEffect(() => {
-    if (scenes.length === 0) return;
-    setStageResult(4, { scenes, voicePrompts, characterIdSummary, genre });
-  }, [scenes, voicePrompts, characterIdSummary, genre, setStageResult]);
-
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
       toast({
@@ -339,7 +335,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       return;
     }
 
-    const sourceText = trailerSourceText || splitParts[selectedPartIndex];
+    const sourceText = trailerSourceText || splitParts[selectedSourcePartIndex];
     if (!sourceText) {
       toast({
         variant: "destructive",
@@ -367,7 +363,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       selectedTrailerScript: selectedTrailerScript
         ? JSON.stringify(selectedTrailerScript.script)
         : "",
-    });
+    }, selectedSourcePartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
@@ -379,7 +375,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [
     trailerSourceText,
     splitParts,
-    selectedPartIndex,
+    selectedSourcePartIndex,
     storyCondition,
     imageCondition,
     videoCondition,
@@ -526,9 +522,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `storyboard_nsfw_part${selectedPartIndex + 1}.csv`;
+    link.download = `storyboard_nsfw_part${activePartIndex + 1}.csv`;
     link.click();
-  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+  }, [scenes, activePartIndex, characterIdSummary, genre]);
 
   const handleDownloadXLSX = useCallback(() => {
     if (scenes.length === 0) return;
@@ -650,8 +646,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Storyboard");
-    XLSX.writeFile(wb, `storyboard_nsfw_part${selectedPartIndex + 1}.xlsx`);
-  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+    XLSX.writeFile(wb, `storyboard_nsfw_part${activePartIndex + 1}.xlsx`);
+  }, [scenes, activePartIndex, characterIdSummary, genre]);
 
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
@@ -663,7 +659,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       genre,
       metadata: {
         exportedAt: new Date().toISOString(),
-        partIndex: selectedPartIndex + 1,
+        partIndex: activePartIndex + 1,
         totalScenes: scenes.length,
         totalClips: scenes.reduce((acc, s) => acc + s.clips.length, 0),
       },
@@ -685,7 +681,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `storyboard_nsfw_part${selectedPartIndex + 1}.json`;
+    link.download = `storyboard_nsfw_part${activePartIndex + 1}.json`;
     link.click();
 
     toast({
@@ -696,7 +692,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [
     scenes,
     voicePrompts,
-    selectedPartIndex,
+    activePartIndex,
     storyCondition,
     imageCondition,
     videoCondition,
@@ -731,7 +727,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
           return;
         }
 
-        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre);
+        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre, activePartIndex);
 
         if (data.conditions) {
           if (data.conditions.storyCondition) setStoryCondition(data.conditions.storyCondition);
@@ -763,7 +759,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
     reader.readAsText(file);
     event.target.value = "";
-  }, [importStoryboard, toast, dictionary, language]);
+  }, [importStoryboard, toast, dictionary, language, activePartIndex]);
 
   const handleCSVImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -922,7 +918,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
         }
 
         if (parsedScenes.length > 0) {
-          await importStoryboard(parsedScenes, []);
+          await importStoryboard(parsedScenes, [], undefined, undefined, activePartIndex);
           const totalClips = parsedScenes.reduce((acc, s) => acc + s.clips.length, 0);
           toast({
             variant: "success",
@@ -947,7 +943,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
     reader.readAsText(file);
     event.target.value = "";
-  }, [importStoryboard, toast, dictionary, language]);
+  }, [importStoryboard, toast, dictionary, language, activePartIndex]);
 
   const handleFindAndReplace = useCallback(() => {
     if (!findText || scenes.length === 0) return;
@@ -967,13 +963,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
         return updated;
       }),
     }));
-    importStoryboard(modifiedScenes, voicePrompts, characterIdSummary, genre);
+    importStoryboard(modifiedScenes, voicePrompts, characterIdSummary, genre, activePartIndex);
     toast({
       variant: "success",
       title: "Find & Replace 완료",
       description: `"${findText}" → "${replaceText}"`,
     });
-  }, [findText, replaceText, scenes, voicePrompts, characterIdSummary, genre, importStoryboard, toast]);
+  }, [findText, replaceText, scenes, voicePrompts, characterIdSummary, genre, importStoryboard, toast, activePartIndex]);
 
   const handleConfigFileUpload = useCallback(
     (
@@ -1039,7 +1035,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {/* TrailerSurvey view */}
       {currentView === 'survey' && (
         <TrailerSurvey
-          initialSourceText={splitParts[selectedPartIndex]}
+          initialSourceText={splitParts[selectedSourcePartIndex]}
           onStart={(text, option) => {
             setTrailerSourceText(text);
             setSelectedTrailerScript(option);
@@ -1070,9 +1066,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
             {splitParts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedPartIndex(index)}
+                onClick={() => setSelectedSourcePartIndex(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedPartIndex === index
+                  selectedSourcePartIndex === index
                     ? "bg-[#DB2777] text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
@@ -1087,17 +1083,17 @@ export default function WebnovelTrailerStoryboardGenerator() {
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {trailerSourceText
                   ? "트레일러 텍스트 미리보기"
-                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedPartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
+                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedSourcePartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {((trailerSourceText || splitParts[selectedPartIndex])?.length ?? 0).toLocaleString()}{" "}
+                {((trailerSourceText || splitParts[selectedSourcePartIndex])?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>
             <div className="max-h-24 overflow-y-auto scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {(trailerSourceText || splitParts[selectedPartIndex])?.slice(0, 300)}
-                {(trailerSourceText || splitParts[selectedPartIndex])?.length > 300 && "..."}
+                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.slice(0, 300)}
+                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.length > 300 && "..."}
               </pre>
             </div>
           </div>
@@ -1488,6 +1484,31 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {/* Loader */}
       {isGenerating && <Loader dictionary={dictionary} language={language} />}
 
+      {/* Generated Parts */}
+      {generatedPartIndices.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Generated Parts</p>
+          <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap">
+            {generatedPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => {
+                  console.log("[Storyboard UI] tab click -> part", partIdx);
+                  setActiveStoryboardPartIndex(partIdx);
+                }}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activePartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                Part {partIdx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Results */}
       {scenes.length > 0 && !isGenerating && (
         <div className="space-y-4">
@@ -1519,6 +1540,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
                 {phrase(dictionary, "storyboard_json_download", language)}
               </button>
               <button
+                onClick={() => clearStoryboardGeneration(activePartIndex)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear This Part
+              </button>
+              <button
                 onClick={async () => {
                   await splitStartEndFrames();
                   toast({
@@ -1535,7 +1563,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
               </button>
               {scenes.length > 0 && (
                 <button
-                  onClick={clearStoryboardGeneration}
+                  onClick={() => clearStoryboardGeneration()}
                   disabled={isGenerating}
                   className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >

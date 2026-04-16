@@ -63,6 +63,9 @@ export interface Prop {
   isVariant?: boolean;
   variantDetails?: string; // e.g., "Future version", "Dark mode"
   variantVisuals?: string; // e.g., "Longer hair, darker outfit"
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 // Detection session - each detection creates a new session
@@ -102,6 +105,9 @@ export interface PropMetadata {
   isVariant?: boolean;
   variantDetails?: string;
   variantVisuals?: string;
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 // Settings for the PropDesigner stage

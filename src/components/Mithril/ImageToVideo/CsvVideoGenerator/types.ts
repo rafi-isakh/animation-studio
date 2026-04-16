@@ -11,6 +11,7 @@ export interface CsvColumnMapping {
 export interface CsvFrame {
   id: string;                   // `frame-{rowIndex}-{timestamp}`
   rowIndex: number;             // 0-based → used as clipIndex
+  partIndex?: number;           // storyboard part index
   frameNumber: string;
   veoPrompt: string;
   referenceFilename: string;

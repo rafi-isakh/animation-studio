@@ -344,7 +344,7 @@ export default function NsfwStoryboardGenerator() {
       videoInstruction,
       imageInstruction,
       clipCount,
-    });
+    }, selectedPartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
@@ -1190,7 +1190,7 @@ export default function NsfwStoryboardGenerator() {
               </button>
               {scenes.length > 0 && (
                 <button
-                  onClick={clearStoryboardGeneration}
+                  onClick={() => clearStoryboardGeneration()}
                   disabled={isGenerating}
                   className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >

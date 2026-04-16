@@ -100,7 +100,9 @@ export default function StoryboardGenerator() {
     splitStartEndFrames,
     importStoryboard,
     clearStoryboardGeneration,
+    setActiveStoryboardPartIndex,
     isStageSkipped,
+    getGeneratedPartIndices,
   } = useMithril();
   const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
   const { toast } = useToast();
@@ -174,7 +176,7 @@ export default function StoryboardGenerator() {
 
   // State from Stage 3 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
-  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(storyboardGenerator.activePartIndex);
 
   // Genre presets hook
   const {
@@ -277,7 +279,7 @@ export default function StoryboardGenerator() {
       backgroundInstruction,
       negativeInstruction,
       videoInstruction,
-    });
+    }, selectedPartIndex);
 
     // Show success toast if generation completed without error
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
@@ -876,7 +878,10 @@ export default function StoryboardGenerator() {
             {splitParts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedPartIndex(index)}
+                onClick={() => {
+                  setSelectedPartIndex(index);
+                  setActiveStoryboardPartIndex(index);
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedPartIndex === index
                     ? "bg-[#DB2777] text-white"
@@ -905,6 +910,31 @@ export default function StoryboardGenerator() {
                 {splitParts[selectedPartIndex]?.length > 300 && "..."}
               </pre>
             </div>
+          </div>
+        </div>
+      ) : getGeneratedPartIndices().length > 1 ? (
+        // No StorySplitter result in context, but multiple parts exist in Firestore — show tabs for navigation
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {phrase(dictionary, "storyboard_select_part", language)}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {getGeneratedPartIndices().map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => {
+                  setSelectedPartIndex(partIdx);
+                  setActiveStoryboardPartIndex(partIdx);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                {phrase(dictionary, "storysplitter_part", language)} {partIdx + 1}
+              </button>
+            ))}
           </div>
         </div>
       ) : (
@@ -1266,6 +1296,14 @@ export default function StoryboardGenerator() {
       {/* Loader */}
       {isGenerating && <Loader dictionary={dictionary} language={language} />}
 
+      {/* Stale-part warning: scenes exist but the active context part differs from the selected tab */}
+      {scenes.length > 0 && !isGenerating && storyboardGenerator.activePartIndex !== selectedPartIndex && (
+        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
+          {phrase(dictionary, "storyboard_stale_part_warning", language) ||
+            `The storyboard below was generated from Part ${storyboardGenerator.activePartIndex + 1}. Click Generate to create a new storyboard for Part ${selectedPartIndex + 1}.`}
+        </div>
+      )}
+
       {/* Results */}
       {scenes.length > 0 && !isGenerating && (
         <div className="space-y-4">
@@ -1321,7 +1359,7 @@ export default function StoryboardGenerator() {
               </button> */}
               {scenes.length > 0 && (
                 <button
-                  onClick={clearStoryboardGeneration}
+                  onClick={() => clearStoryboardGeneration()}
                   disabled={isGenerating}
                   className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >

@@ -1419,31 +1419,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {/* Loader */}
       {isGenerating && <Loader dictionary={dictionary} language={language} />}
 
-      {/* Generated Parts */}
-      {generatedPartIndices.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Generated Parts</p>
-          <div className="p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap">
-            {generatedPartIndices.map((partIdx) => (
-              <button
-                key={partIdx}
-                onClick={() => {
-                  console.log("[Storyboard UI] tab click -> part", partIdx);
-                  setActiveStoryboardPartIndex(partIdx);
-                }}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activePartIndex === partIdx
-                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
-                    : "text-gray-400 hover:text-[#E8E8E8]"
-                }`}
-              >
-                Part {partIdx + 1}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Results */}
       {scenes.length > 0 && !isGenerating && (
         <div className="space-y-4">

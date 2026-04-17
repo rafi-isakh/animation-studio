@@ -661,8 +661,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
       const availablePartIndices = await getAvailablePartIndices(currentProjectId);
 
-      const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] =>
-        clips.map(clip => ({
+      const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] => {
+        return clips.map(clip => ({
           story: clip.story,
           imagePrompt: clip.imagePrompt,
           imagePromptEnd: clip.imagePromptEnd,
@@ -684,7 +684,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           length: clip.length,
           accumulatedTime: clip.accumulatedTime,
           imageRef: clip.imageRef || "",
+          trailerScriptKo: clip.trailerScriptKo || "",
+          trailerScriptEn: clip.trailerScriptEn || "",
         }));
+      };
 
       if (availablePartIndices.length > 0) {
         // Per-part data exists — load all parts into the cache
@@ -756,6 +759,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   length: clip.length,
                   accumulatedTime: clip.accumulatedTime,
                   imageRef: clip.imageRef, // S3 URL for storyboard image
+                  trailerScriptKo: clip.trailerScriptKo || "",
+                  trailerScriptEn: clip.trailerScriptEn || "",
                 })),
               };
             })
@@ -1671,6 +1676,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               bgmEn: clip.bgmEn || "",
               length: clip.length || "",
               accumulatedTime: clip.accumulatedTime || "",
+              trailerScriptKo: clip.trailerScriptKo || "",
+              trailerScriptEn: clip.trailerScriptEn || "",
             });
           }
         }

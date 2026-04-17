@@ -350,6 +350,9 @@ export interface ClipDocument {
   sfxEn: string;
   bgm: string;
   bgmEn: string;
+  // Trailer script (optional — only present for trailer storyboards)
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   // Timing
   length: string;
   accumulatedTime: string;

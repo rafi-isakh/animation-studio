@@ -436,11 +436,12 @@ async def _generate_storyboard_with_gemini(
 
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
 
-    4-1. story를 분석하여 시각적으로 주목할 요소 3가지를 각각 아래 필드에 한국어로 출력하십시오. 반드시 유형별로 1개씩 분리하여 출력해야 합니다:
+    4-1. story를 분석하여 시각적으로 주목할 요소 4가지를 각각 아래 필드에 한국어로 출력하십시오. 반드시 유형별로 1개씩 분리하여 출력해야 합니다:
     - **attentionDevice**: 오브젝트/인서트컷 유형 — 장면 속 핵심 소품·사물 (예: "전화기")
     - **attentionAction**: 행동 유형 — 인물이 취하는 구체적인 동작 (예: "전화를 받는 엘리사")
     - **attentionExpression**: 감정 유형 — 인물의 감정 상태·신체 반응 (예: "절망한 엘리사의 눈동자")
-    이 세 필드는 각각 imagePromptA(attention_device), imagePromptB(attention_action), imagePromptC(attention_expression)의 핵심 소재로 사용됩니다.
+    - **attentionMood**: 분위기 유형 — 장면 전체의 감정적 톤·분위기를 한 단어나 짧은 구로 (예: "절망", "긴장감", "허탈함")
+    이 네 필드는 각각 imagePromptA(attention_device), imagePromptB(attention_action), imagePromptC(attention_expression), imagePromptD(attention_mood)의 핵심 소재로 사용됩니다.
 
     4-2. **imagePromptA**: 오브젝/인서트컷(attention_device) 타입 — attentionDevice 항목을 소재로 사용. 극단적 클로즈업. 인물의 얼굴/표정을 포함하지 않음. B-roll 또는 인서트컷 스타일로 작성.
 
@@ -570,6 +571,9 @@ async def _generate_storyboard_with_gemini(
                                 "properties": {
                                     "story": {"type": "STRING"},
                                     "attentionDevice": {"type": "STRING"},
+                                    "attentionAction": {"type": "STRING"},
+                                    "attentionExpression": {"type": "STRING"},
+                                    "attentionMood": {"type": "STRING"},
                                     "imagePromptA": {"type": "STRING"},
                                     "imagePromptB": {"type": "STRING"},
                                     "imagePromptC": {"type": "STRING"},
@@ -595,7 +599,7 @@ async def _generate_storyboard_with_gemini(
                                     "trailerScriptEn": {"type": "STRING"},
                                 },
                                 "required": [
-                                    "story", "attentionDevice",
+                                    "story", "attentionDevice", "attentionAction", "attentionExpression", "attentionMood",
                                     "imagePromptA", "imagePromptB", "imagePromptC", "imagePromptD",
                                     "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
@@ -672,7 +676,26 @@ async def _generate_storyboard_with_gemini(
 
     result = json.loads(response_text)
 
+    # Debug: log attention field presence on the first clip of the first scene
+    first_scene = result.get("scenes", [{}])[0] if result.get("scenes") else {}
+    first_clip = first_scene.get("clips", [{}])[0] if first_scene.get("clips") else {}
+    logger.debug(
+        "[STORYBOARD] First clip attention fields — "
+        "attentionDevice=%r, attentionAction=%r, attentionExpression=%r, attentionMood=%r | "
+        "imagePromptA present=%s, imagePromptB present=%s, imagePromptC present=%s, imagePromptD present=%s",
+        first_clip.get("attentionDevice", ""),
+        first_clip.get("attentionAction", ""),
+        first_clip.get("attentionExpression", ""),
+        first_clip.get("attentionMood", ""),
+        bool(first_clip.get("imagePromptA")),
+        bool(first_clip.get("imagePromptB")),
+        bool(first_clip.get("imagePromptC")),
+        bool(first_clip.get("imagePromptD")),
+    )
+
     # Post-process: apply suffix to imagePrompt and append Background ID
+    attention_filled = 0
+    attention_empty = 0
     for scene in result.get("scenes", []):
         for clip in scene.get("clips", []):
             # Apply suffix to imagePrompt
@@ -695,11 +718,24 @@ async def _generate_storyboard_with_gemini(
             raw = clip.get("pixAiPrompt", "").strip()
             clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
 
-            # Map imagePromptA/B/C/D → imagePromptA1/B1/C1/D1 (frontend convention)
+            # Apply suffix to imagePromptA/B/C/D
             for letter in ("A", "B", "C", "D"):
-                val = clip.pop(f"imagePrompt{letter}", None)
+                val = clip.get(f"imagePrompt{letter}", "")
                 if val:
-                    clip[f"imagePrompt{letter}1"] = _append_suffix(val)
+                    clip[f"imagePrompt{letter}"] = _append_suffix(val)
+
+            # Count attention field coverage for summary log
+            filled = sum(1 for f in ("attentionDevice", "attentionAction", "attentionExpression", "attentionMood") if clip.get(f))
+            if filled == 4:
+                attention_filled += 1
+            else:
+                attention_empty += 1
+
+    total_clips = attention_filled + attention_empty
+    logger.info(
+        "[STORYBOARD] Attention fields coverage: %d/%d clips have all 4 fields populated (%d missing)",
+        attention_filled, total_clips, attention_empty,
+    )
 
     return result, response.usage_metadata
 

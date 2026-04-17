@@ -219,6 +219,7 @@ class JobDocument(BaseModel):
     negative_instruction: str | None = None  # Negative prompts
     video_instruction: str | None = None  # Video prompt rules
     image_instruction: str | None = None  # Image prompt package instructions
+    image_prompt_qa: str | None = None  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
@@ -823,6 +824,7 @@ class StoryboardJobSubmitRequest(BaseModel):
     negative_instruction: str = ""
     video_instruction: str = ""
     image_instruction: str = ""  # Image prompt package instructions
+    image_prompt_qa: str = ""  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str = ""  # JSON-stringified trailer script lines
     # API key
     api_key: str | None = None

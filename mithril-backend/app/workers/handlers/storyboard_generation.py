@@ -387,6 +387,7 @@ async def _generate_storyboard_with_gemini(
     negative_instruction = job.negative_instruction or ""
     video_instruction = job.video_instruction or ""
     image_instruction = job.image_instruction or ""
+    image_prompt_qa = job.image_prompt_qa or ""
     selected_trailer_script = job.selected_trailer_script or ""
     source_text = source_text_override if source_text_override is not None else (job.source_text or "")
 
@@ -434,6 +435,22 @@ async def _generate_storyboard_with_gemini(
     3. **backgroundId**: 형식 "#-#[ -#]" (예: 1-1, 1-2, 1-1-1)
 
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
+
+    4-1. story를 분석하여 시각적으로 주목할 요소 3가지를 각각 아래 필드에 한국어로 출력하십시오. 반드시 유형별로 1개씩 분리하여 출력해야 합니다:
+    - **attentionDevice**: 오브젝트/인서트컷 유형 — 장면 속 핵심 소품·사물 (예: "전화기")
+    - **attentionAction**: 행동 유형 — 인물이 취하는 구체적인 동작 (예: "전화를 받는 엘리사")
+    - **attentionExpression**: 감정 유형 — 인물의 감정 상태·신체 반응 (예: "절망한 엘리사의 눈동자")
+    이 세 필드는 각각 imagePromptA(attention_device), imagePromptB(attention_action), imagePromptC(attention_expression)의 핵심 소재로 사용됩니다.
+
+    4-2. **imagePromptA**: 오브젝/인서트컷(attention_device) 타입 — attentionDevice 항목을 소재로 사용. 극단적 클로즈업. 인물의 얼굴/표정을 포함하지 않음. B-roll 또는 인서트컷 스타일로 작성.
+
+    4-3. **imagePromptB**: 행동(attention_action) 타입 — attentionAction 항목을 소재로 사용. 첫 단어는 카메라 거리+각도 (예: Eye-level Full Shot, High angle Bird's eye view, Low angle Side Close Up).
+
+    4-4. **imagePromptC**: 감정(attention_expression) 타입 — attentionExpression 항목을 소재로 사용. 캐릭터의 얼굴, 눈, 동공 극단적 클로즈업으로 감정 강조. 배경은 단색(검정, 빨강, 진한 파랑 등)으로 처리.
+
+    4-5. **imagePromptD**: 감정 증폭 타입 — 장면의 감정 강도를 시각적으로 극대화. 방법론 자유 (오브젝트, 인물, 배경, 조명, 색감, 날씨, 카메라 무빙 등 어떤 요소든 활용 가능). attentionDevice/attentionAction/attentionExpression에 구애받지 않고 가장 강렬한 감정 임팩트를 줄 수 있는 방식을 자유롭게 선택.
+
+    {f'이미지 가이드 패키지가 제공된 경우, 위 4-2~4-5 프롬프트는 아래 패키지의 스타일·구조·패턴을 분석하여 동일한 유형으로 작성하십시오.' if image_prompt_qa else ''}
 
     5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
     스토리나 대사에서 캐릭터가 떨고있거나(shivering), 기침하거나(coughing), 눈물을 흘리거나(tears flowing) 등 신체적/감정적 상태가 암시되는 경우, 해당 키워드를 반드시 videoPrompt에 명시하십시오.
@@ -510,6 +527,13 @@ async def _generate_storyboard_with_gemini(
     ''' if image_instruction else ''}
 
     {f'''
+    **[이미지 가이드 패키지 — A/B/C/D 프롬프트 스타일 분석용]**
+    아래 패키지에 포함된 예시 프롬프트들을 분석하여 각 유형(A: 오브젝·인서트컷/attention_device, B: 행동/attention_action, C: 감정/attention_expression, D: 감정 증폭)의 스타일, 구조, 표현 패턴을 파악하십시오.
+    imagePromptA, imagePromptB, imagePromptC, imagePromptD 생성 시 이 패키지의 패턴을 따르십시오.
+    {image_prompt_qa}
+    ''' if image_prompt_qa else ''}
+
+    {f'''
     **[CRITICAL: 트레일러 스크립트 배치 규칙]**
     - 사용자가 선택한 트레일러 스크립트(Trailer Script)가 제공됩니다.
     - 이 스크립트의 각 라인을 적절한 클립의 `trailerScriptKo` 필드에 하나씩 배치하십시오.
@@ -545,6 +569,11 @@ async def _generate_storyboard_with_gemini(
                                 "type": "OBJECT",
                                 "properties": {
                                     "story": {"type": "STRING"},
+                                    "attentionDevice": {"type": "STRING"},
+                                    "imagePromptA": {"type": "STRING"},
+                                    "imagePromptB": {"type": "STRING"},
+                                    "imagePromptC": {"type": "STRING"},
+                                    "imagePromptD": {"type": "STRING"},
                                     "imagePrompt": {"type": "STRING"},
                                     "videoPrompt": {"type": "STRING"},
                                     "soraVideoPrompt": {"type": "STRING"},
@@ -566,7 +595,9 @@ async def _generate_storyboard_with_gemini(
                                     "trailerScriptEn": {"type": "STRING"},
                                 },
                                 "required": [
-                                    "story", "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
+                                    "story", "attentionDevice",
+                                    "imagePromptA", "imagePromptB", "imagePromptC", "imagePromptD",
+                                    "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
@@ -663,6 +694,12 @@ async def _generate_storyboard_with_gemini(
             # Append PIXAI_PROMPT_SUFFIX to pixAiPrompt
             raw = clip.get("pixAiPrompt", "").strip()
             clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
+
+            # Map imagePromptA/B/C/D → imagePromptA1/B1/C1/D1 (frontend convention)
+            for letter in ("A", "B", "C", "D"):
+                val = clip.pop(f"imagePrompt{letter}", None)
+                if val:
+                    clip[f"imagePrompt{letter}1"] = _append_suffix(val)
 
     return result, response.usage_metadata
 

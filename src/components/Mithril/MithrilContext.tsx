@@ -85,7 +85,7 @@ import { deleteAllBackgroundImages } from "./services/s3";
 const TOTAL_STAGES = 8;
 
 // Editable clip field type (shared across components)
-export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn' | 'story' | 'soraVideoPrompt' | 'veoVideoPrompt' | 'pixAiPrompt' | 'narration' | 'narrationEn' | 'trailerScriptKo' | 'trailerScriptEn';
 
 // Types for Story Splitter
 interface Cliffhanger {

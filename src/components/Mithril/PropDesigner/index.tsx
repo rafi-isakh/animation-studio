@@ -1286,8 +1286,13 @@ export default function PropDesigner() {
         setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
+      // Persist S3 URLs to Firestore (skip base64 — too large for Firestore)
+      if (currentProjectId) {
+        const urlRefs = images.filter(img => img.startsWith("http://") || img.startsWith("https://"));
+        updateProp(currentProjectId, propId, { referenceImageRefs: urlRefs }).catch(console.error);
+      }
     },
-    [syncToContext]
+    [syncToContext, currentProjectId]
   );
 
   // Update prop fields and sync to context

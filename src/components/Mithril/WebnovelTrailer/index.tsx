@@ -811,6 +811,91 @@ export default function WebnovelTrailer() {
     return () => { cancelled = true; };
   }, [currentProjectId, isContextLoading]);
 
+  useEffect(() => {
+    if (isContextLoading || !currentProjectId || !hasLoaded) return;
+
+    let cancelled = false;
+    setIsLoadingData(true);
+
+    (async () => {
+      try {
+        activeJobsRef.current.clear();
+        const savedClips = await getWebnovelTrailerClipsByPart(currentProjectId, selectedPartIndex);
+        if (cancelled) return;
+
+        const restoredFrames: CsvFrame[] = savedClips.map((clip) => ({
+          id: `frame-${selectedPartIndex}-${clip.clipIndex}-restored`,
+          rowIndex: clip.clipIndex,
+          partIndex: selectedPartIndex,
+          frameNumber: clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
+          veoPrompt: clip.videoPrompt || '',
+          referenceFilename: '',
+          clipLength: clip.length?.replace(/[^0-9]/g, '') || '5',
+          videoApi: clip.videoApi ?? undefined,
+          imageData: null,
+          endFrameData: null,
+          imageUrl: clip.imageUrl ?? null,
+          videoUrl: clip.videoRef ?? null,
+          jobId: clip.jobId ?? null,
+          s3FileName: clip.s3FileName ?? null,
+          status: (clip.status as CsvFrame['status']) || 'idle',
+          error: clip.error,
+          providerId: clip.providerId,
+        }));
+
+        const activeJobs = await getActiveProjectJobs(currentProjectId);
+        const frameIndexByRowIndex = new Map<number, number>();
+        const activeFrameIndexes = new Set<number>();
+        restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
+        activeJobs.forEach((job) => {
+          if (job.type && job.type !== 'video') return;
+          if (job.scene_index !== 0) return;
+          const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
+          if (frameIdx === -1) return;
+          activeFrameIndexes.add(frameIdx);
+          const update = mapJobToClipUpdate(job);
+          activeJobsRef.current.add(update.jobId);
+          restoredFrames[frameIdx] = {
+            ...restoredFrames[frameIdx],
+            jobId: update.jobId,
+            status: update.status === 'completed' ? 'completed'
+              : update.status === 'failed' ? 'failed'
+                : 'generating',
+          };
+        });
+
+        // Normalize stale in-flight statuses.
+        // If a clip was persisted as pending/generating/retrying but no active job
+        // exists for it anymore, reset it to idle so the UI doesn't remain stuck.
+        for (let i = 0; i < restoredFrames.length; i++) {
+          if (activeFrameIndexes.has(i)) continue;
+          const f = restoredFrames[i];
+          if (f.status === 'pending' || f.status === 'generating' || f.status === 'retrying') {
+            restoredFrames[i] = {
+              ...f,
+              status: 'idle',
+              jobId: null,
+              error: undefined,
+            };
+          }
+        }
+
+        if (!cancelled) {
+          setFrames(restoredFrames);
+          setShowImageUploader(restoredFrames.length === 0);
+        }
+      } catch (err) {
+        console.error('WebnovelTrailer: failed to load selected part clips', err);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingData(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [currentProjectId, isContextLoading, hasLoaded, selectedPartIndex]);
+
   // ── CSV Import handlers ──────────────────────────────────
 
   // Read a File to text

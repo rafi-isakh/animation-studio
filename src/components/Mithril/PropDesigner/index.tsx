@@ -696,31 +696,49 @@ export default function PropDesigner() {
   // Helper to create a new session from detection results and save to Firestore
   const createSessionFromDetection = useCallback(
     async (newProps: Prop[], category: "character" | "object") => {
-      // Create new session
-      const sessionNumber = category === "character"
-        ? characterSessionCount + 1
-        : objectSessionCount + 1;
-      const sessionName = category === "character"
-        ? `Character Sheet #${sessionNumber}`
-        : `Object Sheet #${sessionNumber}`;
+      // If a session of this category already exists, update the most recent one in-place
+      const existingSessionIndex = sessions.reduce<number>(
+        (found, s, i) => (s.type === category ? i : found),
+        -1
+      );
 
-      const newSession: DetectionSession = {
-        id: crypto.randomUUID(),
-        name: sessionName,
-        type: category,
-        props: newProps,
-        timestamp: Date.now(),
-        isMinimized: false, // Open expanded for new detections
-      };
+      let targetSession: DetectionSession;
+      let updatedSessions: DetectionSession[];
 
-      // Update session counter
-      if (category === "character") {
-        setCharacterSessionCount(prev => prev + 1);
+      if (existingSessionIndex !== -1) {
+        targetSession = {
+          ...sessions[existingSessionIndex],
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+        updatedSessions = sessions.map((s, i) => (i === existingSessionIndex ? targetSession : s));
       } else {
-        setObjectSessionCount(prev => prev + 1);
+        const sessionNumber = category === "character"
+          ? characterSessionCount + 1
+          : objectSessionCount + 1;
+        const sessionName = category === "character"
+          ? `Character Sheet #${sessionNumber}`
+          : `Object Sheet #${sessionNumber}`;
+
+        targetSession = {
+          id: crypto.randomUUID(),
+          name: sessionName,
+          type: category,
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+
+        if (category === "character") {
+          setCharacterSessionCount(prev => prev + 1);
+        } else {
+          setObjectSessionCount(prev => prev + 1);
+        }
+
+        updatedSessions = [...sessions, targetSession];
       }
 
-      const updatedSessions = [...sessions, newSession];
       setSessions(updatedSessions);
 
       if (process.env.NODE_ENV !== "production") {
@@ -733,7 +751,8 @@ export default function PropDesigner() {
           withUrl,
           withBase64,
           withRefs,
-          sessionName: newSession.name,
+          sessionName: targetSession.name,
+          reused: existingSessionIndex !== -1,
         });
       }
 
@@ -787,7 +806,7 @@ export default function PropDesigner() {
       // Update context
       syncToContext(updatedSessions);
 
-      return newSession.id;
+      return targetSession.id;
     },
     [currentProjectId, detectedIds, genre, sessions, styleKeyword, characterSessionCount, objectSessionCount, syncToContext]
   );

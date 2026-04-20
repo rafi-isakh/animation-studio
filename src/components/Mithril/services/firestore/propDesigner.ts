@@ -163,6 +163,8 @@ export async function saveProp(
   if (input.hairColor !== undefined) data.hairColor = input.hairColor;
   if (input.hairStyle !== undefined) data.hairStyle = input.hairStyle;
   if (input.eyeColor !== undefined) data.eyeColor = input.eyeColor;
+  if (input.dominantOutfitColor !== undefined) data.dominantOutfitColor = input.dominantOutfitColor;
+  if (input.expression !== undefined) data.expression = input.expression;
   if (input.personality !== undefined) data.personality = input.personality;
   if (input.role !== undefined) data.role = input.role;
 

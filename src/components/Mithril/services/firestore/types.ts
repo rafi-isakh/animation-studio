@@ -207,6 +207,8 @@ export interface PropDocument {
   hairColor?: string; // e.g., 'Silver', 'Dark brown'
   hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
   eyeColor?: string; // e.g., 'Golden', 'Blue'
+  dominantOutfitColor?: string; // e.g., 'Navy blue', 'Crimson red'
+  expression?: string; // e.g., 'Gentle smile', 'Cold stare'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -253,6 +255,8 @@ export interface SavePropInput {
   hairColor?: string;
   hairStyle?: string;
   eyeColor?: string;
+  dominantOutfitColor?: string;
+  expression?: string;
   personality?: string;
   role?: string;
 

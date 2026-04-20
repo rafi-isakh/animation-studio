@@ -84,17 +84,35 @@ export default function PropListView({
   onToggleEasyMode,
   suggestedStartingImages,
 }: PropListViewProps) {
-  // Sort props: Default characters first, then Variants
+  // Sort props: Protagonist first, then other defaults, then variants
   const sortedProps = useMemo(() => {
-    return [...props].sort((a, b) => {
-      // Default characters (isVariant === false or undefined) come first
-      const aIsDefault = !a.isVariant;
-      const bIsDefault = !b.isVariant;
-      
-      if (aIsDefault && !bIsDefault) return -1;
-      if (!aIsDefault && bIsDefault) return 1;
-      return 0; // Maintain original order within same category
+    const rolePriority = (p: Prop): number => {
+      if (!p.isVariant && p.role?.toLowerCase().includes("protagonist")) return 0;
+      if (!p.isVariant) return 1;
+      return 2;
+    };
+    return [...props].sort((a, b) => rolePriority(a) - rolePriority(b));
+  }, [props]);
+
+  // Map each variant to its matched base character (for display + auto-link)
+  const variantBaseMap = useMemo(() => {
+    const baseCharacters = props.filter(p => !p.isVariant && p.category === 'character');
+    const map = new Map<string, Prop>();
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+      for (const base of baseCharacters) {
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+        if (variantDetails.includes(baseName) || variantDetails.includes(baseId) || variantName.includes(basePrefix)) {
+          map.set(variant.id, base);
+          break;
+        }
+      }
     });
+    return map;
   }, [props]);
 
   // Minimized state - controlled by parent via onToggleMinimize if provided
@@ -138,6 +156,40 @@ export default function PropListView({
       return next;
     });
   }, [suggestedStartingImages]);
+
+  // Auto-apply each base character's design sheet to their name-matched variants
+  useEffect(() => {
+    const baseCharacters = props.filter(
+      p => !p.isVariant && p.category === 'character' && p.designSheetImageUrl
+    );
+    if (baseCharacters.length === 0) return;
+
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+
+      for (const base of baseCharacters) {
+        const baseUrl = base.designSheetImageUrl!;
+        if (variant.referenceImages?.includes(baseUrl)) continue;
+
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+
+        const isMatch =
+          variantDetails.includes(baseName) ||
+          variantDetails.includes(baseId) ||
+          variantName.includes(basePrefix);
+
+        if (isMatch) {
+          onSetReferenceImages(variant.id, [baseUrl, ...(variant.referenceImages || [])]);
+          break;
+        }
+      }
+    });
+  }, [props, onSetReferenceImages]);
 
   // Job statuses from orchestrator (real-time updates)
   const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
@@ -894,6 +946,11 @@ export default function PropListView({
                           VARIANT
                         </span>
                       )}
+                      {isCharacter && !prop.isVariant && prop.role?.toLowerCase().includes("protagonist") && (
+                        <span className="text-[8px] px-1.5 py-0.5 rounded border font-bold uppercase bg-amber-900/40 text-amber-400 border-amber-700/60">
+                          ★ Protagonist
+                        </span>
+                      )}
                       <span
                         className={`text-[8px] px-1 rounded border uppercase ${
                           isCharacter
@@ -1003,11 +1060,25 @@ export default function PropListView({
                 )}
 
                 {/* Variant Details Display */}
-                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals) && (
+                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals || variantBaseMap.has(prop.id)) && (
                   <div className="bg-[#DB2777]/5 border border-[#DB2777]/30 rounded p-2 text-[9px] space-y-1">
                     <span className="text-[8px] font-black text-[#DB2777] uppercase tracking-widest">
                       Variant Information
                     </span>
+                    {variantBaseMap.has(prop.id) && (() => {
+                      const base = variantBaseMap.get(prop.id)!;
+                      return (
+                        <p className="text-[#DB2777]/80 flex items-center gap-1">
+                          <b>Based on:</b> {base.name}
+                          {base.designSheetImageUrl && (
+                            <span className="text-green-500 font-bold">✓ ref linked</span>
+                          )}
+                          {!base.designSheetImageUrl && (
+                            <span className="text-yellow-600 italic">no design sheet yet</span>
+                          )}
+                        </p>
+                      );
+                    })()}
                     {prop.variantDetails && (
                       <p className="text-[#DB2777]/70">
                         <b>Type:</b> {prop.variantDetails}

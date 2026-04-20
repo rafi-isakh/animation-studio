@@ -417,6 +417,8 @@ export default function PropDesigner() {
         hairColor: p.hairColor,
         hairStyle: p.hairStyle,
         eyeColor: p.eyeColor,
+        dominantOutfitColor: p.dominantOutfitColor,
+        expression: p.expression,
         personality: p.personality,
         role: p.role,
         isVariant: p.isVariant,
@@ -452,6 +454,8 @@ export default function PropDesigner() {
             hairColor: p.hairColor,
             hairStyle: p.hairStyle,
             eyeColor: p.eyeColor,
+            dominantOutfitColor: p.dominantOutfitColor,
+            expression: p.expression,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -819,6 +823,8 @@ export default function PropDesigner() {
             hairColor: prop.hairColor,
             hairStyle: prop.hairStyle,
             eyeColor: prop.eyeColor,
+            dominantOutfitColor: prop.dominantOutfitColor,
+            expression: prop.expression,
             personality: prop.personality,
             role: prop.role,
             isVariant: prop.isVariant,
@@ -893,6 +899,8 @@ export default function PropDesigner() {
         hairColor?: string;
         hairStyle?: string;
         eyeColor?: string;
+        dominantOutfitColor?: string;
+        expression?: string;
         personality?: string;
         role?: string;
         // Variant detection
@@ -996,6 +1004,8 @@ export default function PropDesigner() {
           hairColor: existing?.hairColor || char.hairColor,
           hairStyle: existing?.hairStyle || char.hairStyle,
           eyeColor: existing?.eyeColor || char.eyeColor,
+          dominantOutfitColor: existing?.dominantOutfitColor || char.dominantOutfitColor,
+          expression: existing?.expression || char.expression,
           personality: existing?.personality || char.personality,
           role: existing?.role || resolvedRole,
           // Variant detection

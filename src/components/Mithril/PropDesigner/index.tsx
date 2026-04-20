@@ -589,8 +589,11 @@ export default function PropDesigner() {
               }
             }
 
-            // Categorize
-            const category = categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
+            // Categorize: prefer characterIdSummary/csvCharacterDescriptions over static keywords
+            const isKnownCharacter = csvCharacterDescriptions.has(id);
+            const category = isKnownCharacter
+              ? "character"
+              : categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
             if (category === "character") {
               characterIds.add(id);
             } else {
@@ -616,8 +619,22 @@ export default function PropDesigner() {
       }
     });
 
+    // Add characters from characterIdSummary that weren't found in any clip text
+    const foundIds = new Set(allDetected.map((d) => d.id));
+    for (const characterId of csvCharacterDescriptions.keys()) {
+      if (!foundIds.has(characterId)) {
+        allDetected.push({
+          id: characterId,
+          category: "character",
+          clipIds: [],
+          contexts: [],
+          occurrences: 0,
+        });
+      }
+    }
+
     setDetectedIds(allDetected);
-  }, [scenesForDetection, importVersion]);
+  }, [scenesForDetection, importVersion, csvCharacterDescriptions]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -634,6 +651,14 @@ export default function PropDesigner() {
   const handleRemoveId = useCallback((id: string) => {
     setDetectedIds((prev) => prev.filter((d) => d.id !== id));
   }, []);
+
+  // Reset all detected IDs
+  const handleResetIds = useCallback(async () => {
+    setDetectedIds([]);
+    if (currentProjectId) {
+      await saveDetectedIds(currentProjectId, []);
+    }
+  }, [currentProjectId]);
 
   // Helper to convert Prop to metadata for context persistence
   const propToMetadata = useCallback((p: Prop) => ({
@@ -1738,6 +1763,8 @@ export default function PropDesigner() {
               setImportedScenes([]);
               setCsvCharacterDescriptions(new Map());
               setCsvGenre(null);
+              setImportVersion(0);
+              if (csvInputRef.current) csvInputRef.current.value = "";
             }}
             className="text-teal-400 hover:text-teal-300 text-xs font-bold"
           >
@@ -1753,6 +1780,7 @@ export default function PropDesigner() {
             detectedIds={detectedIds}
             onToggleCategory={handleToggleCategory}
             onRemoveId={handleRemoveId}
+            onResetIds={handleResetIds}
             onDetectCharacters={handleDetectCharacters}
             onDetectObjects={handleDetectObjects}
             isAnalyzingCharacters={isAnalyzingCharacters}

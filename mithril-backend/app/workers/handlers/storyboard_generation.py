@@ -84,6 +84,21 @@ def _append_suffix(prompt: str) -> str:
     return f"{trimmed}{connector}{IMAGE_PROMPT_SUFFIX}"
 
 
+def _repair_json(text: str) -> str:
+    """Attempt to repair common JSON issues from LLM output."""
+    # Remove trailing commas before } or ]
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+    # Fix escaped line continuations inside string values
+    text = text.replace('\\\n', '\\n')
+    # If extra text trails after a valid object, trim it
+    last_brace = text.rfind('}')
+    if last_brace != -1 and last_brace < len(text) - 1:
+        trailing = text[last_brace + 1 :].strip()
+        if trailing and not trailing.startswith(']') and not trailing.startswith(','):
+            text = text[: last_brace + 1]
+    return text
+
+
 def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
     """Split source text into batches of at most batch_size [PANEL XXX] blocks."""
     parts = re.split(r'(?=\[PANEL \d+\])', source_text)
@@ -674,7 +689,32 @@ async def _generate_storyboard_with_gemini(
     if not response_text:
         raise ValueError("Empty response from Gemini API")
 
-    result = json.loads(response_text)
+    # Clean up markdown code fences in case the model wraps JSON anyway.
+    json_text = response_text.replace("```json", "").replace("```", "").strip()
+
+    try:
+        result = json.loads(json_text)
+    except json.JSONDecodeError as parse_err:
+        logger.warning(f"[STORYBOARD] JSON parse failed: {parse_err}. Attempting repair...")
+        repaired = _repair_json(json_text)
+        try:
+            result = json.loads(repaired)
+            logger.info("[STORYBOARD] JSON repair succeeded")
+        except json.JSONDecodeError:
+            logger.warning("[STORYBOARD] JSON repair failed, retrying Gemini call once...")
+            retry_response = await client.aio.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=response_schema,
+                    max_output_tokens=65536,
+                ),
+            )
+            retry_text = retry_response.text.strip() if retry_response.text else ""
+            retry_json = retry_text.replace("```json", "").replace("```", "").strip()
+            result = json.loads(retry_json)  # Let it raise if still broken
+            logger.info("[STORYBOARD] Retry succeeded")
 
     # Debug: log attention field presence on the first clip of the first scene
     first_scene = result.get("scenes", [{}])[0] if result.get("scenes") else {}

@@ -656,14 +656,6 @@ export default function PropDesigner() {
     setDetectedIds((prev) => prev.filter((d) => d.id !== id));
   }, []);
 
-  // Reset all detected IDs
-  const handleResetIds = useCallback(async () => {
-    setDetectedIds([]);
-    if (currentProjectId) {
-      await saveDetectedIds(currentProjectId, []);
-    }
-  }, [currentProjectId]);
-
   // Helper to convert Prop to metadata for context persistence
   const propToMetadata = useCallback((p: Prop) => ({
     id: p.id,
@@ -1795,7 +1787,6 @@ export default function PropDesigner() {
             detectedIds={detectedIds}
             onToggleCategory={handleToggleCategory}
             onRemoveId={handleRemoveId}
-            onResetIds={handleResetIds}
             onDetectCharacters={handleDetectCharacters}
             onDetectObjects={handleDetectObjects}
             isAnalyzingCharacters={isAnalyzingCharacters}

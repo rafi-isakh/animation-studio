@@ -12,6 +12,7 @@ import {
   savePropDesignerSettings,
   saveProp,
   saveDetectedIds,
+  updateProp,
   updatePropDesignSheetImage,
   updatePropReferenceImage,
   getProps,
@@ -1254,6 +1255,25 @@ export default function PropDesigner() {
     [syncToContext]
   );
 
+  // Update prop name in memory + persist to Firestore
+  const handleRenameProp = useCallback(
+    async (sessionId: string, propId: string, newName: string) => {
+      setSessions(prev => {
+        const updated = prev.map(s =>
+          s.id === sessionId
+            ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, name: newName } : p) }
+            : s
+        );
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
+      });
+      if (currentProjectId) {
+        await updateProp(currentProjectId, propId, { name: newName });
+      }
+    },
+    [syncToContext, currentProjectId]
+  );
+
   // Close a session (remove it)
   const handleCloseSession = useCallback((sessionId: string) => {
     setSessions(prev => {
@@ -1774,6 +1794,7 @@ export default function PropDesigner() {
               onGenerateImage={(propId, prompt, refs) => handleGenerateImage(session.id, propId, prompt, refs)}
               onSetReferenceImages={(propId, images) => handleSetReferenceImages(session.id, propId, images)}
               onUpdateProp={(propId, updates) => handleUpdateProp(session.id, propId, updates)}
+              onSaveName={(propId, newName) => handleRenameProp(session.id, propId, newName)}
               onClose={() => handleCloseSession(session.id)}
               onToggleMinimize={() => handleToggleMinimize(session.id)}
               title={session.name}

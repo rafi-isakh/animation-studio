@@ -247,6 +247,33 @@ export async function deleteProp(
   await deleteDoc(docRef);
 }
 
+/**
+ * Rename a prop: copies old document to new ID, deletes old document.
+ * If newName is provided, updates the name field in the new document.
+ */
+export async function renameProp(
+  projectId: string,
+  oldId: string,
+  newId: string,
+  newName?: string
+): Promise<void> {
+  const oldRef = getPropRef(projectId, oldId);
+  const oldSnap = await getDoc(oldRef);
+
+  const newRef = getPropRef(projectId, newId);
+  if (oldSnap.exists()) {
+    const data = { ...oldSnap.data() };
+    if (newName !== undefined) data.name = newName;
+    await setDoc(newRef, data);
+    await deleteDoc(oldRef);
+  } else {
+    // No Firestore doc yet — just create a stub for the new ID if a name is provided
+    if (newName !== undefined) {
+      await setDoc(newRef, { name: newName }, { merge: true });
+    }
+  }
+}
+
 // ============================================
 // Detected IDs Functions
 // ============================================

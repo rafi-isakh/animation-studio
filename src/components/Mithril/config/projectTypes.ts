@@ -127,7 +127,7 @@ const IMAGE_TO_VIDEO_WEBTOON_STAGES: StageDefinition[] = [
 // Stage configurations for Webnovel Trailer pipeline
 const WEBNOVEL_TRAILER_STAGES: StageDefinition[] = [
   { id: 1, key: 'id-converter',    labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
-  { id: 2, key: 'story-splitter',  labelKey: 'mithril_stage2',             component: 'StorySplitter' },
+  { id: 2, key: 'story-splitter',  labelKey: 'mithril_stage2',             component: 'StorySplitter',           visibility: 'tool' },
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3',             component: 'CharacterSheetGenerator', visibility: 'tool' },
   { id: 4, key: 'storyboard',      labelKey: 'mithril_stage4',             component: 'WebnovelTrailerStoryboardGenerator' },
   { id: 5, key: 'prop-designer',   labelKey: 'mithril_stage5_prop',        component: 'PropDesigner' },

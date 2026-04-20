@@ -17,11 +17,52 @@ from app.models.job import (
     StorySplitterPart,
 )
 from app.services.firestore import get_job_queue_service, get_story_splits_service
+from app.services.s3 import download_json_object
 from app.workers.tasks import process_story_splitter_job
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/story-splitter-jobs", tags=["story-splitter-jobs"])
+
+
+async def _load_story_split_parts(job: JobDocument) -> list[StorySplitterPart] | None:
+    """
+    Load split parts either from Firestore document cache or fallback to S3.
+    """
+    if job.split_result:
+        return [StorySplitterPart(**part) for part in job.split_result]
+
+    if job.split_result_s3_key:
+        try:
+            raw_parts = await download_json_object(job.split_result_s3_key)
+        except Exception as exc:
+            logger.warning(f"[STORY-SPLITTER-API] Failed to load split result from S3 for job {job.id}: {exc}")
+            return None
+        if isinstance(raw_parts, list):
+            return [StorySplitterPart(**part) for part in raw_parts]
+
+    # Fallback: storySplits document may only store an S3 result key
+    try:
+        story_splits = await get_story_splits_service().get_story_splits(job.project_id)
+    except Exception as exc:
+        logger.warning(f"[STORY-SPLITTER-API] Failed to load story splits for job {job.id}: {exc}")
+        story_splits = None
+
+    if story_splits:
+        if story_splits.get("parts"):
+            return [StorySplitterPart(**part) for part in story_splits["parts"]]
+
+        result_key = story_splits.get("resultKey")
+        if result_key:
+            try:
+                raw_parts = await download_json_object(result_key)
+            except Exception as exc:
+                logger.warning(f"[STORY-SPLITTER-API] Failed to load resultKey from S3 for job {job.id}: {exc}")
+                return None
+            if isinstance(raw_parts, list):
+                return [StorySplitterPart(**part) for part in raw_parts]
+
+    return None
 
 
 @router.post("/submit", response_model=JobSubmitResponse)
@@ -107,9 +148,7 @@ async def get_story_splitter_job_status(
     # Read parts from storySplits document (not job_queue, to avoid 1MB limit)
     parts = None
     if job.status == JobStatus.COMPLETED:
-        story_splits = await get_story_splits_service().get_story_splits(job.project_id)
-        if story_splits and story_splits.get("parts"):
-            parts = [StorySplitterPart(**part) for part in story_splits["parts"]]
+        parts = await _load_story_split_parts(job)
 
     return StorySplitterJobStatusResponse(
         job_id=job.id,
@@ -232,9 +271,7 @@ async def get_project_story_splitter_jobs(
                 retryable=job.error_retryable or False,
             )
 
-        parts = None
-        if job.split_result:
-            parts = [StorySplitterPart(**part) for part in job.split_result]
+        parts = await _load_story_split_parts(job)
 
         responses.append(
             StorySplitterJobStatusResponse(

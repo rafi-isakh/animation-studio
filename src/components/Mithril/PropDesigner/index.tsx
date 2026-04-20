@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import { getSuggestedTemplates } from "./characterTemplates";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -91,9 +92,13 @@ export default function PropDesigner() {
   const { currentProjectId } = useProject();
   const {
     storyboardGenerator,
+    getScenesForPart,
+    getGeneratedPartIndices,
+    getStoryPartIndices,
     propDesignerGenerator,
     setPropDesignerResult,
     clearPropDesignerData,
+    pushPropsToAssets,
     customApiKey,
   } = useMithril();
 
@@ -101,6 +106,8 @@ export default function PropDesigner() {
   const csvInputRef = useRef<HTMLInputElement>(null);
   // Guard: prevent context-restore useEffect from re-running after our own syncToContext writes
   const hasRestoredFromContext = useRef(false);
+  // Track which prop IDs have been pushed so we can sync it into local sessions
+  const pushedPropIdsRef = useRef<Set<string>>(new Set());
 
   // Local state
   const [sessions, setSessions] = useState<DetectionSession[]>([]);
@@ -110,6 +117,7 @@ export default function PropDesigner() {
   const [isEasyMode, setIsEasyMode] = useState(true);
   const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
   const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
+  const [isPushingToAssets, setIsPushingToAssets] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Session counters for auto-naming
   const [characterSessionCount, setCharacterSessionCount] = useState(0);
@@ -117,6 +125,26 @@ export default function PropDesigner() {
 
   // Derive flat props array from all sessions (for context persistence compatibility)
   const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
+
+  // Compute suggested mannequin template paths per session and prop
+  const suggestedStartingImages = useMemo(() => {
+    const map: Record<string, Record<string, string[]>> = {};
+    sessions.forEach((session) => {
+      map[session.id] = {};
+      session.props.forEach((prop) => {
+        if (prop.category === "character") {
+          map[session.id][prop.id] = getSuggestedTemplates({
+              gender: prop.gender,
+              role: prop.role,
+              age: prop.age,
+              name: prop.name,
+              description: prop.description,
+            });
+        }
+      });
+    });
+    return map;
+  }, [sessions]);
 
   // CSV imported scenes (local storyboard data)
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
@@ -126,6 +154,8 @@ export default function PropDesigner() {
   const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
   // CSV Genre
   const [csvGenre, setCsvGenre] = useState<string | null>(null);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [scanAllParts, setScanAllParts] = useState(false);
 
   // Per-clip generated preview images (key: "sIdx-cIdx", value: base64 data URL)
   const [generatedClipImages, setGeneratedClipImages] = useState<Record<string, string>>({});
@@ -313,8 +343,17 @@ export default function PropDesigner() {
     }
   }, [importedScenes]);
 
+  const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
+  useEffect(() => {
+    if (storyPartIndices.length === 0) return;
+    if (!storyPartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(storyPartIndices[storyPartIndices.length - 1] ?? 0);
+    }
+  }, [storyPartIndices, selectedPartIndex]);
+
   // Determine active scenes (context or imported)
-  const contextScenes = storyboardGenerator.scenes;
+  const contextScenes = getScenesForPart(selectedPartIndex);
   const contextCharacterIdSummary = storyboardGenerator.characterIdSummary;
   const contextGenre = storyboardGenerator.genre;
   const hasContextScenes = contextScenes && contextScenes.length > 0;
@@ -331,6 +370,14 @@ export default function PropDesigner() {
     }
     return [];
   }, [contextScenes, importedScenes, hasContextScenes, hasImportedScenes]);
+
+  const scenesForDetection = useMemo(() => {
+    if (hasImportedScenes) return importedScenes;
+    if (scanAllParts) {
+      return generatedPartIndices.flatMap((idx) => getScenesForPart(idx));
+    }
+    return activeScenes;
+  }, [hasImportedScenes, importedScenes, scanAllParts, generatedPartIndices, getScenesForPart, activeScenes]);
 
   // Load from context on mount (only if we don't have imported scenes)
   useEffect(() => {
@@ -374,6 +421,7 @@ export default function PropDesigner() {
         isVariant: p.isVariant,
         variantDetails: p.variantDetails,
         variantVisuals: p.variantVisuals,
+        pushedToAssets: p.pushedToAssets,
         isGenerating: false,
       }));
 
@@ -408,6 +456,7 @@ export default function PropDesigner() {
             isVariant: p.isVariant,
             variantDetails: p.variantDetails,
             variantVisuals: p.variantVisuals,
+            pushedToAssets: p.pushedToAssets,
             isGenerating: false,
           })),
         }));
@@ -453,6 +502,23 @@ export default function PropDesigner() {
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
 
+  // Sync pushedToAssets from context into local sessions after pushPropsToAssets is called.
+  // This prevents the next syncToContext call from wiping the pushed flag.
+  useEffect(() => {
+    if (!hasRestoredFromContext.current || !propDesignerGenerator.result?.props) return;
+    const newlyPushed = propDesignerGenerator.result.props.filter(
+      p => p.pushedToAssets && !pushedPropIdsRef.current.has(p.id)
+    );
+    if (newlyPushed.length === 0) return;
+    const newlyPushedIds = new Set(newlyPushed.map(p => p.id));
+    newlyPushed.forEach(p => pushedPropIdsRef.current.add(p.id));
+    // Update local sessions without triggering syncToContext
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      props: s.props.map(p => newlyPushedIds.has(p.id) ? { ...p, pushedToAssets: true } : p),
+    })));
+  }, [propDesignerGenerator.result?.props]);
+
   // Load characterIdSummary and genre from storyboard context (when not using CSV import)
   useEffect(() => {
     if (hasImportedScenes) return;
@@ -475,7 +541,7 @@ export default function PropDesigner() {
   // Include importVersion to force re-run when CSV is imported
   useEffect(() => {
 
-    if (!activeScenes || activeScenes.length === 0) {
+    if (!scenesForDetection || scenesForDetection.length === 0) {
       setDetectedIds([]);
       return;
     }
@@ -484,7 +550,7 @@ export default function PropDesigner() {
     const objectIds = new Set<string>();
     const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string; refFileName?: string }[] }>();
 
-    activeScenes.forEach((scene, sIdx) => {
+    scenesForDetection.forEach((scene, sIdx) => {
       scene.clips.forEach((clip, cIdx) => {
         const clipId = `${sIdx + 1}-${cIdx + 1}`;
         // Include all text fields for ID extraction
@@ -550,7 +616,7 @@ export default function PropDesigner() {
     });
 
     setDetectedIds(allDetected);
-  }, [activeScenes, importVersion]);
+  }, [scenesForDetection, importVersion]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -591,11 +657,27 @@ export default function PropDesigner() {
     isVariant: p.isVariant,
     variantDetails: p.variantDetails,
     variantVisuals: p.variantVisuals,
+    pushedToAssets: p.pushedToAssets,
   }), []);
 
   // Helper to sync all sessions to context
   const syncToContext = useCallback((updatedSessions: DetectionSession[]) => {
     const flatProps = updatedSessions.flatMap(s => s.props);
+    if (process.env.NODE_ENV !== "production") {
+      const withUrl = flatProps.filter(p => !!p.designSheetImageUrl).length;
+      const withBase64 = flatProps.filter(p => !!p.designSheetImageBase64).length;
+      const pushed = flatProps.filter(p => !!p.pushedToAssets).length;
+      const charCount = flatProps.filter(p => p.category === "character").length;
+      const objCount = flatProps.filter(p => p.category === "object").length;
+      console.log("[PropDesigner][syncToContext]", {
+        total: flatProps.length,
+        charCount,
+        objCount,
+        withUrl,
+        withBase64,
+        pushed,
+      });
+    }
     setPropDesignerResult({
       settings: { styleKeyword, propBasePrompt: "", genre },
       props: flatProps.map(propToMetadata),
@@ -639,6 +721,20 @@ export default function PropDesigner() {
 
       const updatedSessions = [...sessions, newSession];
       setSessions(updatedSessions);
+
+      if (process.env.NODE_ENV !== "production") {
+        const withUrl = newProps.filter(p => !!p.designSheetImageUrl).length;
+        const withBase64 = newProps.filter(p => !!p.designSheetImageBase64).length;
+        const withRefs = newProps.filter(p => (p.referenceImages?.length || 0) > 0).length;
+        console.log("[PropDesigner][createSessionFromDetection]", {
+          category,
+          props: newProps.length,
+          withUrl,
+          withBase64,
+          withRefs,
+          sessionName: newSession.name,
+        });
+      }
 
       // Save to Firestore
       if (currentProjectId) {
@@ -979,6 +1075,9 @@ export default function PropDesigner() {
       );
 
       try {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][generate] start", { sessionId, propId, hasRefs: !!referenceImages?.length });
+        }
         // Delete old design sheet image from S3 before generating new one
         if (currentProjectId) {
           try {
@@ -989,9 +1088,7 @@ export default function PropDesigner() {
         }
 
         // Support both single reference (legacy) and multiple references
-        const refImagesForApi = referenceImages?.map((img) =>
-          img.includes("base64,") ? img.split("base64,")[1] : img
-        );
+        const refImagesForApi = referenceImages;
 
         const response = await fetch("/api/generate_prop_sheet/generate-image", {
           method: "POST",
@@ -1025,6 +1122,9 @@ export default function PropDesigner() {
 
           const uploadData = await uploadResponse.json();
           if (uploadResponse.ok) {
+            if (process.env.NODE_ENV !== "production") {
+              console.log("[PropDesigner][generate] uploaded", { propId, url: uploadData.url });
+            }
             // Update Firestore
             await updatePropDesignSheetImage(
               currentProjectId,
@@ -1103,6 +1203,9 @@ export default function PropDesigner() {
         }
 
         // Fallback to base64 if upload fails
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][generate] fallback_base64", { propId });
+        }
         updateSessionProps(sessionId, props =>
           props.map(p => p.id === propId ? { ...p, designSheetImageBase64: data.imageBase64, designSheetPrompt: prompt, isGenerating: false } : p)
         );
@@ -1136,12 +1239,15 @@ export default function PropDesigner() {
   const handleUpdateProp = useCallback(
     (sessionId: string, propId: string, updates: Partial<Prop>) => {
       setSessions(prev => {
+        // Only sync if the prop actually exists in this session to avoid
+        // stale syncToContext calls from other sessions' orchestrator subscriptions
+        const propFound = prev.some(s => s.id === sessionId && s.props.some(p => p.id === propId));
         const updated = prev.map(s =>
           s.id === sessionId
             ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, ...updates } : p) }
             : s
         );
-        setTimeout(() => syncToContext(updated), 0);
+        if (propFound) setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
     },
@@ -1166,15 +1272,42 @@ export default function PropDesigner() {
 
   // Clear all sessions (local state + context + Firestore)
   const handleClearAll = useCallback(async (sessionId?: string) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[PropDesigner][handleClearAll] invoked", {
+        sessionId: sessionId || null,
+        sessions: sessions.length,
+        totalProps: allProps.length,
+      });
+    }
     if (sessionId) {
       // Clear a specific session
       setSessions(prev => {
         const updated = prev.filter(s => s.id !== sessionId);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][handleClearAll] session_cleared", {
+            remainingSessions: updated.length,
+            removedSessionId: sessionId,
+          });
+        }
         setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
     } else {
       // Clear all
+      if (process.env.NODE_ENV !== "production") {
+        const totalProps = allProps.length;
+        const withUrl = allProps.filter(p => !!p.designSheetImageUrl).length;
+        const withBase64 = allProps.filter(p => !!p.designSheetImageBase64).length;
+        const withRefs = allProps.filter(p => (p.referenceImages?.length || 0) > 0).length;
+        console.log("[PropDesigner][clearAll]", {
+          sessions: sessions.length,
+          totalProps,
+          withUrl,
+          withBase64,
+          withRefs,
+          hasProject: !!currentProjectId,
+        });
+      }
       setSessions([]);
       setCharacterSessionCount(0);
       setObjectSessionCount(0);
@@ -1344,6 +1477,7 @@ export default function PropDesigner() {
   // Check if storyboard is available (from context or imported CSV)
   const hasStoryboard = activeScenes && activeScenes.length > 0;
   const hasContextStoryboard = storyboardGenerator.scenes && storyboardGenerator.scenes.length > 0;
+  const pushableCount = (propDesignerGenerator.result?.props ?? []).filter(p => !!p.designSheetImageRef).length;
 
   // Calculate total clips from active scenes
   const totalClips = activeScenes.reduce((acc, scene) => acc + scene.clips.length, 0);
@@ -1475,6 +1609,27 @@ export default function PropDesigner() {
         </div>
       )}
 
+      {!hasImportedScenes && storyPartIndices.length > 1 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-300">Storyboard Parts</p>
+          <div className="p-1 flex gap-1 flex-wrap items-center">
+            {storyPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => setSelectedPartIndex(partIdx)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                Part {partIdx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* No storyboard warning with CSV import option */}
       {!hasStoryboard && (
         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center space-y-4">
@@ -1566,6 +1721,39 @@ export default function PropDesigner() {
             totalClips={totalClips}
           />
 
+          {/* Push to Assets / Clear All */}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={async () => {
+                setIsPushingToAssets(true);
+                try {
+                  await pushPropsToAssets();
+                } finally {
+                  setIsPushingToAssets(false);
+                }
+              }}
+              disabled={isPushingToAssets || pushableCount === 0}
+              className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-800 disabled:text-gray-600 text-white border border-teal-600 disabled:border-gray-700 rounded text-sm font-bold transition-colors flex items-center gap-2"
+              title="Push all generated design sheets to the asset sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+              </svg>
+              {isPushingToAssets ? "Pushing…" : `Push to Assets (${pushableCount})`}
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm("Clear all PropDesigner data? This deletes Firestore props and S3 images.")) return;
+                await handleClearAll();
+              }}
+              disabled={sessions.length === 0}
+              className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 disabled:bg-gray-800 disabled:text-gray-600 text-red-300 border border-red-900/50 disabled:border-gray-700 rounded text-sm font-bold transition-colors"
+              title="Clear all PropDesigner data (Firestore + S3)"
+            >
+              Clear All
+            </button>
+          </div>
+
           {/* Storyboard Table */}
           <StoryboardTable
             scenes={activeScenes}
@@ -1587,7 +1775,6 @@ export default function PropDesigner() {
               onSetReferenceImages={(propId, images) => handleSetReferenceImages(session.id, propId, images)}
               onUpdateProp={(propId, updates) => handleUpdateProp(session.id, propId, updates)}
               onClose={() => handleCloseSession(session.id)}
-              onClearAll={() => handleClearAll(session.id)}
               onToggleMinimize={() => handleToggleMinimize(session.id)}
               title={session.name}
               accentColor={session.type === "character" ? "purple" : "cyan"}
@@ -1596,6 +1783,7 @@ export default function PropDesigner() {
               minimizedIndex={idx}
               isEasyMode={isEasyMode}
               onToggleEasyMode={setIsEasyMode}
+              suggestedStartingImages={suggestedStartingImages[session.id] || {}}
             />
           ))}
         </>

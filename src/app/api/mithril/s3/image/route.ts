@@ -259,6 +259,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
         }
         break;
       }
+      case "raw": {
+        const { rawKey } = body;
+        if (!rawKey) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "rawKey is required for raw uploads" },
+            { status: 400 }
+          );
+        }
+        // Validate the key belongs to this project to prevent writing to arbitrary paths.
+        if (!rawKey.startsWith(`mithril/${projectId}/`)) {
+          return NextResponse.json(
+            { success: false, s3Key: "", url: "", error: "rawKey must be scoped to the project" },
+            { status: 403 }
+          );
+        }
+        s3Key = rawKey;
+        break;
+      }
       default:
         return NextResponse.json(
           { success: false, s3Key: "", url: "", error: `Invalid imageType: ${imageType}` },

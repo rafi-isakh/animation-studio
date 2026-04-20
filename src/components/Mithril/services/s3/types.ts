@@ -31,7 +31,9 @@ export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-fr
 
 export interface UploadImageRequest {
   projectId: string;
-  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame';
+  imageType: 'character' | 'background' | 'storyboard' | 'style-slot' | 'imagegen' | 'prop' | 'i2v' | 'csv-frame' | 'raw';
+  // For raw uploads: explicit S3 key (must start with mithril/{projectId}/)
+  rawKey?: string;
   // For character images
   characterId?: string;
   characterSubtype?: CharacterImageSubtype; // New: profile, mastersheet, legacy, or mode

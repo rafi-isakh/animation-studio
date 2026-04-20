@@ -128,6 +128,9 @@ export async function saveBackgroundWithId(
   if (input.plannedPrompts !== undefined) {
     docData.plannedPrompts = input.plannedPrompts;
   }
+  if (input.partIndex !== undefined) {
+    docData.partIndex = input.partIndex;
+  }
 
   await setDoc(docRef, docData);
 }
@@ -273,6 +276,26 @@ export async function deleteBackground(
 ): Promise<void> {
   const docRef = getBackgroundRef(projectId, bgId);
   await deleteDoc(docRef);
+}
+
+/**
+ * Mark all backgrounds with at least one generated image in the given part as pushed to assets.
+ * Uses a writeBatch for atomicity.
+ */
+export async function pushBgsToAssets(projectId: string, partIndex: number): Promise<void> {
+  const bgs = await getBackgrounds(projectId);
+  const toUpdate = bgs.filter(
+    bg => (bg.partIndex ?? 0) === partIndex && bg.angles.some(a => !!a.imageRef)
+  );
+  if (toUpdate.length === 0) return;
+
+  const batch = writeBatch(db);
+  for (const bg of toUpdate) {
+    const docRef = getBackgroundRef(projectId, bg.id);
+    const pushedAngles = bg.angles.filter(a => !!a.imageRef).map(a => a.angle);
+    batch.set(docRef, { pushedToAssets: true, pushedAngles }, { merge: true });
+  }
+  await batch.commit();
 }
 
 /**

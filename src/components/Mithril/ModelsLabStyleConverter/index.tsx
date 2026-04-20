@@ -25,6 +25,7 @@ import {
 import {
   deleteI2VPanelEditorImage,
   uploadI2VPanelEditorImage,
+  overwriteS3Image,
 } from '@/components/Mithril/services/s3/images';
 import { compressImage } from '@/components/Mithril/ImageToVideo/ImageToScriptWriter/utils/imageCompression';
 
@@ -114,6 +115,10 @@ export default function ModelsLabStyleConverter() {
   const panelsRef = useRef<PanelData[]>(panels);
   panelsRef.current = panels;
   const isLoadingRef = useRef(false);
+  // Tracks panel IDs that were restored from storage with an existing result.
+  // Prevents the Firestore subscription from overwriting a remixed resultUrl
+  // with the original job's imageUrl when the subscription re-fires on navigation back.
+  const restoredWithResultRef = useRef<Set<string>>(new Set());
 
   const persistMeta = useCallback(async (
     nextSessionId: string = sessionIdRef.current,
@@ -192,7 +197,10 @@ export default function ModelsLabStyleConverter() {
         const meta = await getStyleConverterMeta(currentProjectId);
         const restoredSessionId = meta?.sessionId || uuidv4();
         sessionIdRef.current = restoredSessionId;
-        setSessionId(restoredSessionId);
+        // NOTE: setSessionId is called later, after restoredWithResultRef is populated.
+        // This ensures the Firestore job subscription never fires before we know which
+        // panels already have a persisted result (e.g. a remixed image), preventing
+        // the subscription from overwriting those results with stale job data.
         log(`  sessionId restored: ${restoredSessionId.slice(0, 8)}...`);
 
         if (meta?.targetAspectRatio) {
@@ -203,6 +211,8 @@ export default function ModelsLabStyleConverter() {
         log(`  found ${savedPanels.length} panels in Firestore`);
         if (savedPanels.length === 0) {
           log(`MOUNT LOAD: no panels to restore`);
+          // No panels to protect — safe to start the subscription now.
+          setSessionId(restoredSessionId);
           return;
         }
 
@@ -263,7 +273,14 @@ export default function ModelsLabStyleConverter() {
           }));
 
         log(`MOUNT LOAD: setting ${loadedPanels.length} panels to state`);
+        // Populate the ref before calling setSessionId so the job subscription
+        // (which starts on the next render after setSessionId) always sees the
+        // correct set of panels-with-results and never overwrites a remixed image.
+        restoredWithResultRef.current = new Set(
+          loadedPanels.filter((p) => !!p.resultUrl).map((p) => p.id),
+        );
         setPanels(loadedPanels);
+        setSessionId(restoredSessionId);
       } finally {
         isLoadingRef.current = false;
       }
@@ -301,6 +318,13 @@ export default function ModelsLabStyleConverter() {
           activeJobsRef.current.set(update.panelId, update.jobId);
         }
 
+        // If this panel was restored from storage with an existing result (e.g. a remixed
+        // image), don't let the subscription overwrite it with the original job's imageUrl.
+        // This ref is only populated for panels loaded in the mount useEffect that already
+        // had a resultUrl persisted. Once a user submits a new job the resultUrl is cleared
+        // by submitSinglePanel, making hasRestoredResult false for subsequent updates.
+        const hasRestoredResult = restoredWithResultRef.current.has(update.panelId);
+
         setPanels((prev) =>
           prev.map((p) => {
             if (p.id !== update.panelId) return p;
@@ -311,7 +335,7 @@ export default function ModelsLabStyleConverter() {
               jobId: update.jobId,
               _fromStorage: false,
             };
-            if (uiStatus === ProcessingStatus.Success && update.imageUrl) {
+            if (uiStatus === ProcessingStatus.Success && update.imageUrl && !hasRestoredResult) {
               result.resultUrl = update.imageUrl;
               result.error = undefined;
             }
@@ -329,7 +353,7 @@ export default function ModelsLabStyleConverter() {
           log(`    persisting job update to Firestore...`);
           void updateStyleConverterPanel(currentProjectId, update.panelId, {
             status: uiStatus,
-            resultImageRef: update.imageUrl || undefined,
+            ...(!hasRestoredResult && update.imageUrl ? { resultImageRef: update.imageUrl } : {}),
             error: update.error,
           });
         }
@@ -459,6 +483,10 @@ export default function ModelsLabStyleConverter() {
     async (id: string) => {
       const panel = panelsRef.current.find((p) => p.id === id);
       if (!panel) return;
+
+      // Panel is being actively submitted — allow the subscription to update its
+      // result URL once the job completes (even if it was previously remixed).
+      restoredWithResultRef.current.delete(id);
 
       setPanels((prev) =>
         prev.map((p) => (p.id === id ? {
@@ -703,18 +731,20 @@ export default function ModelsLabStyleConverter() {
     }
     const { imageBase64: remixedBase64 } = await response.json() as { imageBase64: string };
 
-    const remixImageUrl = await uploadI2VPanelEditorImage(
-      currentProjectId!,
-      `${id}-remix`,
-      remixedBase64,
-      'image/jpeg',
-    );
+    // Overwrite the existing result object in S3 so the URL stays the same.
+    // Append ?v=timestamp to bust the browser/CDN cache so the new content is displayed,
+    // and persist this versioned URL to Firestore so it survives navigation.
+    const panelForOverwrite = panelsRef.current.find((p) => p.id === id)!;
+    const baseResultUrl = panelForOverwrite.resultUrl!.split('?')[0];
+    const resultS3Key = new URL(baseResultUrl).pathname.slice(1);
+    await overwriteS3Image(currentProjectId!, resultS3Key, remixedBase64, 'image/jpeg');
+    const versionedUrl = `${baseResultUrl}?v=${Date.now()}`;
 
     setPanels((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, resultUrl: remixImageUrl, _fromStorage: false } : p)),
+      prev.map((p) => (p.id === id ? { ...p, resultUrl: versionedUrl, _fromStorage: false } : p)),
     );
     if (currentProjectId) {
-      void updateStyleConverterPanel(currentProjectId, id, { resultImageRef: remixImageUrl });
+      void updateStyleConverterPanel(currentProjectId, id, { resultImageRef: versionedUrl });
     }
   }, [config.targetAspectRatio, currentProjectId]);
 

@@ -307,6 +307,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
   // State from Stage 2 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
+  const [chapterFileName, setChapterFileName] = useState<string>("");
   const [selectedSourcePartIndex, setSelectedSourcePartIndex] = useState<number>(0);
   const generatedPartIndices = getGeneratedPartIndices();
 
@@ -330,31 +331,23 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const [showDriveSettings, setShowDriveSettings] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
 
-  // Load split parts from context on mount
+  // Load source text from IdConverter chapter (trailer has no StorySplitter stage)
   useEffect(() => {
+    if (!currentProjectId) return;
     const loadParts = async () => {
-      if (isStageSkipped(2)) {
-        if (!currentProjectId) return;
-        try {
-          const chapter = await getChapter(currentProjectId);
-          if (chapter?.content) {
-            setSplitParts([chapter.content]);
-          }
-        } catch (err) {
-          console.error("Failed to load chapter from Firestore:", err);
+      try {
+        const chapter = await getChapter(currentProjectId);
+        console.log('[WebnovelTrailerSBG] chapter from Firestore:', chapter ? { filename: chapter.filename, contentLength: chapter.content?.length } : null);
+        if (chapter?.content) {
+          setSplitParts([chapter.content]);
+          setChapterFileName(chapter.filename || "");
         }
-      } else {
-        const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
-        if (contextResult?.parts && Array.isArray(contextResult.parts)) {
-          const texts = contextResult.parts.map((part) =>
-            typeof part === "string" ? part : part.text
-          );
-          setSplitParts(texts);
-        }
+      } catch (err) {
+        console.error('[WebnovelTrailerSBG] Failed to load chapter from Firestore:', err);
       }
     };
     loadParts();
-  }, [getStageResult, isStageSkipped, currentProjectId]);
+  }, [currentProjectId]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
@@ -971,6 +964,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {currentView === 'survey' && (
         <TrailerSurvey
           initialSourceText={splitParts[selectedSourcePartIndex]}
+          initialFileName={chapterFileName}
           onStart={(text, option) => {
             setTrailerSourceText(text);
             setSelectedTrailerScript(option);

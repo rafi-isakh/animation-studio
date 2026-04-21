@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useProject } from "@/contexts/ProjectContext";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Download, Upload, Sparkles } from "lucide-react";
@@ -9,14 +9,25 @@ import type { TrailerOption } from "../../StoryboardGenerator/types";
 interface TrailerSurveyProps {
   onStart: (text: string, option: TrailerOption) => void;
   initialSourceText?: string;
+  initialFileName?: string;
 }
 
-export default function TrailerSurvey({ onStart, initialSourceText }: TrailerSurveyProps) {
+export default function TrailerSurvey({ onStart, initialSourceText, initialFileName }: TrailerSurveyProps) {
   const { currentProjectId } = useProject();
   const { toast } = useToast();
 
   const [sourceText, setSourceText] = useState(initialSourceText || "");
   const [fileName, setFileName] = useState("");
+
+  // Sync when the parent loads the chapter asynchronously
+  useEffect(() => {
+    if (initialSourceText && !sourceText) {
+      setSourceText(initialSourceText);
+    }
+    if (initialFileName && !fileName) {
+      setFileName(initialFileName);
+    }
+  }, [initialSourceText, initialFileName]);
   const [options, setOptions] = useState<TrailerOption[]>([]);
   const [editedScripts, setEditedScripts] = useState<Record<number, string>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -144,7 +155,7 @@ export default function TrailerSurvey({ onStart, initialSourceText }: TrailerSur
         </div>
         {sourceText && (
           <p className="mt-1.5 text-sm text-green-600 dark:text-green-400">
-            파일이 성공적으로 로드되었습니다. ({sourceText.length.toLocaleString()}자)
+            Current: {fileName || "unknown"}
           </p>
         )}
       </div>

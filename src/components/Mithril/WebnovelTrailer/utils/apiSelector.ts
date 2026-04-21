@@ -1,0 +1,2 @@
+export { detectApiForPrompt, detectSeedanceAlert, requiresBgmStripping, stripBgmFromPrompt } from '../../VideoGenerator/apiSelector';
+export type { SeedanceAlertType } from '../../VideoGenerator/apiSelector';

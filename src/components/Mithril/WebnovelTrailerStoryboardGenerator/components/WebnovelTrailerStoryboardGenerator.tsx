@@ -387,6 +387,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       selectedTrailerScript: selectedTrailerScript
         ? JSON.stringify(selectedTrailerScript.script)
         : "",
+      isTrailerMode: true,
     }, selectedSourcePartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {

@@ -96,7 +96,56 @@ def _repair_json(text: str) -> str:
         trailing = text[last_brace + 1 :].strip()
         if trailing and not trailing.startswith(']') and not trailing.startswith(','):
             text = text[: last_brace + 1]
+    # Balance unterminated strings/brackets that commonly happen on truncation.
+    in_string = False
+    escape = False
+    stack: list[str] = []
+    for ch in text:
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch in "{[":
+            stack.append(ch)
+        elif ch == "}" and stack and stack[-1] == "{":
+            stack.pop()
+        elif ch == "]" and stack and stack[-1] == "[":
+            stack.pop()
+
+    if in_string and escape:
+        text += "\\"
+    if in_string:
+        text += '"'
+    while stack:
+        opener = stack.pop()
+        text += "}" if opener == "{" else "]"
     return text
+
+
+def _normalize_attention_fields(clip: dict) -> None:
+    """Normalize attention fields from alternate key styles into canonical keys."""
+    alias_map = {
+        "attentionDevice": ["attentionDeviceA", "attention_device", "attention_device_a"],
+        "attentionAction": ["attentionActionB", "attention_action", "attention_action_b"],
+        "attentionExpression": ["attentionExpressionC", "attention_expression", "attention_expression_c"],
+        "attentionMood": ["attentionMoodD", "attention_mood", "attention_mood_d"],
+    }
+
+    for canonical, aliases in alias_map.items():
+        current = str(clip.get(canonical, "")).strip()
+        if current:
+            continue
+        for alias in aliases:
+            value = str(clip.get(alias, "")).strip()
+            if value:
+                clip[canonical] = value
+                break
 
 
 def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
@@ -172,6 +221,7 @@ async def process_storyboard(
     job_id: str,
     custom_api_key: str | None = None,
     worker_id: str = "worker-1",
+    prompt_variant: str = "default",
 ) -> dict:
     """
     Generate a storyboard from source text.
@@ -191,7 +241,10 @@ async def process_storyboard(
     """
     job_queue_service = get_job_queue_service()
 
-    logger.info(f"[{worker_id}] ========== Starting storyboard job {job_id} ==========")
+    logger.info(
+        f"[{worker_id}] ========== Starting storyboard job {job_id} "
+        f"(prompt_variant={prompt_variant}) =========="
+    )
 
     # Fetch job from Firestore
     job = await job_queue_service.get_job(job_id)
@@ -249,6 +302,7 @@ async def process_storyboard(
                     job, api_key,
                     source_text_override=batch_text,
                     continuation_context=continuation_context,
+                    prompt_variant=prompt_variant,
                 )
                 total_usage_input += batch_usage.prompt_token_count or 0
                 total_usage_output += batch_usage.candidates_token_count or 0
@@ -276,7 +330,9 @@ async def process_storyboard(
         else:
             # Single-call path (original behavior)
             logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
-            result, _usage = await _generate_storyboard_with_gemini(job, api_key)
+            result, _usage = await _generate_storyboard_with_gemini(
+                job, api_key, prompt_variant=prompt_variant
+            )
             logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
 
             try:
@@ -363,6 +419,7 @@ async def _generate_storyboard_with_gemini(
     api_key: str,
     source_text_override: str | None = None,
     continuation_context: dict | None = None,
+    prompt_variant: str = "default",
 ) -> dict:
     """
     Call Gemini API to generate storyboard.
@@ -404,6 +461,7 @@ async def _generate_storyboard_with_gemini(
     image_instruction = job.image_instruction or ""
     image_prompt_qa = job.image_prompt_qa or ""
     selected_trailer_script = job.selected_trailer_script or ""
+    is_trailer_mode = job.is_trailer_mode or False
     source_text = source_text_override if source_text_override is not None else (job.source_text or "")
 
     continuation_block = ""
@@ -423,6 +481,28 @@ async def _generate_storyboard_with_gemini(
 - **캐릭터 ID 요약 (일관성 유지)**:
 {char_summary_text}
 """
+
+    if prompt_variant == "reference":
+        attention_guidance = """
+    4-1. story를 분석하여 시선을 끄는 주요 요소 4가지를 다음 4개 필드로 나누어 한국어로 작성하십시오. 각 필드는 반드시 비어있지 않아야 합니다.
+    - **attentionDevice**: 행동 및 인물 강조 (A유형). 단순 인물명 대신 구체적인 신체 부위/디테일을 포함하십시오.
+      예: "전화를 쥔 엘리사의 떨리는 손"
+    - **attentionAction**: 오브젝트/인서트컷 (B유형). 핵심 소품·사물을 짧고 명확하게 작성하십시오.
+      예: "전화기", "깨진 찻잔"
+    - **attentionExpression**: 표정/감정 반응 (C유형). 얼굴·눈·표정 중심으로 작성하십시오.
+      예: "절망한 엘리사의 눈동자"
+    - **attentionMood**: 장면의 핵심 감정/무드 (D유형). 한 단어나 짧은 구로 요약하십시오.
+      예: "절망", "긴장", "허탈함"
+    """
+    else:
+        attention_guidance = """
+    4-1. story를 분석하여 시각적으로 주목할 요소 4가지를 각각 아래 필드에 한국어로 출력하십시오. 반드시 유형별로 1개씩 분리하여 출력해야 합니다. **빈 문자열은 절대 금지**하며, 각 필드는 최소 2단어 이상으로 구체적으로 작성하십시오:
+    - **attentionDevice**: 오브젝트/인서트컷 유형 — 장면 속 핵심 소품·사물 (예: "전화기")
+    - **attentionAction**: 행동 유형 — 인물이 취하는 구체적인 동작 (예: "전화를 받는 엘리사")
+    - **attentionExpression**: 감정 유형 — 인물의 감정 상태·신체 반응 (예: "절망한 엘리사의 눈동자")
+    - **attentionMood**: 분위기 유형 — 장면 전체의 감정적 톤·분위기를 한 단어나 짧은 구로 (예: "절망", "긴장감", "허탈함")
+    - 레거시 스타일 키(`attentionDeviceA`, `attentionActionB`, `attentionExpressionC`, `attentionMoodD`)를 쓰지 말고, 위의 표준 키 이름만 사용하십시오.
+    """
 
     prompt = f"""
     다음 원본 텍스트를 기반으로 애니메이션 콘티를 제작해 주세요.
@@ -451,11 +531,7 @@ async def _generate_storyboard_with_gemini(
 
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
 
-    4-1. story를 분석하여 시각적으로 주목할 요소 4가지를 각각 아래 필드에 한국어로 출력하십시오. 반드시 유형별로 1개씩 분리하여 출력해야 합니다:
-    - **attentionDevice**: 오브젝트/인서트컷 유형 — 장면 속 핵심 소품·사물 (예: "전화기")
-    - **attentionAction**: 행동 유형 — 인물이 취하는 구체적인 동작 (예: "전화를 받는 엘리사")
-    - **attentionExpression**: 감정 유형 — 인물의 감정 상태·신체 반응 (예: "절망한 엘리사의 눈동자")
-    - **attentionMood**: 분위기 유형 — 장면 전체의 감정적 톤·분위기를 한 단어나 짧은 구로 (예: "절망", "긴장감", "허탈함")
+    {attention_guidance}
     이 네 필드는 각각 imagePromptA(attention_device), imagePromptB(attention_action), imagePromptC(attention_expression), imagePromptD(attention_mood)의 핵심 소재로 사용됩니다.
 
     4-2. **imagePromptA**: 오브젝/인서트컷(attention_device) 타입 — attentionDevice 항목을 소재로 사용. 극단적 클로즈업. 인물의 얼굴/표정을 포함하지 않음. B-roll 또는 인서트컷 스타일로 작성.
@@ -468,10 +544,19 @@ async def _generate_storyboard_with_gemini(
 
     {f'이미지 가이드 패키지가 제공된 경우, 위 4-2~4-5 프롬프트는 아래 패키지의 스타일·구조·패턴을 분석하여 동일한 유형으로 작성하십시오.' if image_prompt_qa else ''}
 
+    **[CRITICAL: 캐릭터 묘사 규칙]**
+    - **명확한 캐릭터 지칭 (Vague terms 금지)**: 'two people', 'two characters', 'the baby', 'a man' 등 얼버무리는 표현을 절대 사용하지 마십시오. 갓난아기라도 반드시 각 캐릭터의 고유 ID(예: [LEON_BABY], [ELISA_PRESENT])를 사용하여 누구의 샷인지 명확히 밝히십시오.
+    - **다중 캐릭터 위치 지정**: 클립에 두 명 이상의 캐릭터(ID)가 등장할 경우, 모든 이미지 프롬프트에 반드시 각 캐릭터의 상대적인 위치(왼쪽/오른쪽)를 명시하십시오. (예: "[CHARACTER_ID] is on the left side, and [CHARACTER_ID2] is right side next to [CHARACTER_ID]"). 이는 이미지 생성 시 캐릭터의 위치가 뒤바뀌는 것을 방지하기 위함입니다.
+    - **캐릭터 자세 및 위치 명시**: 기본적으로 캐릭터들은 서 있는(standing) 상태로 간주합니다. 단, 스토리 정황상 캐릭터가 앉아있거나(sitting), 누워있는(lying down) 등 자세에 변수가 생기는 경우, 정확히 어디에 앉아있는지, 어디에 누워있는지 매번 구체적으로 명시하십시오. (예: "[ELISA_PRESENT] is sitting on a velvet sofa", "[LEON_BABY] is lying down in a wooden crib").
+
+    {'**[CRITICAL: 씬 도입부 인서트컷 (Insert Cut)]**' if is_trailer_mode else ''}
+    {'새로운 씬(Scene)이 시작될 때, 첫 번째 클립은 반드시 **인물이 없는 배경 인서트컷(Insert Cut)**이어야 합니다. 해당 장소를 암시하는 소품(Item)의 클로즈업(Close-up)이나, 배경의 분위기를 보여주는 정적인 샷으로 구성하십시오. 이 클립의 모든 이미지 프롬프트(imagePrompt, imagePromptA~D)에는 인물 묘사가 없어야 합니다.' if is_trailer_mode else ''}
+
     5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
     스토리나 대사에서 캐릭터가 떨고있거나(shivering), 기침하거나(coughing), 눈물을 흘리거나(tears flowing) 등 신체적/감정적 상태가 암시되는 경우, 해당 키워드를 반드시 videoPrompt에 명시하십시오.
 
     6. **dialogue**: 한국어 대사. 규칙: {sound_condition}
+    **[CRITICAL: 절대 창작 금지]**: 대사(dialogue)는 반드시 원본 텍스트(Source Text)에서 토씨 하나 틀리지 않고 그대로 발췌해야 합니다. AI가 임의로 대사를 지어내거나, 원문을 수정, 요약, 재해석해서는 절대 안 됩니다. 원본 텍스트에 캐릭터의 대사가 있는 경우에만 이 필드를 채우십시오.
 
     7. **dialogueEn**: dialogue의 영어 번역
 
@@ -689,32 +774,43 @@ async def _generate_storyboard_with_gemini(
     if not response_text:
         raise ValueError("Empty response from Gemini API")
 
-    # Clean up markdown code fences in case the model wraps JSON anyway.
-    json_text = response_text.replace("```json", "").replace("```", "").strip()
+    # Prefer structured payload when available from Gemini SDK.
+    parsed_payload = getattr(response, "parsed", None)
+    if isinstance(parsed_payload, dict):
+        result = parsed_payload
+    else:
+        # Clean up markdown code fences in case the model wraps JSON anyway.
+        json_text = response_text.replace("```json", "").replace("```", "").strip()
 
-    try:
-        result = json.loads(json_text)
-    except json.JSONDecodeError as parse_err:
-        logger.warning(f"[STORYBOARD] JSON parse failed: {parse_err}. Attempting repair...")
-        repaired = _repair_json(json_text)
         try:
-            result = json.loads(repaired)
-            logger.info("[STORYBOARD] JSON repair succeeded")
-        except json.JSONDecodeError:
-            logger.warning("[STORYBOARD] JSON repair failed, retrying Gemini call once...")
-            retry_response = await client.aio.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=response_schema,
-                    max_output_tokens=65536,
-                ),
-            )
-            retry_text = retry_response.text.strip() if retry_response.text else ""
-            retry_json = retry_text.replace("```json", "").replace("```", "").strip()
-            result = json.loads(retry_json)  # Let it raise if still broken
-            logger.info("[STORYBOARD] Retry succeeded")
+            result = json.loads(json_text)
+        except json.JSONDecodeError as parse_err:
+            logger.warning(f"[STORYBOARD] JSON parse failed: {parse_err}. Attempting repair...")
+            repaired = _repair_json(json_text)
+            try:
+                result = json.loads(repaired)
+                logger.info("[STORYBOARD] JSON repair succeeded")
+            except json.JSONDecodeError:
+                logger.warning("[STORYBOARD] JSON repair failed, retrying Gemini call once...")
+                retry_response = await client.aio.models.generate_content(
+                    model=MODEL_NAME,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=response_schema,
+                        max_output_tokens=65536,
+                    ),
+                )
+                retry_parsed = getattr(retry_response, "parsed", None)
+                if isinstance(retry_parsed, dict):
+                    result = retry_parsed
+                    logger.info("[STORYBOARD] Retry succeeded (structured payload)")
+                else:
+                    retry_text = retry_response.text.strip() if retry_response.text else ""
+                    retry_json = retry_text.replace("```json", "").replace("```", "").strip()
+                    retry_repaired = _repair_json(retry_json)
+                    result = json.loads(retry_repaired)  # Let it raise if still broken
+                    logger.info("[STORYBOARD] Retry succeeded")
 
     # Debug: log attention field presence on the first clip of the first scene
     first_scene = result.get("scenes", [{}])[0] if result.get("scenes") else {}
@@ -738,6 +834,9 @@ async def _generate_storyboard_with_gemini(
     attention_empty = 0
     for scene in result.get("scenes", []):
         for clip in scene.get("clips", []):
+            # Normalize alternate key styles before downstream processing.
+            _normalize_attention_fields(clip)
+
             # Apply suffix to imagePrompt
             clip["imagePrompt"] = _append_suffix(clip.get("imagePrompt", ""))
 
@@ -778,6 +877,20 @@ async def _generate_storyboard_with_gemini(
     )
 
     return result, response.usage_metadata
+
+
+async def process_storyboard_reference(
+    job_id: str,
+    custom_api_key: str | None = None,
+    worker_id: str = "worker-1",
+) -> dict:
+    """Storyboard handler using reference-style attention prompting for A/B comparison."""
+    return await process_storyboard(
+        job_id=job_id,
+        custom_api_key=custom_api_key,
+        worker_id=worker_id,
+        prompt_variant="reference",
+    )
 
 
 async def _save_storyboard(

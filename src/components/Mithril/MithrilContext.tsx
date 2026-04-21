@@ -196,6 +196,7 @@ interface GenerateStoryboardParams {
   // Trailer-specific params
   imagePromptQA?: string;
   selectedTrailerScript?: string;
+  isTrailerMode?: boolean;
 }
 
 // Types for shared state
@@ -664,6 +665,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] => {
         return clips.map(clip => ({
           story: clip.story,
+          attentionDevice: clip.attentionDevice || "",
+          attentionAction: clip.attentionAction || "",
+          attentionExpression: clip.attentionExpression || "",
+          attentionMood: clip.attentionMood || "",
+          imagePromptA: clip.imagePromptA || "",
+          imagePromptB: clip.imagePromptB || "",
+          imagePromptC: clip.imagePromptC || "",
+          imagePromptD: clip.imagePromptD || "",
           imagePrompt: clip.imagePrompt,
           imagePromptEnd: clip.imagePromptEnd,
           videoPrompt: clip.videoPrompt,
@@ -739,6 +748,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 sceneTitle: scene.sceneTitle,
                 clips: clips.map(clip => ({
                   story: clip.story,
+                  attentionDevice: clip.attentionDevice || "",
+                  attentionAction: clip.attentionAction || "",
+                  attentionExpression: clip.attentionExpression || "",
+                  attentionMood: clip.attentionMood || "",
+                  imagePromptA: clip.imagePromptA || "",
+                  imagePromptB: clip.imagePromptB || "",
+                  imagePromptC: clip.imagePromptC || "",
+                  imagePromptD: clip.imagePromptD || "",
                   imagePrompt: clip.imagePrompt,
                   imagePromptEnd: clip.imagePromptEnd,
                   videoPrompt: clip.videoPrompt,
@@ -812,10 +829,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; attentionDevice?: string; attentionAction?: string; attentionExpression?: string; attentionMood?: string; imagePromptA?: string; imagePromptB?: string; imagePromptC?: string; imagePromptD?: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
+                  attentionDevice: clip.attentionDevice || "",
+                  attentionAction: clip.attentionAction || "",
+                  attentionExpression: clip.attentionExpression || "",
+                  attentionMood: clip.attentionMood || "",
+                  imagePromptA: clip.imagePromptA || "",
+                  imagePromptB: clip.imagePromptB || "",
+                  imagePromptC: clip.imagePromptC || "",
+                  imagePromptD: clip.imagePromptD || "",
                   imagePrompt: clip.imagePrompt,
                   imagePromptEnd: clip.imagePromptEnd,
                   videoPrompt: clip.videoPrompt,
@@ -1146,6 +1171,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           sceneTitle: scene.sceneTitle,
           clips: scene.clips.map(clip => ({
             story: clip.story,
+            attentionDevice: clip.attentionDevice || "",
+            attentionAction: clip.attentionAction || "",
+            attentionExpression: clip.attentionExpression || "",
+            attentionMood: clip.attentionMood || "",
+            imagePromptA: clip.imagePromptA || "",
+            imagePromptB: clip.imagePromptB || "",
+            imagePromptC: clip.imagePromptC || "",
+            imagePromptD: clip.imagePromptD || "",
             imagePrompt: clip.imagePrompt,
             imagePromptEnd: clip.imagePromptEnd,
             videoPrompt: clip.videoPrompt,
@@ -1222,6 +1255,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   const clip = scene.clips[clipIndex];
                   await savePartClip(currentProjectId, partIdx, sceneIndex, clipIndex, {
                     story: clip.story || "",
+                    attentionDevice: clip.attentionDevice || "",
+                    attentionAction: clip.attentionAction || "",
+                    attentionExpression: clip.attentionExpression || "",
+                    attentionMood: clip.attentionMood || "",
+                    imagePromptA: clip.imagePromptA || "",
+                    imagePromptB: clip.imagePromptB || "",
+                    imagePromptC: clip.imagePromptC || "",
+                    imagePromptD: clip.imagePromptD || "",
                     imagePrompt: clip.imagePrompt || "",
                     imagePromptEnd: clip.imagePromptEnd || "",
                     videoPrompt: clip.videoPrompt || "",
@@ -1257,6 +1298,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   const clip = scene.clips[clipIndex];
                   await saveClip(currentProjectId, sceneIndex, clipIndex, {
                     story: clip.story || "",
+                    attentionDevice: clip.attentionDevice || "",
+                    attentionAction: clip.attentionAction || "",
+                    attentionExpression: clip.attentionExpression || "",
+                    attentionMood: clip.attentionMood || "",
+                    imagePromptA: clip.imagePromptA || "",
+                    imagePromptB: clip.imagePromptB || "",
+                    imagePromptC: clip.imagePromptC || "",
+                    imagePromptD: clip.imagePromptD || "",
                     imagePrompt: clip.imagePrompt || "",
                     imagePromptEnd: clip.imagePromptEnd || "",
                     videoPrompt: clip.videoPrompt || "",
@@ -1550,6 +1599,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           // Trailer-specific params
           imagePromptQA: params.imagePromptQA || "",
           selectedTrailerScript: params.selectedTrailerScript || "",
+          isTrailerMode: params.isTrailerMode ?? false,
           // API key
           apiKey: customApiKey,
         }),
@@ -1668,6 +1718,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             const clip = scene.clips[clipIndex];
             await saveClip(currentProjectId, sceneIndex, clipIndex, {
               story: clip.story || "",
+              attentionDevice: clip.attentionDevice || "",
+              attentionAction: clip.attentionAction || "",
+              attentionExpression: clip.attentionExpression || "",
+              attentionMood: clip.attentionMood || "",
+              imagePromptA: clip.imagePromptA || "",
+              imagePromptB: clip.imagePromptB || "",
+              imagePromptC: clip.imagePromptC || "",
+              imagePromptD: clip.imagePromptD || "",
               imagePrompt: clip.imagePrompt || "",
               imagePromptEnd: clip.imagePromptEnd || "",
               videoPrompt: clip.videoPrompt || "",

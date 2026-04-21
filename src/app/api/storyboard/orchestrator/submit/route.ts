@@ -31,6 +31,7 @@ interface StoryboardSubmitRequest {
   // Trailer-specific params
   imagePromptQA?: string;
   selectedTrailerScript?: string;
+  isTrailerMode?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // const endpoint = `${ORCHESTRATOR_URL}/api/v1/storyboard-jobs/submit-reference`;
     const endpoint = `${ORCHESTRATOR_URL}/api/v1/storyboard-jobs/submit`;
     const payload = {
       project_id: body.projectId,
@@ -79,6 +81,7 @@ export async function POST(request: NextRequest) {
       // Trailer-specific params
       image_prompt_qa: body.imagePromptQA || "",
       selected_trailer_script: body.selectedTrailerScript || "",
+      is_trailer_mode: body.isTrailerMode ?? false,
     };
 
 

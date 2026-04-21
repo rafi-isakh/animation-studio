@@ -384,6 +384,7 @@ export default function WebnovelStoryboardGenerator() {
       clipCount,
       imagePromptQA,
       selectedTrailerScript: "",
+      isTrailerMode: false,
     }, selectedSourcePartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {

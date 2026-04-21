@@ -221,6 +221,7 @@ class JobDocument(BaseModel):
     image_instruction: str | None = None  # Image prompt package instructions
     image_prompt_qa: str | None = None  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
+    is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -826,6 +827,7 @@ class StoryboardJobSubmitRequest(BaseModel):
     image_instruction: str = ""  # Image prompt package instructions
     image_prompt_qa: str = ""  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str = ""  # JSON-stringified trailer script lines
+    is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
     # API key
     api_key: str | None = None
 
@@ -834,6 +836,14 @@ class StoryboardClip(BaseModel):
     """A single clip in a storyboard scene."""
 
     story: str
+    attentionDevice: str = ""
+    attentionAction: str = ""
+    attentionExpression: str = ""
+    attentionMood: str = ""
+    imagePromptA: str = ""
+    imagePromptB: str = ""
+    imagePromptC: str = ""
+    imagePromptD: str = ""
     imagePrompt: str
     imagePromptEnd: str | None = None
     videoPrompt: str

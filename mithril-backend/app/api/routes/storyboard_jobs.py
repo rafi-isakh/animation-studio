@@ -25,7 +25,7 @@ from app.models.job import (
     StoryboardVoicePrompt,
 )
 from app.services.firestore import get_job_queue_service
-from app.workers.tasks import process_storyboard_job
+from app.workers.tasks import process_storyboard_job, process_storyboard_reference_job
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -180,6 +180,37 @@ async def submit_storyboard_job(
     logger.debug(f"[STORYBOARD-API] Queuing job {job.id} for processing...")
     await process_storyboard_job.kiq(job.id, request.api_key)
     logger.info(f"[STORYBOARD-API] Job {job.id} queued successfully")
+
+    return JobSubmitResponse(
+        job_id=job.id,
+        status=job.status,
+        created_at=job.created_at,
+    )
+
+
+@router.post("/submit-reference", response_model=JobSubmitResponse)
+async def submit_storyboard_reference_job(
+    request: StoryboardJobSubmitRequest,
+    user: AuthenticatedUser,
+) -> JobSubmitResponse:
+    """
+    Submit a storyboard generation job using the reference-style prompt variant.
+
+    This is intended for A/B comparison against the default `/submit` pipeline.
+    """
+    logger.info(f"[STORYBOARD-API-REF] ========== Received storyboard reference job ==========")
+    logger.info(f"[STORYBOARD-API-REF] User: {user.uid}, Project: {request.project_id}")
+    logger.info(f"[STORYBOARD-API-REF] Text length: {len(request.source_text)} chars")
+    logger.info(f"[STORYBOARD-API-REF] Target time: {request.target_time}")
+    logger.info(f"[STORYBOARD-API-REF] Part index: {request.part_index}")
+    logger.info(f"[STORYBOARD-API-REF] Has custom API key: {bool(request.api_key)}")
+
+    job_queue_service = get_job_queue_service()
+    job = await job_queue_service.create_storyboard_job(request, user.uid)
+    logger.info(f"[STORYBOARD-API-REF] Job created: {job.id}")
+
+    await process_storyboard_reference_job.kiq(job.id, request.api_key)
+    logger.info(f"[STORYBOARD-API-REF] Job {job.id} queued successfully")
 
     return JobSubmitResponse(
         job_id=job.id,

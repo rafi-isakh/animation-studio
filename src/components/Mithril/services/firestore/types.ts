@@ -333,6 +333,14 @@ export interface ClipDocument {
   partIndex?: number;
   // Story content
   story: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   // Prompts
   imagePrompt: string;
   imagePromptEnd?: string;
@@ -602,6 +610,14 @@ export interface SaveSceneInput {
 export interface SaveClipInput {
   partIndex?: number;
   story: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;
@@ -630,6 +646,14 @@ export interface SaveClipInput {
 export interface UpdateClipInput {
   partIndex?: number;
   story?: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   imagePrompt?: string;
   imagePromptEnd?: string;
   videoPrompt?: string;

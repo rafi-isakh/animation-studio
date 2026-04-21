@@ -50,6 +50,7 @@ interface PropListViewProps {
   ) => Promise<void>;
   onSetReferenceImages: (propId: string, images: string[]) => void;
   onUpdateProp: (propId: string, updates: Partial<Prop>) => void;
+  onSaveName: (propId: string, newName: string) => Promise<void>;
   onClose: () => void;
   onToggleMinimize?: () => void; // Toggle minimize from parent
   title?: string;
@@ -71,6 +72,7 @@ export default function PropListView({
   onGenerateImage,
   onSetReferenceImages,
   onUpdateProp,
+  onSaveName,
   onClose,
   onToggleMinimize,
   title = "Design Sheet Generator",
@@ -82,17 +84,35 @@ export default function PropListView({
   onToggleEasyMode,
   suggestedStartingImages,
 }: PropListViewProps) {
-  // Sort props: Default characters first, then Variants
+  // Sort props: Protagonist first, then other defaults, then variants
   const sortedProps = useMemo(() => {
-    return [...props].sort((a, b) => {
-      // Default characters (isVariant === false or undefined) come first
-      const aIsDefault = !a.isVariant;
-      const bIsDefault = !b.isVariant;
-      
-      if (aIsDefault && !bIsDefault) return -1;
-      if (!aIsDefault && bIsDefault) return 1;
-      return 0; // Maintain original order within same category
+    const rolePriority = (p: Prop): number => {
+      if (!p.isVariant && p.role?.toLowerCase().includes("protagonist")) return 0;
+      if (!p.isVariant) return 1;
+      return 2;
+    };
+    return [...props].sort((a, b) => rolePriority(a) - rolePriority(b));
+  }, [props]);
+
+  // Map each variant to its matched base character (for display + auto-link)
+  const variantBaseMap = useMemo(() => {
+    const baseCharacters = props.filter(p => !p.isVariant && p.category === 'character');
+    const map = new Map<string, Prop>();
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+      for (const base of baseCharacters) {
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+        if (variantDetails.includes(baseName) || variantDetails.includes(baseId) || variantName.includes(basePrefix)) {
+          map.set(variant.id, base);
+          break;
+        }
+      }
     });
+    return map;
   }, [props]);
 
   // Minimized state - controlled by parent via onToggleMinimize if provided
@@ -136,6 +156,40 @@ export default function PropListView({
       return next;
     });
   }, [suggestedStartingImages]);
+
+  // Auto-apply each base character's design sheet to their name-matched variants
+  useEffect(() => {
+    const baseCharacters = props.filter(
+      p => !p.isVariant && p.category === 'character' && p.designSheetImageUrl
+    );
+    if (baseCharacters.length === 0) return;
+
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+
+      for (const base of baseCharacters) {
+        const baseUrl = base.designSheetImageUrl!;
+        if (variant.referenceImages?.includes(baseUrl)) continue;
+
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+
+        const isMatch =
+          variantDetails.includes(baseName) ||
+          variantDetails.includes(baseId) ||
+          variantName.includes(basePrefix);
+
+        if (isMatch) {
+          onSetReferenceImages(variant.id, [baseUrl, ...(variant.referenceImages || [])]);
+          break;
+        }
+      }
+    });
+  }, [props, onSetReferenceImages]);
 
   // Job statuses from orchestrator (real-time updates)
   const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
@@ -206,6 +260,26 @@ export default function PropListView({
 
   // Track which prop is currently generating
   const [activeLoadingId, setActiveLoadingId] = useState<string | null>(null);
+
+  // Inline editing state for prop name
+  const [editingPropId, setEditingPropId] = useState<string | null>(null);
+  const [editDraftName, setEditDraftName] = useState("");
+
+  const startEditProp = useCallback((prop: Prop) => {
+    setEditingPropId(prop.id);
+    setEditDraftName(prop.name);
+  }, []);
+
+  const cancelEditProp = useCallback(() => {
+    setEditingPropId(null);
+  }, []);
+
+  const saveEditProp = useCallback(async (propId: string) => {
+    const newName = editDraftName.trim();
+    if (!newName) return;
+    setEditingPropId(null);
+    await onSaveName(propId, newName);
+  }, [editDraftName, onSaveName]);
 
   // File input refs for each prop
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -836,31 +910,69 @@ export default function PropListView({
               <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
                 {/* Header */}
                 <div className="flex justify-between items-start">
-                  <h3 className="text-base font-bold text-gray-100 flex items-center gap-2 truncate">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        isCharacter ? "bg-[#DB2777]" : "bg-cyan-500"
-                      }`}
-                    />
-                    {prop.name}
-                    {prop.isVariant && (
-                      <span className="text-[8px] bg-[#DB2777]/10 text-[#DB2777]/80 px-1 rounded border border-[#DB2777]/40">
-                        VARIANT
+                  {editingPropId === prop.id ? (
+                    <div className="flex items-center gap-1.5 flex-1 mr-2" onClick={e => e.stopPropagation()}>
+                      <input
+                        value={editDraftName}
+                        onChange={e => setEditDraftName(e.target.value)}
+                        className="flex-1 px-2 py-0.5 bg-black/60 border border-cyan-700 rounded text-sm font-bold text-gray-100 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                        placeholder="Display Name"
+                        autoFocus
+                        onKeyDown={e => { if (e.key === "Enter") saveEditProp(prop.id); if (e.key === "Escape") cancelEditProp(); }}
+                      />
+                      <button
+                        onClick={() => saveEditProp(prop.id)}
+                        className="px-2 py-1 bg-cyan-700 hover:bg-cyan-600 text-white text-[9px] font-bold rounded transition-colors shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditProp}
+                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-[9px] font-bold rounded transition-colors shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <h3 className="text-base font-bold text-gray-100 flex items-center gap-2 truncate">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          isCharacter ? "bg-[#DB2777]" : "bg-cyan-500"
+                        }`}
+                      />
+                      <span className="truncate">{prop.name}</span>
+                      {prop.isVariant && (
+                        <span className="text-[8px] bg-[#DB2777]/10 text-[#DB2777]/80 px-1 rounded border border-[#DB2777]/40">
+                          VARIANT
+                        </span>
+                      )}
+                      {isCharacter && !prop.isVariant && prop.role?.toLowerCase().includes("protagonist") && (
+                        <span className="text-[8px] px-1.5 py-0.5 rounded border font-bold uppercase bg-amber-900/40 text-amber-400 border-amber-700/60">
+                          ★ Protagonist
+                        </span>
+                      )}
+                      <span
+                        className={`text-[8px] px-1 rounded border uppercase ${
+                          isCharacter
+                            ? "bg-[#DB2777]/10 text-[#DB2777] border-[#DB2777]/50"
+                            : "bg-teal-900/30 text-teal-400 border-teal-800"
+                        }`}
+                      >
+                        {prop.category}
                       </span>
-                    )}
-                    <span
-                      className={`text-[8px] px-1 rounded border uppercase ${
-                        isCharacter
-                          ? "bg-[#DB2777]/10 text-[#DB2777] border-[#DB2777]/50"
-                          : "bg-teal-900/30 text-teal-400 border-teal-800"
-                      }`}
-                    >
-                      {prop.category}
-                    </span>
-                    {/* Job Status Badge */}
-                    <JobStatusBadge status={jobStatus} />
-                  </h3>
-                  {prop.appearingClips && prop.appearingClips.length > 0 && (
+                      <JobStatusBadge status={jobStatus} />
+                      <button
+                        onClick={e => { e.stopPropagation(); startEditProp(prop); }}
+                        className="p-0.5 text-gray-600 hover:text-cyan-400 transition-colors shrink-0"
+                        title="Edit name"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                        </svg>
+                      </button>
+                    </h3>
+                  )}
+                  {prop.appearingClips && prop.appearingClips.length > 0 && editingPropId !== prop.id && (
                     <div className="text-[8px] font-bold text-cyan-500 bg-cyan-950/50 px-1.5 py-0.5 rounded border border-cyan-800 uppercase shrink-0">
                       {prop.appearingClips.slice(0, 5).join(", ")}
                       {prop.appearingClips.length > 5 && "..."}
@@ -948,11 +1060,25 @@ export default function PropListView({
                 )}
 
                 {/* Variant Details Display */}
-                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals) && (
+                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals || variantBaseMap.has(prop.id)) && (
                   <div className="bg-[#DB2777]/5 border border-[#DB2777]/30 rounded p-2 text-[9px] space-y-1">
                     <span className="text-[8px] font-black text-[#DB2777] uppercase tracking-widest">
                       Variant Information
                     </span>
+                    {variantBaseMap.has(prop.id) && (() => {
+                      const base = variantBaseMap.get(prop.id)!;
+                      return (
+                        <p className="text-[#DB2777]/80 flex items-center gap-1">
+                          <b>Based on:</b> {base.name}
+                          {base.designSheetImageUrl && (
+                            <span className="text-green-500 font-bold">✓ ref linked</span>
+                          )}
+                          {!base.designSheetImageUrl && (
+                            <span className="text-yellow-600 italic">no design sheet yet</span>
+                          )}
+                        </p>
+                      );
+                    })()}
                     {prop.variantDetails && (
                       <p className="text-[#DB2777]/70">
                         <b>Type:</b> {prop.variantDetails}

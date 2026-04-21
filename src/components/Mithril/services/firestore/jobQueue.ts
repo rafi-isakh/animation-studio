@@ -100,6 +100,14 @@ export interface JobQueueDocument {
       sceneTitle: string;
       clips: Array<{
         story: string;
+        attentionDevice?: string;
+        attentionAction?: string;
+        attentionExpression?: string;
+        attentionMood?: string;
+        imagePromptA?: string;
+        imagePromptB?: string;
+        imagePromptC?: string;
+        imagePromptD?: string;
         storyDetailKo?: string;
         storyGroupLabel?: string;
         storyGroupSize?: number;
@@ -1526,6 +1534,14 @@ export interface StoryboardScene {
   sceneTitle: string;
   clips: Array<{
     story: string;
+    attentionDevice?: string;
+    attentionAction?: string;
+    attentionExpression?: string;
+    attentionMood?: string;
+    imagePromptA?: string;
+    imagePromptB?: string;
+    imagePromptC?: string;
+    imagePromptD?: string;
     storyDetailKo?: string;
     storyGroupLabel?: string;
     storyGroupSize?: number;

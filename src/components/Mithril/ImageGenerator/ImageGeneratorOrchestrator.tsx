@@ -324,19 +324,15 @@ const { language, dictionary } = useLanguage();
     // Load characters AND objects from PropDesigner (Stage 5)
     const propResult = propDesignerGenerator.result;
     if (propResult?.props) {
-      const characterAndObjectProps = propResult.props.filter(p => p.category === 'character' || p.category === 'object');
+      const characterAndObjectProps = propResult.props.filter(
+        p => (p.category === 'character' || p.category === 'object') && !!p.designSheetImageRef
+      );
       setCharacterAssets(
-        characterAndObjectProps.map((prop) => {
-          let imageUrl = prop.designSheetImageRef || prop.referenceImageRef || "";
-          if (!imageUrl && prop.referenceImageRefs && prop.referenceImageRefs.length > 0) {
-            imageUrl = prop.referenceImageRefs[0];
-          }
-          return {
-            id: prop.id,
-            name: prop.name,
-            imageUrl,
-          };
-        })
+        characterAndObjectProps.map((prop) => ({
+          id: prop.id,
+          name: prop.name,
+          imageUrl: prop.designSheetImageRef,
+        }))
       );
     } else {
       setCharacterAssets([]);

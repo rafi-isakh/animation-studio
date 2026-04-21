@@ -32,6 +32,7 @@ import NsfwStoryboardGenerator from "./NsfwStoryboardGenerator";
 import NsfwTextToVideoGenerator from "./NsfwTextToVideoGenerator";
 import WebnovelTrailer from "./WebnovelTrailer";
 import WebnovelTrailerStoryboardGenerator from "./WebnovelTrailerStoryboardGenerator";
+import WebnovelStoryboardGenerator from "./WebnovelStoryboardGenerator";
 import WebnovelTrailerBgSheetGenerator from "./WebnovelTrailerBgSheetGenerator";
 import WebnovelTrailerImageGeneratorWrapper from "./WebnovelTrailerImageGenerator/ImageGeneratorWrapper";
 import { MithrilProvider, useMithril } from "./MithrilContext";
@@ -70,6 +71,7 @@ const STAGE_COMPONENTS: Record<string, ComponentType> = {
   'NsfwTextToVideoGenerator': NsfwTextToVideoGenerator,
   'WebnovelTrailer': WebnovelTrailer,
   'WebnovelTrailerStoryboardGenerator': WebnovelTrailerStoryboardGenerator,
+  'WebnovelStoryboardGenerator': WebnovelStoryboardGenerator,
   'WebnovelTrailerBgSheetGenerator': WebnovelTrailerBgSheetGenerator,
   'WebnovelTrailerImageGenerator': WebnovelTrailerImageGeneratorWrapper,
 };

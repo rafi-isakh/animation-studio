@@ -1,4 +1,5 @@
 import type { CsvColumnMapping, CsvFrame } from '../types';
+import { detectApiForPrompt } from '../../../VideoGenerator/apiSelector';
 
 /**
  * Parse CSV text into a 2D array of strings.
@@ -132,7 +133,7 @@ export function applyMapping(
       dialogue:           dialogueIdx > -1 ? (row[dialogueIdx] ?? '').trim() : undefined,
       sfx:                sfxIdx     > -1 ? (row[sfxIdx]     ?? '').trim() : undefined,
       clipLength:         lengthIdx  > -1 ? (row[lengthIdx]  ?? '').trim() : undefined,
-      videoApi:           videoApiIdx > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined,
+      videoApi:           (() => { const raw = videoApiIdx > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined; return raw ?? detectApiForPrompt(promptIdx > -1 ? (row[promptIdx] ?? '').trim() : ''); })(),
       imageData:          null,
       endFrameData:       null,
       imageUrl:           filenameIdx > -1 && (row[filenameIdx] ?? '').trim().startsWith('http') ? (row[filenameIdx] ?? '').trim() : null,

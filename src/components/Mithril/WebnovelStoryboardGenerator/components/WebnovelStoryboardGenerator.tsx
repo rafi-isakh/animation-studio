@@ -26,14 +26,12 @@ import {
   CheckCircle,
   Image,
   Search,
-  ArrowLeft,
 } from "lucide-react";
 import StoryboardTable from "../../StoryboardGenerator/components/StoryboardTable";
 import DriveSettings from "../../StoryboardGenerator/components/DriveSettings";
 import { getChapter } from "../../services/firestore";
 import { useProject } from "@/contexts/ProjectContext";
-import type { Scene, Continuity, TrailerOption } from "../../StoryboardGenerator/types";
-import TrailerSurvey from "./TrailerSurvey";
+import type { Scene, Continuity } from "../../StoryboardGenerator/types";
 
 // Default file instruction contents (from 02_작업에 필요한 파일)
 const DEFAULT_BACKGROUND_INSTRUCTION = `Background ID Column:
@@ -233,7 +231,7 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
   </div>
 );
 
-export default function WebnovelTrailerStoryboardGenerator() {
+export default function WebnovelStoryboardGenerator() {
   const {
     getStageResult,
     storyboardGenerator,
@@ -260,11 +258,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const videoInstructionFileRef = useRef<HTMLInputElement>(null);
   const imageInstructionFileRef = useRef<HTMLInputElement>(null);
   const imagePromptQAFileRef = useRef<HTMLInputElement>(null);
-
-  // Trailer survey state
-  const [currentView, setCurrentView] = useState<'survey' | 'editor'>('survey');
-  const [selectedTrailerScript, setSelectedTrailerScript] = useState<TrailerOption | undefined>(undefined);
-  const [trailerSourceText, setTrailerSourceText] = useState<string>("");
 
   // Image Prompt QA Package
   const [imagePromptQA, setImagePromptQA] = useState(DEFAULT_IMAGE_PROMPT_QA);
@@ -307,9 +300,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
   // State from Stage 2 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
-  const [chapterFileName, setChapterFileName] = useState<string>("");
   const [selectedSourcePartIndex, setSelectedSourcePartIndex] = useState<number>(0);
-  const generatedPartIndices = getGeneratedPartIndices();
 
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
@@ -331,23 +322,31 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const [showDriveSettings, setShowDriveSettings] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
 
-  // Load source text from IdConverter chapter (trailer has no StorySplitter stage)
+  // Load split parts from context on mount
   useEffect(() => {
-    if (!currentProjectId) return;
     const loadParts = async () => {
-      try {
-        const chapter = await getChapter(currentProjectId);
-        console.log('[WebnovelTrailerSBG] chapter from Firestore:', chapter ? { filename: chapter.filename, contentLength: chapter.content?.length } : null);
-        if (chapter?.content) {
-          setSplitParts([chapter.content]);
-          setChapterFileName(chapter.filename || "");
+      if (isStageSkipped(2)) {
+        if (!currentProjectId) return;
+        try {
+          const chapter = await getChapter(currentProjectId);
+          if (chapter?.content) {
+            setSplitParts([chapter.content]);
+          }
+        } catch (err) {
+          console.error("Failed to load chapter from Firestore:", err);
         }
-      } catch (err) {
-        console.error('[WebnovelTrailerSBG] Failed to load chapter from Firestore:', err);
+      } else {
+        const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
+        if (contextResult?.parts && Array.isArray(contextResult.parts)) {
+          const texts = contextResult.parts.map((part) =>
+            typeof part === "string" ? part : part.text
+          );
+          setSplitParts(texts);
+        }
       }
     };
     loadParts();
-  }, [currentProjectId]);
+  }, [getStageResult, isStageSkipped, currentProjectId]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
@@ -359,7 +358,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       return;
     }
 
-    const sourceText = trailerSourceText || splitParts[selectedSourcePartIndex];
+    const sourceText = splitParts[selectedSourcePartIndex];
     if (!sourceText) {
       toast({
         variant: "destructive",
@@ -384,10 +383,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
       imageInstruction,
       clipCount,
       imagePromptQA,
-      selectedTrailerScript: selectedTrailerScript
-        ? JSON.stringify(selectedTrailerScript.script)
-        : "",
-      isTrailerMode: true,
+      selectedTrailerScript: "",
+      isTrailerMode: false,
     }, selectedSourcePartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
@@ -398,7 +395,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
       });
     }
   }, [
-    trailerSourceText,
     splitParts,
     selectedSourcePartIndex,
     storyCondition,
@@ -414,7 +410,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
     imageInstruction,
     clipCount,
     imagePromptQA,
-    selectedTrailerScript,
     startStoryboardGeneration,
     storyboardGenerator,
     toast,
@@ -453,8 +448,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
       "SFX (En)",
       "BGM (Ko)",
       "BGM (En)",
-      "Trailer Script (Ko)",
-      "Trailer Script (En)",
     ];
 
     const q = (s: string) => `"${(s || "").replace(/"/g, '""')}"`;
@@ -489,8 +482,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
           q(clip.sfxEn),
           q(clip.bgm),
           q(clip.bgmEn),
-          q(clip.trailerScriptKo || ""),
-          q(clip.trailerScriptEn || ""),
         ];
         return row.join(",");
       })
@@ -550,8 +541,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
       "SFX (En)",
       "BGM (Ko)",
       "BGM (En)",
-      "Trailer Script (Ko)",
-      "Trailer Script (En)",
     ];
 
     const clipRows = scenes.flatMap((scene, sceneIndex) =>
@@ -583,8 +572,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
         clip.sfxEn,
         clip.bgm,
         clip.bgmEn,
-        clip.trailerScriptKo || "",
-        clip.trailerScriptEn || "",
       ])
     );
 
@@ -633,7 +620,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
         videoGuide,
       },
       trailerData: {
-        selectedTrailerScript: selectedTrailerScript || null,
         imagePromptQA: imagePromptQA || "",
       },
     };
@@ -660,7 +646,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
     soundCondition,
     imageGuide,
     videoGuide,
-    selectedTrailerScript,
     imagePromptQA,
     characterIdSummary,
     genre,
@@ -700,7 +685,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
         }
 
         if (data.trailerData) {
-          if (data.trailerData.selectedTrailerScript) setSelectedTrailerScript(data.trailerData.selectedTrailerScript);
           if (data.trailerData.imagePromptQA) setImagePromptQA(data.trailerData.imagePromptQA);
         }
 
@@ -930,62 +914,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
         </p>
       </div>
 
-      {/* View Toggle */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setCurrentView('survey')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            currentView === 'survey'
-              ? 'bg-[#DB2777] text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-[#DB2777]'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          트레일러 서베이
-        </button>
-        <button
-          onClick={() => setCurrentView('editor')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            currentView === 'editor'
-              ? 'bg-[#DB2777] text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-[#DB2777]'
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          스토리보드 편집기
-        </button>
-        {currentView === 'editor' && selectedTrailerScript && (
-          <span className="text-xs text-[#DB2777] font-medium">
-            ✓ Option {selectedTrailerScript.id}: {selectedTrailerScript.title}
-          </span>
-        )}
-      </div>
-
-      {/* TrailerSurvey view */}
-      {currentView === 'survey' && (
-        <TrailerSurvey
-          initialSourceText={splitParts[selectedSourcePartIndex]}
-          initialFileName={chapterFileName}
-          onStart={(text, option) => {
-            setTrailerSourceText(text);
-            setSelectedTrailerScript(option);
-            setCurrentView('editor');
-          }}
-        />
-      )}
-
-      {/* Editor view wrapper */}
-      {currentView === 'editor' && (
-        <>
-        {/* Back to survey button */}
-        <button
-          onClick={() => setCurrentView('survey')}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#DB2777] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          트레일러 서베이로 돌아가기
-        </button>
-
       {/* Part Selection */}
       {splitParts.length > 0 ? (
         <div className="space-y-3">
@@ -996,7 +924,10 @@ export default function WebnovelTrailerStoryboardGenerator() {
             {splitParts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedSourcePartIndex(index)}
+                onClick={() => {
+                  setSelectedSourcePartIndex(index);
+                  setActiveStoryboardPartIndex(index);
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedSourcePartIndex === index
                     ? "bg-[#DB2777] text-white"
@@ -1011,21 +942,44 @@ export default function WebnovelTrailerStoryboardGenerator() {
           <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {trailerSourceText
-                  ? "트레일러 텍스트 미리보기"
-                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedSourcePartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
+                {`${phrase(dictionary, "storysplitter_part", language)} ${selectedSourcePartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {((trailerSourceText || splitParts[selectedSourcePartIndex])?.length ?? 0).toLocaleString()}{" "}
+                {(splitParts[selectedSourcePartIndex]?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>
             <div className="max-h-24 overflow-y-auto scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.slice(0, 300)}
-                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.length > 300 && "..."}
+                {splitParts[selectedSourcePartIndex]?.slice(0, 300)}
+                {splitParts[selectedSourcePartIndex]?.length > 300 && "..."}
               </pre>
             </div>
+          </div>
+        </div>
+      ) : getGeneratedPartIndices().length > 1 ? (
+        // No StorySplitter result in context, but multiple parts exist in Firestore — show tabs for navigation
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {phrase(dictionary, "storyboard_select_part", language)}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {getGeneratedPartIndices().map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => {
+                  setSelectedSourcePartIndex(partIdx);
+                  setActiveStoryboardPartIndex(partIdx);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedSourcePartIndex === partIdx
+                    ? "bg-[#DB2777] text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                {phrase(dictionary, "storysplitter_part", language)} {partIdx + 1}
+              </button>
+            ))}
           </div>
         </div>
       ) : (
@@ -1038,7 +992,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
         </div>
       )}
 
-      {/* Collapsible Conditions Section — now first */}
+      {/* Collapsible Conditions Section */}
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <button
           onClick={() => setShowConditions(!showConditions)}
@@ -1134,7 +1088,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
         )}
       </div>
 
-      {/* Configuration Section — now second */}
+      {/* Configuration Section */}
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 space-y-4">
         <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
           <Settings className="w-5 h-5 text-[#DB2777]" />
@@ -1281,7 +1235,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
             )}
           </div>
 
-          {/* Image Prompt Package Instruction (NSFW-specific, from reference) */}
+          {/* Image Prompt Package Instruction */}
           <div>
             <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               <Image className="w-4 h-4 text-amber-500" />
@@ -1511,11 +1465,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
             voicePrompts={voicePrompts}
             characterIdSummary={characterIdSummary}
             genre={genre}
-            showTrailerColumns={true}
+            showTrailerColumns={false}
           />
         </div>
-      )}
-        </>
       )}
     </div>
   );

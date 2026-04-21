@@ -180,8 +180,12 @@ const ClipTableRow = React.memo(function ClipTableRow({
           {row.backgroundId}
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          {row.story}
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+          <EditablePromptCell
+            value={row.story}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'story')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'story', newValue)}
+          />
         </td>
 
         {/* Editable Image Prompt */}
@@ -214,16 +218,28 @@ const ClipTableRow = React.memo(function ClipTableRow({
           />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
-          {row.soraVideoPrompt}
+        <td className="px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.soraVideoPrompt}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'soraVideoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'soraVideoPrompt', newValue)}
+          />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-purple-600 dark:text-purple-300 font-mono min-w-[200px]">
-          {row.veoVideoPrompt}
+        <td className="px-4 py-4 text-sm text-purple-600 dark:text-purple-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.veoVideoPrompt}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'veoVideoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'veoVideoPrompt', newValue)}
+          />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-pink-600 dark:text-pink-300 min-w-[200px]">
-          {row.pixAiPrompt}
+        <td className="px-4 py-4 text-sm text-pink-600 dark:text-pink-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.pixAiPrompt || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'pixAiPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'pixAiPrompt', newValue)}
+          />
         </td>
 
         {/* Editable Dialogue (Ko) */}
@@ -246,14 +262,22 @@ const ClipTableRow = React.memo(function ClipTableRow({
           />
         </td>
 
-        {/* Narration (Ko) - read-only, yellow styling like standalone */}
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-600 dark:text-yellow-300 min-w-[150px]">
-          {row.narration || ""}
+        {/* Narration (Ko) */}
+        <td className="px-4 py-4 text-sm text-yellow-600 dark:text-yellow-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.narration || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'narration')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'narration', newValue)}
+          />
         </td>
 
-        {/* Narration (En) - read-only, yellow styling */}
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-500 dark:text-yellow-100 italic min-w-[150px]">
-          {row.narrationEn || ""}
+        {/* Narration (En) */}
+        <td className="px-4 py-4 text-sm text-yellow-500 dark:text-yellow-100 min-w-[150px]">
+          <EditablePromptCell
+            value={row.narrationEn || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'narrationEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'narrationEn', newValue)}
+          />
         </td>
 
         {/* Editable SFX (Ko) */}
@@ -299,11 +323,19 @@ const ClipTableRow = React.memo(function ClipTableRow({
         {/* Trailer Script columns (only when showTrailerColumns is true) */}
         {showTrailerColumns && (
           <>
-            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
-              {row.trailerScriptKo || ""}
+            <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+              <EditablePromptCell
+                value={row.trailerScriptKo || ""}
+                originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'trailerScriptKo')}
+                onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'trailerScriptKo', newValue)}
+              />
             </td>
-            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-500 dark:text-teal-100 italic min-w-[200px]">
-              {row.trailerScriptEn || ""}
+            <td className="px-4 py-4 text-sm text-teal-500 dark:text-teal-100 min-w-[200px]">
+              <EditablePromptCell
+                value={row.trailerScriptEn || ""}
+                originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'trailerScriptEn')}
+                onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'trailerScriptEn', newValue)}
+              />
             </td>
           </>
         )}

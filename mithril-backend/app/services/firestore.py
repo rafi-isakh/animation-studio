@@ -845,7 +845,9 @@ class JobQueueService:
             negative_instruction=request.negative_instruction,
             video_instruction=request.video_instruction,
             image_instruction=request.image_instruction,
+            image_prompt_qa=request.image_prompt_qa,
             selected_trailer_script=request.selected_trailer_script,
+            is_trailer_mode=request.is_trailer_mode,
             max_retries=3,
         )
 
@@ -1671,6 +1673,14 @@ class StoryboardService:
                     "clipIndex": clip_index,
                     "story": clip.get("story", ""),
                     "imagePrompt": clip.get("imagePrompt", ""),
+                    "attentionDevice": clip.get("attentionDevice", ""),
+                    "imagePromptA": clip.get("imagePromptA", ""),
+                    "attentionAction": clip.get("attentionAction", ""),
+                    "imagePromptB": clip.get("imagePromptB", ""),
+                    "attentionExpression": clip.get("attentionExpression", ""),
+                    "imagePromptC": clip.get("imagePromptC", ""),
+                    "attentionMood": clip.get("attentionMood", ""),
+                    "imagePromptD": clip.get("imagePromptD", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
                     "veoVideoPrompt": clip.get("veoVideoPrompt", ""),
@@ -1687,9 +1697,26 @@ class StoryboardService:
                     "bgmEn": clip.get("bgmEn", ""),
                     "length": clip.get("length", ""),
                     "accumulatedTime": clip.get("accumulatedTime", ""),
+                    "trailerScriptKo": clip.get("trailerScriptKo", ""),
+                    "trailerScriptEn": clip.get("trailerScriptEn", ""),
                     "imageRef": "",  # Empty until image is generated
                     "selectedBgId": None,  # User selection
                 }
+                # Debug: log attention field presence on first clip of first scene
+                if scene_index == 0 and clip_index == 0:
+                    logger.debug(
+                        "[FIRESTORE] Saving clip 0-0 attention fields — "
+                        "attentionDevice=%r, attentionAction=%r, attentionExpression=%r, attentionMood=%r | "
+                        "imagePromptA present=%s, imagePromptB present=%s, imagePromptC present=%s, imagePromptD present=%s",
+                        clip_data.get("attentionDevice"),
+                        clip_data.get("attentionAction"),
+                        clip_data.get("attentionExpression"),
+                        clip_data.get("attentionMood"),
+                        bool(clip_data.get("imagePromptA")),
+                        bool(clip_data.get("imagePromptB")),
+                        bool(clip_data.get("imagePromptC")),
+                        bool(clip_data.get("imagePromptD")),
+                    )
                 await self._clip_ref(project_id, scene_index, clip_index).set(clip_data)
 
             logger.debug(f"Saved scene {scene_index} with {len(clips)} clips for project {project_id}")

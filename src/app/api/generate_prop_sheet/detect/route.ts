@@ -290,6 +290,14 @@ const characterDetectionSchema = {
         type: Type.STRING,
         description: "Eye color in 1-2 English words (e.g., 'Golden', 'Blue', 'Dark brown', 'Crimson red')",
       },
+      dominantOutfitColor: {
+        type: Type.STRING,
+        description: "Dominant color of the character's outfit in 1-2 English words (e.g., 'Navy blue', 'Crimson red', 'Pure white', 'Jet black')",
+      },
+      expression: {
+        type: Type.STRING,
+        description: "Character's typical facial expression in 1-3 English words (e.g., 'Gentle smile', 'Cold stare', 'Fierce glare', 'Warm grin')",
+      },
       personality: {
         type: Type.STRING,
         description: "Character personality in max 4 English words (e.g., 'Smart and calm', 'Brave and loyal')",
@@ -326,6 +334,8 @@ const characterDetectionSchema = {
       "hairColor",
       "hairStyle",
       "eyeColor",
+      "dominantOutfitColor",
+      "expression",
       "personality",
       "role",
       "isVariant",
@@ -380,12 +390,27 @@ ${Object.entries(characterDescriptions).map(([id, desc]) => `- **${id}**: ${desc
 `
     : "";
 
+  // Identify protagonist from characterDescriptions for "opposite" fallback
+  const protagonistEntry = characterDescriptions
+    ? Object.entries(characterDescriptions).find(([, desc]) =>
+        /^protagonist/i.test(desc.trim())
+      )
+    : null;
+  const protagonistSection = protagonistEntry
+    ? `\n**[주인공 기준 속성 - 반대 정의 참조용]**
+원문에 속성이 명시되지 않은 캐릭터는 아래 주인공과 **반대되는** 속성으로 정의하십시오 (색상 계열, 성별, 스타일, 성격 모두 반대로).
+- **주인공 ID**: ${protagonistEntry[0]}
+- **주인공 설명**: ${protagonistEntry[1]}
+예시: 주인공이 Silver hair라면 미정의 캐릭터는 Dark/Black hair. 주인공이 Female이라면 Male. 주인공이 calm이라면 fierce/impulsive.
+`
+    : "";
+
   const prompt = `
 [캐릭터 감지 및 디자인 시트 마스터 프롬프트]
 장르/시대 배경: ${genre || "Modern"}
 
 다음 애니메이션 콘티 데이터를 분석하여, 아래 제공된 'Target Character IDs' 리스트에 있는 모든 캐릭터에 대한 상세 정보를 생성해줘.
-${descriptionSection}
+${descriptionSection}${protagonistSection}
 **[필수 지시사항]**
 1. **Target Character IDs 리스트에 포함된 모든 ID를 무조건 결과에 포함하십시오.**
 2. **출력 필드 'name'은 반드시 해당 ID와 동일해야 합니다.**
@@ -396,11 +421,16 @@ ${descriptionSection}
    "2d anime white background character sheet, [VISUAL DESCRIPTION] of [CHARACTER NAME] in ${genre || "Modern"} setting, 1 full body close up, 1 full body back view, 1 face close up 3/4 view, hand close up (for hand design), high quality, character design sheet style, shading detail, no text"
 
 **[Easy Mode 데이터 추출 - 필수]**
-나중에 'Easy Mode' 템플릿을 생성하기 위해 다음 정보를 추가로 분석하십시오:
+나중에 'Easy Mode' 템플릿을 생성하기 위해 다음 정보를 추출하십시오. **원문(클립 스토리/이미지 프롬프트/캐릭터 설명)에 명시된 경우 그대로 추출하고, 명시되지 않은 경우 위의 '주인공 기준 속성'과 반대로 정의하십시오.**
 - **role**: 주인공과의 관계. **위에 제공된 '캐릭터 ID 설명 참조'가 있다면 반드시 해당 설명에서 관계를 추출하십시오.** 예를 들어 설명에 "Protagonist's son"이 있으면 role은 "Son"이어야 합니다. 설명이 없는 경우에만 콘티에서 추론하십시오. 영어로 작성.
 - **age**: 추정 나이 (숫자 문자열로, 예: "25", "30").
-- **gender**: 성별 (Male 또는 Female).
-- **personality**: 성격 묘사 (최대 4단어 영어, 예: "Smart and calm", "Brave and loyal").
+- **gender**: 성별 (Male 또는 Female). 미정의 시 주인공과 반대 성별.
+- **hairColor**: 머리 색상 (1-2 영단어, 예: "Silver", "Dark brown"). 미정의 시 주인공과 반대 색계열.
+- **hairStyle**: 머리 스타일 (1-3 영단어, 예: "Long straight", "Short spiky"). 미정의 시 주인공과 반대 스타일.
+- **eyeColor**: 눈 색상 (1-2 영단어). 미정의 시 주인공과 반대 색계열.
+- **dominantOutfitColor**: 복장의 대표 색상 (1-2 영단어, 예: "Navy blue", "Crimson red"). 미정의 시 주인공과 반대 색계열.
+- **expression**: 이 캐릭터의 대표 표정 (1-3 영단어, 예: "Gentle smile", "Cold stare", "Fierce glare"). 미정의 시 주인공과 반대 표정.
+- **personality**: 성격 묘사 (최대 4단어 영어, 예: "Smart and calm", "Brave and loyal"). 미정의 시 주인공과 반대 성격.
 
 **[변형(Variant) 캐릭터 감지]**
 - **isVariant**: 이 캐릭터가 기존 캐릭터의 변형인지 여부를 판단하십시오 (과거/미래 자신, 흑화, 변신 상태 등). Boolean 값.

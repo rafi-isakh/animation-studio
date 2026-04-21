@@ -2,31 +2,15 @@ export interface Continuity {
   story: string;
   imagePrompt: string;
   imagePromptEnd?: string; // End frame prompt for Vidu (motion-heavy clips only)
-  // Webnovel-trailer A/B/C/D image prompt variations (4 types × 5 variations)
-  attentionDevice?: string;
-  imagePromptA1?: string;
-  imagePromptA2?: string;
-  imagePromptA3?: string;
-  imagePromptA4?: string;
-  imagePromptA5?: string;
-  attentionAction?: string;
-  imagePromptB1?: string;
-  imagePromptB2?: string;
-  imagePromptB3?: string;
-  imagePromptB4?: string;
-  imagePromptB5?: string;
-  attentionExpression?: string;
-  imagePromptC1?: string;
-  imagePromptC2?: string;
-  imagePromptC3?: string;
-  imagePromptC4?: string;
-  imagePromptC5?: string;
-  attentionMood?: string;
-  imagePromptD1?: string;
-  imagePromptD2?: string;
-  imagePromptD3?: string;
-  imagePromptD4?: string;
-  imagePromptD5?: string;
+  // Webnovel-trailer A/B/C/D image prompt variations (1 per type)
+  attentionDevice?: string;     // 오브젝/인서트컷 item → reference for imagePromptA
+  attentionAction?: string;     // 행동 item → reference for imagePromptB
+  attentionExpression?: string; // 감정 item → reference for imagePromptC
+  attentionMood?: string;       // kept for structure (D is free methodology)
+  imagePromptA?: string;        // 오브젝/인서트컷 (attention_device)
+  imagePromptB?: string;        // 행동 (attention_action)
+  imagePromptC?: string;        // 감정 (attention_expression)
+  imagePromptD?: string;        // 감정 증폭 (free methodology)
   videoPrompt: string;
   soraVideoPrompt: string;
   veoVideoPrompt: string;

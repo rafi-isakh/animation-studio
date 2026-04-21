@@ -1592,8 +1592,8 @@ export default function BgSheetGenerator() {
     try {
       const userInstruction = remixPrompts[bgId]?.trim();
       const prompt = userInstruction
-        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`
-        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. Remove characters and their shadow/reflections from the background. EMPTY SCENE, NO PEOPLE.`
+        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. Remove characters and their shadow/reflections from the background. EMPTY SCENE, NO PEOPLE.`;
 
       const response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
         method: "POST",

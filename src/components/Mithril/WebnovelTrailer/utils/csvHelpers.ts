@@ -1,5 +1,6 @@
 import type { CsvFrame } from '../types';
 import type { WebnovelTrailerColumnMapping } from '../types';
+import { detectApiForPrompt } from './apiSelector';
 
 /**
  * Parse CSV text into a 2D array of strings.
@@ -136,7 +137,8 @@ export function applyMapping(
     const dialogue          = dialogueIdx  > -1 ? (row[dialogueIdx]  ?? '').trim() || undefined : undefined;
     const sfx               = sfxIdx       > -1 ? (row[sfxIdx]       ?? '').trim() || undefined : undefined;
     const clipLength        = lengthIdx    > -1 ? (row[lengthIdx]    ?? '').trim() || undefined : undefined;
-    const videoApi          = videoApiIdx  > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined;
+    const videoApiRaw       = videoApiIdx  > -1 ? normalizeVideoApiValue((row[videoApiIdx] ?? '').trim()) : undefined;
+    const videoApi          = videoApiRaw ?? detectApiForPrompt(veoPrompt);
     const endImagePrompt    = endPromptIdx > -1 ? (row[endPromptIdx]  ?? '').trim() : '';
 
     const hasEndFrame = endImagePrompt !== '';

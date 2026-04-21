@@ -12,6 +12,7 @@ import {
   savePropDesignerSettings,
   saveProp,
   saveDetectedIds,
+  updateProp,
   updatePropDesignSheetImage,
   updatePropReferenceImage,
   getProps,
@@ -416,6 +417,8 @@ export default function PropDesigner() {
         hairColor: p.hairColor,
         hairStyle: p.hairStyle,
         eyeColor: p.eyeColor,
+        dominantOutfitColor: p.dominantOutfitColor,
+        expression: p.expression,
         personality: p.personality,
         role: p.role,
         isVariant: p.isVariant,
@@ -451,6 +454,8 @@ export default function PropDesigner() {
             hairColor: p.hairColor,
             hairStyle: p.hairStyle,
             eyeColor: p.eyeColor,
+            dominantOutfitColor: p.dominantOutfitColor,
+            expression: p.expression,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
@@ -588,8 +593,11 @@ export default function PropDesigner() {
               }
             }
 
-            // Categorize
-            const category = categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
+            // Categorize: prefer characterIdSummary/csvCharacterDescriptions over static keywords
+            const isKnownCharacter = csvCharacterDescriptions.has(id);
+            const category = isKnownCharacter
+              ? "character"
+              : categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
             if (category === "character") {
               characterIds.add(id);
             } else {
@@ -615,8 +623,22 @@ export default function PropDesigner() {
       }
     });
 
+    // Add characters from characterIdSummary that weren't found in any clip text
+    const foundIds = new Set(allDetected.map((d) => d.id));
+    for (const characterId of csvCharacterDescriptions.keys()) {
+      if (!foundIds.has(characterId)) {
+        allDetected.push({
+          id: characterId,
+          category: "character",
+          clipIds: [],
+          contexts: [],
+          occurrences: 0,
+        });
+      }
+    }
+
     setDetectedIds(allDetected);
-  }, [scenesForDetection, importVersion]);
+  }, [scenesForDetection, importVersion, csvCharacterDescriptions]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -695,31 +717,49 @@ export default function PropDesigner() {
   // Helper to create a new session from detection results and save to Firestore
   const createSessionFromDetection = useCallback(
     async (newProps: Prop[], category: "character" | "object") => {
-      // Create new session
-      const sessionNumber = category === "character"
-        ? characterSessionCount + 1
-        : objectSessionCount + 1;
-      const sessionName = category === "character"
-        ? `Character Sheet #${sessionNumber}`
-        : `Object Sheet #${sessionNumber}`;
+      // If a session of this category already exists, update the most recent one in-place
+      const existingSessionIndex = sessions.reduce<number>(
+        (found, s, i) => (s.type === category ? i : found),
+        -1
+      );
 
-      const newSession: DetectionSession = {
-        id: crypto.randomUUID(),
-        name: sessionName,
-        type: category,
-        props: newProps,
-        timestamp: Date.now(),
-        isMinimized: false, // Open expanded for new detections
-      };
+      let targetSession: DetectionSession;
+      let updatedSessions: DetectionSession[];
 
-      // Update session counter
-      if (category === "character") {
-        setCharacterSessionCount(prev => prev + 1);
+      if (existingSessionIndex !== -1) {
+        targetSession = {
+          ...sessions[existingSessionIndex],
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+        updatedSessions = sessions.map((s, i) => (i === existingSessionIndex ? targetSession : s));
       } else {
-        setObjectSessionCount(prev => prev + 1);
+        const sessionNumber = category === "character"
+          ? characterSessionCount + 1
+          : objectSessionCount + 1;
+        const sessionName = category === "character"
+          ? `Character Sheet #${sessionNumber}`
+          : `Object Sheet #${sessionNumber}`;
+
+        targetSession = {
+          id: crypto.randomUUID(),
+          name: sessionName,
+          type: category,
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+
+        if (category === "character") {
+          setCharacterSessionCount(prev => prev + 1);
+        } else {
+          setObjectSessionCount(prev => prev + 1);
+        }
+
+        updatedSessions = [...sessions, targetSession];
       }
 
-      const updatedSessions = [...sessions, newSession];
       setSessions(updatedSessions);
 
       if (process.env.NODE_ENV !== "production") {
@@ -732,7 +772,8 @@ export default function PropDesigner() {
           withUrl,
           withBase64,
           withRefs,
-          sessionName: newSession.name,
+          sessionName: targetSession.name,
+          reused: existingSessionIndex !== -1,
         });
       }
 
@@ -774,6 +815,8 @@ export default function PropDesigner() {
             hairColor: prop.hairColor,
             hairStyle: prop.hairStyle,
             eyeColor: prop.eyeColor,
+            dominantOutfitColor: prop.dominantOutfitColor,
+            expression: prop.expression,
             personality: prop.personality,
             role: prop.role,
             isVariant: prop.isVariant,
@@ -786,7 +829,7 @@ export default function PropDesigner() {
       // Update context
       syncToContext(updatedSessions);
 
-      return newSession.id;
+      return targetSession.id;
     },
     [currentProjectId, detectedIds, genre, sessions, styleKeyword, characterSessionCount, objectSessionCount, syncToContext]
   );
@@ -848,6 +891,8 @@ export default function PropDesigner() {
         hairColor?: string;
         hairStyle?: string;
         eyeColor?: string;
+        dominantOutfitColor?: string;
+        expression?: string;
         personality?: string;
         role?: string;
         // Variant detection
@@ -951,6 +996,8 @@ export default function PropDesigner() {
           hairColor: existing?.hairColor || char.hairColor,
           hairStyle: existing?.hairStyle || char.hairStyle,
           eyeColor: existing?.eyeColor || char.eyeColor,
+          dominantOutfitColor: existing?.dominantOutfitColor || char.dominantOutfitColor,
+          expression: existing?.expression || char.expression,
           personality: existing?.personality || char.personality,
           role: existing?.role || resolvedRole,
           // Variant detection
@@ -1231,8 +1278,13 @@ export default function PropDesigner() {
         setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
+      // Persist S3 URLs to Firestore (skip base64 — too large for Firestore)
+      if (currentProjectId) {
+        const urlRefs = images.filter(img => img.startsWith("http://") || img.startsWith("https://"));
+        updateProp(currentProjectId, propId, { referenceImageRefs: urlRefs }).catch(console.error);
+      }
     },
-    [syncToContext]
+    [syncToContext, currentProjectId]
   );
 
   // Update prop fields and sync to context
@@ -1252,6 +1304,25 @@ export default function PropDesigner() {
       });
     },
     [syncToContext]
+  );
+
+  // Update prop name in memory + persist to Firestore
+  const handleRenameProp = useCallback(
+    async (sessionId: string, propId: string, newName: string) => {
+      setSessions(prev => {
+        const updated = prev.map(s =>
+          s.id === sessionId
+            ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, name: newName } : p) }
+            : s
+        );
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
+      });
+      if (currentProjectId) {
+        await updateProp(currentProjectId, propId, { name: newName });
+      }
+    },
+    [syncToContext, currentProjectId]
   );
 
   // Close a session (remove it)
@@ -1699,6 +1770,8 @@ export default function PropDesigner() {
               setImportedScenes([]);
               setCsvCharacterDescriptions(new Map());
               setCsvGenre(null);
+              setImportVersion(0);
+              if (csvInputRef.current) csvInputRef.current.value = "";
             }}
             className="text-teal-400 hover:text-teal-300 text-xs font-bold"
           >
@@ -1774,6 +1847,7 @@ export default function PropDesigner() {
               onGenerateImage={(propId, prompt, refs) => handleGenerateImage(session.id, propId, prompt, refs)}
               onSetReferenceImages={(propId, images) => handleSetReferenceImages(session.id, propId, images)}
               onUpdateProp={(propId, updates) => handleUpdateProp(session.id, propId, updates)}
+              onSaveName={(propId, newName) => handleRenameProp(session.id, propId, newName)}
               onClose={() => handleCloseSession(session.id)}
               onToggleMinimize={() => handleToggleMinimize(session.id)}
               title={session.name}

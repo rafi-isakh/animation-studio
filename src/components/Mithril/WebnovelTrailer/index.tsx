@@ -27,6 +27,7 @@ import { useVideoOrchestrator, type ClipUpdate } from "../VideoGenerator/useVide
 import type { CsvFrame, WebnovelTrailerColumnMapping } from "./types";
 import { DEFAULT_WEBNOVEL_MAPPING } from "./types";
 import { parseCSV, autoDetectMapping, applyMapping } from "./utils/csvHelpers";
+import { detectSeedanceAlert, requiresBgmStripping, stripBgmFromPrompt } from "./utils/apiSelector";
 
 // ============================================================
 // Loader
@@ -255,6 +256,21 @@ function TrailerClipCard({
               onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
               placeholder="Enter video prompt..."
             />
+            {(() => {
+              const seedance = detectSeedanceAlert(frame.veoPrompt);
+              if (!seedance) return null;
+              const label = seedance === 'ACTION' ? 'ACTION SCENE' : seedance === 'DANCE' ? 'DANCE SCENE' : 'TRANSFORMATION SCENE';
+              return (
+                <a
+                  href="https://higgsfield.ai/ai/video"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 mt-1 text-[10px] text-yellow-400 hover:text-yellow-300 font-mono transition-colors"
+                >
+                  ⚔ {label} 감지 — 플랫폼에서 생성 ↗
+                </a>
+              );
+            })()}
           </div>
         </div>
 
@@ -538,6 +554,21 @@ function ClipHalf({
             onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
             placeholder="Video prompt..."
           />
+          {(() => {
+            const seedance = detectSeedanceAlert(frame.veoPrompt);
+            if (!seedance) return null;
+            const label = seedance === 'ACTION' ? 'ACTION SCENE' : seedance === 'DANCE' ? 'DANCE SCENE' : 'TRANSFORMATION SCENE';
+            return (
+              <a
+                href="https://higgsfield.ai/ai/video"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 mt-1 text-[10px] text-yellow-400 hover:text-yellow-300 font-mono transition-colors"
+              >
+                ⚔ {label} 감지 — 플랫폼에서 생성 ↗
+              </a>
+            );
+          })()}
         </div>
 
         {/* Output */}
@@ -675,7 +706,7 @@ export default function WebnovelTrailer() {
 
   // ── Video generation state ───────────────────────────────
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
-  const [selectedProvider, setSelectedProvider] = useState(getDefaultProviderId());
+  const [selectedProvider, setSelectedProvider] = useState('wan22_i2v');
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
@@ -1375,12 +1406,16 @@ export default function WebnovelTrailer() {
           throw new Error('No source image available. Please upload an image before generating.');
         }
 
+        const prompt = requiresBgmStripping(effectiveProvider)
+          ? stripBgmFromPrompt(frame.veoPrompt)
+          : frame.veoPrompt;
+
         const response = await submitJob({
           projectId:   currentProjectId,
           sceneIndex:  0,
           clipIndex:   frame.rowIndex,
           providerId:  effectiveProvider as 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v',
-          prompt:      frame.veoPrompt,
+          prompt,
           imageUrl:    resolvedStartImageUrl,
           duration,
           aspectRatio,

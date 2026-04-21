@@ -85,7 +85,7 @@ import { deleteAllBackgroundImages } from "./services/s3";
 const TOTAL_STAGES = 8;
 
 // Editable clip field type (shared across components)
-export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn';
+export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn' | 'story' | 'soraVideoPrompt' | 'veoVideoPrompt' | 'pixAiPrompt' | 'narration' | 'narrationEn' | 'trailerScriptKo' | 'trailerScriptEn';
 
 // Types for Story Splitter
 interface Cliffhanger {
@@ -196,6 +196,7 @@ interface GenerateStoryboardParams {
   // Trailer-specific params
   imagePromptQA?: string;
   selectedTrailerScript?: string;
+  isTrailerMode?: boolean;
 }
 
 // Types for shared state
@@ -661,9 +662,17 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
       const storyboardMeta = await getStoryboardMeta(currentProjectId);
       const availablePartIndices = await getAvailablePartIndices(currentProjectId);
 
-      const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] =>
-        clips.map(clip => ({
+      const normalizeClipsFromFirestore = (clips: Awaited<ReturnType<typeof loadStoryboardPart>>['clips'][number]): Scene['clips'][number][] => {
+        return clips.map(clip => ({
           story: clip.story,
+          attentionDevice: clip.attentionDevice || "",
+          attentionAction: clip.attentionAction || "",
+          attentionExpression: clip.attentionExpression || "",
+          attentionMood: clip.attentionMood || "",
+          imagePromptA: clip.imagePromptA || "",
+          imagePromptB: clip.imagePromptB || "",
+          imagePromptC: clip.imagePromptC || "",
+          imagePromptD: clip.imagePromptD || "",
           imagePrompt: clip.imagePrompt,
           imagePromptEnd: clip.imagePromptEnd,
           videoPrompt: clip.videoPrompt,
@@ -684,7 +693,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           length: clip.length,
           accumulatedTime: clip.accumulatedTime,
           imageRef: clip.imageRef || "",
+          trailerScriptKo: clip.trailerScriptKo || "",
+          trailerScriptEn: clip.trailerScriptEn || "",
         }));
+      };
 
       if (availablePartIndices.length > 0) {
         // Per-part data exists — load all parts into the cache
@@ -736,6 +748,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                 sceneTitle: scene.sceneTitle,
                 clips: clips.map(clip => ({
                   story: clip.story,
+                  attentionDevice: clip.attentionDevice || "",
+                  attentionAction: clip.attentionAction || "",
+                  attentionExpression: clip.attentionExpression || "",
+                  attentionMood: clip.attentionMood || "",
+                  imagePromptA: clip.imagePromptA || "",
+                  imagePromptB: clip.imagePromptB || "",
+                  imagePromptC: clip.imagePromptC || "",
+                  imagePromptD: clip.imagePromptD || "",
                   imagePrompt: clip.imagePrompt,
                   imagePromptEnd: clip.imagePromptEnd,
                   videoPrompt: clip.videoPrompt,
@@ -756,6 +776,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   length: clip.length,
                   accumulatedTime: clip.accumulatedTime,
                   imageRef: clip.imageRef, // S3 URL for storyboard image
+                  trailerScriptKo: clip.trailerScriptKo || "",
+                  trailerScriptEn: clip.trailerScriptEn || "",
                 })),
               };
             })
@@ -807,10 +829,18 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; attentionDevice?: string; attentionAction?: string; attentionExpression?: string; attentionMood?: string; imagePromptA?: string; imagePromptB?: string; imagePromptC?: string; imagePromptD?: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
+                  attentionDevice: clip.attentionDevice || "",
+                  attentionAction: clip.attentionAction || "",
+                  attentionExpression: clip.attentionExpression || "",
+                  attentionMood: clip.attentionMood || "",
+                  imagePromptA: clip.imagePromptA || "",
+                  imagePromptB: clip.imagePromptB || "",
+                  imagePromptC: clip.imagePromptC || "",
+                  imagePromptD: clip.imagePromptD || "",
                   imagePrompt: clip.imagePrompt,
                   imagePromptEnd: clip.imagePromptEnd,
                   videoPrompt: clip.videoPrompt,
@@ -903,11 +933,22 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             category: prop.category,
             description: prop.description,
             descriptionKo: prop.descriptionKo,
+            csvDescription: prop.csvDescription,
             appearingClips: prop.appearingClips,
             designSheetPrompt: prop.designSheetPrompt,
             designSheetImageRef: prop.designSheetImageRef,
             referenceImageRef: prop.referenceImageRef,
             referenceImageRefs: prop.referenceImageRefs,
+            age: prop.age,
+            gender: prop.gender,
+            hairColor: prop.hairColor,
+            hairStyle: prop.hairStyle,
+            eyeColor: prop.eyeColor,
+            personality: prop.personality,
+            role: prop.role,
+            isVariant: prop.isVariant,
+            variantDetails: prop.variantDetails,
+            variantVisuals: prop.variantVisuals,
             pushedToAssets: prop.pushedToAssets,
           })),
           detectedIds: detectedIds.map(d => ({
@@ -1130,6 +1171,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           sceneTitle: scene.sceneTitle,
           clips: scene.clips.map(clip => ({
             story: clip.story,
+            attentionDevice: clip.attentionDevice || "",
+            attentionAction: clip.attentionAction || "",
+            attentionExpression: clip.attentionExpression || "",
+            attentionMood: clip.attentionMood || "",
+            imagePromptA: clip.imagePromptA || "",
+            imagePromptB: clip.imagePromptB || "",
+            imagePromptC: clip.imagePromptC || "",
+            imagePromptD: clip.imagePromptD || "",
             imagePrompt: clip.imagePrompt,
             imagePromptEnd: clip.imagePromptEnd,
             videoPrompt: clip.videoPrompt,
@@ -1206,6 +1255,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   const clip = scene.clips[clipIndex];
                   await savePartClip(currentProjectId, partIdx, sceneIndex, clipIndex, {
                     story: clip.story || "",
+                    attentionDevice: clip.attentionDevice || "",
+                    attentionAction: clip.attentionAction || "",
+                    attentionExpression: clip.attentionExpression || "",
+                    attentionMood: clip.attentionMood || "",
+                    imagePromptA: clip.imagePromptA || "",
+                    imagePromptB: clip.imagePromptB || "",
+                    imagePromptC: clip.imagePromptC || "",
+                    imagePromptD: clip.imagePromptD || "",
                     imagePrompt: clip.imagePrompt || "",
                     imagePromptEnd: clip.imagePromptEnd || "",
                     videoPrompt: clip.videoPrompt || "",
@@ -1241,6 +1298,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   const clip = scene.clips[clipIndex];
                   await saveClip(currentProjectId, sceneIndex, clipIndex, {
                     story: clip.story || "",
+                    attentionDevice: clip.attentionDevice || "",
+                    attentionAction: clip.attentionAction || "",
+                    attentionExpression: clip.attentionExpression || "",
+                    attentionMood: clip.attentionMood || "",
+                    imagePromptA: clip.imagePromptA || "",
+                    imagePromptB: clip.imagePromptB || "",
+                    imagePromptC: clip.imagePromptC || "",
+                    imagePromptD: clip.imagePromptD || "",
                     imagePrompt: clip.imagePrompt || "",
                     imagePromptEnd: clip.imagePromptEnd || "",
                     videoPrompt: clip.videoPrompt || "",
@@ -1534,6 +1599,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           // Trailer-specific params
           imagePromptQA: params.imagePromptQA || "",
           selectedTrailerScript: params.selectedTrailerScript || "",
+          isTrailerMode: params.isTrailerMode ?? false,
           // API key
           apiKey: customApiKey,
         }),
@@ -1652,6 +1718,14 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             const clip = scene.clips[clipIndex];
             await saveClip(currentProjectId, sceneIndex, clipIndex, {
               story: clip.story || "",
+              attentionDevice: clip.attentionDevice || "",
+              attentionAction: clip.attentionAction || "",
+              attentionExpression: clip.attentionExpression || "",
+              attentionMood: clip.attentionMood || "",
+              imagePromptA: clip.imagePromptA || "",
+              imagePromptB: clip.imagePromptB || "",
+              imagePromptC: clip.imagePromptC || "",
+              imagePromptD: clip.imagePromptD || "",
               imagePrompt: clip.imagePrompt || "",
               imagePromptEnd: clip.imagePromptEnd || "",
               videoPrompt: clip.videoPrompt || "",
@@ -1671,6 +1745,8 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               bgmEn: clip.bgmEn || "",
               length: clip.length || "",
               accumulatedTime: clip.accumulatedTime || "",
+              trailerScriptKo: clip.trailerScriptKo || "",
+              trailerScriptEn: clip.trailerScriptEn || "",
             });
           }
         }

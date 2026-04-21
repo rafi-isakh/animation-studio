@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Sparkles, StopCircle, Save, Trash2, Download, Upload, FileDown, Plus } from "lucide-react";
 import { getProviderConstraints, getDefaultProviderId, getProviderOptions } from "../../VideoGenerator/providers";
+import { detectSeedanceAlert } from "../../VideoGenerator/apiSelector";
 import { compressBase64Image } from "../ImageToScriptWriter/utils/imageCompression";
 import { ASPECT_RATIOS } from "../../VideoGenerator/types";
 import type { AspectRatio } from "../../VideoGenerator/providers/types";
@@ -304,6 +305,21 @@ function StoryboardItemCard({
               onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
               placeholder="Enter video prompt..."
             />
+            {(() => {
+              const seedance = detectSeedanceAlert(frame.veoPrompt);
+              if (!seedance) return null;
+              const label = seedance === 'ACTION' ? 'ACTION SCENE' : seedance === 'DANCE' ? 'DANCE SCENE' : 'TRANSFORMATION SCENE';
+              return (
+                <a
+                  href="https://higgsfield.ai/ai/video"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 mt-1 text-[10px] text-yellow-400 hover:text-yellow-300 font-mono transition-colors"
+                >
+                  ⚔ {label} 감지 — 플랫폼에서 생성 ↗
+                </a>
+              );
+            })()}
           </div>
         </div>
 
@@ -447,7 +463,7 @@ export default function CsvVideoGenerator() {
 
   // ── Video generation state ───────────────────────────────
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
-  const [selectedProvider, setSelectedProvider] = useState(getDefaultProviderId());
+  const [selectedProvider, setSelectedProvider] = useState('wan22_i2v');
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 

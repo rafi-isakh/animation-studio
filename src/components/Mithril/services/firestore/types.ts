@@ -207,6 +207,8 @@ export interface PropDocument {
   hairColor?: string; // e.g., 'Silver', 'Dark brown'
   hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
   eyeColor?: string; // e.g., 'Golden', 'Blue'
+  dominantOutfitColor?: string; // e.g., 'Navy blue', 'Crimson red'
+  expression?: string; // e.g., 'Gentle smile', 'Cold stare'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -253,6 +255,8 @@ export interface SavePropInput {
   hairColor?: string;
   hairStyle?: string;
   eyeColor?: string;
+  dominantOutfitColor?: string;
+  expression?: string;
   personality?: string;
   role?: string;
 
@@ -329,6 +333,14 @@ export interface ClipDocument {
   partIndex?: number;
   // Story content
   story: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   // Prompts
   imagePrompt: string;
   imagePromptEnd?: string;
@@ -350,6 +362,9 @@ export interface ClipDocument {
   sfxEn: string;
   bgm: string;
   bgmEn: string;
+  // Trailer script (optional — only present for trailer storyboards)
+  trailerScriptKo?: string;
+  trailerScriptEn?: string;
   // Timing
   length: string;
   accumulatedTime: string;
@@ -595,6 +610,14 @@ export interface SaveSceneInput {
 export interface SaveClipInput {
   partIndex?: number;
   story: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   imagePrompt: string;
   imagePromptEnd?: string;
   videoPrompt: string;
@@ -623,6 +646,14 @@ export interface SaveClipInput {
 export interface UpdateClipInput {
   partIndex?: number;
   story?: string;
+  attentionDevice?: string;
+  attentionAction?: string;
+  attentionExpression?: string;
+  attentionMood?: string;
+  imagePromptA?: string;
+  imagePromptB?: string;
+  imagePromptC?: string;
+  imagePromptD?: string;
   imagePrompt?: string;
   imagePromptEnd?: string;
   videoPrompt?: string;

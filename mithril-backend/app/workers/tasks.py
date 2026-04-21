@@ -762,6 +762,32 @@ async def process_storyboard_job(job_id: str, api_key: str | None = None) -> dic
 
 
 @broker.task
+async def process_storyboard_reference_job(job_id: str, api_key: str | None = None) -> dict:
+    """
+    Storyboard generation task (reference-style prompt variant).
+
+    Uses a separate handler entrypoint so A/B comparison can be done safely
+    without changing the default storyboard task behavior.
+    """
+    from app.workers.handlers.storyboard_generation import process_storyboard_reference
+
+    logger.info(f"[STORYBOARD-REF-TASK] ========== Starting storyboard job {job_id} ==========")
+    logger.info(f"[STORYBOARD-REF-TASK] Has custom API key: {bool(api_key)}")
+
+    try:
+        result = await process_storyboard_reference(job_id, api_key)
+        logger.info(f"[STORYBOARD-REF-TASK] Job {job_id} completed: {result.get('status', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.exception(f"[STORYBOARD-REF-TASK] Job {job_id} failed with exception: {e}")
+        return {
+            "job_id": job_id,
+            "status": "error",
+            "error": str(e),
+        }
+
+
+@broker.task
 async def retry_failed_storyboard_job(
     job_id: str,
     delay_seconds: int = 0,

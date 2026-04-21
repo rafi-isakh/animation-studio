@@ -162,21 +162,16 @@ const { language, dictionary } = useLanguage();
     // Load characters AND objects from PropDesigner (Stage 5)
     const propResult = propDesignerGenerator.result;
     if (propResult?.props) {
-      // Include both characters and objects as selectable assets
-      const characterAndObjectProps = propResult.props.filter(p => p.category === 'character' || p.category === 'object');
+      // Only include props that have a generated design sheet (not raw reference images)
+      const characterAndObjectProps = propResult.props.filter(
+        p => (p.category === 'character' || p.category === 'object') && !!p.designSheetImageRef
+      );
       setCharacterAssets(
-        characterAndObjectProps.map((prop) => {
-          // Use designSheetImageRef, referenceImageRef, or first item from referenceImageRefs
-          let imageUrl = prop.designSheetImageRef || prop.referenceImageRef || "";
-          if (!imageUrl && prop.referenceImageRefs && prop.referenceImageRefs.length > 0) {
-            imageUrl = prop.referenceImageRefs[0];
-          }
-          return {
-            id: prop.id,
-            name: prop.name,
-            imageUrl,
-          };
-        })
+        characterAndObjectProps.map((prop) => ({
+          id: prop.id,
+          name: prop.name,
+          imageUrl: prop.designSheetImageRef,
+        }))
       );
     } else {
       setCharacterAssets([]);

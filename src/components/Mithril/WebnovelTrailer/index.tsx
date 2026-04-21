@@ -687,6 +687,10 @@ export default function WebnovelTrailer() {
   const activeJobsRef             = useRef<Set<string>>(new Set());
   const pendingCancellationsRef   = useRef<Set<string>>(new Set()); // frame IDs cancelled before jobId was known
   const editDebounceRef           = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const framesRef                 = useRef<CsvFrame[]>([]); // mirrors `frames` for sync reads inside callbacks
+  // Keep framesRef current on every render so handleClipUpdate can read the latest
+  // frames synchronously without relying on setState updater side-effects.
+  framesRef.current = frames;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -710,17 +714,38 @@ export default function WebnovelTrailer() {
   // ── Orchestrator hook ────────────────────────────────────
   const handleClipUpdate = useCallback((update: ClipUpdate) => {
     if (!isMountedRef.current) return;
+    if (update.sceneIndex !== 0) return;
 
-    let matchedFrame: CsvFrame | null = null;
+    // Find the target frame synchronously via framesRef BEFORE calling setFrames.
+    // React 18 runs setState updaters asynchronously during the render phase, so any
+    // variable mutated inside the updater (the old `matchedFrame` pattern) is still
+    // null when code outside the updater runs — making the Firestore save unreachable.
+    const currentFrames = framesRef.current;
+    const byJobIdIndex = currentFrames.findIndex((f) => f.jobId === update.jobId);
+    const trackedJob = activeJobsRef.current.has(update.jobId);
+    const fallbackIndex = trackedJob
+      ? currentFrames.findIndex((f) => f.rowIndex === update.clipIndex)
+      : -1;
+    const terminalFallbackIndex = (update.status === 'completed' || update.status === 'failed')
+      ? currentFrames.findIndex((f) => f.rowIndex === update.clipIndex)
+      : -1;
+    const syncTargetIndex = byJobIdIndex !== -1
+      ? byJobIdIndex
+      : (fallbackIndex !== -1 ? fallbackIndex : terminalFallbackIndex);
+    const syncTarget = syncTargetIndex !== -1 ? currentFrames[syncTargetIndex] : null;
+
     setFrames((prev) => {
-      if (update.sceneIndex !== 0) return prev;
-
-      const byJobIdIndex = prev.findIndex((f) => f.jobId === update.jobId);
-      const trackedJob = activeJobsRef.current.has(update.jobId);
-      const fallbackIndex = trackedJob
+      const prevByJobId = prev.findIndex((f) => f.jobId === update.jobId);
+      const prevTracked = activeJobsRef.current.has(update.jobId);
+      const prevFallback = prevTracked
         ? prev.findIndex((f) => f.rowIndex === update.clipIndex)
         : -1;
-      const targetIndex = byJobIdIndex !== -1 ? byJobIdIndex : fallbackIndex;
+      const prevTerminalFallback = (update.status === 'completed' || update.status === 'failed')
+        ? prev.findIndex((f) => f.rowIndex === update.clipIndex)
+        : -1;
+      const targetIndex = prevByJobId !== -1
+        ? prevByJobId
+        : (prevFallback !== -1 ? prevFallback : prevTerminalFallback);
 
       if (targetIndex === -1) return prev;
 
@@ -729,7 +754,7 @@ export default function WebnovelTrailer() {
 
       const next = [...prev];
       const target = next[targetIndex];
-      const updated = {
+      next[targetIndex] = {
         ...target,
         jobId: update.jobId,
         status: update.status === 'completed' ? 'completed'
@@ -741,13 +766,17 @@ export default function WebnovelTrailer() {
         error: update.error,
         providerId: update.providerId,
       } as CsvFrame;
-      next[targetIndex] = updated;
-      matchedFrame = updated;
       return next;
     });
 
-    if (update.status === 'completed' && update.videoUrl && currentProjectId && matchedFrame) {
-      updateWebnovelTrailerClipStatus(currentProjectId, buildClipId(matchedFrame), {
+    if (update.status === 'completed' && update.videoUrl && currentProjectId && syncTarget) {
+      const savedFrame = {
+        ...syncTarget,
+        videoUrl: update.videoUrl,
+        s3FileName: update.s3FileName ?? syncTarget.s3FileName,
+        providerId: update.providerId,
+      } as CsvFrame;
+      updateWebnovelTrailerClipStatus(currentProjectId, buildClipId(savedFrame), {
         videoRef: update.videoUrl,
         s3FileName: update.s3FileName ?? undefined,
         jobId: update.jobId,
@@ -838,7 +867,19 @@ export default function WebnovelTrailer() {
           if (job.scene_index !== 0) return;
           const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
           if (frameIdx === -1) return;
+          const existingFrame = restoredFrames[frameIdx];
           const update = mapJobToClipUpdate(job);
+
+          // Guard against stale/colliding active jobs on refresh.
+          // If the restored clip is already completed with a persisted video URL,
+          // do not downgrade it to "generating" unless this is the same jobId.
+          const hasPersistedVideo = !!existingFrame.videoUrl;
+          const isCompletedClip = existingFrame.status === 'completed' && hasPersistedVideo;
+          const isSameJob = !!existingFrame.jobId && existingFrame.jobId === update.jobId;
+          if (isCompletedClip && !isSameJob) {
+            return;
+          }
+
           activeJobsRef.current.add(update.jobId);
           restoredFrames[frameIdx] = {
             ...restoredFrames[frameIdx],

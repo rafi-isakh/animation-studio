@@ -188,6 +188,20 @@ const ClipTableRow = React.memo(function ClipTableRow({
           />
         </td>
 
+        {/* Attention reference fields */}
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <div className="whitespace-pre-wrap">{row.attentionDevice || ""}</div>
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <div className="whitespace-pre-wrap">{row.attentionAction || ""}</div>
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <div className="whitespace-pre-wrap">{row.attentionExpression || ""}</div>
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <div className="whitespace-pre-wrap">{row.attentionMood || ""}</div>
+        </td>
+
         {/* Editable Image Prompt */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
@@ -205,6 +219,36 @@ const ClipTableRow = React.memo(function ClipTableRow({
             originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptEnd')}
             onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptEnd', newValue)}
             placeholderKey="storyboard_edit_image_prompt_end_placeholder"
+          />
+        </td>
+
+        {/* A/B/C/D image prompt variants */}
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptA || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptA')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptA', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptB || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptB')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptB', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptC || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptC')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptC', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptD || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptD')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptD', newValue)}
           />
         </td>
 

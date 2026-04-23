@@ -20,6 +20,12 @@ import {
   deleteProp,
   getIdConverter,
 } from "../services/firestore";
+import {
+  getCustomMannequinTemplates,
+  addCustomMannequinTemplate,
+  deleteCustomMannequinTemplate,
+  type CustomMannequinTemplate,
+} from "../services/firestore/mannequinTemplates";
 import { deletePropDesignSheetImage } from "../services/s3";
 
 // CSV clip structure for imported data
@@ -125,6 +131,9 @@ export default function PropDesigner() {
   // Session counters for auto-naming
   const [characterSessionCount, setCharacterSessionCount] = useState(0);
   const [objectSessionCount, setObjectSessionCount] = useState(0);
+
+  // Global custom mannequin templates (shared across all projects)
+  const [customTemplates, setCustomTemplates] = useState<CustomMannequinTemplate[]>([]);
 
   // Derive flat props array from all sessions (for context persistence compatibility)
   const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
@@ -342,6 +351,23 @@ export default function PropDesigner() {
       setIdConverterGlossary(doc?.glossary ?? []);
     });
   }, [currentProjectId]);
+
+  // Load global custom mannequin templates once on mount
+  useEffect(() => {
+    getCustomMannequinTemplates().then(setCustomTemplates).catch(() => {});
+  }, []);
+
+  const handleAddToTemplates = useCallback(async (prop: Prop) => {
+    if (!prop.designSheetImageUrl) return;
+    await addCustomMannequinTemplate(prop.designSheetImageUrl, prop.name.toUpperCase());
+    const updated = await getCustomMannequinTemplates();
+    setCustomTemplates(updated);
+  }, []);
+
+  const handleDeleteCustomTemplate = useCallback(async (id: string) => {
+    await deleteCustomMannequinTemplate(id);
+    setCustomTemplates((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   // Determine active scenes (context or imported)
   const contextScenes = getScenesForPart(selectedPartIndex);
@@ -1810,6 +1836,9 @@ export default function PropDesigner() {
               isEasyMode={isEasyMode}
               onToggleEasyMode={setIsEasyMode}
               suggestedStartingImages={suggestedStartingImages[session.id] || {}}
+              customTemplates={customTemplates}
+              onAddToTemplates={handleAddToTemplates}
+              onDeleteCustomTemplate={handleDeleteCustomTemplate}
             />
           ))}
         </>

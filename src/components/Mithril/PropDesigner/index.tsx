@@ -922,6 +922,23 @@ export default function PropDesigner() {
           }
         }
         
+        // Find base character for variants to inherit physical traits
+        let baseChar: Prop | undefined;
+        if (char.isVariant) {
+          const vd = (char.variantDetails || '').toLowerCase();
+          const vn = char.name.toLowerCase();
+          baseChar = allProps.find(p => {
+            if (p.isVariant || p.category !== 'character') return false;
+            const bn = p.name.toLowerCase();
+            const bid = p.id.toLowerCase();
+            return vd.includes(bn) || vd.includes(bid) || vn.includes(bid.split('_')[0]);
+          });
+        }
+
+        // Base character's colors take priority over variant's API-returned values
+        const resolvedHairColor = baseChar?.hairColor || char.hairColor;
+        const resolvedEyeColor = baseChar?.eyeColor || char.eyeColor;
+
         // Build design sheet prompt using CSV description if available
         let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
         if (!designPrompt || designPrompt.trim() === "") {
@@ -934,9 +951,9 @@ export default function PropDesigner() {
                 csvDescription: csvDescription || undefined,
                 age: char.age,
                 gender: char.gender,
-                hairColor: char.hairColor,
+                hairColor: resolvedHairColor,
                 hairStyle: char.hairStyle,
-                eyeColor: char.eyeColor,
+                eyeColor: resolvedEyeColor,
                 personality: char.personality,
                 role: resolvedRole,
               },
@@ -958,7 +975,19 @@ export default function PropDesigner() {
             }
           }
         }
-        
+
+        // For variants, append color consistency note when the prompt doesn't already embed it
+        // (Easy Mode without csvDescription already embeds colors via getEasyModeCharacterPrompt)
+        if (char.isVariant && baseChar && (resolvedHairColor || resolvedEyeColor)) {
+          const isEasyModeNoCsv = isEasyMode && !csvDescription;
+          if (!isEasyModeNoCsv) {
+            const parts: string[] = [];
+            if (resolvedHairColor) parts.push(`${resolvedHairColor} hair`);
+            if (resolvedEyeColor) parts.push(`${resolvedEyeColor} eyes`);
+            designPrompt += ` Must keep the same ${parts.join(' and ')} as the base character.`;
+          }
+        }
+
         return {
           id: existing?.id || crypto.randomUUID(),
           name: char.name,
@@ -977,9 +1006,9 @@ export default function PropDesigner() {
           // Easy Mode metadata (preserve existing if available)
           age: existing?.age || char.age,
           gender: existing?.gender || char.gender,
-          hairColor: existing?.hairColor || char.hairColor,
+          hairColor: existing?.hairColor || resolvedHairColor,
           hairStyle: existing?.hairStyle || char.hairStyle,
-          eyeColor: existing?.eyeColor || char.eyeColor,
+          eyeColor: existing?.eyeColor || resolvedEyeColor,
           dominantOutfitColor: existing?.dominantOutfitColor || char.dominantOutfitColor,
           expression: existing?.expression || char.expression,
           personality: existing?.personality || char.personality,

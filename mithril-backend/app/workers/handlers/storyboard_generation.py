@@ -170,19 +170,26 @@ def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
     return batches
 
 
-def _extract_continuation_context(result: dict) -> dict:
+def _extract_continuation_context(result: dict, prev_context: dict | None = None) -> dict:
     """Extract state from a completed batch result needed by the next batch."""
     scenes = result.get("scenes", [])
     last_background_id = ""
     last_accumulated_time = "00:00"
     last_scene_title = ""
 
+    # Carry forward the accumulated background registry from previous batches
+    background_registry: dict[str, str] = dict(prev_context.get("background_registry", {})) if prev_context else {}
+
     for scene in scenes:
         if scene.get("sceneTitle"):
             last_scene_title = scene["sceneTitle"]
         for clip in scene.get("clips", []):
-            if clip.get("backgroundId", "").strip():
-                last_background_id = clip["backgroundId"].strip()
+            bg_id = clip.get("backgroundId", "").strip()
+            bg_prompt = clip.get("backgroundPrompt", "").strip()
+            if bg_id:
+                last_background_id = bg_id
+                if bg_prompt and bg_id not in background_registry:
+                    background_registry[bg_id] = bg_prompt
             if clip.get("accumulatedTime", "").strip():
                 last_accumulated_time = clip["accumulatedTime"].strip()
 
@@ -192,6 +199,7 @@ def _extract_continuation_context(result: dict) -> dict:
         "last_scene_title": last_scene_title,
         "scene_count": len(scenes),
         "character_id_summary": result.get("characterIdSummary", []),
+        "background_registry": background_registry,
     }
 
 
@@ -307,7 +315,7 @@ async def process_storyboard(
                 total_usage_input += batch_usage.prompt_token_count or 0
                 total_usage_output += batch_usage.candidates_token_count or 0
                 batch_results.append(batch_result)
-                continuation_context = _extract_continuation_context(batch_result)
+                continuation_context = _extract_continuation_context(batch_result, continuation_context)
                 logger.info(
                     f"[STORYBOARD] {job_id} - Batch {batch_idx + 1} done: "
                     f"{sum(len(s.get('clips', [])) for s in batch_result.get('scenes', []))} clips"
@@ -470,6 +478,19 @@ async def _generate_storyboard_with_gemini(
             continuation_context.get("character_id_summary", []),
             ensure_ascii=False, indent=2
         )
+        background_registry = continuation_context.get("background_registry", {})
+        if background_registry:
+            registry_lines = "\n".join(
+                f'  "{bg_id}" → {desc}' for bg_id, desc in background_registry.items()
+            )
+            background_registry_block = f"""
+- **기존 배경 레지스트리 (재사용 필수)**:
+{registry_lines}
+  위 목록의 장소와 동일한 배경이 등장하면 새 ID를 만들지 말고 해당 기존 ID를 그대로 사용하십시오.
+"""
+        else:
+            background_registry_block = ""
+
         continuation_block = f"""
 **[이전 배치에서 이어지는 콘티입니다 - 연속성 필수 유지]**
 이 텍스트는 전체 원본의 일부입니다. 아래 이전 배치의 마지막 상태에서 자연스럽게 이어가야 합니다.
@@ -480,7 +501,7 @@ async def _generate_storyboard_with_gemini(
 - **이전 씬 수**: {continuation_context.get('scene_count', 0)}개
 - **캐릭터 ID 요약 (일관성 유지)**:
 {char_summary_text}
-"""
+{background_registry_block}"""
 
     if prompt_variant == "reference":
         attention_guidance = """
@@ -508,6 +529,13 @@ async def _generate_storyboard_with_gemini(
     다음 원본 텍스트를 기반으로 애니메이션 콘티를 제작해 주세요.
     전체 클립의 수는 **정확히 {exact_clip_count}개**여야 합니다. 이 숫자는 절대적인 요구사항입니다 — 누적 시간에 관계없이 반드시 {exact_clip_count}개의 클립을 생성해야 합니다. 적게 생성하는 것은 허용되지 않습니다.
     각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다.
+
+    **[배경 ID 사전 등록 규칙 — 필수 준수]**
+    콘티를 작성하기 전에, 원본 텍스트 전체를 스캔하여 등장하는 모든 고유한 물리적 장소를 먼저 식별하고 backgroundId를 사전 할당하십시오.
+    - 동일한 물리적 공간은 카메라 앵글이나 묘사 방식이 달라도 반드시 같은 backgroundId를 사용합니다.
+      (예: "카페 입구"와 "카페 안쪽 창가"는 같은 카페 → 동일 ID)
+    - 한 번 할당된 backgroundId는 해당 장소가 다시 등장할 때 절대 바꾸지 않습니다.
+    - 클립 작성 시 사전 할당한 ID 목록만 참조하십시오. 새 ID를 즉흥적으로 생성하지 마십시오.
 
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
     모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오.

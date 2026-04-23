@@ -875,7 +875,7 @@ export default function WebnovelTrailer() {
           rowIndex: clip.clipIndex,
           partIndex: selectedPartIndex,
           frameNumber: clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
-          veoPrompt: clip.videoPrompt || '',
+          veoPrompt: stripBgmFromPrompt(clip.videoPrompt || ''),
           referenceFilename: '',
           clipLength: clip.length?.replace(/[^0-9]/g, '') || '5',
           videoApi: clip.videoApi ?? undefined,

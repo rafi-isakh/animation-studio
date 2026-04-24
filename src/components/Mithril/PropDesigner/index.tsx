@@ -3,7 +3,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
-import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import { Prop, DetectedId, DetectionSession, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import type { IdConverterEntity } from "../services/firestore/types";
 import { getSuggestedTemplates } from "./characterTemplates";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
@@ -17,7 +18,14 @@ import {
   updatePropReferenceImage,
   getProps,
   deleteProp,
+  getIdConverter,
 } from "../services/firestore";
+import {
+  getCustomMannequinTemplates,
+  addCustomMannequinTemplate,
+  deleteCustomMannequinTemplate,
+  type CustomMannequinTemplate,
+} from "../services/firestore/mannequinTemplates";
 import { deletePropDesignSheetImage } from "../services/s3";
 
 // CSV clip structure for imported data
@@ -124,6 +132,9 @@ export default function PropDesigner() {
   const [characterSessionCount, setCharacterSessionCount] = useState(0);
   const [objectSessionCount, setObjectSessionCount] = useState(0);
 
+  // Global custom mannequin templates (shared across all projects)
+  const [customTemplates, setCustomTemplates] = useState<CustomMannequinTemplate[]>([]);
+
   // Derive flat props array from all sessions (for context persistence compatibility)
   const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
 
@@ -147,12 +158,23 @@ export default function PropDesigner() {
     return map;
   }, [sessions]);
 
+  // IDConverter glossary — authoritative entity source for detection
+  const [idConverterGlossary, setIdConverterGlossary] = useState<IdConverterEntity[]>([]);
+  // Derived map of variantId → description from IDConverter glossary
+  const idDescriptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entity of idConverterGlossary) {
+      if (entity.type === "LOCATION") continue;
+      for (const variant of entity.variants) {
+        if (variant.description) map.set(variant.id, variant.description);
+      }
+    }
+    return map;
+  }, [idConverterGlossary]);
   // CSV imported scenes (local storyboard data)
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
   // Version counter to force re-computation when CSV is imported
   const [importVersion, setImportVersion] = useState(0);
-  // CSV Character ID descriptions (CHARACTER_ID -> description from CSV)
-  const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
   // CSV Genre
   const [csvGenre, setCsvGenre] = useState<string | null>(null);
   const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
@@ -257,50 +279,21 @@ export default function PropDesigner() {
       }
 
 
-      // Parse Character ID Summary and Genre from remaining rows
-      const characterDescMap = new Map<string, string>();
+      // Parse Genre from remaining rows
       let parsedGenre: string | null = null;
-      let inCharacterSection = false;
-      
+
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row || row.length === 0) continue;
-        
-        // Detect Character ID Summary section
         const firstCol = row[0]?.trim() || "";
-        if (firstCol.toLowerCase().includes("character id") || 
-            firstCol.toLowerCase().includes("캐릭터 id")) {
-          // Check if this is a section header (not a data row)
-          // Skip if second column is "Description" or empty (header row)
-          if (row.length < 2 || !row[1]?.trim() || 
-              row[1].toLowerCase().includes("description") || 
-              row[1].toLowerCase().includes("설명")) {
-            inCharacterSection = true;
-            continue;
-          }
-        }
-        
-        // Detect Genre section
         if (firstCol.toLowerCase().includes("genre") || firstCol.toLowerCase().includes("장르")) {
-          inCharacterSection = false;
-          // Genre value might be in same row or next column
           if (row.length > 1 && row[1]?.trim()) {
             parsedGenre = row[1].trim();
           }
-          continue;
-        }
-        
-        // Parse character ID entries (format: CHARACTER_ID, description)
-        if (inCharacterSection && row.length >= 2) {
-          const characterId = row[0]?.trim();
-          const description = row[1]?.trim();
-          if (characterId && description && characterId.match(/^[A-Z][A-Z0-9_]+$/)) {
-            characterDescMap.set(characterId, description);
-          }
+          break;
         }
       }
 
-      
       // Clear existing sessions and detected IDs to start fresh with imported data
       setSessions([]);
       setCharacterSessionCount(0);
@@ -311,9 +304,7 @@ export default function PropDesigner() {
       const newScenes: CsvScene[] = [{ clips }];
       setImportedScenes(newScenes);
       setImportVersion(prev => prev + 1);
-      
-      // Store character descriptions and genre
-      setCsvCharacterDescriptions(characterDescMap);
+
       if (parsedGenre) {
         setCsvGenre(parsedGenre);
         setGenre(parsedGenre);
@@ -353,9 +344,33 @@ export default function PropDesigner() {
     }
   }, [storyPartIndices, selectedPartIndex]);
 
+  // Load IDConverter glossary whenever the project changes
+  useEffect(() => {
+    if (!currentProjectId) return;
+    getIdConverter(currentProjectId).then((doc) => {
+      setIdConverterGlossary(doc?.glossary ?? []);
+    });
+  }, [currentProjectId]);
+
+  // Load global custom mannequin templates once on mount
+  useEffect(() => {
+    getCustomMannequinTemplates().then(setCustomTemplates).catch(() => {});
+  }, []);
+
+  const handleAddToTemplates = useCallback(async (prop: Prop) => {
+    if (!prop.designSheetImageUrl) return;
+    await addCustomMannequinTemplate(prop.designSheetImageUrl, prop.name.toUpperCase());
+    const updated = await getCustomMannequinTemplates();
+    setCustomTemplates(updated);
+  }, []);
+
+  const handleDeleteCustomTemplate = useCallback(async (id: string) => {
+    await deleteCustomMannequinTemplate(id);
+    setCustomTemplates((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   // Determine active scenes (context or imported)
   const contextScenes = getScenesForPart(selectedPartIndex);
-  const contextCharacterIdSummary = storyboardGenerator.characterIdSummary;
   const contextGenre = storyboardGenerator.genre;
   const hasContextScenes = contextScenes && contextScenes.length > 0;
   const hasImportedScenes = importedScenes.length > 0;
@@ -524,7 +539,7 @@ export default function PropDesigner() {
     })));
   }, [propDesignerGenerator.result?.props]);
 
-  // Load characterIdSummary and genre from storyboard context (when not using CSV import)
+  // Load genre from storyboard context (when not using CSV import)
   useEffect(() => {
     if (hasImportedScenes) return;
     if (propDesignerGenerator.result) return; // Already loaded from saved state
@@ -532,113 +547,84 @@ export default function PropDesigner() {
     if (contextGenre) {
       setGenre(contextGenre);
     }
-    if (contextCharacterIdSummary && contextCharacterIdSummary.length > 0) {
-      const descMap = new Map<string, string>();
-      for (const char of contextCharacterIdSummary) {
-        descMap.set(char.characterId, char.description);
-      }
-      setCsvCharacterDescriptions(descMap);
-    }
-  }, [contextCharacterIdSummary, contextGenre, hasImportedScenes, propDesignerGenerator.result]);
+  }, [contextGenre, hasImportedScenes, propDesignerGenerator.result]);
 
   // Extract IDs from storyboard clips (context or imported)
-  // Use useEffect for the side effect (setDetectedIds) instead of useMemo
-  // Include importVersion to force re-run when CSV is imported
+  // Build detected IDs from IDConverter glossary, then scan clips for occurrence data
   useEffect(() => {
+    // Build authoritative ID→category map from IDConverter glossary
+    // LOCATION entities are excluded — they belong to BgSheetGenerator, not PropDesigner
+    const knownIds = new Map<string, "character" | "object">();
+    for (const entity of idConverterGlossary) {
+      if (entity.type === "LOCATION") continue;
+      const category = entity.type === "CHARACTER" ? "character" : "object";
+      for (const variant of entity.variants) {
+        knownIds.set(variant.id, category);
+      }
+    }
 
-    if (!scenesForDetection || scenesForDetection.length === 0) {
+    if (knownIds.size === 0) {
       setDetectedIds([]);
       return;
     }
 
-    const characterIds = new Set<string>();
-    const objectIds = new Set<string>();
+    // Scan clips only to build occurrence data for known IDs
     const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string; refFileName?: string }[] }>();
 
-    scenesForDetection.forEach((scene, sIdx) => {
-      scene.clips.forEach((clip, cIdx) => {
-        const clipId = `${sIdx + 1}-${cIdx + 1}`;
-        // Include all text fields for ID extraction
-        const combinedText = [
-          clip.story || "",
-          clip.imagePrompt || "",
-          clip.imagePromptEnd || "",
-          clip.videoPrompt || "",
-          clip.dialogue || "",
-          clip.dialogueEn || "",
-          clip.backgroundId || "",
-          clip.backgroundPrompt || "",
-          clip.soraVideoPrompt || "",
-          clip.sfx || "",
-          clip.sfxEn || "",
-          clip.bgm || "",
-          clip.bgmEn || "",
-        ].join(" ");
-        const matches = combinedText.match(ID_PATTERN);
+    if (scenesForDetection && scenesForDetection.length > 0) {
+      scenesForDetection.forEach((scene, sIdx) => {
+        scene.clips.forEach((clip, cIdx) => {
+          const clipId = `${sIdx + 1}-${cIdx + 1}`;
+          const combinedText = [
+            clip.story || "",
+            clip.imagePrompt || "",
+            clip.imagePromptEnd || "",
+            clip.videoPrompt || "",
+            clip.dialogue || "",
+            clip.dialogueEn || "",
+            clip.backgroundId || "",
+            clip.backgroundPrompt || "",
+            clip.soraVideoPrompt || "",
+            clip.sfx || "",
+            clip.sfxEn || "",
+            clip.bgm || "",
+            clip.bgmEn || "",
+          ].join(" ");
 
-        if (matches) {
-          matches.forEach((id) => {
-            // Track occurrences
+          for (const id of knownIds.keys()) {
+            if (!combinedText.includes(id)) continue;
             if (!idOccurrences.has(id)) {
               idOccurrences.set(id, { clipIds: [], contexts: [] });
             }
             const occ = idOccurrences.get(id)!;
             if (!occ.clipIds.includes(clipId)) {
               occ.clipIds.push(clipId);
-              // Extract context - take the sentence containing the ID
               const contextText = clip.imagePrompt || clip.story || "";
               if (contextText.includes(id)) {
                 const refFileName = (clip as CsvClip).refFileName || undefined;
                 occ.contexts.push({ clipId, text: contextText.substring(0, 200), ...(refFileName ? { refFileName } : {}) });
               }
             }
-
-            // Categorize: prefer characterIdSummary/csvCharacterDescriptions over static keywords
-            const isKnownCharacter = csvCharacterDescriptions.has(id);
-            const category = isKnownCharacter
-              ? "character"
-              : categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
-            if (category === "character") {
-              characterIds.add(id);
-            } else {
-              objectIds.add(id);
-            }
-          });
-        }
+          }
+        });
       });
-    });
+    }
 
-    // Build detected IDs with occurrence data
+    // All glossary IDs are included, with 0 occurrences if not found in any clip
     const allDetected: DetectedId[] = [];
-    [...characterIds, ...objectIds].forEach((id) => {
+    for (const [id, category] of knownIds) {
       const occ = idOccurrences.get(id);
-      if (occ) {
-        allDetected.push({
-          id,
-          category: characterIds.has(id) ? "character" : "object",
-          clipIds: occ.clipIds,
-          contexts: occ.contexts,
-          occurrences: occ.clipIds.length,
-        });
-      }
-    });
-
-    // Add characters from characterIdSummary that weren't found in any clip text
-    const foundIds = new Set(allDetected.map((d) => d.id));
-    for (const characterId of csvCharacterDescriptions.keys()) {
-      if (!foundIds.has(characterId)) {
-        allDetected.push({
-          id: characterId,
-          category: "character",
-          clipIds: [],
-          contexts: [],
-          occurrences: 0,
-        });
-      }
+      allDetected.push({
+        id,
+        category,
+        clipIds: occ?.clipIds ?? [],
+        contexts: occ?.contexts ?? [],
+        occurrences: occ?.clipIds.length ?? 0,
+      });
     }
 
     setDetectedIds(allDetected);
-  }, [scenesForDetection, importVersion, csvCharacterDescriptions]);
+  }, [scenesForDetection, importVersion, idConverterGlossary]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -847,9 +833,9 @@ export default function PropDesigner() {
     setError(null);
 
     try {
-      // Convert csvCharacterDescriptions Map to a plain object for the API
+      // Convert IDConverter variant descriptions to a plain object for the API
       const charDescObj: Record<string, string> = {};
-      for (const [id, desc] of csvCharacterDescriptions.entries()) {
+      for (const [id, desc] of idDescriptions.entries()) {
         charDescObj[id] = desc;
       }
 
@@ -902,17 +888,15 @@ export default function PropDesigner() {
       }) => {
         const existing = existingPropsByName.get(char.name.toLowerCase());
         
-        // Check if we have CSV description for this character ID
-        // Match by exact name or by characterId contained in the name
+        // Look up IDConverter variant description for this character
         let csvDescription: string | null = null;
-        // Try exact match first, then partial match
-        if (csvCharacterDescriptions.has(char.name)) {
-          csvDescription = csvCharacterDescriptions.get(char.name)!;
-        } else if (csvCharacterDescriptions.has(char.name.toUpperCase())) {
-          csvDescription = csvCharacterDescriptions.get(char.name.toUpperCase())!;
+        if (idDescriptions.has(char.name)) {
+          csvDescription = idDescriptions.get(char.name)!;
+        } else if (idDescriptions.has(char.name.toUpperCase())) {
+          csvDescription = idDescriptions.get(char.name.toUpperCase())!;
         } else {
-          for (const [characterId, desc] of csvCharacterDescriptions.entries()) {
-            if (char.name.includes(characterId) || char.name.toUpperCase().includes(characterId)) {
+          for (const [variantId, desc] of idDescriptions.entries()) {
+            if (char.name.includes(variantId) || char.name.toUpperCase().includes(variantId)) {
               csvDescription = desc;
               break;
             }
@@ -938,6 +922,23 @@ export default function PropDesigner() {
           }
         }
         
+        // Find base character for variants to inherit physical traits
+        let baseChar: Prop | undefined;
+        if (char.isVariant) {
+          const vd = (char.variantDetails || '').toLowerCase();
+          const vn = char.name.toLowerCase();
+          baseChar = allProps.find(p => {
+            if (p.isVariant || p.category !== 'character') return false;
+            const bn = p.name.toLowerCase();
+            const bid = p.id.toLowerCase();
+            return vd.includes(bn) || vd.includes(bid) || vn.includes(bid.split('_')[0]);
+          });
+        }
+
+        // Base character's colors take priority over variant's API-returned values
+        const resolvedHairColor = baseChar?.hairColor || char.hairColor;
+        const resolvedEyeColor = baseChar?.eyeColor || char.eyeColor;
+
         // Build design sheet prompt using CSV description if available
         let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
         if (!designPrompt || designPrompt.trim() === "") {
@@ -950,9 +951,9 @@ export default function PropDesigner() {
                 csvDescription: csvDescription || undefined,
                 age: char.age,
                 gender: char.gender,
-                hairColor: char.hairColor,
+                hairColor: resolvedHairColor,
                 hairStyle: char.hairStyle,
-                eyeColor: char.eyeColor,
+                eyeColor: resolvedEyeColor,
                 personality: char.personality,
                 role: resolvedRole,
               },
@@ -974,7 +975,19 @@ export default function PropDesigner() {
             }
           }
         }
-        
+
+        // For variants, append color consistency note when the prompt doesn't already embed it
+        // (Easy Mode without csvDescription already embeds colors via getEasyModeCharacterPrompt)
+        if (char.isVariant && baseChar && (resolvedHairColor || resolvedEyeColor)) {
+          const isEasyModeNoCsv = isEasyMode && !csvDescription;
+          if (!isEasyModeNoCsv) {
+            const parts: string[] = [];
+            if (resolvedHairColor) parts.push(`${resolvedHairColor} hair`);
+            if (resolvedEyeColor) parts.push(`${resolvedEyeColor} eyes`);
+            designPrompt += ` Must keep the same ${parts.join(' and ')} as the base character.`;
+          }
+        }
+
         return {
           id: existing?.id || crypto.randomUUID(),
           name: char.name,
@@ -993,9 +1006,9 @@ export default function PropDesigner() {
           // Easy Mode metadata (preserve existing if available)
           age: existing?.age || char.age,
           gender: existing?.gender || char.gender,
-          hairColor: existing?.hairColor || char.hairColor,
+          hairColor: existing?.hairColor || resolvedHairColor,
           hairStyle: existing?.hairStyle || char.hairStyle,
-          eyeColor: existing?.eyeColor || char.eyeColor,
+          eyeColor: existing?.eyeColor || resolvedEyeColor,
           dominantOutfitColor: existing?.dominantOutfitColor || char.dominantOutfitColor,
           expression: existing?.expression || char.expression,
           personality: existing?.personality || char.personality,
@@ -1020,7 +1033,7 @@ export default function PropDesigner() {
     customApiKey,
     allProps,
     createSessionFromDetection,
-    csvCharacterDescriptions,
+    idDescriptions,
     isEasyMode,
   ]);
 
@@ -1754,11 +1767,6 @@ export default function PropDesigner() {
             <span>
               Using imported CSV data ({totalClips} clips)
             </span>
-            {csvCharacterDescriptions.size > 0 && (
-              <span className="text-xs text-teal-400">
-                • {csvCharacterDescriptions.size} character{csvCharacterDescriptions.size !== 1 ? 's' : ''} with descriptions
-              </span>
-            )}
             {csvGenre && (
               <span className="text-xs text-teal-400">
                 • Genre: {csvGenre}
@@ -1768,7 +1776,6 @@ export default function PropDesigner() {
           <button
             onClick={() => {
               setImportedScenes([]);
-              setCsvCharacterDescriptions(new Map());
               setCsvGenre(null);
               setImportVersion(0);
               if (csvInputRef.current) csvInputRef.current.value = "";
@@ -1858,6 +1865,9 @@ export default function PropDesigner() {
               isEasyMode={isEasyMode}
               onToggleEasyMode={setIsEasyMode}
               suggestedStartingImages={suggestedStartingImages[session.id] || {}}
+              customTemplates={customTemplates}
+              onAddToTemplates={handleAddToTemplates}
+              onDeleteCustomTemplate={handleDeleteCustomTemplate}
             />
           ))}
         </>

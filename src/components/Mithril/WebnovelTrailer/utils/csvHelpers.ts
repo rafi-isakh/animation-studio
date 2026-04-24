@@ -1,6 +1,6 @@
 import type { CsvFrame } from '../types';
 import type { WebnovelTrailerColumnMapping } from '../types';
-import { detectApiForPrompt } from './apiSelector';
+import { detectApiForPrompt, stripBgmFromPrompt } from './apiSelector';
 
 /**
  * Parse CSV text into a 2D array of strings.
@@ -130,7 +130,7 @@ export function applyMapping(
 
   for (const row of rows) {
     const baseFrameNumber = frameIdx > -1 ? (row[frameIdx] ?? '').trim() : String(rowIndex + 1);
-    const veoPrompt       = promptIdx > -1 ? (row[promptIdx] ?? '').trim() : '';
+    const veoPrompt       = stripBgmFromPrompt(promptIdx > -1 ? (row[promptIdx] ?? '').trim() : '');
     if (!veoPrompt) continue;
 
     const referenceFilename = filenameIdx  > -1 ? (row[filenameIdx]  ?? '').trim() : '';

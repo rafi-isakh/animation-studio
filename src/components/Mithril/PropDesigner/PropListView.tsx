@@ -5,6 +5,7 @@ import { Prop, getEasyModeCharacterPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
 import { updatePropDesignSheetImage } from "../services/firestore";
 import MannequinTemplatesPanel from "./MannequinTemplatesPanel";
+import type { CustomMannequinTemplate } from "../services/firestore/mannequinTemplates";
 import { getSuggestedTemplates } from "./characterTemplates";
 
 // Status badge component for job statuses
@@ -61,6 +62,9 @@ interface PropListViewProps {
   isEasyMode?: boolean; // Controlled from parent (shared with DetectionPanel)
   onToggleEasyMode?: (enabled: boolean) => void;
   suggestedStartingImages?: Record<string, string[]>; // propId → suggested template paths
+  customTemplates?: CustomMannequinTemplate[];
+  onAddToTemplates?: (prop: Prop) => void;
+  onDeleteCustomTemplate?: (id: string) => void;
 }
 
 export default function PropListView({
@@ -83,6 +87,9 @@ export default function PropListView({
   isEasyMode: isEasyModeProp,
   onToggleEasyMode,
   suggestedStartingImages,
+  customTemplates,
+  onAddToTemplates,
+  onDeleteCustomTemplate,
 }: PropListViewProps) {
   // Sort props: Protagonist first, then other defaults, then variants
   const sortedProps = useMemo(() => {
@@ -745,6 +752,8 @@ export default function PropListView({
             onSelectionChange={(paths) =>
               setStartingImages((prev) => ({ ...prev, [activePropId!]: paths }))
             }
+            customTemplates={customTemplates}
+            onDeleteCustomTemplate={onDeleteCustomTemplate}
           />
         )}
       <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl flex-1 h-full flex flex-col overflow-hidden min-w-0">
@@ -1256,6 +1265,18 @@ export default function PropListView({
                           <span>Generate Design</span>
                         </>
                       )}
+                    </button>
+                  )}
+                  {isCharacter && prop.designSheetImageUrl && onAddToTemplates && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onAddToTemplates(prop); }}
+                      className="px-2 py-1.5 bg-[#DB2777]/20 hover:bg-[#DB2777]/40 text-[#DB2777] text-[10px] font-bold rounded transition-colors flex items-center gap-1 shrink-0"
+                      title="Add to Templates"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                      </svg>
+                      <span>Save Template</span>
                     </button>
                   )}
                   <button

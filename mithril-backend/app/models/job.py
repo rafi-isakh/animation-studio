@@ -222,6 +222,7 @@ class JobDocument(BaseModel):
     image_prompt_qa: str | None = None  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
     is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
+    detected_locations: list[dict] | None = None  # Location entities from ID Converter [{id, name, description}]
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -828,6 +829,7 @@ class StoryboardJobSubmitRequest(BaseModel):
     image_prompt_qa: str = ""  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str = ""  # JSON-stringified trailer script lines
     is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
+    detected_locations: list[dict] | None = None  # Location entities from ID Converter [{id, name, description}]
     # API key
     api_key: str | None = None
 

@@ -148,6 +148,96 @@ def _normalize_attention_fields(clip: dict) -> None:
                 break
 
 
+def _first_sentence(text: str) -> str:
+    """Return the first sentence of a prompt (up to the first period), lowercased and stripped."""
+    return text.split(".")[0].strip().lower()
+
+
+def _fix_background_id_conflicts(result: dict) -> int:
+    """
+    Detect clips where the same backgroundId maps to a different physical location
+    and reassign a new unique location number to the conflicting clip.
+
+    Two prompts are considered the same location if their first sentences match,
+    so atmosphere/vibe variations on the same space are not flagged as conflicts.
+
+    Returns the number of conflicts fixed.
+    """
+    all_clips = [
+        clip
+        for scene in result.get("scenes", [])
+        for clip in scene.get("clips", [])
+    ]
+
+    # Find the highest location number already in use
+    max_location = 0
+    for clip in all_clips:
+        bg_id = clip.get("backgroundId", "").strip()
+        if bg_id and "-" in bg_id:
+            try:
+                max_location = max(max_location, int(bg_id.split("-")[0]))
+            except ValueError:
+                pass
+
+    # First pass: build canonical {bg_id -> first sentence of first-seen prompt}
+    id_to_first_sentence: dict[str, str] = {}
+    for clip in all_clips:
+        bg_id = clip.get("backgroundId", "").strip()
+        bg_prompt = clip.get("backgroundPrompt", "").strip()
+        if bg_id and bg_prompt and bg_id not in id_to_first_sentence:
+            id_to_first_sentence[bg_id] = _first_sentence(bg_prompt)
+
+    # Second pass: detect conflicts and reassign IDs
+    # remap[(old_bg_id, first_sentence)] -> new_bg_id so the same conflicting location reuses the same new ID
+    remap: dict[tuple[str, str], str] = {}
+    conflicts_fixed = 0
+
+    for clip in all_clips:
+        bg_id = clip.get("backgroundId", "").strip()
+        bg_prompt = clip.get("backgroundPrompt", "").strip()
+
+        if not bg_id or not bg_prompt:
+            continue
+
+        canonical_sentence = id_to_first_sentence.get(bg_id, "")
+        clip_sentence = _first_sentence(bg_prompt)
+
+        if not canonical_sentence or canonical_sentence == clip_sentence:
+            continue
+
+        # Conflict: same ID, different physical location
+        key = (bg_id, clip_sentence)
+        if key not in remap:
+            max_location += 1
+            angle = bg_id.split("-")[1] if "-" in bg_id else "1"
+            remap[key] = f"{max_location}-{angle}"
+            logger.warning(
+                "[STORYBOARD] Background ID conflict on '%s': canonical='%s...' vs clip='%s...'. "
+                "Reassigning to '%s'.",
+                bg_id,
+                canonical_sentence[:60],
+                clip_sentence[:60],
+                remap[key],
+            )
+            conflicts_fixed += 1
+
+        new_bg_id = remap[key]
+        old_loc = bg_id.split("-")[0]
+        new_loc = new_bg_id.split("-")[0]
+
+        clip["backgroundId"] = new_bg_id
+
+        # Update angle variants so their location number stays in sync
+        for letter in ("A", "B", "C", "D"):
+            variant = clip.get(f"backgroundId{letter}", "").strip()
+            if variant and "-" in variant:
+                v_loc, v_angle = variant.split("-", 1)
+                if v_loc == old_loc:
+                    clip[f"backgroundId{letter}"] = f"{new_loc}-{v_angle}"
+
+    return conflicts_fixed
+
+
 def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
     """Split source text into batches of at most batch_size [PANEL XXX] blocks."""
     parts = re.split(r'(?=\[PANEL \d+\])', source_text)
@@ -170,19 +260,26 @@ def _split_source_into_batches(source_text: str, batch_size: int) -> list[str]:
     return batches
 
 
-def _extract_continuation_context(result: dict) -> dict:
+def _extract_continuation_context(result: dict, prev_context: dict | None = None) -> dict:
     """Extract state from a completed batch result needed by the next batch."""
     scenes = result.get("scenes", [])
     last_background_id = ""
     last_accumulated_time = "00:00"
     last_scene_title = ""
 
+    # Carry forward the accumulated background registry from previous batches
+    background_registry: dict[str, str] = dict(prev_context.get("background_registry", {})) if prev_context else {}
+
     for scene in scenes:
         if scene.get("sceneTitle"):
             last_scene_title = scene["sceneTitle"]
         for clip in scene.get("clips", []):
-            if clip.get("backgroundId", "").strip():
-                last_background_id = clip["backgroundId"].strip()
+            bg_id = clip.get("backgroundId", "").strip()
+            bg_prompt = clip.get("backgroundPrompt", "").strip()
+            if bg_id:
+                last_background_id = bg_id
+                if bg_prompt and bg_id not in background_registry:
+                    background_registry[bg_id] = bg_prompt
             if clip.get("accumulatedTime", "").strip():
                 last_accumulated_time = clip["accumulatedTime"].strip()
 
@@ -192,6 +289,7 @@ def _extract_continuation_context(result: dict) -> dict:
         "last_scene_title": last_scene_title,
         "scene_count": len(scenes),
         "character_id_summary": result.get("characterIdSummary", []),
+        "background_registry": background_registry,
     }
 
 
@@ -307,7 +405,7 @@ async def process_storyboard(
                 total_usage_input += batch_usage.prompt_token_count or 0
                 total_usage_output += batch_usage.candidates_token_count or 0
                 batch_results.append(batch_result)
-                continuation_context = _extract_continuation_context(batch_result)
+                continuation_context = _extract_continuation_context(batch_result, continuation_context)
                 logger.info(
                     f"[STORYBOARD] {job_id} - Batch {batch_idx + 1} done: "
                     f"{sum(len(s.get('clips', [])) for s in batch_result.get('scenes', []))} clips"
@@ -462,7 +560,34 @@ async def _generate_storyboard_with_gemini(
     image_prompt_qa = job.image_prompt_qa or ""
     selected_trailer_script = job.selected_trailer_script or ""
     is_trailer_mode = job.is_trailer_mode or False
+    detected_locations = job.detected_locations or []
     source_text = source_text_override if source_text_override is not None else (job.source_text or "")
+
+    # Build detected locations block for prompt injection
+    if detected_locations:
+        loc_lines = "\n".join(
+            f'  [{loc.get("id", "")}] {loc.get("name", "")} — {loc.get("description", "")}'
+            for loc in detected_locations
+        )
+        detected_locations_block = f"""
+**[ID 컨버터에서 감지된 장소 전체 목록 — 필수 참조]**
+아래는 원본 소설 전체에서 이미 식별·등록된 고유 장소 목록입니다. 콘티 작성 시 반드시 이 목록을 기준으로 backgroundId를 결정하십시오.
+
+{loc_lines}
+
+**[장소 재사용 판단 기준 — 엄격 준수]**
+콘티를 클립 단위로 작성하기 전에, 원본 텍스트 전체의 타임라인을 먼저 훑어 각 장면의 물리적 장소를 위 목록에 매핑하십시오.
+- 같은 물리 공간은 장면 묘사나 카메라 앵글, 텍스트 표현이 달라도 항상 동일한 backgroundId를 사용합니다.
+- 특히 반복 등장 패턴에 주의하십시오:
+  • 캐릭터가 잠에서 깨거나 침대에 누울 때 → 항상 같은 침실 ID
+  • 귀가/퇴근 장면 → 항상 같은 집·아파트 ID
+  • 같은 직장·학교에서 일어나는 일 → 항상 같은 장소 ID
+  • "그 카페", "늘 가던 식당" 등 습관적 방문지 → 항상 같은 ID
+- 위 목록에 없는 완전히 새로운 물리 공간만 새 backgroundId를 생성하십시오.
+- 목록 ID를 직접 backgroundId로 사용하거나, 목록의 장소를 기반으로 번호 체계(1-1, 1-2 등)를 적용할 수 있습니다. 단, 한 번 부여한 ID는 해당 장소가 재등장할 때 절대 바꾸지 않습니다.
+"""
+    else:
+        detected_locations_block = ""
 
     continuation_block = ""
     if continuation_context:
@@ -470,6 +595,19 @@ async def _generate_storyboard_with_gemini(
             continuation_context.get("character_id_summary", []),
             ensure_ascii=False, indent=2
         )
+        background_registry = continuation_context.get("background_registry", {})
+        if background_registry:
+            registry_lines = "\n".join(
+                f'  "{bg_id}" → {desc}' for bg_id, desc in background_registry.items()
+            )
+            background_registry_block = f"""
+- **기존 배경 레지스트리 (재사용 필수)**:
+{registry_lines}
+  위 목록의 장소와 동일한 배경이 등장하면 새 ID를 만들지 말고 해당 기존 ID를 그대로 사용하십시오.
+"""
+        else:
+            background_registry_block = ""
+
         continuation_block = f"""
 **[이전 배치에서 이어지는 콘티입니다 - 연속성 필수 유지]**
 이 텍스트는 전체 원본의 일부입니다. 아래 이전 배치의 마지막 상태에서 자연스럽게 이어가야 합니다.
@@ -480,7 +618,7 @@ async def _generate_storyboard_with_gemini(
 - **이전 씬 수**: {continuation_context.get('scene_count', 0)}개
 - **캐릭터 ID 요약 (일관성 유지)**:
 {char_summary_text}
-"""
+{background_registry_block}"""
 
     if prompt_variant == "reference":
         attention_guidance = """
@@ -509,6 +647,25 @@ async def _generate_storyboard_with_gemini(
     전체 클립의 수는 **정확히 {exact_clip_count}개**여야 합니다. 이 숫자는 절대적인 요구사항입니다 — 누적 시간에 관계없이 반드시 {exact_clip_count}개의 클립을 생성해야 합니다. 적게 생성하는 것은 허용되지 않습니다.
     각 '씬'에 포함될 클립의 수는 서사의 흐름에 따라 유동적으로 결정되어야 합니다.
 
+    {detected_locations_block}
+
+    **[배경 ID 사전 등록 규칙 — 필수 준수]**
+    콘티 클립을 작성하기 전에 다음 2단계를 반드시 거치십시오.
+
+    **1단계 — 전체 타임라인 장소 분석**
+    원본 텍스트 전체를 시간 순서대로 읽으며, 각 장면이 *어떤 물리적 공간*에서 일어나는지 파악합니다.
+    - 캐릭터가 같은 공간으로 "돌아오는" 패턴을 식별하십시오. 등장인물이 하루를 보내고 집에 돌아와 침대에 눕는다면, 그 침실은 이야기 초반에 등장한 침실과 동일한 장소입니다.
+    - 장소의 시간대(낮/밤), 날씨, 묘사 방식이 달라도 물리적 공간이 같으면 동일한 backgroundId입니다.
+    - "그의 방", "침실", "아파트 방" 등 같은 공간을 가리키는 다양한 표현에 주의하십시오.
+
+    **2단계 — backgroundId 사전 할당**
+    1단계에서 파악한 고유 물리 공간 각각에 backgroundId를 부여합니다.
+    - 위 ID 컨버터 목록이 제공된 경우 해당 ID를 우선 활용합니다.
+    - 동일한 물리적 공간은 카메라 앵글이나 묘사 방식이 달라도 반드시 같은 backgroundId를 사용합니다.
+      (예: "카페 입구"와 "카페 안쪽 창가"는 같은 카페 → 동일 ID)
+    - 한 번 할당된 backgroundId는 해당 장소가 다시 등장할 때 절대 바꾸지 않습니다.
+    - 클립 작성 시 사전 할당한 ID 목록만 참조하십시오. 새 ID를 즉흥적으로 생성하지 마십시오.
+
     **[CRITICAL: 클립 길이 계산 규칙 (엄격 준수)]**
     모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** 대사가 있는 경우, **'dialogueEn'의 단어 수를 직접 세어서** 아래 표에 따라 시간을 할당하십시오.
 
@@ -527,7 +684,36 @@ async def _generate_storyboard_with_gemini(
 
     2. **story**: 규칙: {story_condition}
 
-    3. **backgroundId**: 형식 "#-#[ -#]" (예: 1-1, 1-2, 1-1-1)
+    3. **backgroundId**: 형식 "{{장소번호}}-{{앵글번호}}" (예: 1-3, 2-6)
+    - **장소번호**: 물리적으로 고유한 장소를 나타내는 정수 (배경 ID 사전 등록 단계에서 할당)
+    - **앵글번호**: 해당 클립에서 사용하는 카메라 앵글을 아래 9가지 중 하나로 고정 지정
+      | 번호 | 앵글 이름 | 언제 사용 |
+      | :--: | :--- | :--- |
+      | 1 | Front View | 정면 구도, 장소 전경 소개 |
+      | 2 | Worm View | 로우 앵글, 카메라가 바닥 근처에서 위를 향할 때 |
+      | 3 | Character A View | 주요 캐릭터 A가 서 있을 위치의 오브젝트 클로즈업 |
+      | 4 | Character B View | 주요 캐릭터 B가 서 있을 위치의 오브젝트 클로즈업 |
+      | 5 | Rear View | 공간의 코너·후면 구도, 천장/하늘 일부 포함 |
+      | 6 | Bird's Eye View | 하이 앵글, 위에서 공간 전체 레이아웃을 조망 |
+      | 7 | Over-Shoulder A | 눈높이 오브젝트 클로즈업 A (천장/하늘 일부 포함) |
+      | 8 | Over-Shoulder B | 눈높이 오브젝트 클로즈업 B (천장/하늘 일부 포함) |
+      | 9 | Floor Close-up | 바닥/지면 표면 매크로샷 |
+    - 같은 물리 장소라도 앵글이 다르면 postfix를 달리합니다 (예: `1-1`과 `1-6`은 같은 방, 다른 앵글).
+    - 장소번호는 재등장 시 절대 바꾸지 않습니다. 앵글번호는 클립의 시각적 구도에 맞게 선택하십시오.
+
+    3-a/b/c/d 규칙: 모든 backgroundIdA/B/C/D는 반드시 "{{장소번호}}-{{앵글번호}}" 형식이어야 합니다. "SOLID", "ABSTRACT", "NONE" 등 특수값은 절대 사용하지 마십시오. 항상 동일 장소번호에 해당 이미지 프롬프트의 구도에 가장 어울리는 앵글번호(1-9)를 선택하십시오.
+
+    3-a. **backgroundIdA**: imagePromptA(오브젝트/인서트컷 극단 클로즈업)에 가장 어울리는 앵글 선택.
+    예: 눈높이 소품 → 3 또는 4, 바닥 오브젝트 → 9, 테이블 위 오브젝트 부감 → 6
+
+    3-b. **backgroundIdB**: imagePromptB(행동 샷)에 가장 어울리는 앵글 선택.
+    imagePromptB의 첫 단어(카메라 기술어)를 기준으로 결정. 예: Eye-level → 1, Low angle → 2, Bird's eye → 6, Over-shoulder → 7 또는 8
+
+    3-c. **backgroundIdC**: imagePromptC(감정/표정 극단 클로즈업)에 가장 어울리는 앵글 선택.
+    얼굴 정면 클로즈업이면 → 1, 올려다보는 구도 → 2, 내려다보는 구도 → 6
+
+    3-d. **backgroundIdD**: imagePromptD(감정 증폭)에 가장 어울리는 앵글 선택.
+    드라마틱한 로우앵글 → 2, 압도적 하이앵글 → 6, 바닥·지면 강조 → 9
 
     4. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
 
@@ -695,6 +881,10 @@ async def _generate_storyboard_with_gemini(
                                     "accumulatedTime": {"type": "STRING"},
                                     "backgroundPrompt": {"type": "STRING"},
                                     "backgroundId": {"type": "STRING"},
+                                    "backgroundIdA": {"type": "STRING"},
+                                    "backgroundIdB": {"type": "STRING"},
+                                    "backgroundIdC": {"type": "STRING"},
+                                    "backgroundIdD": {"type": "STRING"},
                                     "trailerScriptKo": {"type": "STRING"},
                                     "trailerScriptEn": {"type": "STRING"},
                                 },
@@ -705,6 +895,7 @@ async def _generate_storyboard_with_gemini(
                                     "dialogue", "dialogueEn", "narration", "narrationEn",
                                     "sfx", "sfxEn", "bgm", "bgmEn",
                                     "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
+                                    "backgroundIdA", "backgroundIdB", "backgroundIdC", "backgroundIdD",
                                     "trailerScriptKo", "trailerScriptEn",
                                 ],
                             },
@@ -829,6 +1020,11 @@ async def _generate_storyboard_with_gemini(
         bool(first_clip.get("imagePromptD")),
     )
 
+    # Fix background ID conflicts before appending IDs to image prompts
+    fixed_count = _fix_background_id_conflicts(result)
+    if fixed_count:
+        logger.info("[STORYBOARD] Fixed %d background ID conflict(s).", fixed_count)
+
     # Post-process: apply suffix to imagePrompt and append Background ID
     attention_filled = 0
     attention_empty = 0
@@ -857,11 +1053,15 @@ async def _generate_storyboard_with_gemini(
             raw = clip.get("pixAiPrompt", "").strip()
             clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
 
-            # Apply suffix to imagePromptA/B/C/D
+            # Apply suffix to imagePromptA/B/C/D and append respective Background IDs
             for letter in ("A", "B", "C", "D"):
                 val = clip.get(f"imagePrompt{letter}", "")
                 if val:
-                    clip[f"imagePrompt{letter}"] = _append_suffix(val)
+                    val = _append_suffix(val)
+                    bg_id_variant = clip.get(f"backgroundId{letter}", "").strip()
+                    if bg_id_variant:
+                        val = f"{val}\n\nBackground ID: {bg_id_variant}"
+                    clip[f"imagePrompt{letter}"] = val
 
             # Count attention field coverage for summary log
             filled = sum(1 for f in ("attentionDevice", "attentionAction", "attentionExpression", "attentionMood") if clip.get(f))

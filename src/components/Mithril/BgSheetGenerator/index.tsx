@@ -233,6 +233,7 @@ const downloadImageFromUrl = async (url: string, filename: string): Promise<void
 interface CsvBackgroundData {
   name: string;
   description: string;
+  csvContext?: string; // Aggregated image prompt context from imagePromptCol
 }
 
 // Parse CSV content into rows, handling multi-line quoted fields
@@ -317,16 +318,17 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
-  const { backgroundIdCol, backgroundPromptCol } = columnMapping;
-  const minCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
+  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
+  const minRequiredCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
 
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
     const fields = rows[i];
-    if (fields.length < minCols) continue;
+    if (fields.length < minRequiredCols) continue;
 
     const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
     const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
+    const imagePrompt = fields.length > imagePromptCol ? (fields[imagePromptCol]?.trim() || "") : "";
 
     let bgPrefix = "";
 
@@ -346,14 +348,19 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     const bgName = `Background ${bgPrefix}`;
 
     if (!result.has(bgName)) {
-      result.set(bgName, { name: bgName, description: "" });
+      result.set(bgName, { name: bgName, description: "", csvContext: "" });
     }
 
     const existingData = result.get(bgName)!;
 
     // Update description if we have a better one (longer)
-    if (bgPrompt && bgPrompt.length > existingData.description.length) {
+    if (bgPrompt && bgPrompt.length > (existingData.description?.length ?? 0)) {
       existingData.description = bgPrompt;
+    }
+
+    // Aggregate image prompt context (longest wins)
+    if (imagePrompt && imagePrompt.length > (existingData.csvContext?.length ?? 0)) {
+      existingData.csvContext = imagePrompt;
     }
   }
 
@@ -2507,13 +2514,17 @@ export default function BgSheetGenerator() {
       const existingBgNames = new Set(backgrounds.map(bg => bg.name));
       const updatedBackgrounds: Background[] = [];
 
-      // Update existing backgrounds - update description from CSV if better
+      // Update existing backgrounds - update description and csvContext from CSV if better
       for (const bg of backgrounds) {
         const csvBgData = importedData.get(bg.name);
         if (csvBgData) {
           updatedBackgrounds.push({
             ...bg,
             description: csvBgData.description || bg.description,
+            images: bg.images.map(img => ({
+              ...img,
+              csvContext: csvBgData.csvContext || img.csvContext || "",
+            })),
           });
         } else {
           updatedBackgrounds.push(bg);
@@ -2536,6 +2547,7 @@ export default function BgSheetGenerator() {
               isActive: true,
               isFinalized: false,
               characterPrompt: "",
+              csvContext: csvBgData.csvContext || "",
             })),
           };
           updatedBackgrounds.push(newBg);

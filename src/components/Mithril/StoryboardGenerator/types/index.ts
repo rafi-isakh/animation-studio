@@ -27,6 +27,10 @@ export interface Continuity {
   accumulatedTime: string;
   backgroundPrompt: string;
   backgroundId: string;
+  backgroundIdA?: string;
+  backgroundIdB?: string;
+  backgroundIdC?: string;
+  backgroundIdD?: string;
   characterInfo?: string; // Brief character relationships (e.g., "AREL=Protagonist's son, 19-year-old")
   imageRef?: string; // S3 URL for generated storyboard image
   // Webnovel trailer script fields

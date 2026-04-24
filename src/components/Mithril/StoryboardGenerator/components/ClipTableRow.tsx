@@ -11,8 +11,6 @@ interface ClipTableRowProps {
   row: Continuity;
   sceneIndex: number;
   clipIndex: number;
-  isNewBackground: boolean;
-  clipHeadersLength: number;
   showTrailerColumns?: boolean;
   onUpdatePrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
   getOriginalPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
@@ -148,26 +146,12 @@ const ClipTableRow = React.memo(function ClipTableRow({
   row,
   sceneIndex,
   clipIndex,
-  isNewBackground,
-  clipHeadersLength,
   showTrailerColumns = false,
   onUpdatePrompt,
   getOriginalPrompt,
 }: ClipTableRowProps) {
-  const { language, dictionary } = useLanguage();
-
   return (
     <React.Fragment>
-      {isNewBackground && (
-        <tr className="bg-gray-100 dark:bg-gray-800/70">
-          <td
-            colSpan={clipHeadersLength}
-            className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 italic pl-8"
-          >
-            {phrase(dictionary, "table_background", language)} {row.backgroundPrompt}
-          </td>
-        </tr>
-      )}
       <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150">
         <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 w-16 text-center">{`${sceneIndex + 1}.${clipIndex + 1}`}</td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-20 text-center">
@@ -178,6 +162,9 @@ const ClipTableRow = React.memo(function ClipTableRow({
         </td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
           {row.backgroundId}
+        </td>
+        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+          <div className="whitespace-pre-wrap">{row.backgroundPrompt || ""}</div>
         </td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
           {row.backgroundIdA || ""}

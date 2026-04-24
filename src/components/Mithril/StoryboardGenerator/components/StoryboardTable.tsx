@@ -31,6 +31,7 @@ export default function StoryboardTable({
     phrase(dictionary, "table_length", language),
     phrase(dictionary, "table_accumulated_time", language),
     phrase(dictionary, "table_background_id", language),
+    phrase(dictionary, "table_background", language),
     "Bg ID (A)",
     "Bg ID (B)",
     "Bg ID (C)",
@@ -160,26 +161,17 @@ export default function StoryboardTable({
                     {phrase(dictionary, "table_scene", language)} {sceneIndex + 1}: {scene.sceneTitle}
                   </td>
                 </tr>
-                {scene.clips.map((row, clipIndex) => {
-                  const isNewBackground =
-                    clipIndex === 0 ||
-                    row.backgroundPrompt !==
-                      scene.clips[clipIndex - 1].backgroundPrompt;
-
-                  return (
-                    <ClipTableRow
-                      key={`scene-${sceneIndex}-clip-${clipIndex}`}
-                      row={row}
-                      sceneIndex={sceneIndex}
-                      clipIndex={clipIndex}
-                      isNewBackground={isNewBackground}
-                      clipHeadersLength={clipHeaders.length}
-                      showTrailerColumns={showTrailerColumns}
-                      onUpdatePrompt={updateClipPrompt}
-                      getOriginalPrompt={getOriginalClipPrompt}
-                    />
-                  );
-                })}
+                {scene.clips.map((row, clipIndex) => (
+                  <ClipTableRow
+                    key={`scene-${sceneIndex}-clip-${clipIndex}`}
+                    row={row}
+                    sceneIndex={sceneIndex}
+                    clipIndex={clipIndex}
+                    showTrailerColumns={showTrailerColumns}
+                    onUpdatePrompt={updateClipPrompt}
+                    getOriginalPrompt={getOriginalClipPrompt}
+                  />
+                ))}
               </React.Fragment>
             ))}
           </tbody>

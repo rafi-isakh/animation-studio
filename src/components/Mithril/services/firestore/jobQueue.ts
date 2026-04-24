@@ -1553,6 +1553,10 @@ export interface StoryboardScene {
     veoVideoPrompt?: string;
     backgroundPrompt: string;
     backgroundId: string;
+    backgroundIdA?: string;
+    backgroundIdB?: string;
+    backgroundIdC?: string;
+    backgroundIdD?: string;
     dialogue: string;
     dialogueEn: string;
     narration?: string;

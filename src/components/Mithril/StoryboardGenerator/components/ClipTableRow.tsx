@@ -179,6 +179,18 @@ const ClipTableRow = React.memo(function ClipTableRow({
         <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
           {row.backgroundId}
         </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
+          {row.backgroundIdA || ""}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
+          {row.backgroundIdB || ""}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
+          {row.backgroundIdC || ""}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
+          {row.backgroundIdD || ""}
+        </td>
 
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
@@ -200,26 +212,6 @@ const ClipTableRow = React.memo(function ClipTableRow({
         </td>
         <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
           <div className="whitespace-pre-wrap">{row.attentionMood || ""}</div>
-        </td>
-
-        {/* Editable Image Prompt */}
-        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          <EditablePromptCell
-            value={row.imagePrompt}
-            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePrompt')}
-            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePrompt', newValue)}
-            placeholderKey="storyboard_edit_image_prompt_placeholder"
-          />
-        </td>
-
-        {/* Editable Image Prompt End */}
-        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          <EditablePromptCell
-            value={row.imagePromptEnd || ""}
-            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptEnd')}
-            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptEnd', newValue)}
-            placeholderKey="storyboard_edit_image_prompt_end_placeholder"
-          />
         </td>
 
         {/* A/B/C/D image prompt variants */}

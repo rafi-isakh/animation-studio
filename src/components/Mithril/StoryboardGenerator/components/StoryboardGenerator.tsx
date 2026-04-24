@@ -31,7 +31,7 @@ import DriveSettings from "./DriveSettings";
 import GenrePresets, { type GenrePreset } from "./GenrePresets";
 import { useGenrePresets } from "../hooks/useGenrePresets";
 import { uploadFileToDrive } from "../services";
-import { getChapter } from "../../services/firestore";
+import { getChapter, getIdConverter } from "../../services/firestore";
 import { useProject } from "@/contexts/ProjectContext";
 import type { SplitResult, Scene, Continuity } from "../types";
 
@@ -265,6 +265,27 @@ export default function StoryboardGenerator() {
       return;
     }
 
+    // Load location entities from ID Converter stage
+    let detectedLocations: Array<{ id: string; name: string; description: string }> | undefined;
+    if (currentProjectId) {
+      try {
+        const idConverterDoc = await getIdConverter(currentProjectId);
+        if (idConverterDoc?.glossary) {
+          detectedLocations = idConverterDoc.glossary
+            .filter((entity) => entity.type === 'LOCATION')
+            .flatMap((entity) =>
+              entity.variants.map((variant) => ({
+                id: variant.id,
+                name: entity.name,
+                description: variant.description,
+              }))
+            );
+        }
+      } catch {
+        // Non-fatal: continue without location data
+      }
+    }
+
     await startStoryboardGeneration({
       sourceText,
       storyCondition,
@@ -279,6 +300,7 @@ export default function StoryboardGenerator() {
       backgroundInstruction,
       negativeInstruction,
       videoInstruction,
+      detectedLocations,
     }, selectedPartIndex);
 
     // Show success toast if generation completed without error
@@ -308,6 +330,7 @@ export default function StoryboardGenerator() {
     toast,
     dictionary,
     language,
+    currentProjectId,
   ]);
 
   const handleDownloadCSV = useCallback(() => {
@@ -319,6 +342,10 @@ export default function StoryboardGenerator() {
       "Length",
       "Accumulated Time",
       "Background ID",
+      "Bg ID (A)",
+      "Bg ID (B)",
+      "Bg ID (C)",
+      "Bg ID (D)",
       "Background Prompt",
       "Story",
       "Attention Device",
@@ -352,6 +379,10 @@ export default function StoryboardGenerator() {
           clip.length,
           clip.accumulatedTime,
           clip.backgroundId,
+          clip.backgroundIdA || "",
+          clip.backgroundIdB || "",
+          clip.backgroundIdC || "",
+          clip.backgroundIdD || "",
           `"${clip.backgroundPrompt.replace(/"/g, '""')}"`,
           `"${clip.story.replace(/"/g, '""')}"`,
           `"${(clip.attentionDevice || "").replace(/"/g, '""')}"`,
@@ -414,6 +445,10 @@ export default function StoryboardGenerator() {
       "Length",
       "Accumulated Time",
       "Background ID",
+      "Bg ID (A)",
+      "Bg ID (B)",
+      "Bg ID (C)",
+      "Bg ID (D)",
       "Background Prompt",
       "Story",
       "Attention Device",
@@ -446,6 +481,10 @@ export default function StoryboardGenerator() {
         clip.length,
         clip.accumulatedTime,
         clip.backgroundId,
+        clip.backgroundIdA || "",
+        clip.backgroundIdB || "",
+        clip.backgroundIdC || "",
+        clip.backgroundIdD || "",
         clip.backgroundPrompt,
         clip.story,
         clip.attentionDevice || "",
@@ -784,6 +823,10 @@ export default function StoryboardGenerator() {
           length: findIdx(["Length", "길이", "시간"]),
           accTime: findIdx(["Accumulated", "누적"]),
           bgId: findIdx(["Background ID", "배경 ID"]),
+          bgIdA: findIdx(["Bg ID (A)"]),
+          bgIdB: findIdx(["Bg ID (B)"]),
+          bgIdC: findIdx(["Bg ID (C)"]),
+          bgIdD: findIdx(["Bg ID (D)"]),
           bgPrompt: findIdx(["Background Prompt", "배경 프롬프트"]),
           story: findIdx(["Story", "스토리", "내용"]),
           attentionDevice: findIdx(["Attention Device"]),
@@ -828,6 +871,10 @@ export default function StoryboardGenerator() {
             length: getVal(idx.length),
             accumulatedTime: getVal(idx.accTime),
             backgroundId: getVal(idx.bgId),
+            backgroundIdA: getVal(idx.bgIdA) || undefined,
+            backgroundIdB: getVal(idx.bgIdB) || undefined,
+            backgroundIdC: getVal(idx.bgIdC) || undefined,
+            backgroundIdD: getVal(idx.bgIdD) || undefined,
             backgroundPrompt: getVal(idx.bgPrompt),
             story: getVal(idx.story),
             attentionDevice: getVal(idx.attentionDevice),

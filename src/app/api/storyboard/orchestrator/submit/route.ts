@@ -32,6 +32,8 @@ interface StoryboardSubmitRequest {
   imagePromptQA?: string;
   selectedTrailerScript?: string;
   isTrailerMode?: boolean;
+  // ID Converter location data
+  detectedLocations?: Array<{ id: string; name: string; description: string }>;
 }
 
 export async function POST(request: NextRequest) {
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
       image_prompt_qa: body.imagePromptQA || "",
       selected_trailer_script: body.selectedTrailerScript || "",
       is_trailer_mode: body.isTrailerMode ?? false,
+      detected_locations: body.detectedLocations ?? null,
     };
 
 

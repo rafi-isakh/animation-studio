@@ -197,6 +197,8 @@ interface GenerateStoryboardParams {
   imagePromptQA?: string;
   selectedTrailerScript?: string;
   isTrailerMode?: boolean;
+  // ID Converter location data
+  detectedLocations?: Array<{ id: string; name: string; description: string }>;
 }
 
 // Types for shared state
@@ -681,6 +683,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           pixAiPrompt: clip.pixAiPrompt || "",
           backgroundPrompt: clip.backgroundPrompt,
           backgroundId: clip.backgroundId,
+          backgroundIdA: clip.backgroundIdA || "",
+          backgroundIdB: clip.backgroundIdB || "",
+          backgroundIdC: clip.backgroundIdC || "",
+          backgroundIdD: clip.backgroundIdD || "",
           characterInfo: clip.characterInfo,
           dialogue: clip.dialogue,
           dialogueEn: clip.dialogueEn,
@@ -764,6 +770,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
+                  backgroundIdA: clip.backgroundIdA || "",
+                  backgroundIdB: clip.backgroundIdB || "",
+                  backgroundIdC: clip.backgroundIdC || "",
+                  backgroundIdD: clip.backgroundIdD || "",
                   characterInfo: clip.characterInfo,
                   dialogue: clip.dialogue,
                   dialogueEn: clip.dialogueEn,
@@ -829,7 +839,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
               setStoryboardJobId(null);
 
               // Normalize scenes to ensure optional fields have default values
-              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; attentionDevice?: string; attentionAction?: string; attentionExpression?: string; attentionMood?: string; imagePromptA?: string; imagePromptB?: string; imagePromptC?: string; imagePromptD?: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
+              const normalizedScenes: Scene[] = jobStatus.scenes.map((scene: { sceneTitle: string; clips: Array<{ story: string; attentionDevice?: string; attentionAction?: string; attentionExpression?: string; attentionMood?: string; imagePromptA?: string; imagePromptB?: string; imagePromptC?: string; imagePromptD?: string; imagePrompt: string; imagePromptEnd?: string; videoPrompt: string; soraVideoPrompt: string; veoVideoPrompt?: string; pixAiPrompt?: string; backgroundPrompt: string; backgroundId: string; backgroundIdA?: string; backgroundIdB?: string; backgroundIdC?: string; backgroundIdD?: string; dialogue: string; dialogueEn: string; narration?: string; narrationEn?: string; sfx: string; sfxEn: string; bgm: string; bgmEn: string; length: string; accumulatedTime: string; trailerScriptKo?: string; trailerScriptEn?: string; }> }) => ({
                 sceneTitle: scene.sceneTitle,
                 clips: scene.clips.map(clip => ({
                   story: clip.story,
@@ -849,6 +859,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                   pixAiPrompt: clip.pixAiPrompt || "",
                   backgroundPrompt: clip.backgroundPrompt,
                   backgroundId: clip.backgroundId,
+                  backgroundIdA: clip.backgroundIdA || "",
+                  backgroundIdB: clip.backgroundIdB || "",
+                  backgroundIdC: clip.backgroundIdC || "",
+                  backgroundIdD: clip.backgroundIdD || "",
                   dialogue: clip.dialogue,
                   dialogueEn: clip.dialogueEn,
                   narration: clip.narration || "",
@@ -1187,6 +1201,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
             pixAiPrompt: clip.pixAiPrompt || "",
             backgroundPrompt: clip.backgroundPrompt,
             backgroundId: clip.backgroundId,
+            backgroundIdA: clip.backgroundIdA || "",
+            backgroundIdB: clip.backgroundIdB || "",
+            backgroundIdC: clip.backgroundIdC || "",
+            backgroundIdD: clip.backgroundIdD || "",
             dialogue: clip.dialogue,
             dialogueEn: clip.dialogueEn,
             narration: clip.narration || "",
@@ -1271,6 +1289,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     pixAiPrompt: clip.pixAiPrompt || "",
                     backgroundPrompt: clip.backgroundPrompt || "",
                     backgroundId: clip.backgroundId || "",
+                    backgroundIdA: clip.backgroundIdA || "",
+                    backgroundIdB: clip.backgroundIdB || "",
+                    backgroundIdC: clip.backgroundIdC || "",
+                    backgroundIdD: clip.backgroundIdD || "",
                     dialogue: clip.dialogue || "",
                     dialogueEn: clip.dialogueEn || "",
                     narration: clip.narration || "",
@@ -1314,6 +1336,10 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
                     pixAiPrompt: clip.pixAiPrompt || "",
                     backgroundPrompt: clip.backgroundPrompt || "",
                     backgroundId: clip.backgroundId || "",
+                    backgroundIdA: clip.backgroundIdA || "",
+                    backgroundIdB: clip.backgroundIdB || "",
+                    backgroundIdC: clip.backgroundIdC || "",
+                    backgroundIdD: clip.backgroundIdD || "",
                     dialogue: clip.dialogue || "",
                     dialogueEn: clip.dialogueEn || "",
                     narration: clip.narration || "",
@@ -1600,6 +1626,7 @@ export const MithrilProvider: React.FC<{ children: ReactNode }> = ({ children })
           imagePromptQA: params.imagePromptQA || "",
           selectedTrailerScript: params.selectedTrailerScript || "",
           isTrailerMode: params.isTrailerMode ?? false,
+          detectedLocations: params.detectedLocations ?? null,
           // API key
           apiKey: customApiKey,
         }),

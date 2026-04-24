@@ -350,6 +350,10 @@ export interface ClipDocument {
   pixAiPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
+  backgroundIdA?: string;
+  backgroundIdB?: string;
+  backgroundIdC?: string;
+  backgroundIdD?: string;
   characterInfo?: string;
   // Dialogue
   dialogue: string;
@@ -626,6 +630,10 @@ export interface SaveClipInput {
   pixAiPrompt?: string;
   backgroundPrompt: string;
   backgroundId: string;
+  backgroundIdA?: string;
+  backgroundIdB?: string;
+  backgroundIdC?: string;
+  backgroundIdD?: string;
   characterInfo?: string;
   dialogue: string;
   dialogueEn: string;
@@ -662,6 +670,10 @@ export interface UpdateClipInput {
   pixAiPrompt?: string;
   backgroundPrompt?: string;
   backgroundId?: string;
+  backgroundIdA?: string;
+  backgroundIdB?: string;
+  backgroundIdC?: string;
+  backgroundIdD?: string;
   characterInfo?: string;
   dialogue?: string;
   dialogueEn?: string;

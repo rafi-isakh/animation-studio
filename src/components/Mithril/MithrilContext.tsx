@@ -85,7 +85,7 @@ import { deleteAllBackgroundImages } from "./services/s3";
 const TOTAL_STAGES = 8;
 
 // Editable clip field type (shared across components)
-export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'imagePromptA' | 'imagePromptB' | 'imagePromptC' | 'imagePromptD' | 'attentionDevice' | 'attentionAction' | 'attentionExpression' | 'attentionMood' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn' | 'story' | 'soraVideoPrompt' | 'veoVideoPrompt' | 'pixAiPrompt' | 'narration' | 'narrationEn' | 'trailerScriptKo' | 'trailerScriptEn';
+export type EditableClipField = 'imagePrompt' | 'imagePromptEnd' | 'imagePromptA' | 'imagePromptB' | 'imagePromptC' | 'imagePromptD' | 'attentionDevice' | 'attentionAction' | 'attentionExpression' | 'attentionMood' | 'videoPrompt' | 'dialogue' | 'dialogueEn' | 'sfx' | 'sfxEn' | 'bgm' | 'bgmEn' | 'story' | 'soraVideoPrompt' | 'veoVideoPrompt' | 'pixAiPrompt' | 'narration' | 'narrationEn' | 'trailerScriptKo' | 'trailerScriptEn' | 'backgroundId' | 'backgroundPrompt' | 'backgroundIdA' | 'backgroundIdB' | 'backgroundIdC' | 'backgroundIdD';
 
 // Types for Story Splitter
 interface Cliffhanger {

@@ -29,6 +29,97 @@ VIDEO_PROMPT_SUFFIX = "Don't generate random Japanese element"
 
 BATCH_SIZE = 50  # Max panels per Gemini call; above this, batch automatically
 
+STORYBOARD_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "scenes": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "sceneTitle": {"type": "STRING"},
+                    "clips": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "story": {"type": "STRING"},
+                                "attentionDevice": {"type": "STRING"},
+                                "attentionAction": {"type": "STRING"},
+                                "attentionExpression": {"type": "STRING"},
+                                "attentionMood": {"type": "STRING"},
+                                "imagePromptA": {"type": "STRING"},
+                                "imagePromptB": {"type": "STRING"},
+                                "imagePromptC": {"type": "STRING"},
+                                "imagePromptD": {"type": "STRING"},
+                                "imagePrompt": {"type": "STRING"},
+                                "videoPrompt": {"type": "STRING"},
+                                "soraVideoPrompt": {"type": "STRING"},
+                                "veoVideoPrompt": {"type": "STRING"},
+                                "pixAiPrompt": {"type": "STRING"},
+                                "dialogue": {"type": "STRING"},
+                                "dialogueEn": {"type": "STRING"},
+                                "narration": {"type": "STRING"},
+                                "narrationEn": {"type": "STRING"},
+                                "sfx": {"type": "STRING"},
+                                "sfxEn": {"type": "STRING"},
+                                "bgm": {"type": "STRING"},
+                                "bgmEn": {"type": "STRING"},
+                                "length": {"type": "STRING"},
+                                "accumulatedTime": {"type": "STRING"},
+                                "backgroundPrompt": {"type": "STRING"},
+                                "backgroundId": {"type": "STRING"},
+                                "backgroundIdA": {"type": "STRING"},
+                                "backgroundIdB": {"type": "STRING"},
+                                "backgroundIdC": {"type": "STRING"},
+                                "backgroundIdD": {"type": "STRING"},
+                                "trailerScriptKo": {"type": "STRING"},
+                                "trailerScriptEn": {"type": "STRING"},
+                            },
+                            "required": [
+                                "story", "attentionDevice", "attentionAction", "attentionExpression", "attentionMood",
+                                "imagePromptA", "imagePromptB", "imagePromptC", "imagePromptD",
+                                "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
+                                "dialogue", "dialogueEn", "narration", "narrationEn",
+                                "sfx", "sfxEn", "bgm", "bgmEn",
+                                "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
+                                "backgroundIdA", "backgroundIdB", "backgroundIdC", "backgroundIdD",
+                                "trailerScriptKo", "trailerScriptEn",
+                            ],
+                        },
+                    },
+                },
+                "required": ["sceneTitle", "clips"],
+            },
+        },
+        "voicePrompts": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "promptKo": {"type": "STRING"},
+                    "promptEn": {"type": "STRING"},
+                },
+                "required": ["promptKo", "promptEn"],
+            },
+        },
+        "characterIdSummary": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "characterId": {"type": "STRING"},
+                    "description": {"type": "STRING"},
+                },
+                "required": ["characterId", "description"],
+            },
+        },
+        "genre": {"type": "STRING"},
+    },
+    "required": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
+    "propertyOrdering": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
+}
+
 
 class CancellationRequested(Exception):
     """Raised when job cancellation is detected."""
@@ -377,7 +468,8 @@ async def process_storyboard(
         panel_count = len(re.findall(r'\[PANEL \d+\]', source_text))
         logger.info(f"[STORYBOARD] {job_id} - Detected {panel_count} panels in source text")
 
-        if panel_count > BATCH_SIZE:
+        trailer_active = job.is_trailer_mode and bool(job.selected_trailer_script)
+        if panel_count > BATCH_SIZE and not trailer_active:
             # Batched path: split into chunks, run sequential Gemini calls
             batches = _split_source_into_batches(source_text, BATCH_SIZE)
             total_batches = len(batches)
@@ -426,11 +518,15 @@ async def process_storyboard(
             logger.info(f"[STORYBOARD] {job_id} - Merged: {len(result.get('scenes', []))} scenes total")
 
         else:
-            # Single-call path (original behavior)
-            logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
-            result, _usage = await _generate_storyboard_with_gemini(
-                job, api_key, prompt_variant=prompt_variant
-            )
+            # Single-call path
+            if job.is_trailer_mode and job.selected_trailer_script:
+                logger.info(f"[STORYBOARD] {job_id} - Trailer mode: non-sequential storyboard generation...")
+                result, _usage = await _generate_trailer_storyboard_with_gemini(job, api_key)
+            else:
+                logger.info(f"[STORYBOARD] {job_id} - Calling Gemini API for storyboard generation...")
+                result, _usage = await _generate_storyboard_with_gemini(
+                    job, api_key, prompt_variant=prompt_variant
+                )
             logger.info(f"[STORYBOARD] {job_id} - Generated {len(result.get('scenes', []))} scenes")
 
             try:
@@ -558,8 +654,6 @@ async def _generate_storyboard_with_gemini(
     video_instruction = job.video_instruction or ""
     image_instruction = job.image_instruction or ""
     image_prompt_qa = job.image_prompt_qa or ""
-    selected_trailer_script = job.selected_trailer_script or ""
-    is_trailer_mode = job.is_trailer_mode or False
     detected_locations = job.detected_locations or []
     source_text = source_text_override if source_text_override is not None else (job.source_text or "")
 
@@ -735,8 +829,6 @@ async def _generate_storyboard_with_gemini(
     - **다중 캐릭터 위치 지정**: 클립에 두 명 이상의 캐릭터(ID)가 등장할 경우, 모든 이미지 프롬프트에 반드시 각 캐릭터의 상대적인 위치(왼쪽/오른쪽)를 명시하십시오. (예: "[CHARACTER_ID] is on the left side, and [CHARACTER_ID2] is right side next to [CHARACTER_ID]"). 이는 이미지 생성 시 캐릭터의 위치가 뒤바뀌는 것을 방지하기 위함입니다.
     - **캐릭터 자세 및 위치 명시**: 기본적으로 캐릭터들은 서 있는(standing) 상태로 간주합니다. 단, 스토리 정황상 캐릭터가 앉아있거나(sitting), 누워있는(lying down) 등 자세에 변수가 생기는 경우, 정확히 어디에 앉아있는지, 어디에 누워있는지 매번 구체적으로 명시하십시오. (예: "[ELISA_PRESENT] is sitting on a velvet sofa", "[LEON_BABY] is lying down in a wooden crib").
 
-    {'**[CRITICAL: 씬 도입부 인서트컷 (Insert Cut)]**' if is_trailer_mode else ''}
-    {'새로운 씬(Scene)이 시작될 때, 첫 번째 클립은 반드시 **인물이 없는 배경 인서트컷(Insert Cut)**이어야 합니다. 해당 장소를 암시하는 소품(Item)의 클로즈업(Close-up)이나, 배경의 분위기를 보여주는 정적인 샷으로 구성하십시오. 이 클립의 모든 이미지 프롬프트(imagePrompt, imagePromptA~D)에는 인물 묘사가 없어야 합니다.' if is_trailer_mode else ''}
 
     5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
     스토리나 대사에서 캐릭터가 떨고있거나(shivering), 기침하거나(coughing), 눈물을 흘리거나(tears flowing) 등 신체적/감정적 상태가 암시되는 경우, 해당 키워드를 반드시 videoPrompt에 명시하십시오.
@@ -820,17 +912,6 @@ async def _generate_storyboard_with_gemini(
     {image_prompt_qa}
     ''' if image_prompt_qa else ''}
 
-    {f'''
-    **[CRITICAL: 트레일러 스크립트 배치 규칙]**
-    - 사용자가 선택한 트레일러 스크립트(Trailer Script)가 제공됩니다.
-    - 이 스크립트의 각 라인을 적절한 클립의 `trailerScriptKo` 필드에 하나씩 배치하십시오.
-    - 스크립트 라인 수보다 클립 수가 많을 수 있으므로, 내용과 어울리지 않거나 여백이 필요한 클립의 `trailerScriptKo` 필드는 비워두어도 됩니다.
-    - `trailerScriptEn` 필드에는 `trailerScriptKo`에 배치된 스크립트의 영문 번역본을 작성하십시오.
-    - 기존의 `dialogue`, `narration` 필드는 원본 텍스트와의 대조를 위해 유지되므로, 트레일러 스크립트와 별개로 위 규칙에 따라 작성하십시오.
-
-    **[선택된 트레일러 스크립트]**
-    {selected_trailer_script}
-    ''' if selected_trailer_script else ''}
 
     {continuation_block}
 
@@ -840,104 +921,21 @@ async def _generate_storyboard_with_gemini(
     ---
     """
 
-    # Define response schema
-    response_schema = {
-        "type": "OBJECT",
-        "properties": {
-            "scenes": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "sceneTitle": {"type": "STRING"},
-                        "clips": {
-                            "type": "ARRAY",
-                            "items": {
-                                "type": "OBJECT",
-                                "properties": {
-                                    "story": {"type": "STRING"},
-                                    "attentionDevice": {"type": "STRING"},
-                                    "attentionAction": {"type": "STRING"},
-                                    "attentionExpression": {"type": "STRING"},
-                                    "attentionMood": {"type": "STRING"},
-                                    "imagePromptA": {"type": "STRING"},
-                                    "imagePromptB": {"type": "STRING"},
-                                    "imagePromptC": {"type": "STRING"},
-                                    "imagePromptD": {"type": "STRING"},
-                                    "imagePrompt": {"type": "STRING"},
-                                    "videoPrompt": {"type": "STRING"},
-                                    "soraVideoPrompt": {"type": "STRING"},
-                                    "veoVideoPrompt": {"type": "STRING"},
-                                    "pixAiPrompt": {"type": "STRING"},
-                                    "dialogue": {"type": "STRING"},
-                                    "dialogueEn": {"type": "STRING"},
-                                    "narration": {"type": "STRING"},
-                                    "narrationEn": {"type": "STRING"},
-                                    "sfx": {"type": "STRING"},
-                                    "sfxEn": {"type": "STRING"},
-                                    "bgm": {"type": "STRING"},
-                                    "bgmEn": {"type": "STRING"},
-                                    "length": {"type": "STRING"},
-                                    "accumulatedTime": {"type": "STRING"},
-                                    "backgroundPrompt": {"type": "STRING"},
-                                    "backgroundId": {"type": "STRING"},
-                                    "backgroundIdA": {"type": "STRING"},
-                                    "backgroundIdB": {"type": "STRING"},
-                                    "backgroundIdC": {"type": "STRING"},
-                                    "backgroundIdD": {"type": "STRING"},
-                                    "trailerScriptKo": {"type": "STRING"},
-                                    "trailerScriptEn": {"type": "STRING"},
-                                },
-                                "required": [
-                                    "story", "attentionDevice", "attentionAction", "attentionExpression", "attentionMood",
-                                    "imagePromptA", "imagePromptB", "imagePromptC", "imagePromptD",
-                                    "imagePrompt", "videoPrompt", "soraVideoPrompt", "veoVideoPrompt", "pixAiPrompt",
-                                    "dialogue", "dialogueEn", "narration", "narrationEn",
-                                    "sfx", "sfxEn", "bgm", "bgmEn",
-                                    "length", "accumulatedTime", "backgroundPrompt", "backgroundId",
-                                    "backgroundIdA", "backgroundIdB", "backgroundIdC", "backgroundIdD",
-                                    "trailerScriptKo", "trailerScriptEn",
-                                ],
-                            },
-                        },
-                    },
-                    "required": ["sceneTitle", "clips"],
-                },
-            },
-            "voicePrompts": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "promptKo": {"type": "STRING"},
-                        "promptEn": {"type": "STRING"},
-                    },
-                    "required": ["promptKo", "promptEn"],
-                },
-            },
-            "characterIdSummary": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "characterId": {"type": "STRING"},
-                        "description": {"type": "STRING"},
-                    },
-                    "required": ["characterId", "description"],
-                },
-            },
-            "genre": {
-                "type": "STRING",
-            },
-        },
-        "required": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
-        "propertyOrdering": ["scenes", "voicePrompts", "characterIdSummary", "genre"],
-    }
+    result, usage_metadata = await _call_gemini_and_parse(client, prompt, STORYBOARD_RESPONSE_SCHEMA)
+    _postprocess_storyboard_result(result)
+    return result, usage_metadata
 
-    # Call Gemini with retry logic
+
+async def _call_gemini_and_parse(
+    client: genai.Client,
+    prompt: str,
+    response_schema: dict,
+) -> tuple[dict, object]:
+    """Call Gemini with retry logic, parse and repair JSON, return (result, usage_metadata)."""
     max_retries = 3
     initial_delay = 2000
     delay = initial_delay
+    response = None
 
     for attempt in range(max_retries):
         try:
@@ -965,14 +963,11 @@ async def _generate_storyboard_with_gemini(
     if not response_text:
         raise ValueError("Empty response from Gemini API")
 
-    # Prefer structured payload when available from Gemini SDK.
     parsed_payload = getattr(response, "parsed", None)
     if isinstance(parsed_payload, dict):
         result = parsed_payload
     else:
-        # Clean up markdown code fences in case the model wraps JSON anyway.
         json_text = response_text.replace("```json", "").replace("```", "").strip()
-
         try:
             result = json.loads(json_text)
         except json.JSONDecodeError as parse_err:
@@ -1000,10 +995,15 @@ async def _generate_storyboard_with_gemini(
                     retry_text = retry_response.text.strip() if retry_response.text else ""
                     retry_json = retry_text.replace("```json", "").replace("```", "").strip()
                     retry_repaired = _repair_json(retry_json)
-                    result = json.loads(retry_repaired)  # Let it raise if still broken
+                    result = json.loads(retry_repaired)
                     logger.info("[STORYBOARD] Retry succeeded")
 
-    # Debug: log attention field presence on the first clip of the first scene
+    return result, response.usage_metadata
+
+
+def _postprocess_storyboard_result(result: dict) -> None:
+    """Apply prompt suffixes, background ID appending, and normalization to all clips in-place."""
+    # Debug: log attention field presence on the first clip
     first_scene = result.get("scenes", [{}])[0] if result.get("scenes") else {}
     first_clip = first_scene.get("clips", [{}])[0] if first_scene.get("clips") else {}
     logger.debug(
@@ -1020,28 +1020,22 @@ async def _generate_storyboard_with_gemini(
         bool(first_clip.get("imagePromptD")),
     )
 
-    # Fix background ID conflicts before appending IDs to image prompts
     fixed_count = _fix_background_id_conflicts(result)
     if fixed_count:
         logger.info("[STORYBOARD] Fixed %d background ID conflict(s).", fixed_count)
 
-    # Post-process: apply suffix to imagePrompt and append Background ID
     attention_filled = 0
     attention_empty = 0
     for scene in result.get("scenes", []):
         for clip in scene.get("clips", []):
-            # Normalize alternate key styles before downstream processing.
             _normalize_attention_fields(clip)
 
-            # Apply suffix to imagePrompt
             clip["imagePrompt"] = _append_suffix(clip.get("imagePrompt", ""))
 
-            # Append Background ID to imagePrompt
             bg_id = clip.get("backgroundId", "")
             if bg_id and bg_id.strip():
                 clip["imagePrompt"] = f"{clip['imagePrompt']}\n\nBackground ID: {bg_id}"
 
-            # Append VIDEO_PROMPT_SUFFIX to videoPrompt
             vp = clip.get("videoPrompt", "").strip()
             if vp:
                 connector = " " if (vp.endswith('.') or vp.endswith(',')) else ", "
@@ -1049,11 +1043,9 @@ async def _generate_storyboard_with_gemini(
             else:
                 clip["videoPrompt"] = VIDEO_PROMPT_SUFFIX
 
-            # Append PIXAI_PROMPT_SUFFIX to pixAiPrompt
             raw = clip.get("pixAiPrompt", "").strip()
             clip["pixAiPrompt"] = f"{raw}, {PIXAI_PROMPT_SUFFIX}" if raw else PIXAI_PROMPT_SUFFIX
 
-            # Apply suffix to imagePromptA/B/C/D and append respective Background IDs
             for letter in ("A", "B", "C", "D"):
                 val = clip.get(f"imagePrompt{letter}", "")
                 if val:
@@ -1063,7 +1055,6 @@ async def _generate_storyboard_with_gemini(
                         val = f"{val}\n\nBackground ID: {bg_id_variant}"
                     clip[f"imagePrompt{letter}"] = val
 
-            # Count attention field coverage for summary log
             filled = sum(1 for f in ("attentionDevice", "attentionAction", "attentionExpression", "attentionMood") if clip.get(f))
             if filled == 4:
                 attention_filled += 1
@@ -1076,7 +1067,207 @@ async def _generate_storyboard_with_gemini(
         attention_filled, total_clips, attention_empty,
     )
 
-    return result, response.usage_metadata
+
+async def _generate_trailer_storyboard_with_gemini(
+    job: JobDocument,
+    api_key: str,
+) -> tuple[dict, object]:
+    """
+    Generate a non-sequential trailer storyboard where each trailer script line
+    anchors one scene. Scenes are ordered by the trailer script's dramatic arc,
+    not the source text's chronological order.
+    """
+    client = genai.Client(api_key=api_key)
+
+    exact_clip_count = job.clip_count if (job.clip_count and job.clip_count > 0) else 95
+
+    # Parse trailer script lines to determine scene structure
+    trailer_lines_raw: list[str] = []
+    try:
+        parsed = json.loads(job.selected_trailer_script or "[]")
+        if isinstance(parsed, list):
+            trailer_lines_raw = [str(line) for line in parsed if str(line).strip()]
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    num_trailer_lines = len(trailer_lines_raw)
+    clips_per_scene = max(1, round(exact_clip_count / num_trailer_lines)) if num_trailer_lines else 5
+    trailer_script_text = "\n".join(
+        f"{i + 1}. {line}" for i, line in enumerate(trailer_lines_raw)
+    )
+
+    # Job conditions
+    story_condition = job.story_condition or ""
+    image_condition = job.image_condition or ""
+    video_condition = job.video_condition or ""
+    sound_condition = job.sound_condition or ""
+    image_guide = job.image_guide or ""
+    video_guide = job.video_guide or ""
+    custom_instruction = job.custom_instruction or ""
+    background_instruction = job.background_instruction or ""
+    negative_instruction = job.negative_instruction or ""
+    video_instruction = job.video_instruction or ""
+    image_instruction = job.image_instruction or ""
+    image_prompt_qa = job.image_prompt_qa or ""
+    source_text = job.source_text or ""
+
+    prompt = f"""
+    다음 원본 텍스트를 기반으로 **트레일러 콘티**를 제작해 주세요.
+    이 콘티는 원본 스토리의 시간 순서를 따르지 않습니다. 아래 트레일러 스크립트의 극적 구조를 따릅니다.
+
+    **[CRITICAL: 트레일러 씬 구성 원칙 — 절대 준수]**
+    - 트레일러 스크립트 라인 수: **{num_trailer_lines}개**
+    - 각 라인은 하나의 씬(Scene)을 정의합니다. **씬의 순서는 트레일러 스크립트의 순서를 따릅니다.**
+    - 각 씬은 해당 트레일러 스크립트 라인이 묘사하는 원본 텍스트 속 **특정 순간**을 찾아 시각화합니다.
+    - 트레일러 스크립트가 다루지 않는 원본 텍스트의 나머지 부분은 **건너뜁니다(SKIP).**
+    - 총 씬 수 = **{num_trailer_lines}개** (트레일러 스크립트 라인 수와 동일)
+    - 씬당 클립 수: 각 씬은 **약 {clips_per_scene}개**의 클립으로 구성합니다.
+    - 전체 클립의 수는 **정확히 {exact_clip_count}개**여야 합니다. 이 숫자는 절대적인 요구사항입니다.
+
+    **[트레일러 스크립트 = 씬 목록]**
+    각 번호가 씬 번호입니다. 이 순서대로 씬을 생성하십시오:
+
+    {trailer_script_text}
+
+    **[씬 생성 절차 — 반드시 이 순서를 따르십시오]**
+    1. 트레일러 스크립트의 첫 번째 라인 → 씬 1
+    2. 원본 텍스트에서 이 라인의 대사/나레이션이 등장하는 구체적인 순간을 찾는다
+    3. 해당 순간을 중심으로 약 {clips_per_scene}개의 클립을 생성한다
+    4. 씬의 첫 번째 클립의 `trailerScriptKo` 필드에 해당 스크립트 라인을 배치한다
+    5. `trailerScriptEn` 필드에 해당 라인의 영문 번역을 작성한다
+    6. 다음 트레일러 스크립트 라인으로 이동 → 씬 2를 동일하게 생성한다
+    7. {num_trailer_lines}개 라인 모두 반복한다
+
+    **[중요]** 씬의 순서는 원본 텍스트의 시간 순서가 아닌 **트레일러 스크립트의 순서**를 따른다.
+    원본에서 더 뒤에 나오는 사건이 앞 씬에 등장할 수 있으며, 이것은 의도된 동작이다.
+    `dialogue`와 `narration` 필드는 해당 클립이 묘사하는 순간의 원본 텍스트에서 발췌한다.
+
+    **[CRITICAL: 씬 도입부 인서트컷 (Insert Cut)]**
+    새로운 씬(Scene)이 시작될 때, 첫 번째 클립은 반드시 **인물이 없는 배경 인서트컷(Insert Cut)**이어야 합니다. 해당 장소를 암시하는 소품(Item)의 클로즈업(Close-up)이나, 배경의 분위기를 보여주는 정적인 샷으로 구성하십시오. 이 클립의 모든 이미지 프롬프트(imagePrompt, imagePromptA~D)에는 인물 묘사가 없어야 합니다.
+
+    **[배경 ID 규칙]**
+    원본 텍스트 전체를 훑어 물리적 장소 목록을 먼저 파악한 뒤, 각 장소에 고유 번호를 부여하십시오.
+    backgroundId 형식: "{{장소번호}}-{{앵글번호}}" (예: 3-1, 7-6)
+    - 장소번호: 물리적으로 고유한 공간 (동일 공간 재등장 시 반드시 동일 번호 사용)
+    - 앵글번호 1~9: 1=Front, 2=Worm/Low, 3=Char A, 4=Char B, 5=Rear, 6=Bird's Eye, 7=OTS-A, 8=OTS-B, 9=Floor
+    - backgroundIdA/B/C/D도 동일 형식, 각 이미지 프롬프트 구도에 맞는 앵글 선택
+
+    **[CRITICAL: 클립 길이 계산 규칙]**
+    모든 클립의 길이는 **절대로 4초를 넘을 수 없습니다.** dialogueEn 단어 수 기준: 0~5단어=2초, 6단어 이상=4초(최대).
+
+    **[가장 중요한 규칙]**
+    하나의 클립은 반드시 하나의 단일 동작이나 정지된 장면만을 묘사해야 합니다.
+
+    각 필드에 대한 지침:
+
+    1. **sceneTitle**: 각 씬의 주요 내용을 요약하는 제목을 한국어로 작성합니다.
+
+    2. **story**: 규칙: {story_condition}
+
+    3. **imagePrompt**: 영어로 작성. 규칙: {image_condition}. 가이드: {image_guide or '없음'}
+
+    4. **attention 필드**: story를 분석하여 시각적으로 주목할 요소 4가지를 각각 아래 필드에 한국어로 출력하십시오.
+    - **attentionDevice**: 오브젝트/인서트컷 유형 — 장면 속 핵심 소품·사물
+    - **attentionAction**: 행동 유형 — 인물이 취하는 구체적인 동작
+    - **attentionExpression**: 감정 유형 — 인물의 감정 상태·신체 반응
+    - **attentionMood**: 분위기 유형 — 장면 전체의 감정적 톤·분위기를 한 단어나 짧은 구로
+
+    4-2. **imagePromptA**: 오브젝/인서트컷(attentionDevice) 타입 — 극단적 클로즈업, 인물 얼굴/표정 제외.
+    4-3. **imagePromptB**: 행동(attentionAction) 타입 — 첫 단어는 카메라 거리+각도.
+    4-4. **imagePromptC**: 감정(attentionExpression) 타입 — 얼굴/눈/동공 극단적 클로즈업, 배경 단색 처리.
+    4-5. **imagePromptD**: 감정 증폭 타입 — 장면의 감정 강도를 시각적으로 극대화, 방법론 자유.
+
+    {f'이미지 가이드 패키지가 제공된 경우, 위 4-2~4-5 프롬프트는 아래 패키지의 스타일·구조·패턴을 분석하여 동일한 유형으로 작성하십시오.' if image_prompt_qa else ''}
+
+    **[CRITICAL: 캐릭터 묘사 규칙]**
+    - 'two people', 'two characters', 'a man' 등 모호한 표현 금지 — 반드시 고유 캐릭터 ID 사용.
+    - 두 명 이상 등장 시 각 캐릭터의 상대적 위치(왼쪽/오른쪽) 명시.
+    - 기본 자세는 standing. 앉거나 누울 경우 구체적 위치 명시.
+
+    5. **videoPrompt**: 영어로 작성. 규칙: {video_condition}. 가이드: {video_guide or '없음'}
+
+    6. **dialogue**: 한국어 대사. 반드시 원본 텍스트에서 토씨 하나 틀리지 않고 발췌. 규칙: {sound_condition}
+
+    7. **dialogueEn**: dialogue의 영어 번역
+
+    7-1. **narration**: 대사가 없는 클립의 한국어 나레이션 (원본 텍스트에서 발췌)
+
+    7-2. **narrationEn**: narration의 영어 번역
+
+    8. **sfx**: 한국어 효과음
+    9. **sfxEn**: sfx의 영어 번역
+    10. **bgm**: 한국어 배경음악
+    11. **bgmEn**: bgm의 영어 번역
+
+    12. **soraVideoPrompt**: Sora 비디오 AI용 영어 프롬프트
+
+    19. **veoVideoPrompt**: Google Veo 비디오 AI용 영어 프롬프트. 템플릿:
+      - 대사 있음: `Static shot of [imagePrompt 시각적 묘사], saying "[dialogueEn]"`
+      - 배경만: `Fixed lo-fi static background wallpaper, slow dolly-in`
+      - 나레이션 있음 (대사 없음): `Static storybook lofi wallpaper, narration says "[narrationEn]"`
+
+    20. **pixAiPrompt**: PixAI 애니메이션 스타일 이미지 생성 AI용 영어 프롬프트.
+
+    13. **length**: "1초", "2초", "4초" 형식
+    14. **accumulatedTime**: "MM:SS" 형식 누적 시간
+    15. **backgroundPrompt**: 영어 배경 묘사
+
+    16. **voicePrompts**: 주요 캐릭터의 보이스 프롬프트 (promptKo, promptEn)
+
+    17. **characterIdSummary**: 모든 클립의 imagePrompt에 등장하는 모든 대문자 캐릭터 ID 요약 리스트.
+      1. 현재 시점 주인공 가장 먼저, "Protagonist. Default"로 설명.
+      2. 각 캐릭터 그룹에서 디폴트 버전 먼저 식별.
+      3. 디폴트 캐릭터는 주인공과의 관계 + "Default" 추가.
+      4. 변형(Variant) 캐릭터는 해당 디폴트 ID 기준으로 설명.
+
+    18. **genre**: 원본 텍스트의 장르를 "한국어 장르명 (English Genre Name)" 형식으로.
+
+    {f'''
+    **[사용자 특별 지시사항]**
+    {custom_instruction}
+    ''' if custom_instruction else ''}
+
+    {f'''
+    **[배경 ID 지시사항]**
+    {background_instruction}
+    ''' if background_instruction else ''}
+
+    {f'''
+    **[Negative Prompt]**
+    {negative_instruction}
+    ''' if negative_instruction else ''}
+
+    {f'''
+    **[비디오 프롬프트 규칙]**
+    {video_instruction}
+    ''' if video_instruction else ''}
+
+    {f'''
+    **[이미지 프롬프트 패키지 지시사항]**
+    {image_instruction}
+    ''' if image_instruction else ''}
+
+    {f'''
+    **[이미지 가이드 패키지 — A/B/C/D 프롬프트 스타일 분석용]**
+    아래 패키지에 포함된 예시 프롬프트들을 분석하여 각 유형의 스타일, 구조, 표현 패턴을 파악하십시오.
+    imagePromptA, imagePromptB, imagePromptC, imagePromptD 생성 시 이 패키지의 패턴을 따르십시오.
+    {image_prompt_qa}
+    ''' if image_prompt_qa else ''}
+
+    원본 텍스트:
+    ---
+    {source_text}
+    ---
+    """
+
+    result, usage_metadata = await _call_gemini_and_parse(client, prompt, STORYBOARD_RESPONSE_SCHEMA)
+    _postprocess_storyboard_result(result)
+    logger.info(
+        "[STORYBOARD-TRAILER] Generated %d scenes (expected %d trailer lines)",
+        len(result.get("scenes", [])),
+        num_trailer_lines,
+    )
+    return result, usage_metadata
 
 
 async def process_storyboard_reference(

@@ -160,23 +160,47 @@ const ClipTableRow = React.memo(function ClipTableRow({
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-24 text-center">
           {row.accumulatedTime}
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
-          {row.backgroundId}
+        <td className="px-4 py-4 text-sm text-[#DB2777] min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundId}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundId')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundId', newValue)}
+          />
         </td>
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          <div className="whitespace-pre-wrap">{row.backgroundPrompt || ""}</div>
+          <EditablePromptCell
+            value={row.backgroundPrompt || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundPrompt', newValue)}
+          />
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
-          {row.backgroundIdA || ""}
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdA || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdA')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdA', newValue)}
+          />
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
-          {row.backgroundIdB || ""}
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdB || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdB')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdB', newValue)}
+          />
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
-          {row.backgroundIdC || ""}
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdC || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdC')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdC', newValue)}
+          />
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777]/70 w-24 text-center font-mono">
-          {row.backgroundIdD || ""}
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdD || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdD')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdD', newValue)}
+          />
         </td>
 
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
@@ -189,16 +213,32 @@ const ClipTableRow = React.memo(function ClipTableRow({
 
         {/* Attention reference fields */}
         <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
-          <div className="whitespace-pre-wrap">{row.attentionDevice || ""}</div>
+          <EditablePromptCell
+            value={row.attentionDevice || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionDevice')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionDevice', newValue)}
+          />
         </td>
         <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
-          <div className="whitespace-pre-wrap">{row.attentionAction || ""}</div>
+          <EditablePromptCell
+            value={row.attentionAction || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionAction')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionAction', newValue)}
+          />
         </td>
         <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
-          <div className="whitespace-pre-wrap">{row.attentionExpression || ""}</div>
+          <EditablePromptCell
+            value={row.attentionExpression || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionExpression')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionExpression', newValue)}
+          />
         </td>
         <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
-          <div className="whitespace-pre-wrap">{row.attentionMood || ""}</div>
+          <EditablePromptCell
+            value={row.attentionMood || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionMood')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionMood', newValue)}
+          />
         </td>
 
         {/* A/B/C/D image prompt variants */}

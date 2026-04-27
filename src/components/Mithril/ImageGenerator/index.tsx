@@ -245,6 +245,7 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
         }
 
@@ -270,6 +271,7 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
         }
 
@@ -380,6 +382,7 @@ const { language, dictionary } = useLanguage();
                   remixImageUrl: savedFrame.remixImageRef || null,
                   hasDrawingEdits: !!savedFrame.editedImageRef,
                   editedImageUrl: savedFrame.editedImageRef || null,
+                  inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                 };
               }
               return sbFrame;
@@ -445,6 +448,7 @@ const { language, dictionary } = useLanguage();
                       remixImageBase64: null,
                       hasDrawingEdits: false,
                       editedImageUrl: null,
+                      inpaintedImageUrl: null,
                     });
                   }
                   if (clip.imagePromptEnd) {
@@ -467,6 +471,7 @@ const { language, dictionary } = useLanguage();
                       remixImageBase64: null,
                       hasDrawingEdits: false,
                       editedImageUrl: null,
+                      inpaintedImageUrl: null,
                     });
                   }
                   shotGroup++;
@@ -493,6 +498,7 @@ const { language, dictionary } = useLanguage();
                     remixImageUrl: savedFrame.remixImageRef || null,
                     hasDrawingEdits: !!savedFrame.editedImageRef,
                     editedImageUrl: savedFrame.editedImageRef || null,
+                    inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                   };
                 }
                 return fbFrame;
@@ -522,6 +528,7 @@ const { language, dictionary } = useLanguage();
                 remixImageBase64: null,
                 hasDrawingEdits: !!sf.editedImageRef,
                 editedImageUrl: sf.editedImageRef || null,
+                inpaintedImageUrl: sf.inpaintImageRef || null,
               }));
             }
           }
@@ -1222,6 +1229,7 @@ const { language, dictionary } = useLanguage();
       remixImageBase64: null,
       hasDrawingEdits: false,
       editedImageUrl: null,
+      inpaintedImageUrl: null,
     }));
 
     // Replace only this part's frames, keeping other parts intact
@@ -1465,6 +1473,7 @@ const { language, dictionary } = useLanguage();
         remixImageBase64: null,
         hasDrawingEdits: false,
         editedImageUrl: null,
+        inpaintedImageUrl: null,
       };
 
       // If both start and end prompts exist, create A/B frames
@@ -2331,6 +2340,8 @@ const { language, dictionary } = useLanguage();
                       onRemix={() => {}}
                       onUseRemix={handleUseRemix}
                       onEdit={() => {}}
+                      onInpaint={() => {}}
+                      onUseInpaint={() => {}}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}
                       isBatchRunning={isBatchRunning}

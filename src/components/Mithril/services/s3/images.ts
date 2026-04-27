@@ -37,6 +37,7 @@ import {
   getImageGenFrameKey,
   getImageGenRemixKey,
   getImageGenEditedKey,
+  getImageGenInpaintKey,
   getI2VPageKey,
   getI2VPanelKey,
   getI2VPanelEditorKey,
@@ -916,6 +917,40 @@ export async function uploadImageGenRemixImage(
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to upload imagegen remix image');
+  }
+
+  return result.url;
+}
+
+/**
+ * Upload an imagegen inpaint result image to S3
+ * @returns S3 URL for the uploaded image
+ */
+export async function uploadImageGenInpaintImage(
+  projectId: string,
+  frameId: string,
+  base64: string,
+  mimeType = 'image/webp'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'imagegen',
+    frameId,
+    imageGenSubtype: 'inpaint',
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to upload imagegen inpaint image');
   }
 
   return result.url;

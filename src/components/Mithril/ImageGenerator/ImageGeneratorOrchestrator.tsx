@@ -36,6 +36,7 @@ import {
   saveImageGenMeta,
   saveImageGenFrames,
   saveImageGenFrame,
+  updateImageGenFrame,
   clearImageGen,
   deleteImageGenFramesByPart,
 } from "../services/firestore/imageGen";
@@ -56,7 +57,10 @@ import { useImageOrchestrator, FrameUpdate } from "./useImageOrchestrator";
 import {
   getActiveProjectImageJobs,
   mapImageJobToFrameUpdate,
+  subscribeToSessionPanelJobs,
+  type JobQueueDocument,
 } from "../services/firestore/jobQueue";
+import { InpaintModal } from "../ImageToVideo/PanelEditor/InpaintModal";
 
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
@@ -140,6 +144,12 @@ const { language, dictionary } = useLanguage();
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingAssetName, setEditingAssetName] = useState<string>("");
 
+  // Inpaint state
+  const [inpaintFrameId, setInpaintFrameId] = useState<string | null>(null);
+  const [inpaintIsLoading, setInpaintIsLoading] = useState(false);
+  const [inpaintError, setInpaintError] = useState<string | null>(null);
+  const [inpaintingFrameIds, setInpaintingFrameIds] = useState<Set<string>>(new Set());
+
   // Refs for stable references in async operations
   const framesRef = useRef<ImageGenFrame[]>([]);
   const isBatchRunningRef = useRef(false);
@@ -149,6 +159,8 @@ const { language, dictionary } = useLanguage();
   const frameToJobMap = useRef<Map<string, string>>(new Map()); // frameId -> jobId mapping
   const shouldStopRef = useRef(false);
   const currentProjectIdRef = useRef(currentProjectId);
+  const inpaintSessionIdRef = useRef(uuidv4());
+  const activeInpaintJobsRef = useRef<Map<string, string>>(new Map()); // frameId -> jobId
 
 
   // Keep refs in sync
@@ -174,6 +186,7 @@ const { language, dictionary } = useLanguage();
       isBatchRunningRef.current = false;
       activeJobsRef.current.clear();
       frameToJobMap.current.clear();
+      activeInpaintJobsRef.current.clear();
     };
   }, []);
 
@@ -319,6 +332,58 @@ const { language, dictionary } = useLanguage();
     ),
   });
 
+  // Handle inpaint job update from Firestore (panel job)
+  const handleInpaintJobUpdate = useCallback((job: JobQueueDocument) => {
+    if (!isMountedRef.current) return;
+    const frameId = job.panel_id;
+    if (!frameId) return;
+    if (!activeInpaintJobsRef.current.has(frameId)) return;
+
+    const isTerminal = job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled';
+
+    if (job.status === 'completed' && job.image_url) {
+      const imageUrl = job.image_url;
+      setFrames((prev) =>
+        prev.map((f) => f.id === frameId ? { ...f, inpaintedImageUrl: imageUrl } : f)
+      );
+      setInpaintingFrameIds((prev) => {
+        const next = new Set(prev);
+        next.delete(frameId);
+        return next;
+      });
+      activeInpaintJobsRef.current.delete(frameId);
+
+      const projectId = currentProjectIdRef.current;
+      if (projectId) {
+        updateImageGenFrame(projectId, frameId, { inpaintImageRef: imageUrl }).catch((err) => {
+          console.error('[ImageGenOrchestrator] Failed to persist inpaintImageRef:', err);
+        });
+      }
+
+      toast({ title: 'Inpaint Complete', description: 'Inpaint result is ready.' });
+    } else if (isTerminal) {
+      setInpaintingFrameIds((prev) => {
+        const next = new Set(prev);
+        next.delete(frameId);
+        return next;
+      });
+      activeInpaintJobsRef.current.delete(frameId);
+
+      if (job.status === 'failed') {
+        toast({ title: 'Inpaint Failed', description: job.error_message || 'Inpaint job failed.', variant: 'destructive' });
+      }
+    }
+  }, [toast]);
+
+  // Subscribe to inpaint panel jobs scoped to this component's session
+  useEffect(() => {
+    if (currentStage !== 7) return;
+    const unsub = subscribeToSessionPanelJobs(inpaintSessionIdRef.current, (jobs) => {
+      jobs.forEach((job) => handleInpaintJobUpdate(job));
+    });
+    return () => unsub();
+  }, [currentStage, handleInpaintJobUpdate]);
+
   // Load character and background assets from previous stages
   const loadAssets = useCallback(() => {
     // Load characters AND objects from PropDesigner (Stage 5)
@@ -406,6 +471,7 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
         }
 
@@ -431,6 +497,7 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
         }
 
@@ -533,6 +600,7 @@ const { language, dictionary } = useLanguage();
               remixImageBase64: null,
               hasDrawingEdits: !!sf.editedImageRef,
               editedImageUrl: sf.editedImageRef || null,
+              inpaintedImageUrl: sf.inpaintImageRef || null,
             }));
           } else {
             // Load storyboard frames for ALL parts so multi-part projects reload correctly.
@@ -565,6 +633,7 @@ const { language, dictionary } = useLanguage();
                     remixImageUrl: savedFrame.remixImageRef || null,
                     hasDrawingEdits: !!savedFrame.editedImageRef,
                     editedImageUrl: savedFrame.editedImageRef || null,
+                    inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                   };
                 }
                 return sbFrame;
@@ -621,6 +690,7 @@ const { language, dictionary } = useLanguage();
                         isLoading: false, remixPrompt: "",
                         remixImageUrl: null, remixImageBase64: null,
                         hasDrawingEdits: false, editedImageUrl: null,
+                        inpaintedImageUrl: null,
                       });
                     }
                     if (clip.imagePromptEnd) {
@@ -635,6 +705,7 @@ const { language, dictionary } = useLanguage();
                         status: "pending", isLoading: false, remixPrompt: "",
                         remixImageUrl: null, remixImageBase64: null,
                         hasDrawingEdits: false, editedImageUrl: null,
+                        inpaintedImageUrl: null,
                       });
                     }
                     shotGroup++;
@@ -660,6 +731,7 @@ const { language, dictionary } = useLanguage();
                       remixImageUrl: savedFrame.remixImageRef || null,
                       hasDrawingEdits: !!savedFrame.editedImageRef,
                       editedImageUrl: savedFrame.editedImageRef || null,
+                      inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                     };
                   }
                   return fbFrame;
@@ -677,6 +749,7 @@ const { language, dictionary } = useLanguage();
                   remixPrompt: sf.remixPrompt || "", remixImageUrl: sf.remixImageRef || null,
                   remixImageBase64: null, hasDrawingEdits: !!sf.editedImageRef,
                   editedImageUrl: sf.editedImageRef || null,
+                  inpaintedImageUrl: sf.inpaintImageRef || null,
                 }));
               }
             }
@@ -1381,6 +1454,101 @@ const { language, dictionary } = useLanguage();
     }
   }, [frames, currentProjectId, toast]);
 
+  const handleOpenInpaint = useCallback((frameId: string) => {
+    setInpaintFrameId(frameId);
+    setInpaintError(null);
+  }, []);
+
+  const handleInpaintSubmit = useCallback(async (
+    maskDataUrl: string,
+    prompt: string,
+    strength: number,
+    width: number,
+    height: number
+  ) => {
+    if (!currentProjectId || !inpaintFrameId) return;
+    const frame = framesRef.current.find((f) => f.id === inpaintFrameId);
+    if (!frame?.imageUrl) return;
+
+    const maskBase64 = maskDataUrl.replace(/^data:image\/[^;]+;base64,/, '');
+
+    setInpaintIsLoading(true);
+    setInpaintError(null);
+
+    try {
+      const response = await fetch('/api/image/inpaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          inpaintSessionId: inpaintSessionIdRef.current,
+          frameId: frame.id,
+          imageUrl: frame.imageUrl,
+          maskBase64,
+          prompt,
+          strength,
+          width,
+          height,
+          aspectRatio: settings.aspectRatio,
+          apiKey: customApiKey || undefined,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit inpaint job');
+      }
+
+      activeInpaintJobsRef.current.set(frame.id, data.jobId);
+      setInpaintingFrameIds((prev) => new Set([...prev, frame.id]));
+      setInpaintFrameId(null);
+    } catch (err: any) {
+      setInpaintError(err.message || 'Failed to submit inpaint job');
+    } finally {
+      setInpaintIsLoading(false);
+    }
+  }, [currentProjectId, inpaintFrameId, settings.aspectRatio, customApiKey]);
+
+  const handleUseInpaint = useCallback(async (frameId: string) => {
+    if (!currentProjectId) return;
+    const frame = framesRef.current.find((f) => f.id === frameId);
+    if (!frame?.inpaintedImageUrl) return;
+
+    const newImageUrl = frame.inpaintedImageUrl;
+    const now = Date.now();
+
+    setFrames((prev) =>
+      prev.map((f) =>
+        f.id === frameId
+          ? { ...f, imageUrl: newImageUrl, inpaintedImageUrl: null, imageUpdatedAt: now }
+          : f
+      )
+    );
+
+    try {
+      await saveImageGenFrame(currentProjectId, frameId, {
+        sceneIndex: frame.sceneIndex,
+        clipIndex: frame.clipIndex,
+        frameLabel: frame.frameLabel,
+        frameNumber: frame.frameNumber,
+        shotGroup: frame.shotGroup,
+        prompt: frame.prompt,
+        backgroundId: frame.backgroundId,
+        refFrame: frame.refFrame,
+        imageRef: newImageUrl,
+        imageUpdatedAt: now,
+        status: "completed",
+        remixPrompt: frame.remixPrompt || "",
+        remixImageRef: frame.remixImageUrl || null,
+        editedImageRef: frame.editedImageUrl || null,
+        inpaintImageRef: null,
+      });
+    } catch (err) {
+      console.error('[ImageGenOrchestrator] Error saving frame after use inpaint:', err);
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not persist the change." });
+    }
+  }, [currentProjectId, toast]);
+
   const handleBgChange = useCallback((id: string, value: string) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, backgroundId: value } : f)));
   }, []);
@@ -1559,6 +1727,7 @@ const { language, dictionary } = useLanguage();
         remixImageBase64: null,
         hasDrawingEdits: false,
         editedImageUrl: null,
+        inpaintedImageUrl: null,
       };
 
       if (startPrompt && endPrompt) {
@@ -2607,9 +2776,12 @@ const { language, dictionary } = useLanguage();
                       onRemix={handleRemixFrame}
                       onUseRemix={handleUseRemix}
                       onEdit={() => {}}
+                      onInpaint={handleOpenInpaint}
+                      onUseInpaint={handleUseInpaint}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}
                       isBatchRunning={isBatchRunning}
+                      isInpainting={inpaintingFrameIds.has(frame.id)}
                       globalIdx={frames.indexOf(frame)}
                       characterAssets={characterAssets}
                     />
@@ -2629,6 +2801,19 @@ const { language, dictionary } = useLanguage();
           onClose={() => setSelectedImageUrl(null)}
         />
       )}
+
+      {inpaintFrameId && (() => {
+        const f = framesRef.current.find((fr) => fr.id === inpaintFrameId);
+        return f?.imageUrl ? (
+          <InpaintModal
+            imageUrl={f.imageUrl}
+            onClose={() => { setInpaintFrameId(null); setInpaintError(null); }}
+            onSubmit={handleInpaintSubmit}
+            isLoading={inpaintIsLoading}
+            externalError={inpaintError ?? undefined}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

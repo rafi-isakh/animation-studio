@@ -416,6 +416,7 @@ export interface ImageGenFrameDocument {
   remixPrompt: string;
   remixImageRef: string | null;
   editedImageRef: string | null;
+  inpaintImageRef?: string | null;
   // NSFW variant fields
   promptVariant?: 'A' | 'B' | 'C';
   clipNumber?: number;
@@ -438,6 +439,7 @@ export interface SaveImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  inpaintImageRef?: string | null;
   // NSFW variant fields
   promptVariant?: 'A' | 'B' | 'C';
   clipNumber?: number;
@@ -454,6 +456,7 @@ export interface UpdateImageGenFrameInput {
   remixPrompt?: string;
   remixImageRef?: string | null;
   editedImageRef?: string | null;
+  inpaintImageRef?: string | null;
   isFinalized?: boolean;
 }
 

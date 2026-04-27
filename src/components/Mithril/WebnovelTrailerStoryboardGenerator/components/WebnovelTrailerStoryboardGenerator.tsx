@@ -305,10 +305,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
     []
   );
 
-  // State from Stage 2 (StorySplitter)
+  // State from Stage 2 (StorySplitter) — trailer always has exactly 1 part
   const [splitParts, setSplitParts] = useState<string[]>([]);
   const [chapterFileName, setChapterFileName] = useState<string>("");
-  const [selectedSourcePartIndex, setSelectedSourcePartIndex] = useState<number>(0);
   const generatedPartIndices = getGeneratedPartIndices();
 
   // Conditions state
@@ -350,16 +349,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [currentProjectId]);
 
   const handleGenerate = useCallback(async () => {
-    if (splitParts.length === 0) {
-      toast({
-        variant: "destructive",
-        title: phrase(dictionary, "storysplitter_error", language).replace(":", ""),
-        description: phrase(dictionary, "storyboard_toast_no_parts", language),
-      });
-      return;
-    }
-
-    const sourceText = trailerSourceText || splitParts[selectedSourcePartIndex];
+    const sourceText = trailerSourceText || splitParts[0];
     if (!sourceText) {
       toast({
         variant: "destructive",
@@ -388,7 +378,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
         ? JSON.stringify(selectedTrailerScript.script)
         : "",
       isTrailerMode: true,
-    }, selectedSourcePartIndex);
+    }, 0);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
@@ -400,7 +390,6 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [
     trailerSourceText,
     splitParts,
-    selectedSourcePartIndex,
     storyCondition,
     imageCondition,
     videoCondition,
@@ -964,7 +953,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {/* TrailerSurvey view */}
       {currentView === 'survey' && (
         <TrailerSurvey
-          initialSourceText={splitParts[selectedSourcePartIndex]}
+          initialSourceText={splitParts[0]}
           initialFileName={chapterFileName}
           onStart={(text, option) => {
             setTrailerSourceText(text);
@@ -986,57 +975,26 @@ export default function WebnovelTrailerStoryboardGenerator() {
           트레일러 서베이로 돌아가기
         </button>
 
-      {/* Part Selection */}
-      {splitParts.length > 0 ? (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {phrase(dictionary, "storyboard_select_part", language)}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {splitParts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedSourcePartIndex(index)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedSourcePartIndex === index
-                    ? "bg-[#DB2777] text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                {phrase(dictionary, "storysplitter_part", language)} {index + 1}
-              </button>
-            ))}
-          </div>
-
-          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {trailerSourceText
-                  ? "트레일러 텍스트 미리보기"
-                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedSourcePartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {((trailerSourceText || splitParts[selectedSourcePartIndex])?.length ?? 0).toLocaleString()}{" "}
-                {phrase(dictionary, "chars", language)}
-              </span>
-            </div>
-            <div className="max-h-24 overflow-y-auto scrollbar-hide">
-              <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.slice(0, 300)}
-                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.length > 300 && "..."}
-              </pre>
-            </div>
-          </div>
+      {/* Source Text Preview — trailer always has 1 part */}
+      <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {trailerSourceText
+              ? "트레일러 텍스트 미리보기"
+              : phrase(dictionary, "storyboard_part_preview", language)}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {((trailerSourceText || splitParts[0])?.length ?? 0).toLocaleString()}{" "}
+            {phrase(dictionary, "chars", language)}
+          </span>
         </div>
-      ) : (
-        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-sm text-yellow-700 dark:text-yellow-400">
-            {isStageSkipped(2)
-              ? phrase(dictionary, "storyboard_no_upload", language)
-              : phrase(dictionary, "storyboard_no_parts", language)}
-          </p>
+        <div className="max-h-24 overflow-y-auto scrollbar-hide">
+          <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
+            {(trailerSourceText || splitParts[0])?.slice(0, 300)}
+            {(trailerSourceText || splitParts[0])?.length > 300 && "..."}
+          </pre>
         </div>
-      )}
+      </div>
 
       {/* Collapsible Conditions Section — now first */}
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -1355,7 +1313,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={handleGenerate}
-          disabled={isGenerating || splitParts.length === 0}
+          disabled={isGenerating}
           className="flex items-center gap-2 px-6 py-3 bg-[#DB2777] hover:bg-[#BE185D] text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-5 h-5" />

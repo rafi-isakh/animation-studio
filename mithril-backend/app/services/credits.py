@@ -52,15 +52,15 @@ IMAGE_COST_TABLE: dict[tuple[str, str], float] = {
     # xAI Grok image
     ("panel", "grok"): 0.02,
     ("panel_colorizer", "grok"): 0.02,
-    # ModelsLab z_image_turbo / flux2_dev
-    ("panel", "z_image_turbo"): 0.0047,
-    ("panel_colorizer", "z_image_turbo"): 0.0047,
-    ("panel", "flux2_dev"): 0.0047,
-    ("panel_colorizer", "flux2_dev"): 0.0047,
+    # ModelsLab z_image_turbo / flux2_dev — subscription plan, no per-call cost
+    ("panel", "z_image_turbo"): 0.0,
+    ("panel_colorizer", "z_image_turbo"): 0.0,
+    ("panel", "flux2_dev"): 0.0,
+    ("panel_colorizer", "flux2_dev"): 0.0,
     # PixAI style converter
     ("style_converter", "pixai"): 0.09,
-    # ModelsLab flux-klein style converter
-    ("style_converter", "modelslab"): 0.0047,
+    # ModelsLab flux-klein style converter — subscription plan, no per-call cost
+    ("style_converter", "modelslab"): 0.0,
 }
 
 # Token-based pricing for Gemini text/multimodal models: model -> (input $/1M, output $/1M)

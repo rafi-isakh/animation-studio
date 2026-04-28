@@ -9,12 +9,13 @@ import { getSuggestedTemplates } from "./characterTemplates";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
+import { usePropImageOrchestrator } from "./usePropImageOrchestrator";
+import type { PropUpdate } from "./usePropImageOrchestrator";
 import {
   savePropDesignerSettings,
   saveProp,
   saveDetectedIds,
   updateProp,
-  updatePropDesignSheetImage,
   updatePropReferenceImage,
   getProps,
   deleteProp,
@@ -26,7 +27,6 @@ import {
   deleteCustomMannequinTemplate,
   type CustomMannequinTemplate,
 } from "../services/firestore/mannequinTemplates";
-import { deletePropDesignSheetImage } from "../services/s3";
 
 // CSV clip structure for imported data
 // CSV headers: Scene,Clip,Length,Accumulated Time,Background ID,Background Prompt,Story,
@@ -700,6 +700,40 @@ export default function PropDesigner() {
     });
   }, [styleKeyword, genre, detectedIds, setPropDesignerResult, propToMetadata]);
 
+  // Handle real-time prop update from backend orchestrator (WaveSpeed job completed/failed)
+  const handlePropOrchestratorUpdate = useCallback((update: PropUpdate) => {
+    if (update.status === "completed" && update.imageUrl) {
+      setSessions(prev => {
+        const updated = prev.map(s => ({
+          ...s,
+          props: s.props.map(p =>
+            p.id === update.propId
+              ? { ...p, isGenerating: false, designSheetImageUrl: update.imageUrl! }
+              : p
+          ),
+        }));
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
+      });
+    } else if (update.status === "failed") {
+      setSessions(prev =>
+        prev.map(s => ({
+          ...s,
+          props: s.props.map(p =>
+            p.id === update.propId ? { ...p, isGenerating: false } : p
+          ),
+        }))
+      );
+      if (update.error) setError(update.error);
+    }
+  }, [syncToContext]);
+
+  const { submitJob: submitPropJob } = usePropImageOrchestrator({
+    projectId: currentProjectId || "",
+    onPropUpdate: handlePropOrchestratorUpdate,
+    enabled: !!currentProjectId,
+  });
+
   // Helper to create a new session from detection results and save to Firestore
   const createSessionFromDetection = useCallback(
     async (newProps: Prop[], category: "character" | "object") => {
@@ -1173,157 +1207,40 @@ export default function PropDesigner() {
     createSessionFromDetection,
   ]);
 
-  // Generate design sheet image for a prop (supports multiple reference images)
-  // sessionId is curried when creating session-specific callbacks
+  // Generate design sheet image for a prop via WaveSpeed backend orchestrator
   const handleGenerateImage = useCallback(
     async (sessionId: string, propId: string, prompt: string, referenceImages?: string[]) => {
       updateSessionProps(sessionId, props =>
         props.map((p) => (p.id === propId ? { ...p, isGenerating: true } : p))
       );
 
-      try {
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[PropDesigner][generate] start", { sessionId, propId, hasRefs: !!referenceImages?.length });
-        }
-        // Delete old design sheet image from S3 before generating new one
-        if (currentProjectId) {
-          try {
-            await deletePropDesignSheetImage(currentProjectId, propId);
-          } catch (error) {
-            console.warn(`[PropDesigner] Failed to delete old design sheet (may not exist):`, error);
-          }
-        }
+      // Find prop name and category for orchestrator submission
+      const prop = sessions.flatMap(s => s.props).find(p => p.id === propId);
+      if (!prop) {
+        setError("Prop not found");
+        return;
+      }
 
-        // Support both single reference (legacy) and multiple references
-        const refImagesForApi = referenceImages;
+      const result = await submitPropJob({
+        propId,
+        propName: prop.name,
+        category: prop.category,
+        prompt,
+        genre,
+        styleKeyword,
+        referenceImages,
+        aspectRatio: "16:9",
+      });
 
-        const response = await fetch("/api/generate_prop_sheet/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt,
-            referenceImages: refImagesForApi,
-            // Legacy support: also send first image as referenceImageBase64
-            referenceImageBase64: refImagesForApi?.[0],
-            aspectRatio: "16:9",
-            customApiKey: customApiKey || undefined,
-          }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Image generation failed");
-
-        // Upload to S3
-        if (currentProjectId) {
-          const uploadResponse = await fetch("/api/mithril/s3/image", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              projectId: currentProjectId,
-              imageType: "prop",
-              propId,
-              propSubtype: "designsheet",
-              base64: data.imageBase64,
-            }),
-          });
-
-          const uploadData = await uploadResponse.json();
-          if (uploadResponse.ok) {
-            if (process.env.NODE_ENV !== "production") {
-              console.log("[PropDesigner][generate] uploaded", { propId, url: uploadData.url });
-            }
-            // Update Firestore
-            await updatePropDesignSheetImage(
-              currentProjectId,
-              propId,
-              uploadData.url,
-              prompt
-            );
-
-            // Update local state with S3 URL
-            setSessions(prev => {
-              const updatedSessions = prev.map(s => {
-                if (s.id !== sessionId) return s;
-                const generatedProp = s.props.find(p => p.id === propId);
-                const isDefaultCharacter = generatedProp && generatedProp.category === "character" && !generatedProp.isVariant;
-
-                const updatedProps = s.props.map(p => {
-                  if (p.id === propId) {
-                    return { ...p, designSheetImageUrl: uploadData.url, designSheetPrompt: prompt, isGenerating: false };
-                  }
-                  // Auto-link default character's design sheet to related variants
-                  if (isDefaultCharacter && p.isVariant && p.category === "character" && generatedProp) {
-                    const variantDetails = p.variantDetails?.toLowerCase() || "";
-                    const characterName = generatedProp.name.toLowerCase();
-                    const characterId = generatedProp.name.toUpperCase();
-                    if (variantDetails.includes(characterName) || variantDetails.includes(characterId) || p.name.includes(characterId.split("_")[0])) {
-                      const currentRefs = p.referenceImages || [];
-                      if (!currentRefs.includes(uploadData.url)) {
-                        console.log(`[Auto-link] Adding ${generatedProp.name} design sheet to variant ${p.name}`);
-                        return { ...p, referenceImages: [uploadData.url, ...currentRefs] };
-                      }
-                    }
-                  }
-                  return p;
-                });
-                return { ...s, props: updatedProps };
-              });
-
-              setTimeout(() => syncToContext(updatedSessions), 0);
-              return updatedSessions;
-            });
-
-            // Auto-link: save variants to Firestore
-            const targetSession = sessions.find(s => s.id === sessionId);
-            const targetProp = targetSession?.props.find(p => p.id === propId);
-            const isDefaultChar = targetProp && targetProp.category === "character" && !targetProp.isVariant;
-
-            if (currentProjectId && isDefaultChar && targetProp && targetSession) {
-              const variantsToUpdate = targetSession.props.filter(p => {
-                if (!p.isVariant || p.category !== "character") return false;
-                const variantDetails = p.variantDetails?.toLowerCase() || "";
-                const characterName = targetProp.name.toLowerCase();
-                const characterId = targetProp.name.toUpperCase();
-                return variantDetails.includes(characterName) || variantDetails.includes(characterId) || p.name.includes(characterId.split("_")[0]);
-              });
-
-              for (const variant of variantsToUpdate) {
-                const currentRefs = variant.referenceImages || [];
-                if (!currentRefs.includes(uploadData.url)) {
-                  const newRefs = [uploadData.url, ...currentRefs];
-                  try {
-                    await saveProp(currentProjectId, {
-                      ...propToMetadata(variant),
-                      referenceImageRefs: newRefs,
-                      contextPrompts: variant.contextPrompts,
-                    });
-                    console.log(`[Auto-link] Saved ${variant.name} to Firestore with auto-linked reference`);
-                  } catch (error) {
-                    console.error(`[Auto-link] Failed to save variant ${variant.name}:`, error);
-                  }
-                }
-              }
-            }
-
-            return;
-          }
-        }
-
-        // Fallback to base64 if upload fails
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[PropDesigner][generate] fallback_base64", { propId });
-        }
-        updateSessionProps(sessionId, props =>
-          props.map(p => p.id === propId ? { ...p, designSheetImageBase64: data.imageBase64, designSheetPrompt: prompt, isGenerating: false } : p)
-        );
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Image generation failed");
+      if (!result.success) {
+        setError(result.error || "Failed to submit generation job");
         updateSessionProps(sessionId, props =>
           props.map(p => p.id === propId ? { ...p, isGenerating: false } : p)
         );
       }
+      // On success: isGenerating stays true; handlePropOrchestratorUpdate clears it when job completes
     },
-    [currentProjectId, customApiKey, sessions, syncToContext, updateSessionProps, propToMetadata]
+    [sessions, genre, styleKeyword, submitPropJob, updateSessionProps]
   );
 
   // Set reference images for a prop (supports multiple images)

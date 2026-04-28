@@ -864,7 +864,7 @@ export default function PropDesigner() {
       });
 
       // Convert API response to Prop objects for characters
-      const newCharacters: Prop[] = (data.characters || []).map((char: {
+      const newCharactersRaw: Prop[] = (data.characters || []).map((char: {
         name: string;
         description: string;
         descriptionKo: string;
@@ -1019,6 +1019,53 @@ export default function PropDesigner() {
           variantVisuals: char.variantVisuals || undefined,
         };
       });
+
+      // Guardrail: keep only requested character IDs, and dedupe by ID/name.
+      // This prevents inflated counts when the model returns extra/duplicate entries.
+      const normalizeId = (value: string) => value.trim().toUpperCase();
+      const requestedCharacterIdSet = new Set(characterIds.map(normalizeId));
+      const filteredCharacters = newCharactersRaw.filter((char) =>
+        requestedCharacterIdSet.has(normalizeId(char.name))
+      );
+
+      const dedupedCharacterMap = new Map<string, Prop>();
+      for (const char of filteredCharacters) {
+        const key = normalizeId(char.name);
+        const existing = dedupedCharacterMap.get(key);
+        if (!existing) {
+          dedupedCharacterMap.set(key, char);
+          continue;
+        }
+
+        const mergedAppearingClips = Array.from(
+          new Set([...(existing.appearingClips || []), ...(char.appearingClips || [])])
+        );
+        const mergedContextPrompts = Array.from(
+          new Map(
+            [...(existing.contextPrompts || []), ...(char.contextPrompts || [])].map((ctx) => [
+              `${ctx.clipId}::${ctx.text}`,
+              ctx,
+            ])
+          ).values()
+        );
+
+        dedupedCharacterMap.set(key, {
+          ...existing,
+          appearingClips: mergedAppearingClips,
+          contextPrompts: mergedContextPrompts,
+          // Prefer longer textual details when one entry is richer.
+          description: (char.description?.length || 0) > (existing.description?.length || 0)
+            ? char.description
+            : existing.description,
+          descriptionKo: (char.descriptionKo?.length || 0) > (existing.descriptionKo?.length || 0)
+            ? char.descriptionKo
+            : existing.descriptionKo,
+          isVariant: existing.isVariant || char.isVariant,
+          variantDetails: existing.variantDetails || char.variantDetails,
+          variantVisuals: existing.variantVisuals || char.variantVisuals,
+        });
+      }
+      const newCharacters: Prop[] = Array.from(dedupedCharacterMap.values());
 
       await createSessionFromDetection(newCharacters, "character");
     } catch (err) {

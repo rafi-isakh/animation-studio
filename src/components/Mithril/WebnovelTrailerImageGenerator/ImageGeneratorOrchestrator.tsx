@@ -190,6 +190,7 @@ export default function ImageGeneratorOrchestrator() {
           prompt: frame.prompt,
           backgroundId: frame.backgroundId,
           refFrame: frame.refFrame,
+          attentionLabel: frame.attentionLabel,
           imageRef: imageUrl,
           imageUpdatedAt: Date.now(),
           status: "completed",
@@ -365,44 +366,26 @@ export default function ImageGeneratorOrchestrator() {
         scene.clips.forEach((clip: Continuity, clipIndex) => {
           const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
-          // Create frame A from imagePrompt
-          if (clip.imagePrompt) {
-            newFrames.push({
-              id: uuidv4(),
-              sceneIndex,
-              clipIndex,
-              partIndex: partIdx,
-              frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-              frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-              shotGroup,
-              prompt: clip.imagePrompt,
-              backgroundId: clip.backgroundId || "",
-              refFrame: "",
-              imageUrl: clip.imageRef || null,
-              imageBase64: null,
-              status: clip.imageRef ? "completed" : "pending",
-              isLoading: false,
-              remixPrompt: "",
-              remixImageUrl: null,
-              remixImageBase64: null,
-              hasDrawingEdits: false,
-              editedImageUrl: null,
-            });
-          }
+          const variants = [
+            { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+            { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+            { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+            { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+          ].filter((v) => v.prompt?.trim());
 
-          // Create frame B from imagePromptEnd if exists
-          if (clip.imagePromptEnd) {
+          variants.forEach((v) => {
             newFrames.push({
               id: uuidv4(),
               sceneIndex,
               clipIndex,
               partIndex: partIdx,
-              frameLabel: `${shotGroup}B`,
-              frameNumber: `${frameNumber}B`,
+              frameLabel: `${shotGroup}${v.suffix}`,
+              frameNumber: `${frameNumber}${v.suffix}`,
               shotGroup,
-              prompt: clip.imagePromptEnd,
-              backgroundId: clip.backgroundId || "",
+              prompt: v.prompt!,
+              backgroundId: v.bgId || clip.backgroundId || "",
               refFrame: "",
+              attentionLabel: v.attention,
               imageUrl: null,
               imageBase64: null,
               status: "pending",
@@ -413,7 +396,7 @@ export default function ImageGeneratorOrchestrator() {
               hasDrawingEdits: false,
               editedImageUrl: null,
             });
-          }
+          });
 
           shotGroup++;
         });
@@ -497,6 +480,7 @@ export default function ImageGeneratorOrchestrator() {
               prompt: sf.prompt,
               backgroundId: sf.backgroundId,
               refFrame: sf.refFrame,
+              attentionLabel: sf.attentionLabel,
               imageUrl: sf.imageRef || null,
               imageBase64: null,
               imageUpdatedAt: sf.imageUpdatedAt || undefined,
@@ -526,6 +510,7 @@ export default function ImageGeneratorOrchestrator() {
                     prompt: savedFrame.prompt || sbFrame.prompt,
                     backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                     refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                    attentionLabel: savedFrame.attentionLabel ?? sbFrame.attentionLabel,
                     imageUrl: savedFrame.imageRef || null,
                     imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                     status: savedFrame.status ?? sbFrame.status,
@@ -543,6 +528,7 @@ export default function ImageGeneratorOrchestrator() {
                 partIndex: sf.partIndex ?? 0,
                 frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
                 prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
+                attentionLabel: sf.attentionLabel,
                 imageUrl: sf.imageRef || null, imageBase64: null,
                 imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
                 status: sf.status || ("pending" as const), isLoading: false,
@@ -970,6 +956,7 @@ export default function ImageGeneratorOrchestrator() {
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
           status: f.status,
+          ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           ...(f.imageUrl && { imageRef: f.imageUrl }),
           ...(f.remixPrompt && { remixPrompt: f.remixPrompt }),
           ...(f.remixImageUrl !== null && { remixImageRef: f.remixImageUrl }),
@@ -1072,6 +1059,7 @@ export default function ImageGeneratorOrchestrator() {
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1359,6 +1347,7 @@ export default function ImageGeneratorOrchestrator() {
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);

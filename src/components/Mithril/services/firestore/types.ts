@@ -410,6 +410,7 @@ export interface ImageGenFrameDocument {
   prompt: string;
   backgroundId: string;
   refFrame: string;
+  attentionLabel?: string;
   imageRef: string; // S3 URL
   imageUpdatedAt?: number; // Timestamp for cache busting
   status: ImageGenFrameStatus;
@@ -433,6 +434,7 @@ export interface SaveImageGenFrameInput {
   prompt: string;
   backgroundId: string;
   refFrame: string;
+  attentionLabel?: string;
   imageRef?: string;
   imageUpdatedAt?: number; // Timestamp for cache busting
   status?: ImageGenFrameStatus;

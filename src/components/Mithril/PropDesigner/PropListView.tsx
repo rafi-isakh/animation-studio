@@ -4,6 +4,9 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from "react"
 import { Prop, getEasyModeCharacterPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
 import { updatePropDesignSheetImage } from "../services/firestore";
+import MannequinTemplatesPanel from "./MannequinTemplatesPanel";
+import type { CustomMannequinTemplate } from "../services/firestore/mannequinTemplates";
+import { getSuggestedTemplates } from "./characterTemplates";
 
 // Status badge component for job statuses
 function JobStatusBadge({ status }: { status: PropJobStatus | null }) {
@@ -48,8 +51,8 @@ interface PropListViewProps {
   ) => Promise<void>;
   onSetReferenceImages: (propId: string, images: string[]) => void;
   onUpdateProp: (propId: string, updates: Partial<Prop>) => void;
+  onSaveName: (propId: string, newName: string) => Promise<void>;
   onClose: () => void;
-  onClearAll: () => void;
   onToggleMinimize?: () => void; // Toggle minimize from parent
   title?: string;
   accentColor?: "purple" | "cyan";
@@ -58,6 +61,10 @@ interface PropListViewProps {
   minimizedIndex?: number; // Position offset for stacking minimized buttons
   isEasyMode?: boolean; // Controlled from parent (shared with DetectionPanel)
   onToggleEasyMode?: (enabled: boolean) => void;
+  suggestedStartingImages?: Record<string, string[]>; // propId → suggested template paths
+  customTemplates?: CustomMannequinTemplate[];
+  onAddToTemplates?: (prop: Prop) => void;
+  onDeleteCustomTemplate?: (id: string) => void;
 }
 
 export default function PropListView({
@@ -69,8 +76,8 @@ export default function PropListView({
   onGenerateImage,
   onSetReferenceImages,
   onUpdateProp,
+  onSaveName,
   onClose,
-  onClearAll,
   onToggleMinimize,
   title = "Design Sheet Generator",
   accentColor = "cyan",
@@ -79,18 +86,40 @@ export default function PropListView({
   minimizedIndex = 0,
   isEasyMode: isEasyModeProp,
   onToggleEasyMode,
+  suggestedStartingImages,
+  customTemplates,
+  onAddToTemplates,
+  onDeleteCustomTemplate,
 }: PropListViewProps) {
-  // Sort props: Default characters first, then Variants
+  // Sort props: Protagonist first, then other defaults, then variants
   const sortedProps = useMemo(() => {
-    return [...props].sort((a, b) => {
-      // Default characters (isVariant === false or undefined) come first
-      const aIsDefault = !a.isVariant;
-      const bIsDefault = !b.isVariant;
-      
-      if (aIsDefault && !bIsDefault) return -1;
-      if (!aIsDefault && bIsDefault) return 1;
-      return 0; // Maintain original order within same category
+    const rolePriority = (p: Prop): number => {
+      if (!p.isVariant && p.role?.toLowerCase().includes("protagonist")) return 0;
+      if (!p.isVariant) return 1;
+      return 2;
+    };
+    return [...props].sort((a, b) => rolePriority(a) - rolePriority(b));
+  }, [props]);
+
+  // Map each variant to its matched base character (for display + auto-link)
+  const variantBaseMap = useMemo(() => {
+    const baseCharacters = props.filter(p => !p.isVariant && p.category === 'character');
+    const map = new Map<string, Prop>();
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+      for (const base of baseCharacters) {
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+        if (variantDetails.includes(baseName) || variantDetails.includes(baseId) || variantName.includes(basePrefix)) {
+          map.set(variant.id, base);
+          break;
+        }
+      }
     });
+    return map;
   }, [props]);
 
   // Minimized state - controlled by parent via onToggleMinimize if provided
@@ -106,6 +135,68 @@ export default function PropListView({
   // Easy Mode state — controlled by parent if isEasyModeProp is provided
   const [isEasyModeLocal, setIsEasyModeLocal] = useState(true);
   const isEasyMode = isEasyModeProp !== undefined ? isEasyModeProp : isEasyModeLocal;
+
+  // Active prop for mannequin template panel
+  const [activePropId, setActivePropId] = useState<string | null>(null);
+
+  // Per-prop selected template paths (for mannequin panel)
+  // Pre-populate with top 2 suggestions; user can adjust via MannequinTemplatesPanel
+  const [startingImages, setStartingImages] = useState<Record<string, string[]>>(() => {
+    if (!suggestedStartingImages) return {};
+    const initial: Record<string, string[]> = {};
+    for (const [propId, paths] of Object.entries(suggestedStartingImages)) {
+      initial[propId] = paths.slice(0, 2);
+    }
+    return initial;
+  });
+
+  // When suggestions change (e.g. new props detected), seed any prop not yet touched
+  useEffect(() => {
+    if (!suggestedStartingImages) return;
+    setStartingImages((prev) => {
+      const next = { ...prev };
+      for (const [propId, paths] of Object.entries(suggestedStartingImages)) {
+        if (!next[propId] || next[propId].length === 0) {
+          next[propId] = paths.slice(0, 2);
+        }
+      }
+      return next;
+    });
+  }, [suggestedStartingImages]);
+
+  // Auto-apply each base character's design sheet to their name-matched variants
+  useEffect(() => {
+    const baseCharacters = props.filter(
+      p => !p.isVariant && p.category === 'character' && p.designSheetImageUrl
+    );
+    if (baseCharacters.length === 0) return;
+
+    props.forEach(variant => {
+      if (!variant.isVariant || variant.category !== 'character') return;
+
+      const variantDetails = variant.variantDetails?.toLowerCase() || '';
+      const variantName = variant.name.toUpperCase();
+
+      for (const base of baseCharacters) {
+        const baseUrl = base.designSheetImageUrl!;
+        if (variant.referenceImages?.includes(baseUrl)) continue;
+
+        const baseName = base.name.toLowerCase();
+        const baseId = base.name.toUpperCase();
+        const basePrefix = baseId.split('_')[0];
+
+        const isMatch =
+          variantDetails.includes(baseName) ||
+          variantDetails.includes(baseId) ||
+          variantName.includes(basePrefix);
+
+        if (isMatch) {
+          onSetReferenceImages(variant.id, [baseUrl, ...(variant.referenceImages || [])]);
+          break;
+        }
+      }
+    });
+  }, [props, onSetReferenceImages]);
 
   // Job statuses from orchestrator (real-time updates)
   const [jobStatuses, setJobStatuses] = useState<Record<string, PropJobStatus>>({});
@@ -177,8 +268,75 @@ export default function PropListView({
   // Track which prop is currently generating
   const [activeLoadingId, setActiveLoadingId] = useState<string | null>(null);
 
+  // Inline editing state for prop name
+  const [editingPropId, setEditingPropId] = useState<string | null>(null);
+  const [editDraftName, setEditDraftName] = useState("");
+
+  const startEditProp = useCallback((prop: Prop) => {
+    setEditingPropId(prop.id);
+    setEditDraftName(prop.name);
+  }, []);
+
+  const cancelEditProp = useCallback(() => {
+    setEditingPropId(null);
+  }, []);
+
+  const saveEditProp = useCallback(async (propId: string) => {
+    const newName = editDraftName.trim();
+    if (!newName) return;
+    setEditingPropId(null);
+    await onSaveName(propId, newName);
+  }, [editDraftName, onSaveName]);
+
   // File input refs for each prop
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  // Cache for resolved reference images (URL/path -> data URL)
+  const referenceImageCacheRef = useRef<Map<string, string>>(new Map());
+
+  const blobToDataUrl = useCallback((blob: Blob) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
+  const resolveReferenceImages = useCallback(async (images: string[]) => {
+    const isUrlLike = (value: string) =>
+      value.startsWith("http://") ||
+      value.startsWith("https://") ||
+      value.startsWith("/") ||
+      value.startsWith("blob:");
+
+    const resolved = await Promise.all(
+      images.map(async (img) => {
+        if (!img) return null;
+        if (img.startsWith("data:image/")) return img;
+        if (!isUrlLike(img)) return img;
+
+        const cached = referenceImageCacheRef.current.get(img);
+        if (cached) return cached;
+
+        try {
+          const response = await fetch(img);
+          if (!response.ok) {
+            console.warn("[PropListView] Failed to fetch reference image:", img, response.status);
+            return null;
+          }
+          const blob = await response.blob();
+          const dataUrl = await blobToDataUrl(blob);
+          referenceImageCacheRef.current.set(img, dataUrl);
+          return dataUrl;
+        } catch (error) {
+          console.warn("[PropListView] Failed to resolve reference image:", img, error);
+          return null;
+        }
+      })
+    );
+
+    return resolved.filter((img): img is string => Boolean(img));
+  }, [blobToDataUrl]);
 
   // Handle Easy Mode toggle
   const toggleEasyMode = useCallback(
@@ -200,6 +358,22 @@ export default function PropListView({
           }
         });
         setEditablePrompts(newPrompts);
+
+        // Seed starting images from suggestions (only for chars without existing selection)
+        setStartingImages((prev) => {
+          const next = { ...prev };
+          sortedProps.forEach((prop) => {
+            if (prop.category === "character" && !next[prop.id]?.length) {
+              next[prop.id] = suggestedStartingImages?.[prop.id] ||
+                getSuggestedTemplates(prop);
+            }
+          });
+          return next;
+        });
+
+        // Set first character as active in the template panel
+        const firstChar = sortedProps.find((p) => p.category === "character");
+        if (firstChar) setActivePropId(firstChar.id);
       } else {
         // Revert to default prompts
         const defaultPrompts: Record<string, string> = {};
@@ -266,6 +440,12 @@ export default function PropListView({
       const prompt = editablePrompts[propId] || prop.designSheetPrompt || "";
 
 
+      // Merge starting images (mannequin templates) with manual reference images
+      const isCharacterProp = prop.category === "character";
+      const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[propId] || []) : [];
+      const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+      const resolvedRefs = mergedRefs.length > 0 ? await resolveReferenceImages(mergedRefs) : [];
+
       // Use async orchestrator if projectId is available
       if (projectId && orchestrator) {
         try {
@@ -292,7 +472,7 @@ export default function PropListView({
             prompt,
             genre,
             styleKeyword,
-            referenceImages: prop.referenceImages,
+            referenceImages: resolvedRefs.length > 0 ? resolvedRefs : undefined,
             aspectRatio: "16:9",
           });
 
@@ -313,13 +493,29 @@ export default function PropListView({
         // Fallback to sync generation (legacy)
         setActiveLoadingId(propId);
         try {
-          await onGenerateImage(propId, prompt, prop.referenceImages);
+          await onGenerateImage(
+            propId,
+            prompt,
+            resolvedRefs.length > 0 ? resolvedRefs : prop.referenceImages
+          );
         } finally {
           setActiveLoadingId(null);
         }
       }
     },
-    [props, editablePrompts, onGenerateImage, projectId, orchestrator, genre, styleKeyword, onUpdateProp]
+    [
+      props,
+      editablePrompts,
+      onGenerateImage,
+      projectId,
+      orchestrator,
+      genre,
+      styleKeyword,
+      onUpdateProp,
+      isEasyMode,
+      startingImages,
+      resolveReferenceImages,
+    ]
   );
 
   // Handle batch generation for all props without images
@@ -348,16 +544,24 @@ export default function PropListView({
     setJobStatuses((prev) => ({ ...prev, ...initialStatuses }));
 
     try {
-      const jobs = propsToGenerate.map((prop) => ({
-        propId: prop.id,
-        propName: prop.name,
-        category: prop.category as 'character' | 'object',
-        prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
-        genre,
-        styleKeyword,
-        referenceImages: prop.referenceImages,
-        aspectRatio: "16:9" as const,
-      }));
+      const jobs = await Promise.all(
+        propsToGenerate.map(async (prop) => {
+          const isCharacterProp = prop.category === "character";
+          const startingRefs = (isEasyMode && isCharacterProp) ? (startingImages[prop.id] || []) : [];
+          const mergedRefs = [...startingRefs, ...(prop.referenceImages || [])];
+          const resolvedRefs = mergedRefs.length > 0 ? await resolveReferenceImages(mergedRefs) : [];
+          return {
+            propId: prop.id,
+            propName: prop.name,
+            category: prop.category as 'character' | 'object',
+            prompt: editablePrompts[prop.id] || prop.designSheetPrompt || "",
+            genre,
+            styleKeyword,
+            referenceImages: resolvedRefs.length > 0 ? resolvedRefs : undefined,
+            aspectRatio: "16:9" as const,
+          };
+        })
+      );
 
       const result = await orchestrator.submitBatch({ jobs });
 
@@ -384,7 +588,18 @@ export default function PropListView({
       setIsBatchGenerating(false);
       setBatchProgress(null);
     }
-  }, [projectId, orchestrator, props, editablePrompts, genre, styleKeyword, onUpdateProp]);
+  }, [
+    projectId,
+    orchestrator,
+    props,
+    editablePrompts,
+    genre,
+    styleKeyword,
+    onUpdateProp,
+    isEasyMode,
+    startingImages,
+    resolveReferenceImages,
+  ]);
 
   // Handle retry for failed jobs
   const handleRetry = useCallback(
@@ -528,7 +743,20 @@ export default function PropListView({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+      <div className={`flex gap-3 h-[90vh] w-full ${isEasyMode ? "max-w-[72rem]" : "max-w-6xl"}`}>
+        {/* Mannequin Templates side panel — only visible in Easy Mode */}
+        {isEasyMode && (
+          <MannequinTemplatesPanel
+            activePropName={sortedProps.find((p) => p.id === activePropId)?.name}
+            selectedPaths={startingImages[activePropId || ""] || []}
+            onSelectionChange={(paths) =>
+              setStartingImages((prev) => ({ ...prev, [activePropId!]: paths }))
+            }
+            customTemplates={customTemplates}
+            onDeleteCustomTemplate={onDeleteCustomTemplate}
+          />
+        )}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl flex-1 h-full flex flex-col overflow-hidden min-w-0">
         {/* Modal Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
           <div>
@@ -680,37 +908,80 @@ export default function PropListView({
           return (
             <div
               key={prop.id}
-              className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex flex-col md:flex-row gap-4 shadow-sm min-h-[350px]"
+              onClick={() => { if (isEasyMode && isCharacter) setActivePropId(prop.id); }}
+              className={`bg-gray-800 border rounded-lg p-3 flex flex-col md:flex-row gap-4 shadow-sm min-h-[350px] transition-colors ${
+                isEasyMode && isCharacter && activePropId === prop.id
+                  ? "border-green-700 border-l-2 border-l-green-500"
+                  : "border-gray-700"
+              } ${isEasyMode && isCharacter ? "cursor-pointer" : ""}`}
             >
               {/* Left Column: Details */}
               <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
                 {/* Header */}
                 <div className="flex justify-between items-start">
-                  <h3 className="text-base font-bold text-gray-100 flex items-center gap-2 truncate">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        isCharacter ? "bg-[#DB2777]" : "bg-cyan-500"
-                      }`}
-                    />
-                    {prop.name}
-                    {prop.isVariant && (
-                      <span className="text-[8px] bg-[#DB2777]/10 text-[#DB2777]/80 px-1 rounded border border-[#DB2777]/40">
-                        VARIANT
+                  {editingPropId === prop.id ? (
+                    <div className="flex items-center gap-1.5 flex-1 mr-2" onClick={e => e.stopPropagation()}>
+                      <input
+                        value={editDraftName}
+                        onChange={e => setEditDraftName(e.target.value)}
+                        className="flex-1 px-2 py-0.5 bg-black/60 border border-cyan-700 rounded text-sm font-bold text-gray-100 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                        placeholder="Display Name"
+                        autoFocus
+                        onKeyDown={e => { if (e.key === "Enter") saveEditProp(prop.id); if (e.key === "Escape") cancelEditProp(); }}
+                      />
+                      <button
+                        onClick={() => saveEditProp(prop.id)}
+                        className="px-2 py-1 bg-cyan-700 hover:bg-cyan-600 text-white text-[9px] font-bold rounded transition-colors shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditProp}
+                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-[9px] font-bold rounded transition-colors shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <h3 className="text-base font-bold text-gray-100 flex items-center gap-2 truncate">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          isCharacter ? "bg-[#DB2777]" : "bg-cyan-500"
+                        }`}
+                      />
+                      <span className="truncate">{prop.name}</span>
+                      {prop.isVariant && (
+                        <span className="text-[8px] bg-[#DB2777]/10 text-[#DB2777]/80 px-1 rounded border border-[#DB2777]/40">
+                          VARIANT
+                        </span>
+                      )}
+                      {isCharacter && !prop.isVariant && prop.role?.toLowerCase().includes("protagonist") && (
+                        <span className="text-[8px] px-1.5 py-0.5 rounded border font-bold uppercase bg-amber-900/40 text-amber-400 border-amber-700/60">
+                          ★ Protagonist
+                        </span>
+                      )}
+                      <span
+                        className={`text-[8px] px-1 rounded border uppercase ${
+                          isCharacter
+                            ? "bg-[#DB2777]/10 text-[#DB2777] border-[#DB2777]/50"
+                            : "bg-teal-900/30 text-teal-400 border-teal-800"
+                        }`}
+                      >
+                        {prop.category}
                       </span>
-                    )}
-                    <span
-                      className={`text-[8px] px-1 rounded border uppercase ${
-                        isCharacter
-                          ? "bg-[#DB2777]/10 text-[#DB2777] border-[#DB2777]/50"
-                          : "bg-teal-900/30 text-teal-400 border-teal-800"
-                      }`}
-                    >
-                      {prop.category}
-                    </span>
-                    {/* Job Status Badge */}
-                    <JobStatusBadge status={jobStatus} />
-                  </h3>
-                  {prop.appearingClips && prop.appearingClips.length > 0 && (
+                      <JobStatusBadge status={jobStatus} />
+                      <button
+                        onClick={e => { e.stopPropagation(); startEditProp(prop); }}
+                        className="p-0.5 text-gray-600 hover:text-cyan-400 transition-colors shrink-0"
+                        title="Edit name"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                        </svg>
+                      </button>
+                    </h3>
+                  )}
+                  {prop.appearingClips && prop.appearingClips.length > 0 && editingPropId !== prop.id && (
                     <div className="text-[8px] font-bold text-cyan-500 bg-cyan-950/50 px-1.5 py-0.5 rounded border border-cyan-800 uppercase shrink-0">
                       {prop.appearingClips.slice(0, 5).join(", ")}
                       {prop.appearingClips.length > 5 && "..."}
@@ -765,12 +1036,58 @@ export default function PropListView({
                   </div>
                 )}
 
+                {/* Starting References — selected mannequin templates (Easy Mode only) */}
+                {isEasyMode && isCharacter && (startingImages[prop.id]?.length ?? 0) > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[8px] font-black text-green-700 uppercase tracking-widest shrink-0">
+                      Starting Ref:
+                    </span>
+                    {startingImages[prop.id].map((path, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={path}
+                          alt={`Template ${idx + 1}`}
+                          className="h-8 w-8 object-contain rounded border border-green-800 bg-black/40"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStartingImages((prev) => ({
+                              ...prev,
+                              [prop.id]: (prev[prop.id] || []).filter((_, i) => i !== idx),
+                            }));
+                          }}
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-900 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5">
+                            <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Variant Details Display */}
-                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals) && (
+                {isCharacter && prop.isVariant && (prop.variantDetails || prop.variantVisuals || variantBaseMap.has(prop.id)) && (
                   <div className="bg-[#DB2777]/5 border border-[#DB2777]/30 rounded p-2 text-[9px] space-y-1">
                     <span className="text-[8px] font-black text-[#DB2777] uppercase tracking-widest">
                       Variant Information
                     </span>
+                    {variantBaseMap.has(prop.id) && (() => {
+                      const base = variantBaseMap.get(prop.id)!;
+                      return (
+                        <p className="text-[#DB2777]/80 flex items-center gap-1">
+                          <b>Based on:</b> {base.name}
+                          {base.designSheetImageUrl && (
+                            <span className="text-green-500 font-bold">✓ ref linked</span>
+                          )}
+                          {!base.designSheetImageUrl && (
+                            <span className="text-yellow-600 italic">no design sheet yet</span>
+                          )}
+                        </p>
+                      );
+                    })()}
                     {prop.variantDetails && (
                       <p className="text-[#DB2777]/70">
                         <b>Type:</b> {prop.variantDetails}
@@ -948,6 +1265,18 @@ export default function PropListView({
                           <span>Generate Design</span>
                         </>
                       )}
+                    </button>
+                  )}
+                  {isCharacter && prop.designSheetImageUrl && onAddToTemplates && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onAddToTemplates(prop); }}
+                      className="px-2 py-1.5 bg-[#DB2777]/20 hover:bg-[#DB2777]/40 text-[#DB2777] text-[10px] font-bold rounded transition-colors flex items-center gap-1 shrink-0"
+                      title="Add to Templates"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                      </svg>
+                      <span>Save Template</span>
                     </button>
                   )}
                   <button
@@ -1152,20 +1481,15 @@ export default function PropListView({
             >
               Fold Window
             </button>
-            <button
-              onClick={onClearAll}
-              className="px-5 py-1.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-900/50 rounded text-xs font-bold transition-colors"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={onClose}
-              className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold transition-colors"
-            >
-              Close
+              <button
+                onClick={onClose}
+                className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold transition-colors"
+              >
+                Close
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

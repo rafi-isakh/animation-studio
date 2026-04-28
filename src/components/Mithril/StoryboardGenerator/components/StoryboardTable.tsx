@@ -31,9 +31,20 @@ export default function StoryboardTable({
     phrase(dictionary, "table_length", language),
     phrase(dictionary, "table_accumulated_time", language),
     phrase(dictionary, "table_background_id", language),
+    phrase(dictionary, "table_background", language),
+    "Bg ID (A)",
+    "Bg ID (B)",
+    "Bg ID (C)",
+    "Bg ID (D)",
     phrase(dictionary, "table_story", language),
-    phrase(dictionary, "table_image_prompt", language),
-    phrase(dictionary, "table_image_prompt_end", language),
+    "Attention Device",
+    "Attention Action",
+    "Attention Expression",
+    "Attention Mood",
+    "Image Prompt A",
+    "Image Prompt B",
+    "Image Prompt C",
+    "Image Prompt D",
     phrase(dictionary, "table_video_prompt", language),
     phrase(dictionary, "table_sora_video_prompt", language),
     phrase(dictionary, "table_veo_video_prompt", language),
@@ -150,26 +161,17 @@ export default function StoryboardTable({
                     {phrase(dictionary, "table_scene", language)} {sceneIndex + 1}: {scene.sceneTitle}
                   </td>
                 </tr>
-                {scene.clips.map((row, clipIndex) => {
-                  const isNewBackground =
-                    clipIndex === 0 ||
-                    row.backgroundPrompt !==
-                      scene.clips[clipIndex - 1].backgroundPrompt;
-
-                  return (
-                    <ClipTableRow
-                      key={`scene-${sceneIndex}-clip-${clipIndex}`}
-                      row={row}
-                      sceneIndex={sceneIndex}
-                      clipIndex={clipIndex}
-                      isNewBackground={isNewBackground}
-                      clipHeadersLength={clipHeaders.length}
-                      showTrailerColumns={showTrailerColumns}
-                      onUpdatePrompt={(field, value) => updateClipPrompt(sceneIndex, clipIndex, field, value)}
-                      getOriginalPrompt={(field) => getOriginalClipPrompt(sceneIndex, clipIndex, field)}
-                    />
-                  );
-                })}
+                {scene.clips.map((row, clipIndex) => (
+                  <ClipTableRow
+                    key={`scene-${sceneIndex}-clip-${clipIndex}`}
+                    row={row}
+                    sceneIndex={sceneIndex}
+                    clipIndex={clipIndex}
+                    showTrailerColumns={showTrailerColumns}
+                    onUpdatePrompt={updateClipPrompt}
+                    getOriginalPrompt={getOriginalClipPrompt}
+                  />
+                ))}
               </React.Fragment>
             ))}
           </tbody>

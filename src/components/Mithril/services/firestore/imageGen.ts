@@ -141,6 +141,7 @@ export async function saveImageGenFrame(
   await setDoc(docRef, {
     sceneIndex: input.sceneIndex,
     clipIndex: input.clipIndex,
+    partIndex: input.partIndex ?? 0,
     frameLabel: input.frameLabel,
     frameNumber: input.frameNumber,
     shotGroup: input.shotGroup,
@@ -173,6 +174,7 @@ export async function saveImageGenFrames(
     batch.set(docRef, {
       sceneIndex: input.sceneIndex,
       clipIndex: input.clipIndex,
+      partIndex: input.partIndex ?? 0,
       frameLabel: input.frameLabel,
       frameNumber: input.frameNumber,
       shotGroup: input.shotGroup,
@@ -299,5 +301,20 @@ export async function clearImageGen(projectId: string): Promise<void> {
   const settingsRef = getImageGenRef(projectId);
   batch.delete(settingsRef);
 
+  await batch.commit();
+}
+
+/**
+ * Delete all ImageGen frames belonging to a specific storyboard part
+ */
+export async function deleteImageGenFramesByPart(projectId: string, partIndex: number): Promise<void> {
+  const frames = await getImageGenFrames(projectId);
+  const partFrames = frames.filter((f) => (f.partIndex ?? 0) === partIndex);
+
+  const batch = writeBatch(db);
+  for (const frame of partFrames) {
+    const frameRef = getImageGenFrameRef(projectId, frame.id);
+    batch.delete(frameRef);
+  }
   await batch.commit();
 }

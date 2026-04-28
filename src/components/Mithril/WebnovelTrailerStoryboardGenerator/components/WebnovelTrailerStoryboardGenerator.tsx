@@ -93,15 +93,48 @@ Sora Video Prompt Column.
 const DEFAULT_VIDEO_INSTRUCTION = `Video Prompt Column.
 
 1. Character/object ID changes to one-word descriptor (the knight, the mage, the rogue, the archer, the squire, the awakened one, etc)
-2. 모든 비디오 프롬프트의 가장 시작 부분에 반드시 카메라 워킹(Camera Movement)을 명시하십시오. (예: Still shot, Tracking shot, POV crane shot, Panning left, Panning right, Panning up, Panning down, Tilt up, Tilt down, Zoom in, Zoom out 등). 이는 어떠한 경우에도 생략해서는 안 되며, 최우선 문법 규칙으로 적용됩니다.
-3. 강적 등장 장면: Low Angle + Backlighting 실루엣 (드래곤, 악마, 거대 적)
- 이동/추격: Tracking 또는 Dynamic Follow (기사 추격, 기병 돌진)
- 긴장 고조: Slow Push-In 또는 Snap Zoom-In (마법 폭발 직전, 적 등장 직전)
-4. Always include word of (speaks / talks / yells / shouts), even when face partially covered by hand (i.e. The maid speaks softly) and always attach "(pronoun)'s head stays still" for less chaos
-5. 전투 중 발화 장면 규칙
- 구조: Speak moment → Quick camera reaction → Maintain head angle
- 예: "the knight shouts during impact, the camera snap-zooms in, his head angle stays still"
- 폭발·충돌 직전 발화: Low Angle → Backlighting → Shout → Head angle stays still`;
+2. Always include word of (speaks / talks / yells / shouts), even when face partially covered by hand (i.e. The maid speaks softly) and always attach "(pronoun)'s head stays still" for less chaos
+3. 전투 중 발화 장면 규칙
+ 구조: Speak moment → Maintain head angle
+ 예: "the knight shouts during impact, his head angle stays still"
+ 폭발·충돌 직전 발화: Backlighting → Shout → Head angle stays still`;
+
+const DEFAULT_IMAGE_PROMPT_QA = `You are a director working like a camera man, projecting a scene from three different perspectives. Each Clip must contain 4 Types of the same scene, divided into Image Prompt A, Image Prompt B, Image Prompt C, and Image Prompt D. Understand the pattern within the example prompts (what the prompt starts with, what is constantly emphasized and what is intentionally left out).
+
+Example Source Text:
+It was raining outside, the cloud blocking off any hint of hope of sunlight despite being morning. ELISA_PAST threw the TELEPHONE on to the floor, breaking it to pieces. At this point, Tears were already flowing in her eyes, and there was no point of return.
+There was only despair at this point.
+
+
+
+Image Prompt A should be centered around the attention_device of an a central object, or extreme close-up of a hand, or extreme close-up of foot. Should not be a person's face or expression. Mark as recommended prompt clip is B-roll of the previous clip, or as insert clip.
+Examples:
+(1) Extreme close-up shot of ELISA_PAST's foot on the floor, as the TELEPHONE hits the floor and  shatters into pieces.
+(2) Extreme close-up of ELISA_PAST's hand tossing the TELEPHONE. The TELEPHONE is already Inches away in the air, and the background is rendered white, shallow depth of field.
+(3) Extreme close-up of puddle on the ground. It is raining, and the raindrops create ripples on the small body of water. Time of the day is morning, but cloudy and no sun.
+
+
+Image Prompt B should be centered around the attention_action of an action taken by a person. Mark as recommended prompt if clips are placed around the start of a new scene, or an introductory phase of an action before rolling into B-roll clip.
+Examples:
+(1) Eye-level Full Shot of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
+(2) High angle Bird's eye view of ELISA_PAST holding her TELEPHONE close to her ear. Her eyes are widened, and tears are flowing from her eyes.
+(3) Low angle Side close-up of ELISA_PAST tossing her TELEPHONE onto the floor. Her eyes are widened, and tears are flowing from her eyes.
+The first word of Prompt A must be camera-distance related, choose appropriately between Full Shot, Wide Shot, Medium Close Up, Side Close Up, Back view, Bird's eye view. Pair with Eye-level, low angle, or high angle.
+
+
+Image Prompt C should be centered around the an emotion via attention_emotion. Examples will usually contain extreme close-up of eye or the pupils to exaggerate a dramatic emotion, with accompaniment of background of a solid color.
+Example:
+(1) Extreme close-up of ELISA_PAST's eyes widening in fear, as tears start flowing. Background is rendered black.
+(2) Low angle close-up of ELISA_PAST's face turning pale as her eyes widen. Her eyes have no highlights. Background is rendered red.
+Use image prompt C if the clip elaborates on the extreme peak of a character's expression.
+(3) Extreme close-up of ELISA_PAST's eyes widening in fear, as tears start flowing. Background is rendered black.
+
+
+Image Prompt D should be centered around the emotional effect exaggerated via attention_mood. Use method by all means to achieve exaggerated effect of a certain emotion, the point is to add dynamic, provocative, shocking clips to intensify a scene. Below are examples for Prompt D, attention_device being 'despair'
+Example:
+(1) Side close up view of ELISA_PAST screaming in to the distance, obscure her eyes with face shadow effect, render background in white, shallow depth of field
+(2) Extreme close-up of ELISA_PAST's eyes, all worn out and void of any highlight, some of hair loose on her face (from aggressive hair ruffling).
+(3) Close-up of TELEPHONE crashing onto the wall, numerous shattered particles flying at the camera.`;
 
 const DEFAULT_IMAGE_INSTRUCTION = `You are a director working like a camera man, projecting a scene from four different perspectives. Each Clip must contain 4 Types of the same scene, divided into Image Prompt A, Image Prompt B, Image Prompt C, and Image Prompt D. Each type has 5 variations (A1-A5, B1-B5, C1-C5, D1-D5). Understand the pattern within the example prompts.
 
@@ -202,16 +235,17 @@ const Loader: React.FC<LoaderProps> = ({ dictionary, language }) => (
 
 export default function WebnovelTrailerStoryboardGenerator() {
   const {
-    setStageResult,
     getStageResult,
     storyboardGenerator,
     startStoryboardGeneration,
     splitStartEndFrames,
     importStoryboard,
     clearStoryboardGeneration,
+    setActiveStoryboardPartIndex,
+    getGeneratedPartIndices,
     isStageSkipped,
   } = useMithril();
-  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre } = storyboardGenerator;
+  const { isGenerating, error, scenes, voicePrompts, characterIdSummary, genre, activePartIndex } = storyboardGenerator;
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -233,7 +267,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const [trailerSourceText, setTrailerSourceText] = useState<string>("");
 
   // Image Prompt QA Package
-  const [imagePromptQA, setImagePromptQA] = useState("");
+  const [imagePromptQA, setImagePromptQA] = useState(DEFAULT_IMAGE_PROMPT_QA);
 
   // Find & Replace
   const [findText, setFindText] = useState("");
@@ -256,13 +290,11 @@ export default function WebnovelTrailerStoryboardGenerator() {
 23. 16:9 비율에 최적화된 이미지 프롬프트여야 한다.
 24. 시각적 인물 수 제한: 등장인물의 수는 반드시 최대 5명 이하로 제한한다.
 25. imagePrompt에 등장하는 주요 캐릭터명과 고유 아이템/소품은 반드시 대문자(UPPERCASE)로 표기하십시오.`,
-      video: `0. [가장 중요한 규칙] 모든 비디오 프롬프트의 가장 시작 부분에 반드시 카메라 워킹(Camera Movement)을 명시하십시오.
-1. 카메라 앵글과 동작 위주로 간결하게 구성한다.
-2. 대사가 있는 장면에는 반드시 "speaks / talks / yells / shouts" 등 직설적 발화 키워드를 포함한다.
-3. 캐릭터 이름 대신 역할 기반 묘사 사용
-4. 입이 반쯤 가려져 있어도 반드시 발화 키워드 포함
-5. 질문 장면도 직관적 키워드 "speaks / yells / shouts / talks"로 통일
-6. 말하는 장면에는 항상 "(pronoun)'s head angle stays still" 추가`,
+      video: `1. 대사가 있는 장면에는 반드시 "speaks / talks / yells / shouts" 등 직설적 발화 키워드를 포함한다.
+2. 캐릭터 이름 대신 역할 기반 묘사 사용
+3. 입이 반쯤 가려져 있어도 반드시 발화 키워드 포함
+4. 질문 장면도 직관적 키워드 "speaks / yells / shouts / talks"로 통일
+5. 말하는 장면에는 항상 "(pronoun)'s head angle stays still" 추가`,
       sound: `1. 음향은 **대사(Dialogue/Narration)**, **효과음(SFX)**, **배경음악(BGM)**으로 각자의 Column에 구분하여 따로 생성된다.
 2. 효과음(SFX)에는 () 괄호 없이 생성하도록 한다.
 3. '스토리' 열에 포함된 대사/속마음은 '대사' 열에 반드시 동일하게 표기한다.
@@ -275,7 +307,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
   // State from Stage 2 (StorySplitter)
   const [splitParts, setSplitParts] = useState<string[]>([]);
-  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [chapterFileName, setChapterFileName] = useState<string>("");
+  const [selectedSourcePartIndex, setSelectedSourcePartIndex] = useState<number>(0);
+  const generatedPartIndices = getGeneratedPartIndices();
 
   // Conditions state
   const [storyCondition, setStoryCondition] = useState(defaultConditions.story);
@@ -297,37 +331,23 @@ export default function WebnovelTrailerStoryboardGenerator() {
   const [showDriveSettings, setShowDriveSettings] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
 
-  // Load split parts from context on mount
+  // Load source text from IdConverter chapter (trailer has no StorySplitter stage)
   useEffect(() => {
+    if (!currentProjectId) return;
     const loadParts = async () => {
-      if (isStageSkipped(2)) {
-        if (!currentProjectId) return;
-        try {
-          const chapter = await getChapter(currentProjectId);
-          if (chapter?.content) {
-            setSplitParts([chapter.content]);
-          }
-        } catch (err) {
-          console.error("Failed to load chapter from Firestore:", err);
+      try {
+        const chapter = await getChapter(currentProjectId);
+        console.log('[WebnovelTrailerSBG] chapter from Firestore:', chapter ? { filename: chapter.filename, contentLength: chapter.content?.length } : null);
+        if (chapter?.content) {
+          setSplitParts([chapter.content]);
+          setChapterFileName(chapter.filename || "");
         }
-      } else {
-        const contextResult = getStageResult(2) as { parts: Array<{ text: string } | string> } | undefined;
-        if (contextResult?.parts && Array.isArray(contextResult.parts)) {
-          const texts = contextResult.parts.map((part) =>
-            typeof part === "string" ? part : part.text
-          );
-          setSplitParts(texts);
-        }
+      } catch (err) {
+        console.error('[WebnovelTrailerSBG] Failed to load chapter from Firestore:', err);
       }
     };
     loadParts();
-  }, [getStageResult, isStageSkipped, currentProjectId]);
-
-  // Sync context results to stage results for downstream stages
-  useEffect(() => {
-    if (scenes.length === 0) return;
-    setStageResult(4, { scenes, voicePrompts, characterIdSummary, genre });
-  }, [scenes, voicePrompts, characterIdSummary, genre, setStageResult]);
+  }, [currentProjectId]);
 
   const handleGenerate = useCallback(async () => {
     if (splitParts.length === 0) {
@@ -339,7 +359,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       return;
     }
 
-    const sourceText = trailerSourceText || splitParts[selectedPartIndex];
+    const sourceText = trailerSourceText || splitParts[selectedSourcePartIndex];
     if (!sourceText) {
       toast({
         variant: "destructive",
@@ -367,7 +387,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
       selectedTrailerScript: selectedTrailerScript
         ? JSON.stringify(selectedTrailerScript.script)
         : "",
-    });
+      isTrailerMode: true,
+    }, selectedSourcePartIndex);
 
     if (!storyboardGenerator.error && storyboardGenerator.scenes.length > 0) {
       toast({
@@ -379,7 +400,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [
     trailerSourceText,
     splitParts,
-    selectedPartIndex,
+    selectedSourcePartIndex,
     storyCondition,
     imageCondition,
     videoCondition,
@@ -413,29 +434,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
       "Background Prompt",
       "Story",
       "attention_device(A)",
-      "Image Prompt A1",
-      "Image Prompt A2",
-      "Image Prompt A3",
-      "Image Prompt A4",
-      "Image Prompt A5",
+      "Image Prompt A",
       "attention_action(B)",
-      "Image Prompt B1",
-      "Image Prompt B2",
-      "Image Prompt B3",
-      "Image Prompt B4",
-      "Image Prompt B5",
+      "Image Prompt B",
       "attention_expression(C)",
-      "Image Prompt C1",
-      "Image Prompt C2",
-      "Image Prompt C3",
-      "Image Prompt C4",
-      "Image Prompt C5",
+      "Image Prompt C",
       "attention_mood(D)",
-      "Image Prompt D1",
-      "Image Prompt D2",
-      "Image Prompt D3",
-      "Image Prompt D4",
-      "Image Prompt D5",
+      "Image Prompt D",
       "Video Prompt",
       "Sora Video Prompt",
       "Veo Video Prompt",
@@ -465,29 +470,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
           q(clip.backgroundPrompt),
           q(clip.story),
           q(clip.attentionDevice || ""),
-          q(clip.imagePromptA1 || ""),
-          q(clip.imagePromptA2 || ""),
-          q(clip.imagePromptA3 || ""),
-          q(clip.imagePromptA4 || ""),
-          q(clip.imagePromptA5 || ""),
+          q(clip.imagePromptA || ""),
           q(clip.attentionAction || ""),
-          q(clip.imagePromptB1 || ""),
-          q(clip.imagePromptB2 || ""),
-          q(clip.imagePromptB3 || ""),
-          q(clip.imagePromptB4 || ""),
-          q(clip.imagePromptB5 || ""),
+          q(clip.imagePromptB || ""),
           q(clip.attentionExpression || ""),
-          q(clip.imagePromptC1 || ""),
-          q(clip.imagePromptC2 || ""),
-          q(clip.imagePromptC3 || ""),
-          q(clip.imagePromptC4 || ""),
-          q(clip.imagePromptC5 || ""),
+          q(clip.imagePromptC || ""),
           q(clip.attentionMood || ""),
-          q(clip.imagePromptD1 || ""),
-          q(clip.imagePromptD2 || ""),
-          q(clip.imagePromptD3 || ""),
-          q(clip.imagePromptD4 || ""),
-          q(clip.imagePromptD5 || ""),
+          q(clip.imagePromptD || ""),
           q(clip.videoPrompt),
           q(clip.soraVideoPrompt),
           q(clip.veoVideoPrompt),
@@ -526,9 +515,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `storyboard_nsfw_part${selectedPartIndex + 1}.csv`;
+    link.download = `storyboard_nsfw_part${activePartIndex + 1}.csv`;
     link.click();
-  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+  }, [scenes, activePartIndex, characterIdSummary, genre]);
 
   const handleDownloadXLSX = useCallback(() => {
     if (scenes.length === 0) return;
@@ -542,29 +531,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
       "Background Prompt",
       "Story",
       "attention_device(A)",
-      "Image Prompt A1",
-      "Image Prompt A2",
-      "Image Prompt A3",
-      "Image Prompt A4",
-      "Image Prompt A5",
+      "Image Prompt A",
       "attention_action(B)",
-      "Image Prompt B1",
-      "Image Prompt B2",
-      "Image Prompt B3",
-      "Image Prompt B4",
-      "Image Prompt B5",
+      "Image Prompt B",
       "attention_expression(C)",
-      "Image Prompt C1",
-      "Image Prompt C2",
-      "Image Prompt C3",
-      "Image Prompt C4",
-      "Image Prompt C5",
+      "Image Prompt C",
       "attention_mood(D)",
-      "Image Prompt D1",
-      "Image Prompt D2",
-      "Image Prompt D3",
-      "Image Prompt D4",
-      "Image Prompt D5",
+      "Image Prompt D",
       "Video Prompt",
       "Sora Video Prompt",
       "Veo Video Prompt",
@@ -591,29 +564,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
         clip.backgroundPrompt,
         clip.story,
         clip.attentionDevice || "",
-        clip.imagePromptA1 || "",
-        clip.imagePromptA2 || "",
-        clip.imagePromptA3 || "",
-        clip.imagePromptA4 || "",
-        clip.imagePromptA5 || "",
+        clip.imagePromptA || "",
         clip.attentionAction || "",
-        clip.imagePromptB1 || "",
-        clip.imagePromptB2 || "",
-        clip.imagePromptB3 || "",
-        clip.imagePromptB4 || "",
-        clip.imagePromptB5 || "",
+        clip.imagePromptB || "",
         clip.attentionExpression || "",
-        clip.imagePromptC1 || "",
-        clip.imagePromptC2 || "",
-        clip.imagePromptC3 || "",
-        clip.imagePromptC4 || "",
-        clip.imagePromptC5 || "",
+        clip.imagePromptC || "",
         clip.attentionMood || "",
-        clip.imagePromptD1 || "",
-        clip.imagePromptD2 || "",
-        clip.imagePromptD3 || "",
-        clip.imagePromptD4 || "",
-        clip.imagePromptD5 || "",
+        clip.imagePromptD || "",
         clip.videoPrompt,
         clip.soraVideoPrompt,
         clip.veoVideoPrompt,
@@ -650,8 +607,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Storyboard");
-    XLSX.writeFile(wb, `storyboard_nsfw_part${selectedPartIndex + 1}.xlsx`);
-  }, [scenes, selectedPartIndex, characterIdSummary, genre]);
+    XLSX.writeFile(wb, `storyboard_nsfw_part${activePartIndex + 1}.xlsx`);
+  }, [scenes, activePartIndex, characterIdSummary, genre]);
 
   const handleDownloadJSON = useCallback(() => {
     if (scenes.length === 0) return;
@@ -663,7 +620,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
       genre,
       metadata: {
         exportedAt: new Date().toISOString(),
-        partIndex: selectedPartIndex + 1,
+        partIndex: activePartIndex + 1,
         totalScenes: scenes.length,
         totalClips: scenes.reduce((acc, s) => acc + s.clips.length, 0),
       },
@@ -685,7 +642,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
     const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `storyboard_nsfw_part${selectedPartIndex + 1}.json`;
+    link.download = `storyboard_nsfw_part${activePartIndex + 1}.json`;
     link.click();
 
     toast({
@@ -696,7 +653,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
   }, [
     scenes,
     voicePrompts,
-    selectedPartIndex,
+    activePartIndex,
     storyCondition,
     imageCondition,
     videoCondition,
@@ -731,7 +688,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
           return;
         }
 
-        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre);
+        await importStoryboard(data.scenes, data.voicePrompts || [], data.characterIdSummary || [], data.genre, activePartIndex);
 
         if (data.conditions) {
           if (data.conditions.storyCondition) setStoryCondition(data.conditions.storyCondition);
@@ -763,7 +720,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
     reader.readAsText(file);
     event.target.value = "";
-  }, [importStoryboard, toast, dictionary, language]);
+  }, [importStoryboard, toast, dictionary, language, activePartIndex]);
 
   const handleCSVImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -805,29 +762,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
           imgStart: findIdx(["Image Prompt (Start)", "이미지 프롬프트 (Start)", "Image Prompt", "이미지 프롬프트"]),
           imgEnd: findIdx(["Image Prompt (End)", "이미지 프롬프트 (End)"]),
           attentionDevice: findIdx(["attention_device(A)", "attention_device (A)", "attention_device"]),
-          imgA1: findIdx(["Image Prompt A1"]),
-          imgA2: findIdx(["Image Prompt A2"]),
-          imgA3: findIdx(["Image Prompt A3"]),
-          imgA4: findIdx(["Image Prompt A4"]),
-          imgA5: findIdx(["Image Prompt A5"]),
+          imgA1: findIdx(["Image Prompt A1", "Image Prompt A"]),
           attentionAction: findIdx(["attention_action(B)", "attention_action (B)", "attention_action"]),
-          imgB1: findIdx(["Image Prompt B1"]),
-          imgB2: findIdx(["Image Prompt B2"]),
-          imgB3: findIdx(["Image Prompt B3"]),
-          imgB4: findIdx(["Image Prompt B4"]),
-          imgB5: findIdx(["Image Prompt B5"]),
+          imgB1: findIdx(["Image Prompt B1", "Image Prompt B"]),
           attentionExpression: findIdx(["attention_expression(C)", "attention_expression (C)", "attention_expression"]),
-          imgC1: findIdx(["Image Prompt C1"]),
-          imgC2: findIdx(["Image Prompt C2"]),
-          imgC3: findIdx(["Image Prompt C3"]),
-          imgC4: findIdx(["Image Prompt C4"]),
-          imgC5: findIdx(["Image Prompt C5"]),
+          imgC1: findIdx(["Image Prompt C1", "Image Prompt C"]),
           attentionMood: findIdx(["attention_mood(D)", "attention_mood (D)", "attention_mood"]),
-          imgD1: findIdx(["Image Prompt D1"]),
-          imgD2: findIdx(["Image Prompt D2"]),
-          imgD3: findIdx(["Image Prompt D3"]),
-          imgD4: findIdx(["Image Prompt D4"]),
-          imgD5: findIdx(["Image Prompt D5"]),
+          imgD1: findIdx(["Image Prompt D1", "Image Prompt D"]),
           video: findIdx(["Video Prompt", "비디오 프롬프트"]),
           sora: findIdx(["Sora", "소라", "Sora Video Prompt"]),
           veo: findIdx(["Veo", "Veo Video Prompt"]),
@@ -871,29 +812,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
             imagePrompt: hasAbcdFormat ? getVal(idx.imgA1) : getVal(idx.imgStart),
             imagePromptEnd: getVal(idx.imgEnd) || undefined,
             attentionDevice: getVal(idx.attentionDevice) || undefined,
-            imagePromptA1: getVal(idx.imgA1) || undefined,
-            imagePromptA2: getVal(idx.imgA2) || undefined,
-            imagePromptA3: getVal(idx.imgA3) || undefined,
-            imagePromptA4: getVal(idx.imgA4) || undefined,
-            imagePromptA5: getVal(idx.imgA5) || undefined,
+            imagePromptA: getVal(idx.imgA1) || undefined,
             attentionAction: getVal(idx.attentionAction) || undefined,
-            imagePromptB1: getVal(idx.imgB1) || undefined,
-            imagePromptB2: getVal(idx.imgB2) || undefined,
-            imagePromptB3: getVal(idx.imgB3) || undefined,
-            imagePromptB4: getVal(idx.imgB4) || undefined,
-            imagePromptB5: getVal(idx.imgB5) || undefined,
+            imagePromptB: getVal(idx.imgB1) || undefined,
             attentionExpression: getVal(idx.attentionExpression) || undefined,
-            imagePromptC1: getVal(idx.imgC1) || undefined,
-            imagePromptC2: getVal(idx.imgC2) || undefined,
-            imagePromptC3: getVal(idx.imgC3) || undefined,
-            imagePromptC4: getVal(idx.imgC4) || undefined,
-            imagePromptC5: getVal(idx.imgC5) || undefined,
+            imagePromptC: getVal(idx.imgC1) || undefined,
             attentionMood: getVal(idx.attentionMood) || undefined,
-            imagePromptD1: getVal(idx.imgD1) || undefined,
-            imagePromptD2: getVal(idx.imgD2) || undefined,
-            imagePromptD3: getVal(idx.imgD3) || undefined,
-            imagePromptD4: getVal(idx.imgD4) || undefined,
-            imagePromptD5: getVal(idx.imgD5) || undefined,
+            imagePromptD: getVal(idx.imgD1) || undefined,
             videoPrompt: getVal(idx.video),
             soraVideoPrompt: getVal(idx.sora),
             veoVideoPrompt: getVal(idx.veo),
@@ -922,7 +847,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
         }
 
         if (parsedScenes.length > 0) {
-          await importStoryboard(parsedScenes, []);
+          await importStoryboard(parsedScenes, [], undefined, undefined, activePartIndex);
           const totalClips = parsedScenes.reduce((acc, s) => acc + s.clips.length, 0);
           toast({
             variant: "success",
@@ -947,7 +872,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
 
     reader.readAsText(file);
     event.target.value = "";
-  }, [importStoryboard, toast, dictionary, language]);
+  }, [importStoryboard, toast, dictionary, language, activePartIndex]);
 
   const handleFindAndReplace = useCallback(() => {
     if (!findText || scenes.length === 0) return;
@@ -967,13 +892,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
         return updated;
       }),
     }));
-    importStoryboard(modifiedScenes, voicePrompts, characterIdSummary, genre);
+    importStoryboard(modifiedScenes, voicePrompts, characterIdSummary, genre, activePartIndex);
     toast({
       variant: "success",
       title: "Find & Replace 완료",
       description: `"${findText}" → "${replaceText}"`,
     });
-  }, [findText, replaceText, scenes, voicePrompts, characterIdSummary, genre, importStoryboard, toast]);
+  }, [findText, replaceText, scenes, voicePrompts, characterIdSummary, genre, importStoryboard, toast, activePartIndex]);
 
   const handleConfigFileUpload = useCallback(
     (
@@ -1039,7 +964,8 @@ export default function WebnovelTrailerStoryboardGenerator() {
       {/* TrailerSurvey view */}
       {currentView === 'survey' && (
         <TrailerSurvey
-          initialSourceText={splitParts[selectedPartIndex]}
+          initialSourceText={splitParts[selectedSourcePartIndex]}
+          initialFileName={chapterFileName}
           onStart={(text, option) => {
             setTrailerSourceText(text);
             setSelectedTrailerScript(option);
@@ -1070,9 +996,9 @@ export default function WebnovelTrailerStoryboardGenerator() {
             {splitParts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedPartIndex(index)}
+                onClick={() => setSelectedSourcePartIndex(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedPartIndex === index
+                  selectedSourcePartIndex === index
                     ? "bg-[#DB2777] text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
@@ -1087,17 +1013,17 @@ export default function WebnovelTrailerStoryboardGenerator() {
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {trailerSourceText
                   ? "트레일러 텍스트 미리보기"
-                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedPartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
+                  : `${phrase(dictionary, "storysplitter_part", language)} ${selectedSourcePartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {((trailerSourceText || splitParts[selectedPartIndex])?.length ?? 0).toLocaleString()}{" "}
+                {((trailerSourceText || splitParts[selectedSourcePartIndex])?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}
               </span>
             </div>
             <div className="max-h-24 overflow-y-auto scrollbar-hide">
               <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-                {(trailerSourceText || splitParts[selectedPartIndex])?.slice(0, 300)}
-                {(trailerSourceText || splitParts[selectedPartIndex])?.length > 300 && "..."}
+                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.slice(0, 300)}
+                {(trailerSourceText || splitParts[selectedSourcePartIndex])?.length > 300 && "..."}
               </pre>
             </div>
           </div>
@@ -1519,6 +1445,13 @@ export default function WebnovelTrailerStoryboardGenerator() {
                 {phrase(dictionary, "storyboard_json_download", language)}
               </button>
               <button
+                onClick={() => clearStoryboardGeneration(activePartIndex)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear This Part
+              </button>
+              <button
                 onClick={async () => {
                   await splitStartEndFrames();
                   toast({
@@ -1535,7 +1468,7 @@ export default function WebnovelTrailerStoryboardGenerator() {
               </button>
               {scenes.length > 0 && (
                 <button
-                  onClick={clearStoryboardGeneration}
+                  onClick={() => clearStoryboardGeneration()}
                   disabled={isGenerating}
                   className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
                 >

@@ -48,7 +48,7 @@ const TEXT_TO_VIDEO_STAGES: StageDefinition[] = [
   { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
   // Tool-only: kept for backwards compatibility + on-demand usage, but removed from the pipeline stepper.
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator', visibility: 'tool' },
-  { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'StoryboardGenerator' },
+  { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'WebnovelStoryboardGenerator' },
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
   { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'ImageGenerator' },
@@ -60,7 +60,7 @@ const TEXT_TO_VIDEO_NSFW_STAGES: StageDefinition[] = [
   { id: 1, key: 'id-converter', labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
   { id: 2, key: 'story-splitter', labelKey: 'mithril_stage2', component: 'StorySplitter' },
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3', component: 'CharacterSheetGenerator', visibility: 'tool' },
-  { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'NsfwStoryboardGenerator' },
+  { id: 4, key: 'storyboard', labelKey: 'mithril_stage4', component: 'WebnovelStoryboardGenerator' },
   { id: 5, key: 'prop-designer', labelKey: 'mithril_stage5_prop', component: 'PropDesigner' },
   { id: 6, key: 'bg-sheet', labelKey: 'mithril_stage5', component: 'BgSheetGenerator' },
   { id: 7, key: 'image-gen', labelKey: 'mithril_stage6', component: 'NsfwImageGenerator' },
@@ -127,7 +127,7 @@ const IMAGE_TO_VIDEO_WEBTOON_STAGES: StageDefinition[] = [
 // Stage configurations for Webnovel Trailer pipeline
 const WEBNOVEL_TRAILER_STAGES: StageDefinition[] = [
   { id: 1, key: 'id-converter',    labelKey: 'mithril_stage_id_converter', component: 'IdConverter' },
-  { id: 2, key: 'story-splitter',  labelKey: 'mithril_stage2',             component: 'StorySplitter' },
+  { id: 2, key: 'story-splitter',  labelKey: 'mithril_stage2',             component: 'StorySplitter',           visibility: 'tool' },
   { id: 3, key: 'character-sheet', labelKey: 'mithril_stage3',             component: 'CharacterSheetGenerator', visibility: 'tool' },
   { id: 4, key: 'storyboard',      labelKey: 'mithril_stage4',             component: 'WebnovelTrailerStoryboardGenerator' },
   { id: 5, key: 'prop-designer',   labelKey: 'mithril_stage5_prop',        component: 'PropDesigner' },

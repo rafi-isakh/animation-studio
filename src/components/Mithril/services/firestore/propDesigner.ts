@@ -163,6 +163,8 @@ export async function saveProp(
   if (input.hairColor !== undefined) data.hairColor = input.hairColor;
   if (input.hairStyle !== undefined) data.hairStyle = input.hairStyle;
   if (input.eyeColor !== undefined) data.eyeColor = input.eyeColor;
+  if (input.dominantOutfitColor !== undefined) data.dominantOutfitColor = input.dominantOutfitColor;
+  if (input.expression !== undefined) data.expression = input.expression;
   if (input.personality !== undefined) data.personality = input.personality;
   if (input.role !== undefined) data.role = input.role;
 
@@ -197,6 +199,23 @@ export async function updateProp(
 }
 
 /**
+ * Mark all props with a generated design sheet as pushed to assets.
+ * Uses a writeBatch for atomicity.
+ */
+export async function pushPropsToAssets(projectId: string): Promise<void> {
+  const props = await getProps(projectId);
+  const toUpdate = props.filter(p => !!p.designSheetImageRef);
+  if (toUpdate.length === 0) return;
+
+  const batch = writeBatch(db);
+  for (const prop of toUpdate) {
+    const docRef = getPropRef(projectId, prop.id);
+    batch.set(docRef, { pushedToAssets: true }, { merge: true });
+  }
+  await batch.commit();
+}
+
+/**
  * Update prop design sheet image
  */
 export async function updatePropDesignSheetImage(
@@ -228,6 +247,33 @@ export async function deleteProp(
 ): Promise<void> {
   const docRef = getPropRef(projectId, propId);
   await deleteDoc(docRef);
+}
+
+/**
+ * Rename a prop: copies old document to new ID, deletes old document.
+ * If newName is provided, updates the name field in the new document.
+ */
+export async function renameProp(
+  projectId: string,
+  oldId: string,
+  newId: string,
+  newName?: string
+): Promise<void> {
+  const oldRef = getPropRef(projectId, oldId);
+  const oldSnap = await getDoc(oldRef);
+
+  const newRef = getPropRef(projectId, newId);
+  if (oldSnap.exists()) {
+    const data = { ...oldSnap.data() };
+    if (newName !== undefined) data.name = newName;
+    await setDoc(newRef, data);
+    await deleteDoc(oldRef);
+  } else {
+    // No Firestore doc yet — just create a stub for the new ID if a name is provided
+    if (newName !== undefined) {
+      await setDoc(newRef, { name: newName }, { merge: true });
+    }
+  }
 }
 
 // ============================================
@@ -298,9 +344,15 @@ export async function updateDetectedIdCategory(
  * Also deletes all prop images from S3
  */
 export async function clearPropDesigner(projectId: string): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[clearPropDesigner] start", { projectId });
+  }
   // Step 1: Delete all prop images from S3 first
   try {
     const props = await getProps(projectId);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[clearPropDesigner] props_to_delete", { count: props.length });
+    }
     
     for (const prop of props) {
       try {
@@ -320,6 +372,9 @@ export async function clearPropDesigner(projectId: string): Promise<void> {
   // Delete all props - wrap in try-catch to handle BloomFilter errors on empty collections
   try {
     const props = await getProps(projectId);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[clearPropDesigner] firestore_props_delete", { count: props.length });
+    }
     for (const prop of props) {
       const propRef = getPropRef(projectId, prop.id);
       batch.delete(propRef);

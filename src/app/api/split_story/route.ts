@@ -204,7 +204,6 @@ async function splitTextWithCliffhangers(
           `AI returned a cliffhanger sentence ("${searchSentence.substring(0, 50)}...") that could not be found in the original script. The AI may have altered the sentence. Please try again.`
         );
       }
-
       const part = remainingText.substring(0, splitPoint);
       textParts.push(part.trim());
       remainingText = remainingText.substring(splitPoint);

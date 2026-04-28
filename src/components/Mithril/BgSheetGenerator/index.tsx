@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { phrase } from "@/utils/phrases";
-import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles } from "../services/firestore";
+import { getChapter, saveBgSheetSettings, updateBackgroundAngleImage, saveBackground, saveBackgroundWithId, updateBackgroundReferenceData, getBackgrounds, clearBgSheet, clearBackgroundAngles, deleteBackground } from "../services/firestore";
 import { uploadBackgroundImage, uploadBackgroundReferenceImage, deleteBackgroundReferenceImage, deleteBackgroundImage } from "../services/s3";
 import type { Dictionary, Language } from "@/components/Types";
 import {
@@ -233,6 +233,7 @@ const downloadImageFromUrl = async (url: string, filename: string): Promise<void
 interface CsvBackgroundData {
   name: string;
   description: string;
+  csvContext?: string; // Aggregated image prompt context from imagePromptCol
 }
 
 // Parse CSV content into rows, handling multi-line quoted fields
@@ -317,16 +318,17 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
 
   let lastBgPrefix: string | null = null; // Track last valid BG prefix for implicit rows
 
-  const { backgroundIdCol, backgroundPromptCol } = columnMapping;
-  const minCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
+  const { backgroundIdCol, backgroundPromptCol, imagePromptCol } = columnMapping;
+  const minRequiredCols = Math.max(backgroundIdCol, backgroundPromptCol) + 1;
 
   // Skip header row, parse data rows
   for (let i = 1; i < rows.length; i++) {
     const fields = rows[i];
-    if (fields.length < minCols) continue;
+    if (fields.length < minRequiredCols) continue;
 
     const bgIdRaw = fields[backgroundIdCol]?.trim() || "";
     const bgPrompt = fields[backgroundPromptCol]?.trim() || "";
+    const imagePrompt = fields.length > imagePromptCol ? (fields[imagePromptCol]?.trim() || "") : "";
 
     let bgPrefix = "";
 
@@ -346,14 +348,19 @@ const parseCsvForImport = (csvContent: string, columnMapping: CsvColumnMapping =
     const bgName = `Background ${bgPrefix}`;
 
     if (!result.has(bgName)) {
-      result.set(bgName, { name: bgName, description: "" });
+      result.set(bgName, { name: bgName, description: "", csvContext: "" });
     }
 
     const existingData = result.get(bgName)!;
 
     // Update description if we have a better one (longer)
-    if (bgPrompt && bgPrompt.length > existingData.description.length) {
+    if (bgPrompt && bgPrompt.length > (existingData.description?.length ?? 0)) {
       existingData.description = bgPrompt;
+    }
+
+    // Aggregate image prompt context (longest wins)
+    if (imagePrompt && imagePrompt.length > (existingData.csvContext?.length ?? 0)) {
+      existingData.csvContext = imagePrompt;
     }
   }
 
@@ -393,7 +400,7 @@ interface BgSheetProjectExport {
 }
 
 export default function BgSheetGenerator() {
-  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, customApiKey, storyboardGenerator } = useMithril();
+  const { setStageResult, bgSheetGenerator, startBgSheetAnalysis, cancelBgSheetAnalysis, clearBgSheetAnalysis, setBgSheetResult, setActiveBgPartIndex, pushBgsToAssets, customApiKey, storyboardGenerator, getScenesForPart, getGeneratedPartIndices, getStoryPartIndices } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
   const { currentProjectId } = useProject();
@@ -449,6 +456,10 @@ export default function BgSheetGenerator() {
   const autoPilotAbortRef = useRef(false);
   const hasCheckedResumeRef = useRef(false);
 
+  // Part selection for multi-part storyboards
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [isPushingBgsToAssets, setIsPushingBgsToAssets] = useState(false);
+
   // Sequential generation stop control (per background)
   const stopGenerationRef = useRef<Record<string, boolean>>({});
 
@@ -467,6 +478,26 @@ export default function BgSheetGenerator() {
   // Mirror backgrounds state for use in callbacks without stale closures
   const backgroundsRef = useRef<Background[]>([]);
   useEffect(() => { backgroundsRef.current = backgrounds; }, [backgrounds]);
+
+  // Auto-correct selectedPartIndex if the selected part no longer exists
+  const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
+  useEffect(() => {
+    if (storyPartIndices.length === 0) return;
+    if (!storyPartIndices.includes(selectedPartIndex)) {
+      const newPartIndex = storyPartIndices[storyPartIndices.length - 1] ?? 0;
+      setSelectedPartIndex(newPartIndex);
+      setActiveBgPartIndex(newPartIndex);
+    }
+  }, [storyPartIndices, selectedPartIndex]);
+
+  // Backgrounds filtered to the selected part (all if single-part)
+  const displayedBackgrounds = useMemo(
+    () => generatedPartIndices.length > 1
+      ? backgrounds.filter(bg => (bg.partIndex ?? 0) === selectedPartIndex)
+      : backgrounds,
+    [backgrounds, generatedPartIndices.length, selectedPartIndex]
+  );
 
   // Handle angle updates from orchestrator
   const handleAngleUpdate = useCallback((update: AngleUpdate) => {
@@ -537,6 +568,7 @@ export default function BgSheetGenerator() {
             id: b.id,
             name: b.name,
             description: b.description,
+            partIndex: b.partIndex ?? 0,
             referenceImageUrl: b.referenceImageUrl,
             referenceAnalysis: b.referenceAnalysis,
             plannedPrompts: b.plannedPrompts,
@@ -735,9 +767,10 @@ export default function BgSheetGenerator() {
             if (firestoreBackgrounds.length > 0) {
               setBackgrounds(prevBgs => prevBgs.map(bg => {
                 const firestoreBg = firestoreBackgrounds.find(fb => fb.id === bg.id);
-                if (firestoreBg && (firestoreBg.referenceImageRef || firestoreBg.referenceAnalysis || firestoreBg.plannedPrompts)) {
+                if (firestoreBg) {
                   return {
                     ...bg,
+                    partIndex: firestoreBg.partIndex ?? 0,
                     referenceImageUrl: firestoreBg.referenceImageRef ? `${firestoreBg.referenceImageRef}?t=${Date.now()}` : bg.referenceImageUrl,
                     referenceAnalysis: firestoreBg.referenceAnalysis || bg.referenceAnalysis,
                     plannedPrompts: firestoreBg.plannedPrompts || bg.plannedPrompts,
@@ -853,6 +886,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex ?? 0,
             images: bg.images.map((img) => ({
               angle: img.angle,
               prompt: img.prompt,
@@ -879,13 +913,18 @@ export default function BgSheetGenerator() {
     const result = await startBgSheetAnalysis(originalText, styleKeyword, backgroundBasePrompt);
 
     if (result.length > 0) {
-      setBackgrounds(result);
+      const taggedResult = result.map(bg => ({ ...bg, partIndex: selectedPartIndex }));
+      setBackgrounds(prev => [
+        ...prev.filter(bg => (bg.partIndex ?? 0) !== selectedPartIndex),
+        ...taggedResult,
+      ]);
       // Convert to BgSheetResultMetadata format for stageResult
       const metadata: BgSheetResultMetadata = {
-        backgrounds: result.map((bg) => ({
+        backgrounds: taggedResult.map((bg) => ({
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex ?? 0,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -1374,6 +1413,7 @@ export default function BgSheetGenerator() {
           id: bg.id,
           name: bg.name,
           description: bg.description,
+          partIndex: bg.partIndex ?? 0,
           images: bg.images.map((img) => ({
             angle: img.angle,
             prompt: img.prompt,
@@ -1559,8 +1599,8 @@ export default function BgSheetGenerator() {
     try {
       const userInstruction = remixPrompts[bgId]?.trim();
       const prompt = userInstruction
-        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`
-        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. EMPTY SCENE, NO CHARACTERS, NO PEOPLE.`;
+        ? `${userInstruction}. ${backgroundBasePrompt}. Style: ${styleKeyword}. Remove characters and their shadow/reflections from the background. EMPTY SCENE, NO PEOPLE.`
+        : `Create a stylistic variation of this background scene. Keep the same location, atmosphere, and visual style but explore a different composition, lighting mood, or time of day. ${backgroundBasePrompt}. Style: ${styleKeyword}. Remove characters and their shadow/reflections from the background. EMPTY SCENE, NO PEOPLE.`;
 
       const response = await fetch("/api/generate_bg_sheet/generate-from-reference", {
         method: "POST",
@@ -2029,17 +2069,17 @@ export default function BgSheetGenerator() {
 
   // Total active frames count
   const totalActiveFrames = useMemo(() => {
-    return backgrounds.reduce((acc, bg) => {
+    return displayedBackgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false).length;
     }, 0);
-  }, [backgrounds]);
+  }, [displayedBackgrounds]);
 
   // Total active frames with images (downloadable)
   const totalDownloadableFrames = useMemo(() => {
-    return backgrounds.reduce((acc, bg) => {
+    return displayedBackgrounds.reduce((acc, bg) => {
       return acc + bg.images.filter(img => img.isActive !== false && (img.imageBase64 || img.imageUrl)).length;
     }, 0);
-  }, [backgrounds]);
+  }, [displayedBackgrounds]);
 
   // Toggle frame active/inactive
   const handleToggleActive = (bgId: string, index: number) => {
@@ -2474,13 +2514,17 @@ export default function BgSheetGenerator() {
       const existingBgNames = new Set(backgrounds.map(bg => bg.name));
       const updatedBackgrounds: Background[] = [];
 
-      // Update existing backgrounds - update description from CSV if better
+      // Update existing backgrounds - update description and csvContext from CSV if better
       for (const bg of backgrounds) {
         const csvBgData = importedData.get(bg.name);
         if (csvBgData) {
           updatedBackgrounds.push({
             ...bg,
             description: csvBgData.description || bg.description,
+            images: bg.images.map(img => ({
+              ...img,
+              csvContext: csvBgData.csvContext || img.csvContext || "",
+            })),
           });
         } else {
           updatedBackgrounds.push(bg);
@@ -2503,6 +2547,7 @@ export default function BgSheetGenerator() {
               isActive: true,
               isFinalized: false,
               characterPrompt: "",
+              csvContext: csvBgData.csvContext || "",
             })),
           };
           updatedBackgrounds.push(newBg);
@@ -2532,6 +2577,7 @@ export default function BgSheetGenerator() {
               id: bg.id,
               name: bg.name,
               description: bg.description,
+              partIndex: bg.partIndex ?? 0,
               images: bg.images.map(img => ({
                 angle: img.angle,
                 prompt: img.prompt || "",
@@ -2563,7 +2609,7 @@ export default function BgSheetGenerator() {
 
   // Storyboard Import handler - imports backgrounds from storyboard data
   const handleImportFromStoryboard = useCallback(async () => {
-    const { scenes } = storyboardGenerator;
+    const scenes = getScenesForPart(selectedPartIndex);
 
     if (!scenes || scenes.length === 0) {
       toast({
@@ -2622,6 +2668,7 @@ export default function BgSheetGenerator() {
         id: `bg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: bgData.name,
         description: bgData.description,
+        partIndex: selectedPartIndex,
         images: BACKGROUND_ANGLES.map(angle => ({
           angle,
           prompt: "",
@@ -2635,19 +2682,29 @@ export default function BgSheetGenerator() {
       };
     });
 
-    setBackgrounds(newBackgrounds);
+    // Replace only this part's backgrounds in state, keeping other parts intact
+    setBackgrounds(prev => [
+      ...prev.filter(bg => (bg.partIndex ?? 0) !== selectedPartIndex),
+      ...newBackgrounds,
+    ]);
 
     // Persist to Firestore immediately so backgrounds survive refresh
     if (currentProjectId) {
       try {
-        // Clear old backgrounds first to avoid duplicates on refresh
-        await clearBgSheet(currentProjectId);
+        // Delete only the current part's old backgrounds to avoid duplicates
+        const existingBgs = await getBackgrounds(currentProjectId);
+        for (const bg of existingBgs) {
+          if ((bg.partIndex ?? 0) === selectedPartIndex) {
+            await deleteBackground(currentProjectId, bg.id);
+          }
+        }
 
         // Save each background to Firestore
         for (const bg of newBackgrounds) {
           await saveBackgroundWithId(currentProjectId, bg.id, {
             name: bg.name,
             description: bg.description,
+            partIndex: selectedPartIndex,
             angles: bg.images.map(img => ({
               angle: img.angle,
               prompt: img.prompt || "",
@@ -2662,6 +2719,7 @@ export default function BgSheetGenerator() {
             id: bg.id,
             name: bg.name,
             description: bg.description,
+            partIndex: bg.partIndex ?? 0,
             images: bg.images.map(img => ({
               angle: img.angle,
               prompt: img.prompt || "",
@@ -2687,7 +2745,7 @@ export default function BgSheetGenerator() {
       title: phrase(dictionary, "bgsheet_import_success", language) || "Import Successful",
       description: `${newBackgrounds.length} ${phrase(dictionary, "bgsheet_backgrounds_imported", language) || "backgrounds imported from storyboard"}`,
     });
-  }, [storyboardGenerator, toast, dictionary, language, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
+  }, [getScenesForPart, selectedPartIndex, toast, dictionary, language, currentProjectId, styleKeyword, backgroundBasePrompt, setBgSheetResult, setStageResult]);
 
   // JSON Project Export handler
   const handleJsonExport = useCallback(() => {
@@ -2772,7 +2830,11 @@ export default function BgSheetGenerator() {
           })),
         }));
 
-        setBackgrounds(importedBackgrounds);
+        const taggedImported = importedBackgrounds.map(bg => ({ ...bg, partIndex: selectedPartIndex }));
+        setBackgrounds(prev => [
+          ...prev.filter(bg => (bg.partIndex ?? 0) !== selectedPartIndex),
+          ...taggedImported,
+        ]);
         setIsSaved(false);
 
         toast({
@@ -2959,19 +3021,41 @@ export default function BgSheetGenerator() {
         </div>
       ))}
 
+      {/* Part selector - always visible when multiple parts exist */}
+      {!isLoadingData && storyPartIndices.length > 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 dark:text-gray-500">Part:</span>
+          <div className="flex gap-1">
+            {storyPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => { setSelectedPartIndex(partIdx); setActiveBgPartIndex(partIdx); }}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                {partIdx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Import from Storyboard & Import Options - only show when no results */}
-      {!isLoadingData && !isAnalyzing && backgrounds.length === 0 && (
+      {!isLoadingData && !isAnalyzing && displayedBackgrounds.length === 0 && (
         <div className="flex flex-col items-center gap-3">
           {/* Primary: Import from Storyboard */}
           <button
             onClick={handleImportFromStoryboard}
-            disabled={!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0}
+            disabled={generatedPartIndices.length === 0}
             className="px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             {phrase(dictionary, "bgsheet_import_storyboard", language) || "Import from Storyboard"}
           </button>
-          {(!storyboardGenerator.scenes || storyboardGenerator.scenes.length === 0) && (
+          {generatedPartIndices.length === 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {phrase(dictionary, "bgsheet_no_storyboard_hint", language) || "Generate a storyboard first to import backgrounds"}
             </p>
@@ -3027,14 +3111,14 @@ export default function BgSheetGenerator() {
       {!isLoadingData && isAnalyzing && <Loader dictionary={dictionary} language={language} onCancel={cancelBgSheetAnalysis} />}
 
       {/* Results */}
-      {!isLoadingData && backgrounds.length > 0 && !isAnalyzing && (
+      {!isLoadingData && displayedBackgrounds.length > 0 && !isAnalyzing && (
         <div className="space-y-4">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <span className="w-1 h-5 bg-[#DB2777] rounded-full"></span>
-                {phrase(dictionary, "bgsheet_backgrounds", language)} ({backgrounds.length})
+                {phrase(dictionary, "bgsheet_backgrounds", language)} ({displayedBackgrounds.length})
               </h3>
               <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">
                 {totalActiveFrames} {phrase(dictionary, "bgsheet_active_frames", language) || "active frames"}
@@ -3113,9 +3197,37 @@ export default function BgSheetGenerator() {
                 </span>
               </button>
               <button
+                onClick={async () => {
+                  // Debug: show how many images are detected per background in this part
+                  console.log("[BgSheet] pushBgsToAssets: part", selectedPartIndex);
+                  displayedBackgrounds.forEach(bg => {
+                    const localImages = bg.images.filter(i => i.imageUrl || i.imageBase64);
+                    console.log(
+                      "[BgSheet] bg",
+                      { id: bg.id, name: bg.name, partIndex: bg.partIndex ?? 0 },
+                      { localImageCount: localImages.length }
+                    );
+                  });
+                  setIsPushingBgsToAssets(true);
+                  try {
+                    await pushBgsToAssets(selectedPartIndex);
+                  } finally {
+                    setIsPushingBgsToAssets(false);
+                  }
+                }}
+                disabled={isPushingBgsToAssets || displayedBackgrounds.reduce((count, bg) => count + bg.images.filter(i => i.imageUrl || i.imageBase64).length, 0) === 0}
+                className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-800 disabled:text-gray-600 text-white border border-teal-600 disabled:border-gray-700 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
+                title="Push all generated backgrounds in this part to the asset sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+                </svg>
+                {isPushingBgsToAssets ? "Pushing…" : `Push to Assets (${displayedBackgrounds.reduce((count, bg) => count + bg.images.filter(i => i.imageUrl || i.imageBase64).length, 0)})`}
+              </button>
+              <button
                 onClick={() => {
-                  setBackgrounds([]);
-                  clearBgSheetAnalysis();
+                  setBackgrounds(prev => prev.filter(bg => (bg.partIndex ?? 0) !== selectedPartIndex));
+                  if (generatedPartIndices.length <= 1) clearBgSheetAnalysis();
                 }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors text-sm"
               >
@@ -3126,7 +3238,7 @@ export default function BgSheetGenerator() {
 
           {/* Background Cards */}
           <div className="space-y-6 max-h-[100vh] overflow-y-auto pr-1 scrollbar-hide">
-            {[...backgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
+            {[...displayedBackgrounds].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map((bg, bgSortedIndex) => (
               <div
                 key={bg.id}
                 className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-4"

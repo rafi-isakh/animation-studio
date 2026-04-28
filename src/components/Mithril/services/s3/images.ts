@@ -1301,6 +1301,46 @@ export async function uploadI2VPanelEditorImage(
 }
 
 /**
+ * Overwrite an existing S3 object in-place using its known key.
+ * Used to replace a generation result with a remix result at the same URL,
+ * so Firestore references stay valid without needing an update.
+ *
+ * @param projectId  - Project ID (used for ownership validation server-side)
+ * @param s3Key      - Full S3 key derived from the existing result URL's pathname
+ * @param base64     - New image data (base64, no data-URI prefix)
+ * @param mimeType   - MIME type of the new image
+ * @returns The same CloudFront URL as before (key unchanged)
+ */
+export async function overwriteS3Image(
+  projectId: string,
+  s3Key: string,
+  base64: string,
+  mimeType = 'image/jpeg'
+): Promise<string> {
+  const request: UploadImageRequest = {
+    projectId,
+    imageType: 'raw',
+    rawKey: s3Key,
+    base64,
+    mimeType,
+  };
+
+  const response = await fetch(IMAGE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const result: UploadImageResponse = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to overwrite S3 image');
+  }
+
+  return result.url;
+}
+
+/**
  * Delete a panel editor original image from S3
  */
 export async function deleteI2VPanelEditorImage(

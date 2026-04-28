@@ -56,6 +56,8 @@ export interface Prop {
   hairColor?: string; // e.g., 'Silver', 'Dark brown'
   hairStyle?: string; // e.g., 'Long straight', 'Short spiky'
   eyeColor?: string; // e.g., 'Golden', 'Blue'
+  dominantOutfitColor?: string; // e.g., 'Navy blue', 'Crimson red'
+  expression?: string; // e.g., 'Gentle smile', 'Cold stare'
   personality?: string;
   role?: string; // Relationship to protagonist (Partner, Rival, Enemy, etc.)
 
@@ -63,6 +65,9 @@ export interface Prop {
   isVariant?: boolean;
   variantDetails?: string; // e.g., "Future version", "Dark mode"
   variantVisuals?: string; // e.g., "Longer hair, darker outfit"
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 // Detection session - each detection creates a new session
@@ -95,6 +100,8 @@ export interface PropMetadata {
   hairColor?: string;
   hairStyle?: string;
   eyeColor?: string;
+  dominantOutfitColor?: string;
+  expression?: string;
   personality?: string;
   role?: string;
 
@@ -102,6 +109,9 @@ export interface PropMetadata {
   isVariant?: boolean;
   variantDetails?: string;
   variantVisuals?: string;
+
+  // Asset approval
+  pushedToAssets?: boolean;
 }
 
 // Settings for the PropDesigner stage
@@ -221,6 +231,8 @@ export function getEasyModeCharacterPrompt(
     hairColor?: string;
     hairStyle?: string;
     eyeColor?: string;
+    dominantOutfitColor?: string;
+    expression?: string;
     personality?: string;
     role?: string;
   },
@@ -249,6 +261,8 @@ export function getEasyModeCharacterPrompt(
   const hairColor = prop.hairColor || "black";
   const hairStyle = prop.hairStyle || "medium length";
   const eyeColor = prop.eyeColor || "brown";
+  const dominantOutfitColor = prop.dominantOutfitColor || "";
+  const expression = prop.expression || "";
   const personality = prop.personality || "Smart and calm";
   const role = prop.role || "Companion";
   const description = prop.description || "";
@@ -290,7 +304,9 @@ export function getEasyModeCharacterPrompt(
   }
 
   // Build visual features string
-  const visualFeatures = `${hairColor} ${hairStyle} hair, ${eyeColor} eyes`;
-  
-  return `Make 2d anime white background character sheet of who would be ${relationshipPhrase}, ${age}-year old ${gender}. ${visualFeatures}. ${personality}. ${description} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genreText}.`;
+  const outfitPart = dominantOutfitColor ? `, ${dominantOutfitColor} outfit` : "";
+  const visualFeatures = `${hairColor} ${hairStyle} hair, ${eyeColor} eyes${outfitPart}`;
+  const expressionPart = expression ? ` ${expression}.` : "";
+
+  return `Make 2d anime white background character sheet of who would be ${relationshipPhrase}, ${age}-year old ${gender}. ${visualFeatures}. ${personality}.${expressionPart} ${description} Maintain 1 full body front view, 1 face closeup view, 1 hands close up template. ${genreText}.`;
 }

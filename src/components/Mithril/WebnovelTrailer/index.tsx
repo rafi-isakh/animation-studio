@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useMithril } from "../MithrilContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,20 +12,22 @@ import { ASPECT_RATIOS } from "../VideoGenerator/types";
 import type { AspectRatio } from "../VideoGenerator/providers/types";
 import {
   getWebnovelTrailerMeta,
-  getWebnovelTrailerClips,
+  getWebnovelTrailerClipsByPart,
   saveWebnovelTrailerMeta,
   saveWebnovelTrailerClip,
   saveWebnovelTrailerClipsBatch,
   updateWebnovelTrailerClipStatus,
   deleteWebnovelTrailerClip,
-  clearWebnovelTrailer,
+  clearWebnovelTrailerPart,
   mapJobToClipUpdate,
   getActiveProjectJobs,
+  getImageGenFrames,
 } from "../services/firestore";
 import { useVideoOrchestrator, type ClipUpdate } from "../VideoGenerator/useVideoOrchestrator";
 import type { CsvFrame, WebnovelTrailerColumnMapping } from "./types";
 import { DEFAULT_WEBNOVEL_MAPPING } from "./types";
 import { parseCSV, autoDetectMapping, applyMapping } from "./utils/csvHelpers";
+import { detectSeedanceAlert, requiresBgmStripping, stripBgmFromPrompt } from "./utils/apiSelector";
 
 // ============================================================
 // Loader
@@ -254,6 +256,21 @@ function TrailerClipCard({
               onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
               placeholder="Enter video prompt..."
             />
+            {(() => {
+              const seedance = detectSeedanceAlert(frame.veoPrompt);
+              if (!seedance) return null;
+              const label = seedance === 'ACTION' ? 'ACTION SCENE' : seedance === 'DANCE' ? 'DANCE SCENE' : 'TRANSFORMATION SCENE';
+              return (
+                <a
+                  href="https://higgsfield.ai/ai/video"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 mt-1 text-[10px] text-yellow-400 hover:text-yellow-300 font-mono transition-colors"
+                >
+                  ⚔ {label} 감지 — 플랫폼에서 생성 ↗
+                </a>
+              );
+            })()}
           </div>
         </div>
 
@@ -537,6 +554,21 @@ function ClipHalf({
             onChange={(e) => onUpdatePrompt(frame.id, e.target.value)}
             placeholder="Video prompt..."
           />
+          {(() => {
+            const seedance = detectSeedanceAlert(frame.veoPrompt);
+            if (!seedance) return null;
+            const label = seedance === 'ACTION' ? 'ACTION SCENE' : seedance === 'DANCE' ? 'DANCE SCENE' : 'TRANSFORMATION SCENE';
+            return (
+              <a
+                href="https://higgsfield.ai/ai/video"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 mt-1 text-[10px] text-yellow-400 hover:text-yellow-300 font-mono transition-colors"
+              >
+                ⚔ {label} 감지 — 플랫폼에서 생성 ↗
+              </a>
+            );
+          })()}
         </div>
 
         {/* Output */}
@@ -642,6 +674,8 @@ export default function WebnovelTrailer() {
     currentProjectId,
     videoApiKey,
     isLoading: isContextLoading,
+    getGeneratedPartIndices,
+    getStoryPartIndices,
   } = useMithril();
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
@@ -652,7 +686,17 @@ export default function WebnovelTrailer() {
 
   // ── Frame state ──────────────────────────────────────────
   const [frames, setFrames] = useState<CsvFrame[]>([]);
+  const [selectedPartIndex, setSelectedPartIndex] = useState(0);
   const [showImageUploader, setShowImageUploader] = useState(true);
+  const storyboardPartIndices = getGeneratedPartIndices();
+  const availablePartIndices = useMemo(() => {
+    const storyPartIndices = getStoryPartIndices();
+    if (storyPartIndices.length > 0) return storyPartIndices;
+    if (storyboardPartIndices.length > 0) return storyboardPartIndices;
+    return [0];
+  }, [getStoryPartIndices, storyboardPartIndices]);
+  const filteredFrames = frames;
+  const buildClipId = (frame: CsvFrame) => `${frame.partIndex ?? 0}_${frame.rowIndex}`;
 
   // ── CSV import state ─────────────────────────────────────
   const [csvStep, setCsvStep] = useState<1 | 2>(1);
@@ -662,10 +706,11 @@ export default function WebnovelTrailer() {
 
   // ── Video generation state ───────────────────────────────
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
-  const [selectedProvider, setSelectedProvider] = useState(getDefaultProviderId());
+  const [selectedProvider, setSelectedProvider] = useState('wan22_i2v');
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [isLoadingFromStage7, setIsLoadingFromStage7] = useState(false);
   const [refineProgress, setRefineProgress] = useState({ done: 0, total: 0 });
 
   const shouldStopRef             = useRef(false);
@@ -673,47 +718,100 @@ export default function WebnovelTrailer() {
   const activeJobsRef             = useRef<Set<string>>(new Set());
   const pendingCancellationsRef   = useRef<Set<string>>(new Set()); // frame IDs cancelled before jobId was known
   const editDebounceRef           = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const framesRef                 = useRef<CsvFrame[]>([]); // mirrors `frames` for sync reads inside callbacks
+  // Keep framesRef current on every render so handleClipUpdate can read the latest
+  // frames synchronously without relying on setState updater side-effects.
+  framesRef.current = frames;
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => { isMountedRef.current = false; };
   }, []);
 
+  useEffect(() => {
+    setHasLoaded(false);
+    setIsLoadingData(true);
+    setFrames([]);
+    activeJobsRef.current.clear();
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    if (availablePartIndices.length === 0) return;
+    if (!availablePartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(availablePartIndices[availablePartIndices.length - 1]);
+    }
+  }, [availablePartIndices, selectedPartIndex]);
+
   // ── Orchestrator hook ────────────────────────────────────
   const handleClipUpdate = useCallback((update: ClipUpdate) => {
     if (!isMountedRef.current) return;
+    if (update.sceneIndex !== 0) return;
 
-    setFrames((prev) =>
-      prev.map((f) => {
-        if (f.rowIndex !== update.clipIndex) return f;
-        if (update.sceneIndex !== 0) return f;
+    // Find the target frame synchronously via framesRef BEFORE calling setFrames.
+    // React 18 runs setState updaters asynchronously during the render phase, so any
+    // variable mutated inside the updater (the old `matchedFrame` pattern) is still
+    // null when code outside the updater runs — making the Firestore save unreachable.
+    const currentFrames = framesRef.current;
+    const byJobIdIndex = currentFrames.findIndex((f) => f.jobId === update.jobId);
+    const trackedJob = activeJobsRef.current.has(update.jobId);
+    const fallbackIndex = trackedJob
+      ? currentFrames.findIndex((f) => f.rowIndex === update.clipIndex)
+      : -1;
+    const terminalFallbackIndex = (update.status === 'completed' || update.status === 'failed')
+      ? currentFrames.findIndex((f) => f.rowIndex === update.clipIndex)
+      : -1;
+    const syncTargetIndex = byJobIdIndex !== -1
+      ? byJobIdIndex
+      : (fallbackIndex !== -1 ? fallbackIndex : terminalFallbackIndex);
+    const syncTarget = syncTargetIndex !== -1 ? currentFrames[syncTargetIndex] : null;
 
-        const isTerminal = update.status === 'completed' || update.status === 'failed';
-        if (isTerminal) activeJobsRef.current.delete(update.jobId);
+    setFrames((prev) => {
+      const prevByJobId = prev.findIndex((f) => f.jobId === update.jobId);
+      const prevTracked = activeJobsRef.current.has(update.jobId);
+      const prevFallback = prevTracked
+        ? prev.findIndex((f) => f.rowIndex === update.clipIndex)
+        : -1;
+      const prevTerminalFallback = (update.status === 'completed' || update.status === 'failed')
+        ? prev.findIndex((f) => f.rowIndex === update.clipIndex)
+        : -1;
+      const targetIndex = prevByJobId !== -1
+        ? prevByJobId
+        : (prevFallback !== -1 ? prevFallback : prevTerminalFallback);
 
-        return {
-          ...f,
-          jobId:      update.jobId,
-          status:     update.status === 'completed' ? 'completed'
-                    : update.status === 'failed'    ? 'failed'
-                    : update.status === 'retrying'  ? 'retrying'
-                    : 'generating',
-          videoUrl:   update.videoUrl ?? f.videoUrl,
-          s3FileName: update.s3FileName ?? f.s3FileName,
-          error:      update.error,
-          providerId: update.providerId,
-        };
-      })
-    );
+      if (targetIndex === -1) return prev;
 
-    // Auto-save on completion
-    if (update.status === 'completed' && update.videoUrl && currentProjectId) {
-      const clipId = `0_${update.clipIndex}`;
-      updateWebnovelTrailerClipStatus(currentProjectId, clipId, {
-        videoRef:   update.videoUrl,
+      const isTerminal = update.status === 'completed' || update.status === 'failed';
+      if (isTerminal) activeJobsRef.current.delete(update.jobId);
+
+      const next = [...prev];
+      const target = next[targetIndex];
+      next[targetIndex] = {
+        ...target,
+        jobId: update.jobId,
+        status: update.status === 'completed' ? 'completed'
+          : update.status === 'failed' ? 'failed'
+            : update.status === 'retrying' ? 'retrying'
+              : 'generating',
+        videoUrl: update.videoUrl ?? target.videoUrl,
+        s3FileName: update.s3FileName ?? target.s3FileName,
+        error: update.error,
+        providerId: update.providerId,
+      } as CsvFrame;
+      return next;
+    });
+
+    if (update.status === 'completed' && update.videoUrl && currentProjectId && syncTarget) {
+      const savedFrame = {
+        ...syncTarget,
+        videoUrl: update.videoUrl,
+        s3FileName: update.s3FileName ?? syncTarget.s3FileName,
+        providerId: update.providerId,
+      } as CsvFrame;
+      updateWebnovelTrailerClipStatus(currentProjectId, buildClipId(savedFrame), {
+        videoRef: update.videoUrl,
         s3FileName: update.s3FileName ?? undefined,
-        jobId:      update.jobId,
-        status:     'completed',
+        jobId: update.jobId,
+        status: 'completed',
         providerId: update.providerId,
       }).catch(console.error);
     }
@@ -730,8 +828,6 @@ export default function WebnovelTrailer() {
   useEffect(() => {
     if (isLoadingData || !hasLoaded || pendingUpdates.length === 0) return;
     pendingUpdates.forEach((update) => {
-      const isTerminal = update.status === 'completed' || update.status === 'failed';
-      if (!isTerminal) activeJobsRef.current.add(update.jobId);
       handleClipUpdate(update);
     });
     clearPendingUpdates();
@@ -744,65 +840,16 @@ export default function WebnovelTrailer() {
     let cancelled = false;
     (async () => {
       try {
-        const [meta, savedClips] = await Promise.all([
-          getWebnovelTrailerMeta(currentProjectId),
-          getWebnovelTrailerClips(currentProjectId),
-        ]);
+        const meta = await getWebnovelTrailerMeta(currentProjectId);
 
         if (cancelled) return;
 
         if (meta?.aspectRatio) setAspectRatio(meta.aspectRatio);
-        if (meta?.providerId)  setSelectedProvider(meta.providerId);
-
-        if (savedClips.length > 0) {
-          const restoredFrames: CsvFrame[] = savedClips.map((clip) => ({
-            id:                `frame-${clip.clipIndex}-restored`,
-            rowIndex:          clip.clipIndex,
-            frameNumber:       clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
-            veoPrompt:         clip.videoPrompt || '',
-            referenceFilename: '',
-            clipLength:        clip.length?.replace(/[^0-9]/g, '') || '5',
-            videoApi:          clip.videoApi ?? undefined,
-            imageData:         null,
-            endFrameData:      null,
-            imageUrl:          clip.imageUrl ?? null,
-            videoUrl:          clip.videoRef ?? null,
-            jobId:             clip.jobId ?? null,
-            s3FileName:        clip.s3FileName ?? null,
-            status:            (clip.status as CsvFrame['status']) || 'idle',
-            error:             clip.error,
-            providerId:        clip.providerId,
-          }));
-
-          // Re-track active jobs
-          const activeJobs = await getActiveProjectJobs(currentProjectId);
-          const frameIndexByRowIndex = new Map<number, number>();
-          restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
-          activeJobs.forEach((job) => {
-            if (job.type && job.type !== 'video') return;
-            if (job.scene_index !== 0) return;
-            const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
-            if (frameIdx !== -1) {
-              const update = mapJobToClipUpdate(job);
-              activeJobsRef.current.add(update.jobId);
-              restoredFrames[frameIdx] = {
-                ...restoredFrames[frameIdx],
-                jobId:  update.jobId,
-                status: update.status === 'completed' ? 'completed'
-                       : update.status === 'failed'   ? 'failed'
-                       : 'generating',
-              };
-            }
-          });
-
-          setFrames(restoredFrames);
-          setShowImageUploader(false);
-        }
+        if (meta?.providerId) setSelectedProvider(meta.providerId);
       } catch (err) {
         console.error('WebnovelTrailer: failed to load persisted state', err);
       } finally {
         if (!cancelled) {
-          setIsLoadingData(false);
           setHasLoaded(true);
         }
       }
@@ -810,6 +857,85 @@ export default function WebnovelTrailer() {
 
     return () => { cancelled = true; };
   }, [currentProjectId, isContextLoading]);
+
+  useEffect(() => {
+    if (isContextLoading || !currentProjectId || !hasLoaded) return;
+
+    let cancelled = false;
+    setIsLoadingData(true);
+
+    (async () => {
+      try {
+        activeJobsRef.current.clear();
+        const savedClips = await getWebnovelTrailerClipsByPart(currentProjectId, selectedPartIndex);
+        if (cancelled) return;
+
+        const restoredFrames: CsvFrame[] = savedClips.map((clip) => ({
+          id: `frame-${selectedPartIndex}-${clip.clipIndex}-restored`,
+          rowIndex: clip.clipIndex,
+          partIndex: selectedPartIndex,
+          frameNumber: clip.sceneTitle?.replace('Clip ', '') || String(clip.clipIndex + 1),
+          veoPrompt: stripBgmFromPrompt(clip.videoPrompt || ''),
+          referenceFilename: '',
+          clipLength: clip.length?.replace(/[^0-9]/g, '') || '5',
+          videoApi: clip.videoApi ?? undefined,
+          imageData: null,
+          endFrameData: null,
+          imageUrl: clip.imageUrl ?? null,
+          videoUrl: clip.videoRef ?? null,
+          jobId: clip.jobId ?? null,
+          s3FileName: clip.s3FileName ?? null,
+          status: (clip.status as CsvFrame['status']) || 'idle',
+          error: clip.error,
+          providerId: clip.providerId,
+        }));
+
+        const activeJobs = await getActiveProjectJobs(currentProjectId);
+        const frameIndexByRowIndex = new Map<number, number>();
+        restoredFrames.forEach((f, idx) => frameIndexByRowIndex.set(f.rowIndex, idx));
+        activeJobs.forEach((job) => {
+          if (job.type && job.type !== 'video') return;
+          if (job.scene_index !== 0) return;
+          const frameIdx = frameIndexByRowIndex.get(job.clip_index) ?? -1;
+          if (frameIdx === -1) return;
+          const existingFrame = restoredFrames[frameIdx];
+          const update = mapJobToClipUpdate(job);
+
+          // Guard against stale/colliding active jobs on refresh.
+          // If the restored clip is already completed with a persisted video URL,
+          // do not downgrade it to "generating" unless this is the same jobId.
+          const hasPersistedVideo = !!existingFrame.videoUrl;
+          const isCompletedClip = existingFrame.status === 'completed' && hasPersistedVideo;
+          const isSameJob = !!existingFrame.jobId && existingFrame.jobId === update.jobId;
+          if (isCompletedClip && !isSameJob) {
+            return;
+          }
+
+          activeJobsRef.current.add(update.jobId);
+          restoredFrames[frameIdx] = {
+            ...restoredFrames[frameIdx],
+            jobId: update.jobId,
+            status: update.status === 'completed' ? 'completed'
+              : update.status === 'failed' ? 'failed'
+                : 'generating',
+          };
+        });
+
+        if (!cancelled) {
+          setFrames(restoredFrames);
+          setShowImageUploader(restoredFrames.length === 0);
+        }
+      } catch (err) {
+        console.error('WebnovelTrailer: failed to load selected part clips', err);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingData(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [currentProjectId, isContextLoading, hasLoaded, selectedPartIndex]);
 
   // ── CSV Import handlers ──────────────────────────────────
 
@@ -872,6 +998,7 @@ export default function WebnovelTrailer() {
       ...f,
       id:       `frame-${offset + i}-${now}`,
       rowIndex: offset + i,
+      partIndex: selectedPartIndex,
     }));
 
     setFrames((prev) => [...prev, ...offsetFrames]);
@@ -882,7 +1009,7 @@ export default function WebnovelTrailer() {
         await saveWebnovelTrailerClipsBatch(
           currentProjectId,
           offsetFrames.map((frame) => ({
-            clipId: `0_${frame.rowIndex}`,
+            clipId: buildClipId(frame),
             input: {
               clipIndex:   frame.rowIndex,
               sceneIndex:  0,
@@ -890,6 +1017,7 @@ export default function WebnovelTrailer() {
               videoPrompt: frame.veoPrompt,
               length:      `${frame.clipLength || '5'}초`,
               videoApi:    frame.videoApi ?? null,
+              partIndex:   frame.partIndex ?? 0,
               imageUrl:    null,
             },
           }))
@@ -904,7 +1032,7 @@ export default function WebnovelTrailer() {
       description: `Added ${offsetFrames.length} clip${offsetFrames.length !== 1 ? 's' : ''} from ${files.length} file${files.length !== 1 ? 's' : ''}.`,
     });
     e.target.value = '';
-  }, [frames, headers, mapping, currentProjectId, toast]);
+  }, [frames, headers, mapping, currentProjectId, toast, selectedPartIndex]);
 
   const handleConfirmMapping = useCallback(async () => {
     if (!mapping.veoPrompt) {
@@ -916,7 +1044,10 @@ export default function WebnovelTrailer() {
       return;
     }
 
-    const newFrames = applyMapping(headers, csvData, mapping);
+    const newFrames = applyMapping(headers, csvData, mapping).map((f) => ({
+      ...f,
+      partIndex: selectedPartIndex,
+    }));
     if (newFrames.length === 0) {
       toast({
         title: 'No clips found',
@@ -936,7 +1067,7 @@ export default function WebnovelTrailer() {
         await saveWebnovelTrailerClipsBatch(
           currentProjectId,
           newFrames.map((frame) => ({
-            clipId: `0_${frame.rowIndex}`,
+            clipId: buildClipId(frame),
             input: {
               clipIndex:   frame.rowIndex,
               sceneIndex:  0,
@@ -944,6 +1075,7 @@ export default function WebnovelTrailer() {
               videoPrompt: frame.veoPrompt,
               length:      `${frame.clipLength || '5'}초`,
               videoApi:    frame.videoApi ?? null,
+              partIndex:   frame.partIndex ?? 0,
               imageUrl:    null,
             },
           }))
@@ -952,7 +1084,7 @@ export default function WebnovelTrailer() {
         console.error('WebnovelTrailer: failed to persist frames', err);
       }
     }
-  }, [mapping, headers, csvData, toast, currentProjectId, aspectRatio, selectedProvider]);
+  }, [mapping, headers, csvData, toast, currentProjectId, aspectRatio, selectedProvider, selectedPartIndex]);
 
   // ── Bulk image upload — sequential assignment ────────────
   const handleBulkImagesUploaded = useCallback(
@@ -997,7 +1129,7 @@ export default function WebnovelTrailer() {
           const data = dataUrls[i];
           if (!data) return;
 
-          const clipId = `0_${frame.rowIndex}`;
+          const clipId = buildClipId(frame);
           try {
             const rawBase64 = data.split(',')[1];
             const base64 = await compressBase64Image(rawBase64, 1500, 0.8);
@@ -1037,7 +1169,7 @@ export default function WebnovelTrailer() {
     if (existing) clearTimeout(existing);
     const timer = setTimeout(() => {
       editDebounceRef.current.delete(key);
-      updateWebnovelTrailerClipStatus(currentProjectId, `0_${frame.rowIndex}`, updates).catch(console.error);
+      updateWebnovelTrailerClipStatus(currentProjectId, buildClipId(frame), updates).catch(console.error);
     }, 800);
     editDebounceRef.current.set(key, timer);
   }, [currentProjectId]);
@@ -1053,7 +1185,7 @@ export default function WebnovelTrailer() {
 
   // ── Refine prompts (vision-based) ──────────────────────
   const handleRefinePrompts = useCallback(async () => {
-    const eligible = frames.filter((f) => f.imageUrl && f.veoPrompt.trim());
+    const eligible = filteredFrames.filter((f) => f.imageUrl && f.veoPrompt.trim());
     if (eligible.length === 0) {
       toast({ title: "No clips with both image and prompt to refine", variant: "destructive" });
       return;
@@ -1104,7 +1236,7 @@ export default function WebnovelTrailer() {
     } finally {
       setIsRefining(false);
     }
-  }, [frames, updatePrompt, toast]);
+  }, [filteredFrames, updatePrompt, toast]);
 
   const handleRefineClip = useCallback(async (id: string) => {
     const frame = frames.find((f) => f.id === id);
@@ -1150,7 +1282,7 @@ export default function WebnovelTrailer() {
     const frame = frames.find((f) => f.id === id);
     if (!frame) return;
 
-    const clipId = `0_${frame.rowIndex}`;
+    const clipId = buildClipId(frame);
 
     if (data === null) {
       setFrames((prev) =>
@@ -1274,12 +1406,16 @@ export default function WebnovelTrailer() {
           throw new Error('No source image available. Please upload an image before generating.');
         }
 
+        const prompt = requiresBgmStripping(effectiveProvider)
+          ? stripBgmFromPrompt(frame.veoPrompt)
+          : frame.veoPrompt;
+
         const response = await submitJob({
           projectId:   currentProjectId,
           sceneIndex:  0,
           clipIndex:   frame.rowIndex,
           providerId:  effectiveProvider as 'sora' | 'veo3' | 'grok_i2v' | 'grok_imagine_i2v' | 'wan_i2v' | 'wan22_i2v',
-          prompt:      frame.veoPrompt,
+          prompt,
           imageUrl:    resolvedStartImageUrl,
           duration,
           aspectRatio,
@@ -1301,7 +1437,7 @@ export default function WebnovelTrailer() {
           prev.map((f) => (f.id === frameId ? { ...f, jobId: response.jobId, imageUrl: resolvedImageUrl } : f))
         );
 
-        const clipId = `0_${frame.rowIndex}`;
+        const clipId = buildClipId(frame);
         await updateWebnovelTrailerClipStatus(currentProjectId, clipId, {
           clipIndex:   frame.rowIndex,
           sceneIndex:  0,
@@ -1353,7 +1489,7 @@ export default function WebnovelTrailer() {
     shouldStopRef.current = false;
     setIsGeneratingAll(true);
 
-    for (const frame of frames) {
+    for (const frame of filteredFrames) {
       if (shouldStopRef.current || !isMountedRef.current) break;
       if (frame.status === 'completed') continue;
       if (!frame.imageData && !frame.imageUrl) continue;
@@ -1363,7 +1499,7 @@ export default function WebnovelTrailer() {
     }
 
     if (isMountedRef.current) setIsGeneratingAll(false);
-  }, [frames, generateFrame]);
+  }, [filteredFrames, generateFrame]);
 
   const handleCancelClip = useCallback(async (id: string) => {
     const frame = frames.find((f) => f.id === id);
@@ -1392,7 +1528,7 @@ export default function WebnovelTrailer() {
         cancelJob({ jobId: frame.jobId }).catch(console.error);
       }
       if (currentProjectId && frame) {
-        deleteWebnovelTrailerClip(currentProjectId, `0_${frame.rowIndex}`).catch(console.error);
+        deleteWebnovelTrailerClip(currentProjectId, buildClipId(frame)).catch(console.error);
       }
       return prev.filter((f) => f.id !== id);
     });
@@ -1404,6 +1540,7 @@ export default function WebnovelTrailer() {
     const newFrame: CsvFrame = {
       id: `frame-${newRowIndex}-${Date.now()}`,
       rowIndex: newRowIndex,
+      partIndex: selectedPartIndex,
       frameNumber: String(newRowIndex + 1),
       veoPrompt: '',
       referenceFilename: '',
@@ -1422,19 +1559,20 @@ export default function WebnovelTrailer() {
     setFrames((prev) => [...prev, newFrame]);
     toast({ title: `Clip #${newFrame.frameNumber} added`, variant: 'success' });
     try {
-      await saveWebnovelTrailerClip(currentProjectId, `0_${newRowIndex}`, {
+      await saveWebnovelTrailerClip(currentProjectId, `${selectedPartIndex}_${newRowIndex}`, {
         clipIndex: newRowIndex,
         sceneIndex: 0,
         sceneTitle: `Clip ${newFrame.frameNumber}`,
         videoPrompt: '',
         length: '5초',
         videoApi: null,
+        partIndex: selectedPartIndex,
         imageUrl: null,
       });
     } catch (err) {
       console.error('WebnovelTrailer: failed to persist new frame', err);
     }
-  }, [currentProjectId, frames.length, toast]);
+  }, [currentProjectId, frames.length, toast, selectedPartIndex]);
 
   const handleStop = useCallback(() => {
     shouldStopRef.current = true;
@@ -1476,9 +1614,9 @@ export default function WebnovelTrailer() {
 
   const handleClear = useCallback(async () => {
     if (!currentProjectId) return;
-    if (!confirm('Clear all clips and video data?')) return;
+    if (!confirm(`Clear clips and video data for Part ${selectedPartIndex + 1}?`)) return;
     try {
-      await clearWebnovelTrailer(currentProjectId);
+      await clearWebnovelTrailerPart(currentProjectId, selectedPartIndex);
     } catch {
       // ignore
     }
@@ -1489,13 +1627,13 @@ export default function WebnovelTrailer() {
     setMapping(DEFAULT_WEBNOVEL_MAPPING);
     setShowImageUploader(true);
     activeJobsRef.current.clear();
-  }, [currentProjectId]);
+  }, [currentProjectId, selectedPartIndex]);
 
   // ── ZIP download ────────────────────────────────────────
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
 
   const handleDownloadAll = useCallback(async () => {
-    const completedFrames = frames.filter((f) => f.status === 'completed' && f.s3FileName);
+    const completedFrames = filteredFrames.filter((f) => f.status === 'completed' && f.s3FileName);
 
     if (completedFrames.length === 0) {
       toast({
@@ -1549,7 +1687,7 @@ export default function WebnovelTrailer() {
     } finally {
       setIsDownloadingZip(false);
     }
-  }, [frames, toast, dictionary, language]);
+  }, [filteredFrames, toast, dictionary, language]);
 
   // ── Project export/import ───────────────────────────────
   const handleExportProject = useCallback(() => {
@@ -1560,6 +1698,7 @@ export default function WebnovelTrailer() {
       aspectRatio,
       providerId: selectedProvider,
       frames: frames.map((f) => ({
+        partIndex:  f.partIndex ?? 0,
         frameNumber: f.frameNumber,
         veoPrompt:   f.veoPrompt,
         dialogue:    f.dialogue,
@@ -1614,6 +1753,7 @@ export default function WebnovelTrailer() {
         const importedFrames: CsvFrame[] = data.frames.map((f: Record<string, string | undefined>, i: number) => ({
           id:                `frame-${i}-${now}`,
           rowIndex:          i,
+          partIndex:         selectedPartIndex,
           frameNumber:       f.frameNumber || String(i + 1),
           veoPrompt:         f.veoPrompt || '',
           referenceFilename: '',
@@ -1648,11 +1788,79 @@ export default function WebnovelTrailer() {
     };
     reader.readAsText(file);
     e.target.value = '';
-  }, [toast, dictionary, language]);
+  }, [toast, dictionary, language, selectedPartIndex]);
+
+  // ── Load images from Stage 7 (ImageGenerator) ───────────
+  const handleLoadFromStage7 = useCallback(async () => {
+    if (!currentProjectId || frames.length === 0) return;
+    setIsLoadingFromStage7(true);
+    try {
+      const imageGenFrames = await getImageGenFrames(currentProjectId);
+
+      // Keep only frames that have an image
+      const withImage = imageGenFrames.filter((f) => f.imageRef && (f.partIndex ?? 0) === selectedPartIndex);
+
+      // Group by sceneIndex+clipIndex, keep alphabetically first frameLabel per clip
+      const groupMap = new Map<string, typeof withImage[number]>();
+      for (const frame of withImage) {
+        const key = `${frame.sceneIndex}_${frame.clipIndex}`;
+        const existing = groupMap.get(key);
+        if (!existing || frame.frameLabel < existing.frameLabel) {
+          groupMap.set(key, frame);
+        }
+      }
+
+      // Sort groups by sceneIndex, then clipIndex
+      const sortedGroups = Array.from(groupMap.values()).sort((a, b) => {
+        if (a.sceneIndex !== b.sceneIndex) return a.sceneIndex - b.sceneIndex;
+        return a.clipIndex - b.clipIndex;
+      });
+
+      if (sortedGroups.length === 0) {
+        toast({ title: 'No images found', description: 'Stage 7 has no generated images yet.', variant: 'destructive' });
+        return;
+      }
+
+      const targetFrames = filteredFrames;
+
+      // Match sequentially: nth group → nth clip (selected part only)
+      const updates: Array<{ id: string; rowIndex: number; imageUrl: string }> = [];
+      for (let i = 0; i < Math.min(targetFrames.length, sortedGroups.length); i++) {
+        const imageUrl = sortedGroups[i].editedImageRef || sortedGroups[i].imageRef;
+        if (imageUrl) {
+          updates.push({ id: targetFrames[i].id, rowIndex: targetFrames[i].rowIndex, imageUrl });
+        }
+      }
+
+      setFrames((prev) =>
+        prev.map((f) => {
+          const update = updates.find((u) => u.id === f.id);
+          if (!update) return f;
+          return { ...f, imageUrl: update.imageUrl, imageData: null };
+        })
+      );
+
+      await Promise.all(
+        updates.map(({ rowIndex, imageUrl }) =>
+          updateWebnovelTrailerClipStatus(currentProjectId, `${selectedPartIndex}_${rowIndex}`, { imageUrl })
+        )
+      );
+
+      toast({
+        title: 'Images loaded',
+        description: `Loaded ${updates.length} image${updates.length !== 1 ? 's' : ''} from Stage 7.`,
+      });
+    } catch (err) {
+      console.error('Failed to load from Stage 7:', err);
+      toast({ title: 'Failed to load images', description: 'Check console for details.', variant: 'destructive' });
+    } finally {
+      setIsLoadingFromStage7(false);
+    }
+  }, [currentProjectId, frames, toast, filteredFrames, selectedPartIndex]);
 
   // ── Derived values ───────────────────────────────────────
-  const imagesAssignedCount = frames.filter((f) => f.imageData || f.imageUrl).length;
-  const completedCount      = frames.filter((f) => f.status === 'completed').length;
+  const imagesAssignedCount = filteredFrames.filter((f) => f.imageData || f.imageUrl).length;
+  const completedCount      = filteredFrames.filter((f) => f.status === 'completed').length;
 
   // ── Loading state ────────────────────────────────────────
   if (isLoadingData) {
@@ -1664,6 +1872,25 @@ export default function WebnovelTrailer() {
   // ============================================================
   return (
     <div className="space-y-6 pb-12">
+      {/* Part selector - mirrors BgSheetGenerator behavior */}
+      {availablePartIndices.length > 1 && (
+        <div className="mb-4 p-1 rounded-lg flex gap-1 flex-wrap">
+          {availablePartIndices.map((partIdx) => (
+            <button
+              key={partIdx}
+              onClick={() => setSelectedPartIndex(partIdx)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                selectedPartIndex === partIdx
+                  ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                  : "text-gray-400 hover:text-[#E8E8E8]"
+              }`}
+            >
+              Part {partIdx + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Section 1: CSV Import (shown when no frames) ── */}
       {frames.length === 0 && (
         <div className="bg-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
@@ -1892,6 +2119,7 @@ export default function WebnovelTrailer() {
               </span>
             </label>
           </div>
+
         </div>
       )}
 
@@ -1904,8 +2132,8 @@ export default function WebnovelTrailer() {
               <h2 className="text-2xl font-bold text-white mb-1">Storyboard</h2>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-gray-400 text-sm">
-                  {frames.length} clips • {imagesAssignedCount} images ready
-                  {completedCount > 0 && ` • ${completedCount}/${frames.length} completed`}
+                  {filteredFrames.length} clips • {imagesAssignedCount} images ready
+                  {completedCount > 0 && ` • ${completedCount}/${filteredFrames.length} completed`}
                 </p>
                 <button
                   onClick={() => setShowImageUploader((v) => !v)}
@@ -1936,8 +2164,18 @@ export default function WebnovelTrailer() {
 
               {/* Action buttons */}
               <button
+                onClick={handleLoadFromStage7}
+                disabled={isLoadingFromStage7}
+                className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium border border-[#DB2777]/40 bg-[#DB2777]/10 hover:bg-[#DB2777]/20 text-[#DB2777] transition-colors disabled:opacity-50"
+                title="Load generated images from Stage 7 (ImageGenerator)"
+              >
+                <Download className="h-4 w-4" />
+                {isLoadingFromStage7 ? 'Loading...' : 'Import from Image Generator'}
+              </button>
+
+              <button
                 onClick={handleRefinePrompts}
-                disabled={isRefining || frames.filter((f) => f.imageUrl && f.veoPrompt.trim()).length === 0}
+                disabled={isRefining || filteredFrames.filter((f) => f.imageUrl && f.veoPrompt.trim()).length === 0}
                 className="flex items-center gap-1 py-1.5 px-3 rounded-lg text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
                 title="Refine prompts to match reference images"
               >
@@ -2025,11 +2263,11 @@ export default function WebnovelTrailer() {
           </div>
 
           {/* Progress bar */}
-          {isGeneratingAll && frames.length > 0 && (
+          {isGeneratingAll && filteredFrames.length > 0 && (
             <div className="w-full bg-gray-800 rounded-full h-2 mb-4">
               <div
                 className="bg-[#DB2777] h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(completedCount / frames.length) * 100}%` }}
+                style={{ width: `${(completedCount / filteredFrames.length) * 100}%` }}
               />
             </div>
           )}
@@ -2043,7 +2281,7 @@ export default function WebnovelTrailer() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-300">Append more clips</p>
-              <p className="text-xs text-gray-500">Import additional CSV file(s) — clips are added after the existing {frames.length}</p>
+              <p className="text-xs text-gray-500">Import additional CSV file(s) — clips are added after the existing {filteredFrames.length} (selected part)</p>
             </div>
             <input
               type="file"
@@ -2063,7 +2301,7 @@ export default function WebnovelTrailer() {
 
           {/* Clip cards */}
           <div className="grid grid-cols-1 gap-6">
-            {groupFrames(frames).map((group) =>
+            {groupFrames(filteredFrames).map((group) =>
               group.type === 'pair' ? (
                 <PairedClipCard
                   key={`${group.frameA.id}-${group.frameB.id}`}
@@ -2103,3 +2341,4 @@ export default function WebnovelTrailer() {
     </div>
   );
 }
+

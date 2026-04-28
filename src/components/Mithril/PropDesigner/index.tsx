@@ -3,7 +3,9 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useMithril } from "../MithrilContext";
 import { useProject } from "@/contexts/ProjectContext";
-import { Prop, DetectedId, DetectionSession, ID_PATTERN, categorizeId, CHARACTER_KEYWORDS, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import { Prop, DetectedId, DetectionSession, getCharacterDesignSheetPrompt, getObjectDesignSheetPrompt, getEasyModeCharacterPrompt } from "./types";
+import type { IdConverterEntity } from "../services/firestore/types";
+import { getSuggestedTemplates } from "./characterTemplates";
 import DetectionPanel from "./DetectionPanel";
 import PropListView from "./PropListView";
 import StoryboardTable from "./StoryboardTable";
@@ -11,11 +13,19 @@ import {
   savePropDesignerSettings,
   saveProp,
   saveDetectedIds,
+  updateProp,
   updatePropDesignSheetImage,
   updatePropReferenceImage,
   getProps,
   deleteProp,
+  getIdConverter,
 } from "../services/firestore";
+import {
+  getCustomMannequinTemplates,
+  addCustomMannequinTemplate,
+  deleteCustomMannequinTemplate,
+  type CustomMannequinTemplate,
+} from "../services/firestore/mannequinTemplates";
 import { deletePropDesignSheetImage } from "../services/s3";
 
 // CSV clip structure for imported data
@@ -91,9 +101,13 @@ export default function PropDesigner() {
   const { currentProjectId } = useProject();
   const {
     storyboardGenerator,
+    getScenesForPart,
+    getGeneratedPartIndices,
+    getStoryPartIndices,
     propDesignerGenerator,
     setPropDesignerResult,
     clearPropDesignerData,
+    pushPropsToAssets,
     customApiKey,
   } = useMithril();
 
@@ -101,6 +115,8 @@ export default function PropDesigner() {
   const csvInputRef = useRef<HTMLInputElement>(null);
   // Guard: prevent context-restore useEffect from re-running after our own syncToContext writes
   const hasRestoredFromContext = useRef(false);
+  // Track which prop IDs have been pushed so we can sync it into local sessions
+  const pushedPropIdsRef = useRef<Set<string>>(new Set());
 
   // Local state
   const [sessions, setSessions] = useState<DetectionSession[]>([]);
@@ -110,22 +126,59 @@ export default function PropDesigner() {
   const [isEasyMode, setIsEasyMode] = useState(true);
   const [isAnalyzingCharacters, setIsAnalyzingCharacters] = useState(false);
   const [isAnalyzingObjects, setIsAnalyzingObjects] = useState(false);
+  const [isPushingToAssets, setIsPushingToAssets] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Session counters for auto-naming
   const [characterSessionCount, setCharacterSessionCount] = useState(0);
   const [objectSessionCount, setObjectSessionCount] = useState(0);
 
+  // Global custom mannequin templates (shared across all projects)
+  const [customTemplates, setCustomTemplates] = useState<CustomMannequinTemplate[]>([]);
+
   // Derive flat props array from all sessions (for context persistence compatibility)
   const allProps = useMemo(() => sessions.flatMap(s => s.props), [sessions]);
 
+  // Compute suggested mannequin template paths per session and prop
+  const suggestedStartingImages = useMemo(() => {
+    const map: Record<string, Record<string, string[]>> = {};
+    sessions.forEach((session) => {
+      map[session.id] = {};
+      session.props.forEach((prop) => {
+        if (prop.category === "character") {
+          map[session.id][prop.id] = getSuggestedTemplates({
+              gender: prop.gender,
+              role: prop.role,
+              age: prop.age,
+              name: prop.name,
+              description: prop.description,
+            });
+        }
+      });
+    });
+    return map;
+  }, [sessions]);
+
+  // IDConverter glossary — authoritative entity source for detection
+  const [idConverterGlossary, setIdConverterGlossary] = useState<IdConverterEntity[]>([]);
+  // Derived map of variantId → description from IDConverter glossary
+  const idDescriptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entity of idConverterGlossary) {
+      if (entity.type === "LOCATION") continue;
+      for (const variant of entity.variants) {
+        if (variant.description) map.set(variant.id, variant.description);
+      }
+    }
+    return map;
+  }, [idConverterGlossary]);
   // CSV imported scenes (local storyboard data)
   const [importedScenes, setImportedScenes] = useState<CsvScene[]>([]);
   // Version counter to force re-computation when CSV is imported
   const [importVersion, setImportVersion] = useState(0);
-  // CSV Character ID descriptions (CHARACTER_ID -> description from CSV)
-  const [csvCharacterDescriptions, setCsvCharacterDescriptions] = useState<Map<string, string>>(new Map());
   // CSV Genre
   const [csvGenre, setCsvGenre] = useState<string | null>(null);
+  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+  const [scanAllParts, setScanAllParts] = useState(false);
 
   // Per-clip generated preview images (key: "sIdx-cIdx", value: base64 data URL)
   const [generatedClipImages, setGeneratedClipImages] = useState<Record<string, string>>({});
@@ -226,50 +279,21 @@ export default function PropDesigner() {
       }
 
 
-      // Parse Character ID Summary and Genre from remaining rows
-      const characterDescMap = new Map<string, string>();
+      // Parse Genre from remaining rows
       let parsedGenre: string | null = null;
-      let inCharacterSection = false;
-      
+
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row || row.length === 0) continue;
-        
-        // Detect Character ID Summary section
         const firstCol = row[0]?.trim() || "";
-        if (firstCol.toLowerCase().includes("character id") || 
-            firstCol.toLowerCase().includes("캐릭터 id")) {
-          // Check if this is a section header (not a data row)
-          // Skip if second column is "Description" or empty (header row)
-          if (row.length < 2 || !row[1]?.trim() || 
-              row[1].toLowerCase().includes("description") || 
-              row[1].toLowerCase().includes("설명")) {
-            inCharacterSection = true;
-            continue;
-          }
-        }
-        
-        // Detect Genre section
         if (firstCol.toLowerCase().includes("genre") || firstCol.toLowerCase().includes("장르")) {
-          inCharacterSection = false;
-          // Genre value might be in same row or next column
           if (row.length > 1 && row[1]?.trim()) {
             parsedGenre = row[1].trim();
           }
-          continue;
-        }
-        
-        // Parse character ID entries (format: CHARACTER_ID, description)
-        if (inCharacterSection && row.length >= 2) {
-          const characterId = row[0]?.trim();
-          const description = row[1]?.trim();
-          if (characterId && description && characterId.match(/^[A-Z][A-Z0-9_]+$/)) {
-            characterDescMap.set(characterId, description);
-          }
+          break;
         }
       }
 
-      
       // Clear existing sessions and detected IDs to start fresh with imported data
       setSessions([]);
       setCharacterSessionCount(0);
@@ -280,9 +304,7 @@ export default function PropDesigner() {
       const newScenes: CsvScene[] = [{ clips }];
       setImportedScenes(newScenes);
       setImportVersion(prev => prev + 1);
-      
-      // Store character descriptions and genre
-      setCsvCharacterDescriptions(characterDescMap);
+
       if (parsedGenre) {
         setCsvGenre(parsedGenre);
         setGenre(parsedGenre);
@@ -313,9 +335,42 @@ export default function PropDesigner() {
     }
   }, [importedScenes]);
 
+  const generatedPartIndices = getGeneratedPartIndices();
+  const storyPartIndices = getStoryPartIndices();
+  useEffect(() => {
+    if (storyPartIndices.length === 0) return;
+    if (!storyPartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(storyPartIndices[storyPartIndices.length - 1] ?? 0);
+    }
+  }, [storyPartIndices, selectedPartIndex]);
+
+  // Load IDConverter glossary whenever the project changes
+  useEffect(() => {
+    if (!currentProjectId) return;
+    getIdConverter(currentProjectId).then((doc) => {
+      setIdConverterGlossary(doc?.glossary ?? []);
+    });
+  }, [currentProjectId]);
+
+  // Load global custom mannequin templates once on mount
+  useEffect(() => {
+    getCustomMannequinTemplates().then(setCustomTemplates).catch(() => {});
+  }, []);
+
+  const handleAddToTemplates = useCallback(async (prop: Prop) => {
+    if (!prop.designSheetImageUrl) return;
+    await addCustomMannequinTemplate(prop.designSheetImageUrl, prop.name.toUpperCase());
+    const updated = await getCustomMannequinTemplates();
+    setCustomTemplates(updated);
+  }, []);
+
+  const handleDeleteCustomTemplate = useCallback(async (id: string) => {
+    await deleteCustomMannequinTemplate(id);
+    setCustomTemplates((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   // Determine active scenes (context or imported)
-  const contextScenes = storyboardGenerator.scenes;
-  const contextCharacterIdSummary = storyboardGenerator.characterIdSummary;
+  const contextScenes = getScenesForPart(selectedPartIndex);
   const contextGenre = storyboardGenerator.genre;
   const hasContextScenes = contextScenes && contextScenes.length > 0;
   const hasImportedScenes = importedScenes.length > 0;
@@ -331,6 +386,14 @@ export default function PropDesigner() {
     }
     return [];
   }, [contextScenes, importedScenes, hasContextScenes, hasImportedScenes]);
+
+  const scenesForDetection = useMemo(() => {
+    if (hasImportedScenes) return importedScenes;
+    if (scanAllParts) {
+      return generatedPartIndices.flatMap((idx) => getScenesForPart(idx));
+    }
+    return activeScenes;
+  }, [hasImportedScenes, importedScenes, scanAllParts, generatedPartIndices, getScenesForPart, activeScenes]);
 
   // Load from context on mount (only if we don't have imported scenes)
   useEffect(() => {
@@ -369,11 +432,14 @@ export default function PropDesigner() {
         hairColor: p.hairColor,
         hairStyle: p.hairStyle,
         eyeColor: p.eyeColor,
+        dominantOutfitColor: p.dominantOutfitColor,
+        expression: p.expression,
         personality: p.personality,
         role: p.role,
         isVariant: p.isVariant,
         variantDetails: p.variantDetails,
         variantVisuals: p.variantVisuals,
+        pushedToAssets: p.pushedToAssets,
         isGenerating: false,
       }));
 
@@ -403,11 +469,14 @@ export default function PropDesigner() {
             hairColor: p.hairColor,
             hairStyle: p.hairStyle,
             eyeColor: p.eyeColor,
+            dominantOutfitColor: p.dominantOutfitColor,
+            expression: p.expression,
             personality: p.personality,
             role: p.role,
             isVariant: p.isVariant,
             variantDetails: p.variantDetails,
             variantVisuals: p.variantVisuals,
+            pushedToAssets: p.pushedToAssets,
             isGenerating: false,
           })),
         }));
@@ -453,7 +522,24 @@ export default function PropDesigner() {
     }
   }, [propDesignerGenerator.result, hasImportedScenes]);
 
-  // Load characterIdSummary and genre from storyboard context (when not using CSV import)
+  // Sync pushedToAssets from context into local sessions after pushPropsToAssets is called.
+  // This prevents the next syncToContext call from wiping the pushed flag.
+  useEffect(() => {
+    if (!hasRestoredFromContext.current || !propDesignerGenerator.result?.props) return;
+    const newlyPushed = propDesignerGenerator.result.props.filter(
+      p => p.pushedToAssets && !pushedPropIdsRef.current.has(p.id)
+    );
+    if (newlyPushed.length === 0) return;
+    const newlyPushedIds = new Set(newlyPushed.map(p => p.id));
+    newlyPushed.forEach(p => pushedPropIdsRef.current.add(p.id));
+    // Update local sessions without triggering syncToContext
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      props: s.props.map(p => newlyPushedIds.has(p.id) ? { ...p, pushedToAssets: true } : p),
+    })));
+  }, [propDesignerGenerator.result?.props]);
+
+  // Load genre from storyboard context (when not using CSV import)
   useEffect(() => {
     if (hasImportedScenes) return;
     if (propDesignerGenerator.result) return; // Already loaded from saved state
@@ -461,96 +547,84 @@ export default function PropDesigner() {
     if (contextGenre) {
       setGenre(contextGenre);
     }
-    if (contextCharacterIdSummary && contextCharacterIdSummary.length > 0) {
-      const descMap = new Map<string, string>();
-      for (const char of contextCharacterIdSummary) {
-        descMap.set(char.characterId, char.description);
-      }
-      setCsvCharacterDescriptions(descMap);
-    }
-  }, [contextCharacterIdSummary, contextGenre, hasImportedScenes, propDesignerGenerator.result]);
+  }, [contextGenre, hasImportedScenes, propDesignerGenerator.result]);
 
   // Extract IDs from storyboard clips (context or imported)
-  // Use useEffect for the side effect (setDetectedIds) instead of useMemo
-  // Include importVersion to force re-run when CSV is imported
+  // Build detected IDs from IDConverter glossary, then scan clips for occurrence data
   useEffect(() => {
+    // Build authoritative ID→category map from IDConverter glossary
+    // LOCATION entities are excluded — they belong to BgSheetGenerator, not PropDesigner
+    const knownIds = new Map<string, "character" | "object">();
+    for (const entity of idConverterGlossary) {
+      if (entity.type === "LOCATION") continue;
+      const category = entity.type === "CHARACTER" ? "character" : "object";
+      for (const variant of entity.variants) {
+        knownIds.set(variant.id, category);
+      }
+    }
 
-    if (!activeScenes || activeScenes.length === 0) {
+    if (knownIds.size === 0) {
       setDetectedIds([]);
       return;
     }
 
-    const characterIds = new Set<string>();
-    const objectIds = new Set<string>();
+    // Scan clips only to build occurrence data for known IDs
     const idOccurrences = new Map<string, { clipIds: string[]; contexts: { clipId: string; text: string; refFileName?: string }[] }>();
 
-    activeScenes.forEach((scene, sIdx) => {
-      scene.clips.forEach((clip, cIdx) => {
-        const clipId = `${sIdx + 1}-${cIdx + 1}`;
-        // Include all text fields for ID extraction
-        const combinedText = [
-          clip.story || "",
-          clip.imagePrompt || "",
-          clip.imagePromptEnd || "",
-          clip.videoPrompt || "",
-          clip.dialogue || "",
-          clip.dialogueEn || "",
-          clip.backgroundId || "",
-          clip.backgroundPrompt || "",
-          clip.soraVideoPrompt || "",
-          clip.sfx || "",
-          clip.sfxEn || "",
-          clip.bgm || "",
-          clip.bgmEn || "",
-        ].join(" ");
-        const matches = combinedText.match(ID_PATTERN);
+    if (scenesForDetection && scenesForDetection.length > 0) {
+      scenesForDetection.forEach((scene, sIdx) => {
+        scene.clips.forEach((clip, cIdx) => {
+          const clipId = `${sIdx + 1}-${cIdx + 1}`;
+          const combinedText = [
+            clip.story || "",
+            clip.imagePrompt || "",
+            clip.imagePromptEnd || "",
+            clip.videoPrompt || "",
+            clip.dialogue || "",
+            clip.dialogueEn || "",
+            clip.backgroundId || "",
+            clip.backgroundPrompt || "",
+            clip.soraVideoPrompt || "",
+            clip.sfx || "",
+            clip.sfxEn || "",
+            clip.bgm || "",
+            clip.bgmEn || "",
+          ].join(" ");
 
-        if (matches) {
-          matches.forEach((id) => {
-            // Track occurrences
+          for (const id of knownIds.keys()) {
+            if (!combinedText.includes(id)) continue;
             if (!idOccurrences.has(id)) {
               idOccurrences.set(id, { clipIds: [], contexts: [] });
             }
             const occ = idOccurrences.get(id)!;
             if (!occ.clipIds.includes(clipId)) {
               occ.clipIds.push(clipId);
-              // Extract context - take the sentence containing the ID
               const contextText = clip.imagePrompt || clip.story || "";
               if (contextText.includes(id)) {
                 const refFileName = (clip as CsvClip).refFileName || undefined;
                 occ.contexts.push({ clipId, text: contextText.substring(0, 200), ...(refFileName ? { refFileName } : {}) });
               }
             }
-
-            // Categorize
-            const category = categorizeId(id, CHARACTER_KEYWORDS as unknown as string[]);
-            if (category === "character") {
-              characterIds.add(id);
-            } else {
-              objectIds.add(id);
-            }
-          });
-        }
-      });
-    });
-
-    // Build detected IDs with occurrence data
-    const allDetected: DetectedId[] = [];
-    [...characterIds, ...objectIds].forEach((id) => {
-      const occ = idOccurrences.get(id);
-      if (occ) {
-        allDetected.push({
-          id,
-          category: characterIds.has(id) ? "character" : "object",
-          clipIds: occ.clipIds,
-          contexts: occ.contexts,
-          occurrences: occ.clipIds.length,
+          }
         });
-      }
-    });
+      });
+    }
+
+    // All glossary IDs are included, with 0 occurrences if not found in any clip
+    const allDetected: DetectedId[] = [];
+    for (const [id, category] of knownIds) {
+      const occ = idOccurrences.get(id);
+      allDetected.push({
+        id,
+        category,
+        clipIds: occ?.clipIds ?? [],
+        contexts: occ?.contexts ?? [],
+        occurrences: occ?.clipIds.length ?? 0,
+      });
+    }
 
     setDetectedIds(allDetected);
-  }, [activeScenes, importVersion]);
+  }, [scenesForDetection, importVersion, idConverterGlossary]);
 
   // Toggle ID category
   const handleToggleCategory = useCallback((id: string) => {
@@ -591,11 +665,27 @@ export default function PropDesigner() {
     isVariant: p.isVariant,
     variantDetails: p.variantDetails,
     variantVisuals: p.variantVisuals,
+    pushedToAssets: p.pushedToAssets,
   }), []);
 
   // Helper to sync all sessions to context
   const syncToContext = useCallback((updatedSessions: DetectionSession[]) => {
     const flatProps = updatedSessions.flatMap(s => s.props);
+    if (process.env.NODE_ENV !== "production") {
+      const withUrl = flatProps.filter(p => !!p.designSheetImageUrl).length;
+      const withBase64 = flatProps.filter(p => !!p.designSheetImageBase64).length;
+      const pushed = flatProps.filter(p => !!p.pushedToAssets).length;
+      const charCount = flatProps.filter(p => p.category === "character").length;
+      const objCount = flatProps.filter(p => p.category === "object").length;
+      console.log("[PropDesigner][syncToContext]", {
+        total: flatProps.length,
+        charCount,
+        objCount,
+        withUrl,
+        withBase64,
+        pushed,
+      });
+    }
     setPropDesignerResult({
       settings: { styleKeyword, propBasePrompt: "", genre },
       props: flatProps.map(propToMetadata),
@@ -613,32 +703,65 @@ export default function PropDesigner() {
   // Helper to create a new session from detection results and save to Firestore
   const createSessionFromDetection = useCallback(
     async (newProps: Prop[], category: "character" | "object") => {
-      // Create new session
-      const sessionNumber = category === "character"
-        ? characterSessionCount + 1
-        : objectSessionCount + 1;
-      const sessionName = category === "character"
-        ? `Character Sheet #${sessionNumber}`
-        : `Object Sheet #${sessionNumber}`;
+      // If a session of this category already exists, update the most recent one in-place
+      const existingSessionIndex = sessions.reduce<number>(
+        (found, s, i) => (s.type === category ? i : found),
+        -1
+      );
 
-      const newSession: DetectionSession = {
-        id: crypto.randomUUID(),
-        name: sessionName,
-        type: category,
-        props: newProps,
-        timestamp: Date.now(),
-        isMinimized: false, // Open expanded for new detections
-      };
+      let targetSession: DetectionSession;
+      let updatedSessions: DetectionSession[];
 
-      // Update session counter
-      if (category === "character") {
-        setCharacterSessionCount(prev => prev + 1);
+      if (existingSessionIndex !== -1) {
+        targetSession = {
+          ...sessions[existingSessionIndex],
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+        updatedSessions = sessions.map((s, i) => (i === existingSessionIndex ? targetSession : s));
       } else {
-        setObjectSessionCount(prev => prev + 1);
+        const sessionNumber = category === "character"
+          ? characterSessionCount + 1
+          : objectSessionCount + 1;
+        const sessionName = category === "character"
+          ? `Character Sheet #${sessionNumber}`
+          : `Object Sheet #${sessionNumber}`;
+
+        targetSession = {
+          id: crypto.randomUUID(),
+          name: sessionName,
+          type: category,
+          props: newProps,
+          timestamp: Date.now(),
+          isMinimized: false,
+        };
+
+        if (category === "character") {
+          setCharacterSessionCount(prev => prev + 1);
+        } else {
+          setObjectSessionCount(prev => prev + 1);
+        }
+
+        updatedSessions = [...sessions, targetSession];
       }
 
-      const updatedSessions = [...sessions, newSession];
       setSessions(updatedSessions);
+
+      if (process.env.NODE_ENV !== "production") {
+        const withUrl = newProps.filter(p => !!p.designSheetImageUrl).length;
+        const withBase64 = newProps.filter(p => !!p.designSheetImageBase64).length;
+        const withRefs = newProps.filter(p => (p.referenceImages?.length || 0) > 0).length;
+        console.log("[PropDesigner][createSessionFromDetection]", {
+          category,
+          props: newProps.length,
+          withUrl,
+          withBase64,
+          withRefs,
+          sessionName: targetSession.name,
+          reused: existingSessionIndex !== -1,
+        });
+      }
 
       // Save to Firestore
       if (currentProjectId) {
@@ -678,6 +801,8 @@ export default function PropDesigner() {
             hairColor: prop.hairColor,
             hairStyle: prop.hairStyle,
             eyeColor: prop.eyeColor,
+            dominantOutfitColor: prop.dominantOutfitColor,
+            expression: prop.expression,
             personality: prop.personality,
             role: prop.role,
             isVariant: prop.isVariant,
@@ -690,7 +815,7 @@ export default function PropDesigner() {
       // Update context
       syncToContext(updatedSessions);
 
-      return newSession.id;
+      return targetSession.id;
     },
     [currentProjectId, detectedIds, genre, sessions, styleKeyword, characterSessionCount, objectSessionCount, syncToContext]
   );
@@ -708,9 +833,9 @@ export default function PropDesigner() {
     setError(null);
 
     try {
-      // Convert csvCharacterDescriptions Map to a plain object for the API
+      // Convert IDConverter variant descriptions to a plain object for the API
       const charDescObj: Record<string, string> = {};
-      for (const [id, desc] of csvCharacterDescriptions.entries()) {
+      for (const [id, desc] of idDescriptions.entries()) {
         charDescObj[id] = desc;
       }
 
@@ -752,6 +877,8 @@ export default function PropDesigner() {
         hairColor?: string;
         hairStyle?: string;
         eyeColor?: string;
+        dominantOutfitColor?: string;
+        expression?: string;
         personality?: string;
         role?: string;
         // Variant detection
@@ -761,17 +888,15 @@ export default function PropDesigner() {
       }) => {
         const existing = existingPropsByName.get(char.name.toLowerCase());
         
-        // Check if we have CSV description for this character ID
-        // Match by exact name or by characterId contained in the name
+        // Look up IDConverter variant description for this character
         let csvDescription: string | null = null;
-        // Try exact match first, then partial match
-        if (csvCharacterDescriptions.has(char.name)) {
-          csvDescription = csvCharacterDescriptions.get(char.name)!;
-        } else if (csvCharacterDescriptions.has(char.name.toUpperCase())) {
-          csvDescription = csvCharacterDescriptions.get(char.name.toUpperCase())!;
+        if (idDescriptions.has(char.name)) {
+          csvDescription = idDescriptions.get(char.name)!;
+        } else if (idDescriptions.has(char.name.toUpperCase())) {
+          csvDescription = idDescriptions.get(char.name.toUpperCase())!;
         } else {
-          for (const [characterId, desc] of csvCharacterDescriptions.entries()) {
-            if (char.name.includes(characterId) || char.name.toUpperCase().includes(characterId)) {
+          for (const [variantId, desc] of idDescriptions.entries()) {
+            if (char.name.includes(variantId) || char.name.toUpperCase().includes(variantId)) {
               csvDescription = desc;
               break;
             }
@@ -797,6 +922,23 @@ export default function PropDesigner() {
           }
         }
         
+        // Find base character for variants to inherit physical traits
+        let baseChar: Prop | undefined;
+        if (char.isVariant) {
+          const vd = (char.variantDetails || '').toLowerCase();
+          const vn = char.name.toLowerCase();
+          baseChar = allProps.find(p => {
+            if (p.isVariant || p.category !== 'character') return false;
+            const bn = p.name.toLowerCase();
+            const bid = p.id.toLowerCase();
+            return vd.includes(bn) || vd.includes(bid) || vn.includes(bid.split('_')[0]);
+          });
+        }
+
+        // Base character's colors take priority over variant's API-returned values
+        const resolvedHairColor = baseChar?.hairColor || char.hairColor;
+        const resolvedEyeColor = baseChar?.eyeColor || char.eyeColor;
+
         // Build design sheet prompt using CSV description if available
         let designPrompt = existing?.designSheetPrompt || char.characterSheetPrompt;
         if (!designPrompt || designPrompt.trim() === "") {
@@ -809,9 +951,9 @@ export default function PropDesigner() {
                 csvDescription: csvDescription || undefined,
                 age: char.age,
                 gender: char.gender,
-                hairColor: char.hairColor,
+                hairColor: resolvedHairColor,
                 hairStyle: char.hairStyle,
-                eyeColor: char.eyeColor,
+                eyeColor: resolvedEyeColor,
                 personality: char.personality,
                 role: resolvedRole,
               },
@@ -833,7 +975,19 @@ export default function PropDesigner() {
             }
           }
         }
-        
+
+        // For variants, append color consistency note when the prompt doesn't already embed it
+        // (Easy Mode without csvDescription already embeds colors via getEasyModeCharacterPrompt)
+        if (char.isVariant && baseChar && (resolvedHairColor || resolvedEyeColor)) {
+          const isEasyModeNoCsv = isEasyMode && !csvDescription;
+          if (!isEasyModeNoCsv) {
+            const parts: string[] = [];
+            if (resolvedHairColor) parts.push(`${resolvedHairColor} hair`);
+            if (resolvedEyeColor) parts.push(`${resolvedEyeColor} eyes`);
+            designPrompt += ` Must keep the same ${parts.join(' and ')} as the base character.`;
+          }
+        }
+
         return {
           id: existing?.id || crypto.randomUUID(),
           name: char.name,
@@ -852,9 +1006,11 @@ export default function PropDesigner() {
           // Easy Mode metadata (preserve existing if available)
           age: existing?.age || char.age,
           gender: existing?.gender || char.gender,
-          hairColor: existing?.hairColor || char.hairColor,
+          hairColor: existing?.hairColor || resolvedHairColor,
           hairStyle: existing?.hairStyle || char.hairStyle,
-          eyeColor: existing?.eyeColor || char.eyeColor,
+          eyeColor: existing?.eyeColor || resolvedEyeColor,
+          dominantOutfitColor: existing?.dominantOutfitColor || char.dominantOutfitColor,
+          expression: existing?.expression || char.expression,
           personality: existing?.personality || char.personality,
           role: existing?.role || resolvedRole,
           // Variant detection
@@ -877,7 +1033,7 @@ export default function PropDesigner() {
     customApiKey,
     allProps,
     createSessionFromDetection,
-    csvCharacterDescriptions,
+    idDescriptions,
     isEasyMode,
   ]);
 
@@ -979,6 +1135,9 @@ export default function PropDesigner() {
       );
 
       try {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][generate] start", { sessionId, propId, hasRefs: !!referenceImages?.length });
+        }
         // Delete old design sheet image from S3 before generating new one
         if (currentProjectId) {
           try {
@@ -989,9 +1148,7 @@ export default function PropDesigner() {
         }
 
         // Support both single reference (legacy) and multiple references
-        const refImagesForApi = referenceImages?.map((img) =>
-          img.includes("base64,") ? img.split("base64,")[1] : img
-        );
+        const refImagesForApi = referenceImages;
 
         const response = await fetch("/api/generate_prop_sheet/generate-image", {
           method: "POST",
@@ -1025,6 +1182,9 @@ export default function PropDesigner() {
 
           const uploadData = await uploadResponse.json();
           if (uploadResponse.ok) {
+            if (process.env.NODE_ENV !== "production") {
+              console.log("[PropDesigner][generate] uploaded", { propId, url: uploadData.url });
+            }
             // Update Firestore
             await updatePropDesignSheetImage(
               currentProjectId,
@@ -1103,6 +1263,9 @@ export default function PropDesigner() {
         }
 
         // Fallback to base64 if upload fails
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][generate] fallback_base64", { propId });
+        }
         updateSessionProps(sessionId, props =>
           props.map(p => p.id === propId ? { ...p, designSheetImageBase64: data.imageBase64, designSheetPrompt: prompt, isGenerating: false } : p)
         );
@@ -1128,24 +1291,51 @@ export default function PropDesigner() {
         setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
+      // Persist S3 URLs to Firestore (skip base64 — too large for Firestore)
+      if (currentProjectId) {
+        const urlRefs = images.filter(img => img.startsWith("http://") || img.startsWith("https://"));
+        updateProp(currentProjectId, propId, { referenceImageRefs: urlRefs }).catch(console.error);
+      }
     },
-    [syncToContext]
+    [syncToContext, currentProjectId]
   );
 
   // Update prop fields and sync to context
   const handleUpdateProp = useCallback(
     (sessionId: string, propId: string, updates: Partial<Prop>) => {
       setSessions(prev => {
+        // Only sync if the prop actually exists in this session to avoid
+        // stale syncToContext calls from other sessions' orchestrator subscriptions
+        const propFound = prev.some(s => s.id === sessionId && s.props.some(p => p.id === propId));
         const updated = prev.map(s =>
           s.id === sessionId
             ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, ...updates } : p) }
             : s
         );
-        setTimeout(() => syncToContext(updated), 0);
+        if (propFound) setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
     },
     [syncToContext]
+  );
+
+  // Update prop name in memory + persist to Firestore
+  const handleRenameProp = useCallback(
+    async (sessionId: string, propId: string, newName: string) => {
+      setSessions(prev => {
+        const updated = prev.map(s =>
+          s.id === sessionId
+            ? { ...s, props: s.props.map(p => p.id === propId ? { ...p, name: newName } : p) }
+            : s
+        );
+        setTimeout(() => syncToContext(updated), 0);
+        return updated;
+      });
+      if (currentProjectId) {
+        await updateProp(currentProjectId, propId, { name: newName });
+      }
+    },
+    [syncToContext, currentProjectId]
   );
 
   // Close a session (remove it)
@@ -1166,15 +1356,42 @@ export default function PropDesigner() {
 
   // Clear all sessions (local state + context + Firestore)
   const handleClearAll = useCallback(async (sessionId?: string) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[PropDesigner][handleClearAll] invoked", {
+        sessionId: sessionId || null,
+        sessions: sessions.length,
+        totalProps: allProps.length,
+      });
+    }
     if (sessionId) {
       // Clear a specific session
       setSessions(prev => {
         const updated = prev.filter(s => s.id !== sessionId);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[PropDesigner][handleClearAll] session_cleared", {
+            remainingSessions: updated.length,
+            removedSessionId: sessionId,
+          });
+        }
         setTimeout(() => syncToContext(updated), 0);
         return updated;
       });
     } else {
       // Clear all
+      if (process.env.NODE_ENV !== "production") {
+        const totalProps = allProps.length;
+        const withUrl = allProps.filter(p => !!p.designSheetImageUrl).length;
+        const withBase64 = allProps.filter(p => !!p.designSheetImageBase64).length;
+        const withRefs = allProps.filter(p => (p.referenceImages?.length || 0) > 0).length;
+        console.log("[PropDesigner][clearAll]", {
+          sessions: sessions.length,
+          totalProps,
+          withUrl,
+          withBase64,
+          withRefs,
+          hasProject: !!currentProjectId,
+        });
+      }
       setSessions([]);
       setCharacterSessionCount(0);
       setObjectSessionCount(0);
@@ -1344,6 +1561,7 @@ export default function PropDesigner() {
   // Check if storyboard is available (from context or imported CSV)
   const hasStoryboard = activeScenes && activeScenes.length > 0;
   const hasContextStoryboard = storyboardGenerator.scenes && storyboardGenerator.scenes.length > 0;
+  const pushableCount = (propDesignerGenerator.result?.props ?? []).filter(p => !!p.designSheetImageRef).length;
 
   // Calculate total clips from active scenes
   const totalClips = activeScenes.reduce((acc, scene) => acc + scene.clips.length, 0);
@@ -1475,6 +1693,27 @@ export default function PropDesigner() {
         </div>
       )}
 
+      {!hasImportedScenes && storyPartIndices.length > 1 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-300">Storyboard Parts</p>
+          <div className="p-1 flex gap-1 flex-wrap items-center">
+            {storyPartIndices.map((partIdx) => (
+              <button
+                key={partIdx}
+                onClick={() => setSelectedPartIndex(partIdx)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedPartIndex === partIdx
+                    ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                    : "text-gray-400 hover:text-[#E8E8E8]"
+                }`}
+              >
+                Part {partIdx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* No storyboard warning with CSV import option */}
       {!hasStoryboard && (
         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center space-y-4">
@@ -1528,11 +1767,6 @@ export default function PropDesigner() {
             <span>
               Using imported CSV data ({totalClips} clips)
             </span>
-            {csvCharacterDescriptions.size > 0 && (
-              <span className="text-xs text-teal-400">
-                • {csvCharacterDescriptions.size} character{csvCharacterDescriptions.size !== 1 ? 's' : ''} with descriptions
-              </span>
-            )}
             {csvGenre && (
               <span className="text-xs text-teal-400">
                 • Genre: {csvGenre}
@@ -1542,8 +1776,9 @@ export default function PropDesigner() {
           <button
             onClick={() => {
               setImportedScenes([]);
-              setCsvCharacterDescriptions(new Map());
               setCsvGenre(null);
+              setImportVersion(0);
+              if (csvInputRef.current) csvInputRef.current.value = "";
             }}
             className="text-teal-400 hover:text-teal-300 text-xs font-bold"
           >
@@ -1566,6 +1801,39 @@ export default function PropDesigner() {
             totalClips={totalClips}
           />
 
+          {/* Push to Assets / Clear All */}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={async () => {
+                setIsPushingToAssets(true);
+                try {
+                  await pushPropsToAssets();
+                } finally {
+                  setIsPushingToAssets(false);
+                }
+              }}
+              disabled={isPushingToAssets || pushableCount === 0}
+              className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 disabled:bg-gray-800 disabled:text-gray-600 text-white border border-teal-600 disabled:border-gray-700 rounded text-sm font-bold transition-colors flex items-center gap-2"
+              title="Push all generated design sheets to the asset sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+              </svg>
+              {isPushingToAssets ? "Pushing…" : `Push to Assets (${pushableCount})`}
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm("Clear all PropDesigner data? This deletes Firestore props and S3 images.")) return;
+                await handleClearAll();
+              }}
+              disabled={sessions.length === 0}
+              className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 disabled:bg-gray-800 disabled:text-gray-600 text-red-300 border border-red-900/50 disabled:border-gray-700 rounded text-sm font-bold transition-colors"
+              title="Clear all PropDesigner data (Firestore + S3)"
+            >
+              Clear All
+            </button>
+          </div>
+
           {/* Storyboard Table */}
           <StoryboardTable
             scenes={activeScenes}
@@ -1586,8 +1854,8 @@ export default function PropDesigner() {
               onGenerateImage={(propId, prompt, refs) => handleGenerateImage(session.id, propId, prompt, refs)}
               onSetReferenceImages={(propId, images) => handleSetReferenceImages(session.id, propId, images)}
               onUpdateProp={(propId, updates) => handleUpdateProp(session.id, propId, updates)}
+              onSaveName={(propId, newName) => handleRenameProp(session.id, propId, newName)}
               onClose={() => handleCloseSession(session.id)}
-              onClearAll={() => handleClearAll(session.id)}
               onToggleMinimize={() => handleToggleMinimize(session.id)}
               title={session.name}
               accentColor={session.type === "character" ? "purple" : "cyan"}
@@ -1596,6 +1864,10 @@ export default function PropDesigner() {
               minimizedIndex={idx}
               isEasyMode={isEasyMode}
               onToggleEasyMode={setIsEasyMode}
+              suggestedStartingImages={suggestedStartingImages[session.id] || {}}
+              customTemplates={customTemplates}
+              onAddToTemplates={handleAddToTemplates}
+              onDeleteCustomTemplate={handleDeleteCustomTemplate}
             />
           ))}
         </>

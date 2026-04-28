@@ -100,6 +100,14 @@ export interface JobQueueDocument {
       sceneTitle: string;
       clips: Array<{
         story: string;
+        attentionDevice?: string;
+        attentionAction?: string;
+        attentionExpression?: string;
+        attentionMood?: string;
+        imagePromptA?: string;
+        imagePromptB?: string;
+        imagePromptC?: string;
+        imagePromptD?: string;
         storyDetailKo?: string;
         storyGroupLabel?: string;
         storyGroupSize?: number;
@@ -1290,15 +1298,10 @@ export async function getActiveProjectStorySplitterJobs(
  * Map JobQueueDocument to StorySplitterJobUpdate
  */
 export function mapStorySplitterJobToUpdate(job: JobQueueDocument): StorySplitterJobUpdate {
-  // Extract split_result from job document
-  const splitResult = (job as unknown as { split_result?: StorySplitterPart[] }).split_result;
-
   return {
     jobId: job.id,
     status: mapJobStatusToStorySplitterStatus(job.status, job.retry_count),
     progress: job.progress,
-    parts: splitResult,
-    partsCount: splitResult?.length,
     error: job.error_message,
   };
 }
@@ -1531,6 +1534,14 @@ export interface StoryboardScene {
   sceneTitle: string;
   clips: Array<{
     story: string;
+    attentionDevice?: string;
+    attentionAction?: string;
+    attentionExpression?: string;
+    attentionMood?: string;
+    imagePromptA?: string;
+    imagePromptB?: string;
+    imagePromptC?: string;
+    imagePromptD?: string;
     storyDetailKo?: string;
     storyGroupLabel?: string;
     storyGroupSize?: number;
@@ -1542,6 +1553,10 @@ export interface StoryboardScene {
     veoVideoPrompt?: string;
     backgroundPrompt: string;
     backgroundId: string;
+    backgroundIdA?: string;
+    backgroundIdB?: string;
+    backgroundIdC?: string;
+    backgroundIdD?: string;
     dialogue: string;
     dialogueEn: string;
     narration?: string;
@@ -1576,6 +1591,7 @@ export interface StoryboardJobUpdate {
   jobId: string;
   status: StoryboardJobStatus;
   progress: number;
+  partIndex?: number;
   // Results
   scenes?: StoryboardScene[];
   voicePrompts?: StoryboardVoicePrompt[];
@@ -1684,6 +1700,7 @@ export function mapStoryboardJobToUpdate(job: JobQueueDocument): StoryboardJobUp
     jobId: job.id,
     status: mapJobStatusToStoryboardStatus(job.status, job.retry_count),
     progress: job.progress,
+    partIndex: job.part_index,
     scenes: result?.scenes,
     voicePrompts: result?.voicePrompts,
     characterIdSummary: result?.characterIdSummary,

@@ -178,9 +178,11 @@ class JobDocument(BaseModel):
 
     # Story Splitter-specific fields (for type=STORY_SPLITTER)
     story_text: str | None = None  # Full story text to split
+    story_text_s3_key: str | None = None  # S3 key for the uploaded story text
     guidelines: str | None = None  # Genre-specific splitting guidelines
     num_parts: int | None = None  # Number of parts to split into
     split_result: list[dict] | None = None  # Array of {text, cliffhangers} parts
+    split_result_s3_key: str | None = None  # S3 key for the JSON split result
 
     # Panel Splitter-specific fields (for type=PANEL_SPLITTER)
     page_id: str | None = None  # Page ID from frontend
@@ -217,7 +219,10 @@ class JobDocument(BaseModel):
     negative_instruction: str | None = None  # Negative prompts
     video_instruction: str | None = None  # Video prompt rules
     image_instruction: str | None = None  # Image prompt package instructions
+    image_prompt_qa: str | None = None  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str | None = None  # JSON-stringified trailer script lines
+    is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
+    detected_locations: list[dict] | None = None  # Location entities from ID Converter [{id, name, description}]
     storyboard_result: dict | None = None  # {scenes: [...], voicePrompts: [...]}
 
     # Status tracking
@@ -821,7 +826,10 @@ class StoryboardJobSubmitRequest(BaseModel):
     negative_instruction: str = ""
     video_instruction: str = ""
     image_instruction: str = ""  # Image prompt package instructions
+    image_prompt_qa: str = ""  # Image guide package for A/B/C/D prompt generation
     selected_trailer_script: str = ""  # JSON-stringified trailer script lines
+    is_trailer_mode: bool = False  # True when submitted from WebnovelTrailerStoryboardGenerator
+    detected_locations: list[dict] | None = None  # Location entities from ID Converter [{id, name, description}]
     # API key
     api_key: str | None = None
 
@@ -830,6 +838,14 @@ class StoryboardClip(BaseModel):
     """A single clip in a storyboard scene."""
 
     story: str
+    attentionDevice: str = ""
+    attentionAction: str = ""
+    attentionExpression: str = ""
+    attentionMood: str = ""
+    imagePromptA: str = ""
+    imagePromptB: str = ""
+    imagePromptC: str = ""
+    imagePromptD: str = ""
     imagePrompt: str
     imagePromptEnd: str | None = None
     videoPrompt: str

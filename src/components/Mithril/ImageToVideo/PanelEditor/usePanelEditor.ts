@@ -23,6 +23,7 @@ import {
 } from '../../services/firestore/panelEditor';
 import {
   uploadI2VPanelEditorImage,
+  overwriteS3Image,
   deleteI2VPanelEditorImage,
 } from '../../services/s3/images';
 
@@ -57,6 +58,10 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
   // Track active jobs: panelId -> jobId mapping
   const activeJobsRef = useRef<Map<string, string>>(new Map());
 
+  // Tracks panel IDs restored from storage that already have a result.
+  // Prevents pendingUpdates from overwriting a remixed resultUrl with stale job data.
+  const restoredWithResultRef = useRef<Set<string>>(new Set());
+
   // Cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true;
@@ -89,7 +94,9 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
           sid = uuidv4();
         }
         sessionIdRef.current = sid;
-        setSessionId(sid);
+        // NOTE: setSessionId is deferred until after panels (and restoredWithResultRef) are
+        // set, so the Firestore job subscription never fires before we know which panels
+        // already have a result (e.g. a remixed image).
 
         // 2. Load saved panels
         const savedPanels = await getPanelEditorPanels(projectId);
@@ -108,8 +115,12 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
             }));
 
           if (panels.length > 0 && isMountedRef.current) {
+            restoredWithResultRef.current = new Set(
+              panels.filter((p) => !!p.resultUrl).map((p) => p.id),
+            );
             dispatch({ type: 'ADD_PANELS', panels });
           }
+          setSessionId(sid);
         } else {
           // No saved panels yet — pre-populate file library from ImageSplitter results
           setIsLoadingSplitterPanels(true);
@@ -157,6 +168,8 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
               setIsLoadingSplitterPanels(false);
             }
           }
+          // No panels with results to protect — safe to start the subscription now.
+          setSessionId(sid);
         }
       } catch {
         // First visit — no data yet, generate fresh sessionId
@@ -348,10 +361,16 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     if (pendingUpdates.length === 0) return;
 
     pendingUpdates.forEach((update) => {
-      const isTerminal = update.status === 'completed' || update.status === 'failed' || update.status === 'cancelled';
       // Always set activeJobsRef so handlePanelUpdate's guard doesn't filter out the update.
       // For in-flight jobs this also re-tracks them for subsequent snapshots.
       activeJobsRef.current.set(update.panelId, update.jobId);
+
+      // Guard: don't overwrite a panel that was restored from storage with an existing
+      // result (e.g. a remixed image) using stale job data from the initial snapshot.
+      if (update.status === 'completed' && restoredWithResultRef.current.has(update.panelId)) {
+        return;
+      }
+
       handlePanelUpdate(update);
       // handlePanelUpdate already deletes terminal jobs from activeJobsRef
     });
@@ -487,6 +506,10 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
     async (id: string, refinementMode: 'default' | 'zoom' | 'expand' = 'default') => {
       const panel = stateRef.current.panels.find((p) => p.id === id);
       if (!panel) return;
+
+      // Panel is being actively submitted — allow the subscription to update its
+      // result URL once the job completes (even if it was previously remixed).
+      restoredWithResultRef.current.delete(id);
 
       // Cancel any existing job for this panel
       const existingJobId = activeJobsRef.current.get(id);
@@ -680,6 +703,9 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       const sourceUrl = panel.resultUrl || panel.originalImageRef;
       if (!sourceUrl) return;
 
+      // Panel is being actively submitted — allow the subscription to update its result URL.
+      restoredWithResultRef.current.delete(id);
+
       // Cancel any existing job for this panel
       const existingJobId = activeJobsRef.current.get(id);
       if (existingJobId) {
@@ -819,16 +845,17 @@ export function usePanelEditor({ projectId }: UsePanelEditorOptions) {
       }
       const { imageBase64: remixedBase64 } = await response.json() as { imageBase64: string };
 
-      const remixImageUrl = await uploadI2VPanelEditorImage(
-        projectId,
-        `${id}-remix`,
-        remixedBase64,
-        'image/jpeg',
-      );
+      // Overwrite the existing result object in S3 so the URL stays the same.
+      // Append ?v=timestamp to bust the browser/CDN cache so the new content is displayed,
+      // and persist this versioned URL to Firestore so it survives navigation.
+      const baseResultUrl = panel.resultUrl!.split('?')[0];
+      const resultS3Key = new URL(baseResultUrl).pathname.slice(1);
+      await overwriteS3Image(projectId, resultS3Key, remixedBase64, 'image/jpeg');
+      const versionedUrl = `${baseResultUrl}?v=${Date.now()}`;
 
-      dispatch({ type: 'UPDATE_PANEL', id, updates: { resultUrl: remixImageUrl } });
+      dispatch({ type: 'UPDATE_PANEL', id, updates: { resultUrl: versionedUrl } });
       if (projectId) {
-        updatePanelEditorPanelResult(projectId, id, remixImageUrl, ProcessingStatus.Success)
+        updatePanelEditorPanelResult(projectId, id, versionedUrl, ProcessingStatus.Success)
           .catch((err) => console.error('Failed to persist remix result:', err));
       }
     },

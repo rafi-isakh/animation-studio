@@ -20,7 +20,7 @@ import { useMithril } from "../MithrilContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useToast } from "@/hooks/use-toast";
-import type { Scene, Continuity } from "../StoryboardGenerator/types";
+import type { Continuity } from "../StoryboardGenerator/types";
 import type { BgSheetResultMetadata } from "../BgSheetGenerator/types";
 import type {
   ImageGenFrame,
@@ -38,7 +38,6 @@ import {
   saveImageGenFrame,
   clearImageGen,
 } from "../services/firestore/imageGen";
-import { getScenes, getClips } from "../services/firestore/storyboard";
 import {
   uploadImageGenReplacementAsset,
   deleteImageGenReplacementAsset,
@@ -96,6 +95,8 @@ export default function ImageGeneratorOrchestrator() {
     customApiKey,
     isLoading: isContextLoading,
     propDesignerGenerator,
+    getScenesForPart,
+    getGeneratedPartIndices,
   } = useMithril();
   const { language, dictionary } = useLanguage();
   const { toast } = useToast();
@@ -117,6 +118,7 @@ export default function ImageGeneratorOrchestrator() {
   const [bulkBackgroundId, setBulkBackgroundId] = useState("");
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPartIndex, setSelectedPartIndex] = useState(0);
 
   // CSV Import state
   const [isCsvPanelOpen, setIsCsvPanelOpen] = useState(false);
@@ -126,6 +128,7 @@ export default function ImageGeneratorOrchestrator() {
   const [csvPromptEnd, setCsvPromptEnd] = useState("H50");
   const [csvEndFrameCol, setCsvEndFrameCol] = useState("I");
   const [csvBgIdCol, setCsvBgIdCol] = useState("E");
+  const generatedPartIndices = getGeneratedPartIndices();
 
   // Local uploaded assets state
   const [localAssets, setLocalAssets] = useState<LocalAssetRef[]>([]);
@@ -180,6 +183,7 @@ export default function ImageGeneratorOrchestrator() {
         await saveImageGenFrame(projectId, frame.id, {
           sceneIndex: frame.sceneIndex,
           clipIndex: frame.clipIndex,
+          partIndex: frame.partIndex ?? 0,
           frameLabel: frame.frameLabel,
           frameNumber: frame.frameNumber,
           shotGroup: frame.shotGroup,
@@ -202,6 +206,7 @@ export default function ImageGeneratorOrchestrator() {
             id: f.id,
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: f.partIndex ?? 0,
             frameLabel: f.frameLabel,
             imageRef: f.id === frame.id ? imageUrl : f.imageUrl,
             status: f.id === frame.id ? "completed" : f.status,
@@ -345,8 +350,8 @@ export default function ImageGeneratorOrchestrator() {
 
   // Load frames from Stage 4 storyboard
   const loadFramesFromStoryboard = useCallback(() => {
-    const storyboardData = getStageResult(4) as { scenes: Scene[] } | null;
-    if (!storyboardData?.scenes || storyboardData.scenes.length === 0) {
+    const partIndices = getGeneratedPartIndices();
+    if (partIndices.length === 0) {
       setError("No storyboard data found. Please complete Stage 4 first.");
       return [];
     }
@@ -354,64 +359,69 @@ export default function ImageGeneratorOrchestrator() {
     const newFrames: ImageGenFrame[] = [];
     let shotGroup = 1;
 
-    storyboardData.scenes.forEach((scene, sceneIndex) => {
-      scene.clips.forEach((clip: Continuity, clipIndex) => {
-        const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
+    partIndices.forEach((partIdx) => {
+      const partScenes = getScenesForPart(partIdx);
+      partScenes.forEach((scene, sceneIndex) => {
+        scene.clips.forEach((clip: Continuity, clipIndex) => {
+          const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
-        // Create frame A from imagePrompt
-        if (clip.imagePrompt) {
-          newFrames.push({
-            id: uuidv4(),
-            sceneIndex,
-            clipIndex,
-            frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-            frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-            shotGroup,
-            prompt: clip.imagePrompt,
-            backgroundId: clip.backgroundId || "",
-            refFrame: "",
-            imageUrl: clip.imageRef || null,
-            imageBase64: null,
-            status: clip.imageRef ? "completed" : "pending",
-            isLoading: false,
-            remixPrompt: "",
-            remixImageUrl: null,
-            remixImageBase64: null,
-            hasDrawingEdits: false,
-            editedImageUrl: null,
-          });
-        }
+          // Create frame A from imagePrompt
+          if (clip.imagePrompt) {
+            newFrames.push({
+              id: uuidv4(),
+              sceneIndex,
+              clipIndex,
+              partIndex: partIdx,
+              frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
+              frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
+              shotGroup,
+              prompt: clip.imagePrompt,
+              backgroundId: clip.backgroundId || "",
+              refFrame: "",
+              imageUrl: clip.imageRef || null,
+              imageBase64: null,
+              status: clip.imageRef ? "completed" : "pending",
+              isLoading: false,
+              remixPrompt: "",
+              remixImageUrl: null,
+              remixImageBase64: null,
+              hasDrawingEdits: false,
+              editedImageUrl: null,
+            });
+          }
 
-        // Create frame B from imagePromptEnd if exists
-        if (clip.imagePromptEnd) {
-          newFrames.push({
-            id: uuidv4(),
-            sceneIndex,
-            clipIndex,
-            frameLabel: `${shotGroup}B`,
-            frameNumber: `${frameNumber}B`,
-            shotGroup,
-            prompt: clip.imagePromptEnd,
-            backgroundId: clip.backgroundId || "",
-            refFrame: "",
-            imageUrl: null,
-            imageBase64: null,
-            status: "pending",
-            isLoading: false,
-            remixPrompt: "",
-            remixImageUrl: null,
-            remixImageBase64: null,
-            hasDrawingEdits: false,
-            editedImageUrl: null,
-          });
-        }
+          // Create frame B from imagePromptEnd if exists
+          if (clip.imagePromptEnd) {
+            newFrames.push({
+              id: uuidv4(),
+              sceneIndex,
+              clipIndex,
+              partIndex: partIdx,
+              frameLabel: `${shotGroup}B`,
+              frameNumber: `${frameNumber}B`,
+              shotGroup,
+              prompt: clip.imagePromptEnd,
+              backgroundId: clip.backgroundId || "",
+              refFrame: "",
+              imageUrl: null,
+              imageBase64: null,
+              status: "pending",
+              isLoading: false,
+              remixPrompt: "",
+              remixImageUrl: null,
+              remixImageBase64: null,
+              hasDrawingEdits: false,
+              editedImageUrl: null,
+            });
+          }
 
-        shotGroup++;
+          shotGroup++;
+        });
       });
     });
 
     return newFrames;
-  }, [getStageResult]);
+  }, [getGeneratedPartIndices, getScenesForPart]);
 
   // Load data from Firestore or initialize from storyboard
   useEffect(() => {
@@ -480,6 +490,7 @@ export default function ImageGeneratorOrchestrator() {
               id: sf.id,
               sceneIndex: sf.sceneIndex,
               clipIndex: sf.clipIndex,
+              partIndex: sf.partIndex ?? 0,
               frameLabel: sf.frameLabel,
               frameNumber: sf.frameNumber,
               shotGroup: sf.shotGroup,
@@ -503,11 +514,11 @@ export default function ImageGeneratorOrchestrator() {
             if (storyboardFrames.length > 0) {
               const savedFrameMap = new Map<string, typeof savedFrames[0]>();
               savedFrames.forEach((f) => {
-                savedFrameMap.set(f.frameLabel, f);
+                savedFrameMap.set(`${f.partIndex ?? 0}:${f.frameLabel}`, f);
               });
 
               mergedFrames = storyboardFrames.map((sbFrame) => {
-                const savedFrame = savedFrameMap.get(sbFrame.frameLabel);
+                const savedFrame = savedFrameMap.get(`${sbFrame.partIndex ?? 0}:${sbFrame.frameLabel}`);
                 if (savedFrame) {
                   return {
                     ...sbFrame,
@@ -526,116 +537,19 @@ export default function ImageGeneratorOrchestrator() {
                 }
                 return sbFrame;
               });
-            } else if (currentProjectId) {
-              // Storyboard context not available — load directly from Firestore
-              const firestoreScenes = await getScenes(currentProjectId);
-              const scenesWithClips: Scene[] = await Promise.all(
-                firestoreScenes.map(async (scene) => {
-                  const clips = await getClips(currentProjectId, scene.sceneIndex);
-                  return {
-                    sceneTitle: scene.sceneTitle,
-                    clips: clips.map((clip) => ({
-                      story: clip.story,
-                      imagePrompt: clip.imagePrompt,
-                      imagePromptEnd: clip.imagePromptEnd,
-                      videoPrompt: clip.videoPrompt,
-                      soraVideoPrompt: clip.soraVideoPrompt,
-                      backgroundPrompt: clip.backgroundPrompt,
-                      backgroundId: clip.backgroundId,
-                      characterInfo: clip.characterInfo,
-                      dialogue: clip.dialogue,
-                      dialogueEn: clip.dialogueEn,
-                      narration: clip.narration || "",
-                      narrationEn: clip.narrationEn || "",
-                      sfx: clip.sfx,
-                      sfxEn: clip.sfxEn,
-                      bgm: clip.bgm,
-                      bgmEn: clip.bgmEn,
-                      length: clip.length,
-                      accumulatedTime: clip.accumulatedTime,
-                      imageRef: clip.imageRef,
-                    })) as Continuity[],
-                  };
-                })
-              );
-
-              if (scenesWithClips.length > 0) {
-                const fbFrames: ImageGenFrame[] = [];
-                let shotGroup = 1;
-                scenesWithClips.forEach((scene, sceneIndex) => {
-                  scene.clips.forEach((clip, clipIndex) => {
-                    const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
-                    if (clip.imagePrompt) {
-                      fbFrames.push({
-                        id: uuidv4(),
-                        sceneIndex, clipIndex,
-                        frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-                        frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-                        shotGroup, prompt: clip.imagePrompt,
-                        backgroundId: clip.backgroundId || "", refFrame: "",
-                        imageUrl: clip.imageRef || null, imageBase64: null,
-                        status: clip.imageRef ? "completed" : "pending",
-                        isLoading: false, remixPrompt: "",
-                        remixImageUrl: null, remixImageBase64: null,
-                        hasDrawingEdits: false, editedImageUrl: null,
-                      });
-                    }
-                    if (clip.imagePromptEnd) {
-                      fbFrames.push({
-                        id: uuidv4(),
-                        sceneIndex, clipIndex,
-                        frameLabel: `${shotGroup}B`,
-                        frameNumber: `${frameNumber}B`,
-                        shotGroup, prompt: clip.imagePromptEnd,
-                        backgroundId: clip.backgroundId || "", refFrame: "",
-                        imageUrl: null, imageBase64: null,
-                        status: "pending", isLoading: false, remixPrompt: "",
-                        remixImageUrl: null, remixImageBase64: null,
-                        hasDrawingEdits: false, editedImageUrl: null,
-                      });
-                    }
-                    shotGroup++;
-                  });
-                });
-
-                const savedFrameMap = new Map<string, typeof savedFrames[0]>();
-                savedFrames.forEach((f) => savedFrameMap.set(f.frameLabel, f));
-
-                mergedFrames = fbFrames.map((fbFrame) => {
-                  const savedFrame = savedFrameMap.get(fbFrame.frameLabel);
-                  if (savedFrame) {
-                    return {
-                      ...fbFrame,
-                      id: savedFrame.id || fbFrame.id,
-                      prompt: savedFrame.prompt || fbFrame.prompt,
-                      backgroundId: savedFrame.backgroundId || fbFrame.backgroundId,
-                      refFrame: savedFrame.refFrame || fbFrame.refFrame,
-                      imageUrl: savedFrame.imageRef || null,
-                      imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
-                      status: savedFrame.status ?? fbFrame.status,
-                      remixPrompt: savedFrame.remixPrompt || "",
-                      remixImageUrl: savedFrame.remixImageRef || null,
-                      hasDrawingEdits: !!savedFrame.editedImageRef,
-                      editedImageUrl: savedFrame.editedImageRef || null,
-                    };
-                  }
-                  return fbFrame;
-                });
-
-                setStageResult(4, { scenes: scenesWithClips });
-              } else {
-                mergedFrames = savedFrames.map((sf) => ({
-                  id: sf.id, sceneIndex: sf.sceneIndex, clipIndex: sf.clipIndex,
-                  frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
-                  prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
-                  imageUrl: sf.imageRef || null, imageBase64: null,
-                  imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
-                  status: sf.status || ("pending" as const), isLoading: false,
-                  remixPrompt: sf.remixPrompt || "", remixImageUrl: sf.remixImageRef || null,
-                  remixImageBase64: null, hasDrawingEdits: !!sf.editedImageRef,
-                  editedImageUrl: sf.editedImageRef || null,
-                }));
-              }
+            } else {
+              mergedFrames = savedFrames.map((sf) => ({
+                id: sf.id, sceneIndex: sf.sceneIndex, clipIndex: sf.clipIndex,
+                partIndex: sf.partIndex ?? 0,
+                frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
+                prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
+                imageUrl: sf.imageRef || null, imageBase64: null,
+                imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
+                status: sf.status || ("pending" as const), isLoading: false,
+                remixPrompt: sf.remixPrompt || "", remixImageUrl: sf.remixImageRef || null,
+                remixImageBase64: null, hasDrawingEdits: !!sf.editedImageRef,
+                editedImageUrl: sf.editedImageRef || null,
+              }));
             }
           }
 
@@ -676,6 +590,7 @@ export default function ImageGeneratorOrchestrator() {
               id: f.id,
               sceneIndex: f.sceneIndex,
               clipIndex: f.clipIndex,
+              partIndex: f.partIndex ?? 0,
               frameLabel: f.frameLabel,
               imageRef: f.imageUrl,
               status: f.status,
@@ -699,16 +614,32 @@ export default function ImageGeneratorOrchestrator() {
     loadData();
   }, [currentStage, currentProjectId, isContextLoading, hasLoaded, loadAssets, loadFramesFromStoryboard, setStageResult, settings]);
 
+  const framePartIndices = useMemo(() => {
+    const indices = Array.from(new Set(frames.map((f) => f.partIndex ?? 0))).sort((a, b) => a - b);
+    return indices;
+  }, [frames]);
+
+  useEffect(() => {
+    if (framePartIndices.length === 0) return;
+    if (!framePartIndices.includes(selectedPartIndex)) {
+      setSelectedPartIndex(framePartIndices[0]);
+    }
+  }, [framePartIndices, selectedPartIndex]);
+
+  const filteredFrames = useMemo(() => {
+    return frames.filter((f) => (f.partIndex ?? 0) === selectedPartIndex);
+  }, [frames, selectedPartIndex]);
+
   // Group frames by shotGroup for display
   const groupedFrames = useMemo(() => {
     const groups: Record<number, ImageGenFrame[]> = {};
-    frames.forEach((frame) => {
+    filteredFrames.forEach((frame) => {
       const group = frame.shotGroup || 0;
       if (!groups[group]) groups[group] = [];
       groups[group].push(frame);
     });
     return Object.entries(groups).sort((a, b) => Number(a[0]) - Number(b[0]));
-  }, [frames]);
+  }, [filteredFrames]);
 
   // Collect reference URLs for a frame (backgrounds + characters)
   const collectReferenceUrls = useCallback(
@@ -1031,6 +962,7 @@ export default function ImageGeneratorOrchestrator() {
         input: {
           sceneIndex: f.sceneIndex,
           clipIndex: f.clipIndex,
+          partIndex: f.partIndex ?? 0,
           frameLabel: f.frameLabel,
           frameNumber: f.frameNumber,
           shotGroup: f.shotGroup,
@@ -1052,6 +984,7 @@ export default function ImageGeneratorOrchestrator() {
           id: f.id,
           sceneIndex: f.sceneIndex,
           clipIndex: f.clipIndex,
+          partIndex: f.partIndex ?? 0,
           frameLabel: f.frameLabel,
           imageRef: f.imageUrl,
           status: f.status,
@@ -1127,6 +1060,7 @@ export default function ImageGeneratorOrchestrator() {
           input: {
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: f.partIndex ?? 0,
             frameLabel: f.frameLabel,
             frameNumber: f.frameNumber,
             shotGroup: f.shotGroup,
@@ -1149,6 +1083,7 @@ export default function ImageGeneratorOrchestrator() {
             id: f.id,
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: f.partIndex ?? 0,
             frameLabel: f.frameLabel,
             imageRef: null,
             status: f.status,
@@ -1343,6 +1278,7 @@ export default function ImageGeneratorOrchestrator() {
       const baseFrame = {
         sceneIndex: 0,
         clipIndex: index,
+        partIndex: selectedPartIndex,
         backgroundId: bgId,
         refFrame: "",
         imageUrl: null,
@@ -1411,6 +1347,7 @@ export default function ImageGeneratorOrchestrator() {
           input: {
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: f.partIndex ?? 0,
             frameLabel: f.frameLabel,
             frameNumber: f.frameNumber,
             shotGroup: f.shotGroup,
@@ -1435,6 +1372,7 @@ export default function ImageGeneratorOrchestrator() {
             id: f.id,
             sceneIndex: f.sceneIndex,
             clipIndex: f.clipIndex,
+            partIndex: f.partIndex ?? 0,
             frameLabel: f.frameLabel,
             imageRef: null,
             status: f.status,
@@ -1452,7 +1390,7 @@ export default function ImageGeneratorOrchestrator() {
       description: `Created ${newFrames.length} frames from CSV.`,
       variant: "default",
     });
-  }, [parsedCsvData, csvHeaders, csvPromptStart, csvPromptEnd, csvEndFrameCol, csvBgIdCol, toast, currentProjectId, settings, setStageResult]);
+  }, [parsedCsvData, csvHeaders, csvPromptStart, csvPromptEnd, csvEndFrameCol, csvBgIdCol, toast, currentProjectId, settings, setStageResult, selectedPartIndex]);
 
   // Handle asset file upload - immediately upload to S3 so URLs are available for orchestrator
   const handleAssetUpload = useCallback(
@@ -2304,6 +2242,23 @@ export default function ImageGeneratorOrchestrator() {
               </button>
             </div>
           </div>
+          {framePartIndices.length > 0 && (
+            <div className="mt-3 p-1 bg-[#211F21] border border-[#272727] rounded-lg flex gap-1 flex-wrap">
+              {framePartIndices.map((partIdx) => (
+                <button
+                  key={partIdx}
+                  onClick={() => setSelectedPartIndex(partIdx)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    selectedPartIndex === partIdx
+                      ? "bg-[#DB2777] text-white hover:bg-[#BE185D]"
+                      : "text-gray-400 hover:text-[#E8E8E8]"
+                  }`}
+                >
+                  Part {partIdx + 1}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Frames Content */}
@@ -2321,13 +2276,13 @@ export default function ImageGeneratorOrchestrator() {
               </div>
               <button
                 onClick={handleApplyFromStoryboard}
-                disabled={!getStageResult(4)}
+                disabled={generatedPartIndices.length === 0}
                 className="mt-6 px-8 py-3 bg-[#DB2777] hover:bg-[#BE185D] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
                 Apply From Storyboard
               </button>
-              {!getStageResult(4) && (
+              {generatedPartIndices.length === 0 && (
                 <p className="text-xs text-gray-400 mt-2">
                   Complete Stage 5 (Storyboard) to enable this option
                 </p>

@@ -11,11 +11,9 @@ interface ClipTableRowProps {
   row: Continuity;
   sceneIndex: number;
   clipIndex: number;
-  isNewBackground: boolean;
-  clipHeadersLength: number;
   showTrailerColumns?: boolean;
-  onUpdatePrompt: (field: EditableClipField, value: string) => void;
-  getOriginalPrompt: (field: EditableClipField) => string | null;
+  onUpdatePrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField, value: string) => void;
+  getOriginalPrompt: (sceneIndex: number, clipIndex: number, field: EditableClipField) => string | null;
 }
 
 // Editable cell component for prompts
@@ -144,30 +142,16 @@ function EditablePromptCell({
   );
 }
 
-export default function ClipTableRow({
+const ClipTableRow = React.memo(function ClipTableRow({
   row,
   sceneIndex,
   clipIndex,
-  isNewBackground,
-  clipHeadersLength,
   showTrailerColumns = false,
   onUpdatePrompt,
   getOriginalPrompt,
 }: ClipTableRowProps) {
-  const { language, dictionary } = useLanguage();
-
   return (
     <React.Fragment>
-      {isNewBackground && (
-        <tr className="bg-gray-100 dark:bg-gray-800/70">
-          <td
-            colSpan={clipHeadersLength}
-            className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 italic pl-8"
-          >
-            {phrase(dictionary, "table_background", language)} {row.backgroundPrompt}
-          </td>
-        </tr>
-      )}
       <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150">
         <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 w-16 text-center">{`${sceneIndex + 1}.${clipIndex + 1}`}</td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-20 text-center">
@@ -176,31 +160,114 @@ export default function ClipTableRow({
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300 w-24 text-center">
           {row.accumulatedTime}
         </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-[#DB2777] w-24 text-center font-mono">
-          {row.backgroundId}
+        <td className="px-4 py-4 text-sm text-[#DB2777] min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundId}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundId')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundId', newValue)}
+          />
         </td>
-
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-          {row.story}
-        </td>
-
-        {/* Editable Image Prompt */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
-            value={row.imagePrompt}
-            originalValue={getOriginalPrompt('imagePrompt')}
-            onSave={(newValue) => onUpdatePrompt('imagePrompt', newValue)}
-            placeholderKey="storyboard_edit_image_prompt_placeholder"
+            value={row.backgroundPrompt || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundPrompt', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdA || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdA')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdA', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdB || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdB')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdB', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdC || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdC')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdC', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-[#DB2777]/70 min-w-[120px] text-center font-mono">
+          <EditablePromptCell
+            value={row.backgroundIdD || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'backgroundIdD')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'backgroundIdD', newValue)}
           />
         </td>
 
-        {/* Editable Image Prompt End */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
-            value={row.imagePromptEnd || ""}
-            originalValue={getOriginalPrompt('imagePromptEnd')}
-            onSave={(newValue) => onUpdatePrompt('imagePromptEnd', newValue)}
-            placeholderKey="storyboard_edit_image_prompt_end_placeholder"
+            value={row.story}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'story')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'story', newValue)}
+          />
+        </td>
+
+        {/* Attention reference fields */}
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.attentionDevice || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionDevice')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionDevice', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.attentionAction || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionAction')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionAction', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.attentionExpression || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionExpression')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionExpression', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-orange-600 dark:text-orange-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.attentionMood || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'attentionMood')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'attentionMood', newValue)}
+          />
+        </td>
+
+        {/* A/B/C/D image prompt variants */}
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptA || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptA')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptA', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptB || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptB')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptB', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptC || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptC')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptC', newValue)}
+          />
+        </td>
+        <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.imagePromptD || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'imagePromptD')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'imagePromptD', newValue)}
           />
         </td>
 
@@ -208,30 +275,42 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
           <EditablePromptCell
             value={row.videoPrompt}
-            originalValue={getOriginalPrompt('videoPrompt')}
-            onSave={(newValue) => onUpdatePrompt('videoPrompt', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'videoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'videoPrompt', newValue)}
             placeholderKey="storyboard_edit_video_prompt_placeholder"
           />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
-          {row.soraVideoPrompt}
+        <td className="px-4 py-4 text-sm text-blue-600 dark:text-blue-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.soraVideoPrompt}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'soraVideoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'soraVideoPrompt', newValue)}
+          />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-purple-600 dark:text-purple-300 font-mono min-w-[200px]">
-          {row.veoVideoPrompt}
+        <td className="px-4 py-4 text-sm text-purple-600 dark:text-purple-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.veoVideoPrompt}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'veoVideoPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'veoVideoPrompt', newValue)}
+          />
         </td>
 
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-pink-600 dark:text-pink-300 min-w-[200px]">
-          {row.pixAiPrompt}
+        <td className="px-4 py-4 text-sm text-pink-600 dark:text-pink-300 min-w-[200px]">
+          <EditablePromptCell
+            value={row.pixAiPrompt || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'pixAiPrompt')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'pixAiPrompt', newValue)}
+          />
         </td>
 
         {/* Editable Dialogue (Ko) */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell
             value={row.dialogue}
-            originalValue={getOriginalPrompt('dialogue')}
-            onSave={(newValue) => onUpdatePrompt('dialogue', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'dialogue')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'dialogue', newValue)}
             placeholderKey="storyboard_edit_dialogue_placeholder"
           />
         </td>
@@ -240,28 +319,36 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
           <EditablePromptCell
             value={row.dialogueEn}
-            originalValue={getOriginalPrompt('dialogueEn')}
-            onSave={(newValue) => onUpdatePrompt('dialogueEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'dialogueEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'dialogueEn', newValue)}
             placeholderKey="storyboard_edit_dialogue_en_placeholder"
           />
         </td>
 
-        {/* Narration (Ko) - read-only, yellow styling like standalone */}
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-600 dark:text-yellow-300 min-w-[150px]">
-          {row.narration || ""}
+        {/* Narration (Ko) */}
+        <td className="px-4 py-4 text-sm text-yellow-600 dark:text-yellow-300 min-w-[150px]">
+          <EditablePromptCell
+            value={row.narration || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'narration')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'narration', newValue)}
+          />
         </td>
 
-        {/* Narration (En) - read-only, yellow styling */}
-        <td className="whitespace-pre-wrap px-4 py-4 text-sm text-yellow-500 dark:text-yellow-100 italic min-w-[150px]">
-          {row.narrationEn || ""}
+        {/* Narration (En) */}
+        <td className="px-4 py-4 text-sm text-yellow-500 dark:text-yellow-100 min-w-[150px]">
+          <EditablePromptCell
+            value={row.narrationEn || ""}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'narrationEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'narrationEn', newValue)}
+          />
         </td>
 
         {/* Editable SFX (Ko) */}
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.sfx}
-            originalValue={getOriginalPrompt('sfx')}
-            onSave={(newValue) => onUpdatePrompt('sfx', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'sfx')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'sfx', newValue)}
             placeholderKey="storyboard_edit_sfx_placeholder"
           />
         </td>
@@ -270,8 +357,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.sfxEn}
-            originalValue={getOriginalPrompt('sfxEn')}
-            onSave={(newValue) => onUpdatePrompt('sfxEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'sfxEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'sfxEn', newValue)}
             placeholderKey="storyboard_edit_sfx_en_placeholder"
           />
         </td>
@@ -280,8 +367,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.bgm}
-            originalValue={getOriginalPrompt('bgm')}
-            onSave={(newValue) => onUpdatePrompt('bgm', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'bgm')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'bgm', newValue)}
             placeholderKey="storyboard_edit_bgm_placeholder"
           />
         </td>
@@ -290,8 +377,8 @@ export default function ClipTableRow({
         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 min-w-[120px]">
           <EditablePromptCell
             value={row.bgmEn}
-            originalValue={getOriginalPrompt('bgmEn')}
-            onSave={(newValue) => onUpdatePrompt('bgmEn', newValue)}
+            originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'bgmEn')}
+            onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'bgmEn', newValue)}
             placeholderKey="storyboard_edit_bgm_en_placeholder"
           />
         </td>
@@ -299,15 +386,25 @@ export default function ClipTableRow({
         {/* Trailer Script columns (only when showTrailerColumns is true) */}
         {showTrailerColumns && (
           <>
-            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
-              {row.trailerScriptKo || ""}
+            <td className="px-4 py-4 text-sm text-teal-600 dark:text-teal-300 min-w-[200px]">
+              <EditablePromptCell
+                value={row.trailerScriptKo || ""}
+                originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'trailerScriptKo')}
+                onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'trailerScriptKo', newValue)}
+              />
             </td>
-            <td className="whitespace-pre-wrap px-4 py-4 text-sm text-teal-500 dark:text-teal-100 italic min-w-[200px]">
-              {row.trailerScriptEn || ""}
+            <td className="px-4 py-4 text-sm text-teal-500 dark:text-teal-100 min-w-[200px]">
+              <EditablePromptCell
+                value={row.trailerScriptEn || ""}
+                originalValue={getOriginalPrompt(sceneIndex, clipIndex, 'trailerScriptEn')}
+                onSave={(newValue) => onUpdatePrompt(sceneIndex, clipIndex, 'trailerScriptEn', newValue)}
+              />
             </td>
           </>
         )}
       </tr>
     </React.Fragment>
   );
-}
+});
+
+export default ClipTableRow;

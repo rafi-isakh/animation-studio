@@ -1,10 +1,11 @@
-"""S3 service for video upload/download operations."""
+"""S3 service for video and story-splitter text storage operations."""
 
 import ipaddress
 import logging
 import socket
 from typing import Literal
 from urllib.parse import urlparse
+import json
 
 import boto3
 from botocore.exceptions import ClientError
@@ -279,6 +280,119 @@ async def upload_image(
     except ClientError as e:
         logger.error(f"Failed to upload image to S3: {e}")
         raise
+
+
+def _normalize_key_segment(value: str) -> str:
+    """Sanitize segments that become part of S3 keys."""
+    return value.replace("/", "_")
+
+
+def get_story_splitter_input_key(project_id: str, job_id: str) -> str:
+    """Generate S3 key for storing raw story splitter input text."""
+    safe_project = _normalize_key_segment(project_id)
+    safe_job = _normalize_key_segment(job_id)
+    return f"mithril/story-splitter/inputs/{safe_project}/{safe_job}.txt"
+
+
+def get_story_splitter_result_key(project_id: str, job_id: str) -> str:
+    """Generate S3 key for storing story splitter output JSON."""
+    safe_project = _normalize_key_segment(project_id)
+    safe_job = _normalize_key_segment(job_id)
+    return f"mithril/story-splitter/results/{safe_project}/{safe_job}.json"
+
+
+async def upload_text_object(
+    key: str,
+    text: str,
+    *,
+    content_type: str = "text/plain",
+    bucket: str | None = None,
+) -> None:
+    """
+    Upload a UTF-8 text blob to S3.
+
+    Args:
+        key: Object key within the bucket.
+        text: UTF-8 string payload.
+        content_type: MIME type for the object.
+        bucket: Optional bucket override.
+    """
+    client = get_s3_client()
+    target_bucket = bucket or settings.videos_bucket
+    try:
+        client.put_object(
+            Bucket=target_bucket,
+            Key=key,
+            Body=text.encode("utf-8"),
+            ContentType=content_type,
+        )
+        logger.info(f"Uploaded text object to S3: {key}")
+    except ClientError as exc:
+        logger.error(f"Failed to upload text object {key} to S3: {exc}")
+        raise
+
+
+async def upload_json_object(
+    key: str,
+    payload: Any,
+    *,
+    bucket: str | None = None,
+) -> None:
+    """
+    Upload arbitrary JSON-serializable data to S3.
+    """
+    text = json.dumps(payload, ensure_ascii=False)
+    await upload_text_object(key, text, content_type="application/json", bucket=bucket)
+
+
+async def download_text_object(
+    key: str,
+    *,
+    bucket: str | None = None,
+) -> str:
+    """
+    Download a UTF-8 text object from S3.
+    """
+    client = get_s3_client()
+    target_bucket = bucket or settings.videos_bucket
+    try:
+        response = client.get_object(Bucket=target_bucket, Key=key)
+        body = response["Body"].read()
+        if isinstance(body, bytes):
+            return body.decode("utf-8")
+        return str(body)
+    except ClientError as exc:
+        logger.error(f"Failed to download text object {key} from S3: {exc}")
+        raise
+
+
+async def download_json_object(
+    key: str,
+    *,
+    bucket: str | None = None,
+) -> Any:
+    """
+    Download JSON data stored in S3 and parse it.
+    """
+    text = await download_text_object(key, bucket=bucket)
+    return json.loads(text)
+
+
+async def delete_object(
+    key: str,
+    *,
+    bucket: str | None = None,
+) -> None:
+    """
+    Delete an S3 object; ignores missing objects.
+    """
+    client = get_s3_client()
+    target_bucket = bucket or settings.videos_bucket
+    try:
+        client.delete_object(Bucket=target_bucket, Key=key)
+        logger.info(f"Deleted object from S3: {key}")
+    except ClientError as exc:
+        logger.warning(f"Failed to delete object {key} from S3: {exc}")
 
 
 async def download_image(url: str) -> bytes:

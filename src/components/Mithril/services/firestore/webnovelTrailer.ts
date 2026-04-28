@@ -7,6 +7,8 @@ import {
   getDocs,
   writeBatch,
   Timestamp,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
 import type { AspectRatio } from './types';
@@ -24,6 +26,7 @@ export interface WebnovelTrailerDocument {
 export interface WebnovelTrailerClipDocument {
   sceneIndex: number;
   clipIndex: number;
+  partIndex?: number;
   sceneTitle?: string;
   videoPrompt?: string;
   length?: string;
@@ -45,6 +48,7 @@ export interface SaveWebnovelTrailerClipInput {
   length: string;
   videoApi?: string | null;
   imageUrl?: string | null;
+  partIndex?: number;
 }
 
 export interface UpdateWebnovelTrailerClipInput {
@@ -125,6 +129,31 @@ export async function getWebnovelTrailerClips(projectId: string): Promise<Webnov
   });
 }
 
+export async function getWebnovelTrailerClipsByPart(
+  projectId: string,
+  partIndex: number
+): Promise<WebnovelTrailerClipDocument[]> {
+  const collectionRef = getWebnovelTrailerClipsCollection(projectId);
+  const clipsQuery = query(collectionRef, where('partIndex', '==', partIndex));
+  const snapshot = await getDocs(clipsQuery);
+
+  const clips = snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    const idParts = docSnapshot.id.split('_');
+    return {
+      ...data,
+      sceneIndex: data.sceneIndex ?? 0,
+      clipIndex: data.clipIndex ?? parseInt(idParts[idParts.length - 1], 10),
+      partIndex: data.partIndex ?? partIndex,
+    };
+  }) as WebnovelTrailerClipDocument[];
+
+  return clips.sort((a, b) => {
+    if (a.sceneIndex !== b.sceneIndex) return a.sceneIndex - b.sceneIndex;
+    return a.clipIndex - b.clipIndex;
+  });
+}
+
 export async function saveWebnovelTrailerClip(
   projectId: string,
   clipId: string,
@@ -143,6 +172,7 @@ export async function saveWebnovelTrailerClip(
     jobId:       null,
     s3FileName:  null,
     status:      'idle',
+    partIndex:   input.partIndex ?? 0,
   });
 }
 
@@ -170,6 +200,7 @@ export async function saveWebnovelTrailerClipsBatch(
         jobId:       null,
         s3FileName:  null,
         status:      'idle',
+        partIndex:   input.partIndex ?? 0,
       });
     }
 
@@ -205,6 +236,21 @@ export async function clearWebnovelTrailer(projectId: string): Promise<void> {
 
   const metaRef = getWebnovelTrailerRef(projectId);
   batch.delete(metaRef);
+
+  await batch.commit();
+}
+
+export async function clearWebnovelTrailerPart(
+  projectId: string,
+  partIndex: number
+): Promise<void> {
+  const batch = writeBatch(db);
+  const clips = await getWebnovelTrailerClipsByPart(projectId, partIndex);
+
+  for (const clip of clips) {
+    const clipRef = getWebnovelTrailerClipRef(projectId, `${partIndex}_${clip.clipIndex}`);
+    batch.delete(clipRef);
+  }
 
   await batch.commit();
 }

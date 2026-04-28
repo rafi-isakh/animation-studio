@@ -35,6 +35,7 @@ from app.models.job import (
     KreaStyleConverterJobSubmitRequest,
     ModelsLabStyleConverterJobSubmitRequest,
 )
+from app.services.s3 import get_story_splitter_input_key, upload_text_object
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -651,6 +652,9 @@ class JobQueueService:
         job_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
 
+        story_text_key = get_story_splitter_input_key(request.project_id, job_id)
+        await upload_text_object(story_text_key, request.text)
+
         job = JobDocument(
             id=job_id,
             type=JobType.STORY_SPLITTER,
@@ -666,7 +670,8 @@ class JobQueueService:
             updated_at=now,
             user_id=user_id,
             # Story splitter-specific fields
-            story_text=request.text,
+            story_text=None,
+            story_text_s3_key=story_text_key,
             guidelines=request.guidelines,
             num_parts=request.num_parts,
             max_retries=3,
@@ -840,7 +845,9 @@ class JobQueueService:
             negative_instruction=request.negative_instruction,
             video_instruction=request.video_instruction,
             image_instruction=request.image_instruction,
+            image_prompt_qa=request.image_prompt_qa,
             selected_trailer_script=request.selected_trailer_script,
+            is_trailer_mode=request.is_trailer_mode,
             max_retries=3,
         )
 
@@ -1500,8 +1507,9 @@ class StorySplitsService:
         self,
         project_id: str,
         guidelines: str,
-        parts: list[dict],
+        parts: list[dict] | None = None,
         job_id: str | None = None,
+        result_key: str | None = None,
     ) -> None:
         """
         Save story split results to project's storySplits document.
@@ -1514,13 +1522,18 @@ class StorySplitsService:
         """
         data: dict[str, Any] = {
             "guidelines": guidelines,
-            "parts": parts,
+            "generatedAt": datetime.now(timezone.utc),
         }
+        if parts is not None:
+            data["parts"] = parts
         if job_id is not None:
             data["jobId"] = job_id
+        if result_key is not None:
+            data["resultKey"] = result_key
 
         await self._doc_ref(project_id).set(data, merge=True)
-        logger.debug(f"Saved story splits in project {project_id} ({len(parts)} parts)")
+        parts_count = len(parts) if parts else 0
+        logger.debug(f"Saved story splits in project {project_id} ({parts_count} parts)")
 
     async def get_story_splits(self, project_id: str) -> dict | None:
         """
@@ -1660,12 +1673,24 @@ class StoryboardService:
                     "clipIndex": clip_index,
                     "story": clip.get("story", ""),
                     "imagePrompt": clip.get("imagePrompt", ""),
+                    "attentionDevice": clip.get("attentionDevice", ""),
+                    "imagePromptA": clip.get("imagePromptA", ""),
+                    "attentionAction": clip.get("attentionAction", ""),
+                    "imagePromptB": clip.get("imagePromptB", ""),
+                    "attentionExpression": clip.get("attentionExpression", ""),
+                    "imagePromptC": clip.get("imagePromptC", ""),
+                    "attentionMood": clip.get("attentionMood", ""),
+                    "imagePromptD": clip.get("imagePromptD", ""),
                     "videoPrompt": clip.get("videoPrompt", ""),
                     "soraVideoPrompt": clip.get("soraVideoPrompt", ""),
                     "veoVideoPrompt": clip.get("veoVideoPrompt", ""),
                     "pixAiPrompt": clip.get("pixAiPrompt", ""),
                     "backgroundPrompt": clip.get("backgroundPrompt", ""),
                     "backgroundId": clip.get("backgroundId", ""),
+                    "backgroundIdA": clip.get("backgroundIdA", ""),
+                    "backgroundIdB": clip.get("backgroundIdB", ""),
+                    "backgroundIdC": clip.get("backgroundIdC", ""),
+                    "backgroundIdD": clip.get("backgroundIdD", ""),
                     "dialogue": clip.get("dialogue", ""),
                     "dialogueEn": clip.get("dialogueEn", ""),
                     "narration": clip.get("narration", ""),
@@ -1676,9 +1701,26 @@ class StoryboardService:
                     "bgmEn": clip.get("bgmEn", ""),
                     "length": clip.get("length", ""),
                     "accumulatedTime": clip.get("accumulatedTime", ""),
+                    "trailerScriptKo": clip.get("trailerScriptKo", ""),
+                    "trailerScriptEn": clip.get("trailerScriptEn", ""),
                     "imageRef": "",  # Empty until image is generated
                     "selectedBgId": None,  # User selection
                 }
+                # Debug: log attention field presence on first clip of first scene
+                if scene_index == 0 and clip_index == 0:
+                    logger.debug(
+                        "[FIRESTORE] Saving clip 0-0 attention fields — "
+                        "attentionDevice=%r, attentionAction=%r, attentionExpression=%r, attentionMood=%r | "
+                        "imagePromptA present=%s, imagePromptB present=%s, imagePromptC present=%s, imagePromptD present=%s",
+                        clip_data.get("attentionDevice"),
+                        clip_data.get("attentionAction"),
+                        clip_data.get("attentionExpression"),
+                        clip_data.get("attentionMood"),
+                        bool(clip_data.get("imagePromptA")),
+                        bool(clip_data.get("imagePromptB")),
+                        bool(clip_data.get("imagePromptC")),
+                        bool(clip_data.get("imagePromptD")),
+                    )
                 await self._clip_ref(project_id, scene_index, clip_index).set(clip_data)
 
             logger.debug(f"Saved scene {scene_index} with {len(clips)} clips for project {project_id}")

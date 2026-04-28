@@ -41,6 +41,13 @@ interface ProjectEntry {
   call_count: number;
 }
 
+// Providers billed as flat monthly subscriptions (not per-call)
+const SUBSCRIPTION_PROVIDERS: Record<string, { monthlyUsd: number; groupLabel: string }> = {
+  modelslab:     { monthlyUsd: 199, groupLabel: "ModelsLab" },
+  z_image_turbo: { monthlyUsd: 199, groupLabel: "ModelsLab" },
+  flux2_dev:     { monthlyUsd: 199, groupLabel: "ModelsLab" },
+};
+
 // Provider display config: colors + short labels for known providers
 const PROVIDER_META: Record<string, { label: string; abbr: string; color: string }> = {
   veo3:              { label: "Veo 3",    abbr: "V3", color: "#DB2777" },
@@ -263,7 +270,7 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
     .filter((p) => ["veo3", "sora", "grok_i2v", "grok_imagine_i2v", "wan_i2v", "wan22_i2v"].includes(p.provider_id))
     .reduce((s, p) => s + p.total_usd, 0);
   const imageUsd = providers
-    .filter((p) => ["gemini", "grok", "z_image_turbo", "pixai", "modelslab"].includes(p.provider_id))
+    .filter((p) => !SUBSCRIPTION_PROVIDERS[p.provider_id] && ["gemini", "grok", "pixai"].includes(p.provider_id))
     .reduce((s, p) => s + p.total_usd, 0);
   const totalUsd = summary?.total_used_usd ?? 0;
   const textUsd = Math.max(0, totalUsd - videoUsd - imageUsd);
@@ -410,6 +417,7 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
         <StatCard
           label="Total Spend"
           value={fmt(totalUsd)}
+          addon="+$199/mo"
           sub={`${(summary?.transaction_count ?? 0).toLocaleString()} API calls`}
         />
         <StatCard
@@ -444,6 +452,7 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
             <div className="flex flex-col">
               {providers.map((p, i) => {
                 const meta = providerMeta(p.provider_id);
+                const sub = SUBSCRIPTION_PROVIDERS[p.provider_id];
                 const barPct = Math.round((p.total_usd / maxProviderCost) * 100);
                 return (
                   <div
@@ -457,14 +466,34 @@ export default function CreditsPage({ hideHeader, adminMode }: { hideHeader?: bo
                       {meta.abbr}
                     </div>
                     <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <span className="text-sm font-medium">{meta.label}</span>
-                      <div className="h-1 bg-[#1A1A1C] rounded-full w-full">
-                        <div className="h-1 rounded-full transition-all" style={{ width: `${barPct}%`, backgroundColor: meta.color }} />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{meta.label}</span>
+                        {sub && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-[#374151]">
+                            SUBSCRIPTION
+                          </span>
+                        )}
                       </div>
+                      {sub ? (
+                        <span className="text-xs text-gray-500">{sub.groupLabel} · ${sub.monthlyUsd}/mo flat rate</span>
+                      ) : (
+                        <div className="h-1 bg-[#1A1A1C] rounded-full w-full">
+                          <div className="h-1 rounded-full transition-all" style={{ width: `${barPct}%`, backgroundColor: meta.color }} />
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0 w-20">
-                      <span className="text-sm font-semibold">{fmt(p.total_usd)}</span>
-                      <span className="text-xs text-gray-500">{p.call_count} calls</span>
+                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0 w-24">
+                      {sub ? (
+                        <>
+                          <span className="text-sm font-semibold">${sub.monthlyUsd}/mo</span>
+                          <span className="text-xs text-gray-500">{p.call_count} calls</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm font-semibold">{fmt(p.total_usd)}</span>
+                          <span className="text-xs text-gray-500">{p.call_count} calls</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -573,18 +602,25 @@ function StatCard({
   value,
   sub,
   accent,
+  addon,
 }: {
   label: string;
   value: string;
   sub: string;
   accent?: boolean;
+  addon?: string;
 }) {
   return (
     <div className="flex flex-col gap-3 p-6 bg-[#211F21] border border-[#272727] rounded-xl">
       <span className="text-xs font-medium text-gray-500 uppercase tracking-widest">{label}</span>
-      <span className={`text-4xl font-bold tracking-tight ${accent ? "text-[#DB2777]" : "text-[#E8E8E8]"}`}>
-        {value}
-      </span>
+      <div className="flex items-baseline gap-2">
+        <span className={`text-4xl font-bold tracking-tight ${accent ? "text-[#DB2777]" : "text-[#E8E8E8]"}`}>
+          {value}
+        </span>
+        {addon && (
+          <span className="text-sm font-medium text-gray-400">{addon}</span>
+        )}
+      </div>
       <span className="text-sm text-gray-500">{sub}</span>
     </div>
   );

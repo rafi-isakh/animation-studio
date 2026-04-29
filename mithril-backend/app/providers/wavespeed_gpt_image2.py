@@ -1,4 +1,4 @@
-"""WaveSpeed GPT-Image-2-Edit provider for prop design sheet generation."""
+"""WaveSpeed GPT-Image-2 provider for prop design sheet generation."""
 
 import asyncio
 import base64
@@ -8,7 +8,8 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-_SUBMIT_URL = "https://api.wavespeed.ai/api/v3/openai/gpt-image-2/edit"
+_EDIT_URL = "https://api.wavespeed.ai/api/v3/openai/gpt-image-2/edit"
+_TEXT_TO_IMAGE_URL = "https://api.wavespeed.ai/api/v3/openai/gpt-image-2/text-to-image"
 _RESULT_URL = "https://api.wavespeed.ai/api/v3/predictions/{request_id}/result"
 
 _POLL_MAX_RETRIES = 10
@@ -36,16 +37,27 @@ async def generate_image(
     Returns:
         PNG image bytes.
     """
-    payload: dict = {
-        "prompt": prompt,
-        "aspect_ratio": aspect_ratio,
-        "resolution": resolution,
-        "quality": quality,
-        "enable_sync_mode": True,
-        "enable_base64_output": True,
-    }
     if reference_urls:
-        payload["images"] = reference_urls
+        submit_url = _EDIT_URL
+        payload: dict = {
+            "prompt": prompt,
+            "images": reference_urls,
+            "aspect_ratio": aspect_ratio,
+            "resolution": resolution,
+            "quality": quality,
+            "enable_sync_mode": True,
+            "enable_base64_output": True,
+        }
+    else:
+        submit_url = _TEXT_TO_IMAGE_URL
+        payload = {
+            "prompt": prompt,
+            "aspect_ratio": aspect_ratio,
+            "resolution": resolution,
+            "quality": quality,
+            "enable_sync_mode": True,
+            "enable_base64_output": True,
+        }
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -53,8 +65,8 @@ async def generate_image(
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
-        logger.info(f"[WaveSpeed] Submitting request: prompt_len={len(prompt)}, refs={len(reference_urls)}, ratio={aspect_ratio}")
-        response = await client.post(_SUBMIT_URL, json=payload, headers=headers)
+        logger.info(f"[WaveSpeed] Submitting request: prompt_len={len(prompt)}, refs={len(reference_urls)}, ratio={aspect_ratio}, endpoint={'edit' if reference_urls else 'text-to-image'}")
+        response = await client.post(submit_url, json=payload, headers=headers)
 
         if response.status_code != 200:
             raise RuntimeError(f"WaveSpeed API error {response.status_code}: {response.text[:300]}")

@@ -7,9 +7,11 @@ interface InpaintModalProps {
   imageUrl: string;
   onSubmit: (maskDataUrl: string, prompt: string, strength: number, width: number, height: number) => void;
   onClose: () => void;
+  isLoading?: boolean;
+  externalError?: string;
 }
 
-export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, onClose }) => {
+export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, onClose, isLoading, externalError }) => {
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -187,9 +189,9 @@ export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, 
             ref={containerRef}
             className="relative flex-1 bg-gray-950 flex items-center justify-center overflow-hidden min-h-[300px]"
           >
-            {error && (
+            {(error || externalError) && (
               <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-red-600 text-white text-sm px-4 py-2 rounded-lg">
-                {error}
+                {externalError || error}
               </div>
             )}
             {!imageLoaded && (
@@ -304,10 +306,17 @@ export const InpaintModal: React.FC<InpaintModalProps> = ({ imageUrl, onSubmit, 
             {/* Submit */}
             <button
               onClick={handleSubmit}
-              disabled={!imageLoaded}
-              className="w-full py-3 text-sm font-semibold text-white bg-[#DB2777] hover:bg-[#be185d] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
+              disabled={!imageLoaded || isLoading}
+              className="w-full py-3 text-sm font-semibold text-white bg-[#DB2777] hover:bg-[#be185d] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
             >
-              Generate Inpaint
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
+                  Submitting...
+                </>
+              ) : (
+                'Generate Inpaint'
+              )}
             </button>
           </div>
         </div>

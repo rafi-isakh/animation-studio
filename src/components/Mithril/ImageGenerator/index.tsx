@@ -223,44 +223,26 @@ const { language, dictionary } = useLanguage();
       scene.clips.forEach((clip: Continuity, clipIndex) => {
         const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
-        // Create frame A from imagePrompt
-        if (clip.imagePrompt) {
-          newFrames.push({
-            id: uuidv4(),
-            sceneIndex,
-            clipIndex,
-            partIndex: partIndex ?? 0,
-            frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-            frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-            shotGroup,
-            prompt: clip.imagePrompt,
-            backgroundId: clip.backgroundId || "",
-            refFrame: "",
-            imageUrl: clip.imageRef || null,
-            imageBase64: null,
-            status: clip.imageRef ? "completed" : "pending",
-            isLoading: false,
-            remixPrompt: "",
-            remixImageUrl: null,
-            remixImageBase64: null,
-            hasDrawingEdits: false,
-            editedImageUrl: null,
-          });
-        }
+        const variants = [
+          { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+          { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+          { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+          { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+        ].filter((v) => v.prompt?.trim());
 
-        // Create frame B from imagePromptEnd if exists
-        if (clip.imagePromptEnd) {
+        variants.forEach((v) => {
           newFrames.push({
             id: uuidv4(),
             sceneIndex,
             clipIndex,
             partIndex: partIndex ?? 0,
-            frameLabel: `${shotGroup}B`,
-            frameNumber: `${frameNumber}B`,
+            frameLabel: `${shotGroup}${v.suffix}`,
+            frameNumber: `${frameNumber}${v.suffix}`,
             shotGroup,
-            prompt: clip.imagePromptEnd,
-            backgroundId: clip.backgroundId || "",
+            prompt: v.prompt!,
+            backgroundId: v.bgId || clip.backgroundId || "",
             refFrame: "",
+            attentionLabel: v.attention,
             imageUrl: null,
             imageBase64: null,
             status: "pending",
@@ -270,8 +252,9 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
-        }
+        });
 
         shotGroup++;
       });
@@ -373,6 +356,7 @@ const { language, dictionary } = useLanguage();
                   prompt: savedFrame.prompt || sbFrame.prompt,
                   backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                   refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                  attentionLabel: savedFrame.attentionLabel ?? sbFrame.attentionLabel,
                   imageUrl: savedFrame.imageRef || null, // Don't fall back to sbFrame.imageUrl
                   imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined), // For cache busting
                   status: savedFrame.status ?? sbFrame.status,
@@ -380,6 +364,7 @@ const { language, dictionary } = useLanguage();
                   remixImageUrl: savedFrame.remixImageRef || null,
                   hasDrawingEdits: !!savedFrame.editedImageRef,
                   editedImageUrl: savedFrame.editedImageRef || null,
+                  inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                 };
               }
               return sbFrame;
@@ -396,11 +381,22 @@ const { language, dictionary } = useLanguage();
                   clips: clips.map((clip) => ({
                     story: clip.story,
                     imagePrompt: clip.imagePrompt,
-                    imagePromptEnd: clip.imagePromptEnd,
+                    imagePromptA: clip.imagePromptA,
+                    imagePromptB: clip.imagePromptB,
+                    imagePromptC: clip.imagePromptC,
+                    imagePromptD: clip.imagePromptD,
+                    backgroundId: clip.backgroundId,
+                    backgroundIdA: clip.backgroundIdA,
+                    backgroundIdB: clip.backgroundIdB,
+                    backgroundIdC: clip.backgroundIdC,
+                    backgroundIdD: clip.backgroundIdD,
+                    attentionDevice: clip.attentionDevice,
+                    attentionAction: clip.attentionAction,
+                    attentionExpression: clip.attentionExpression,
+                    attentionMood: clip.attentionMood,
                     videoPrompt: clip.videoPrompt,
                     soraVideoPrompt: clip.soraVideoPrompt,
                     backgroundPrompt: clip.backgroundPrompt,
-                    backgroundId: clip.backgroundId,
                     characterInfo: clip.characterInfo,
                     dialogue: clip.dialogue,
                     dialogueEn: clip.dialogueEn,
@@ -425,39 +421,24 @@ const { language, dictionary } = useLanguage();
               scenesWithClips.forEach((scene, sceneIndex) => {
                 scene.clips.forEach((clip, clipIndex) => {
                   const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
-                  if (clip.imagePrompt) {
+                  const variants = [
+                    { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+                    { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+                    { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+                    { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+                  ].filter((v) => v.prompt?.trim());
+                  variants.forEach((v) => {
                     fbFrames.push({
                       id: uuidv4(),
                       sceneIndex,
                       clipIndex,
-                      frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-                      frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
+                      frameLabel: `${shotGroup}${v.suffix}`,
+                      frameNumber: `${frameNumber}${v.suffix}`,
                       shotGroup,
-                      prompt: clip.imagePrompt,
-                      backgroundId: clip.backgroundId || "",
+                      prompt: v.prompt!,
+                      backgroundId: v.bgId || clip.backgroundId || "",
                       refFrame: "",
-                      imageUrl: clip.imageRef || null,
-                      imageBase64: null,
-                      status: clip.imageRef ? "completed" : "pending",
-                      isLoading: false,
-                      remixPrompt: "",
-                      remixImageUrl: null,
-                      remixImageBase64: null,
-                      hasDrawingEdits: false,
-                      editedImageUrl: null,
-                    });
-                  }
-                  if (clip.imagePromptEnd) {
-                    fbFrames.push({
-                      id: uuidv4(),
-                      sceneIndex,
-                      clipIndex,
-                      frameLabel: `${shotGroup}B`,
-                      frameNumber: `${frameNumber}B`,
-                      shotGroup,
-                      prompt: clip.imagePromptEnd,
-                      backgroundId: clip.backgroundId || "",
-                      refFrame: "",
+                      attentionLabel: v.attention,
                       imageUrl: null,
                       imageBase64: null,
                       status: "pending",
@@ -467,8 +448,9 @@ const { language, dictionary } = useLanguage();
                       remixImageBase64: null,
                       hasDrawingEdits: false,
                       editedImageUrl: null,
+                      inpaintedImageUrl: null,
                     });
-                  }
+                  });
                   shotGroup++;
                 });
               });
@@ -486,6 +468,7 @@ const { language, dictionary } = useLanguage();
                     prompt: savedFrame.prompt || fbFrame.prompt,
                     backgroundId: savedFrame.backgroundId || fbFrame.backgroundId,
                     refFrame: savedFrame.refFrame || fbFrame.refFrame,
+                    attentionLabel: savedFrame.attentionLabel ?? fbFrame.attentionLabel,
                     imageUrl: savedFrame.imageRef || null,
                     imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                     status: savedFrame.status ?? fbFrame.status,
@@ -493,6 +476,7 @@ const { language, dictionary } = useLanguage();
                     remixImageUrl: savedFrame.remixImageRef || null,
                     hasDrawingEdits: !!savedFrame.editedImageRef,
                     editedImageUrl: savedFrame.editedImageRef || null,
+                    inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                   };
                 }
                 return fbFrame;
@@ -512,6 +496,7 @@ const { language, dictionary } = useLanguage();
                 prompt: sf.prompt,
                 backgroundId: sf.backgroundId,
                 refFrame: sf.refFrame,
+                attentionLabel: sf.attentionLabel,
                 imageUrl: sf.imageRef || null,
                 imageBase64: null,
                 imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
@@ -522,6 +507,7 @@ const { language, dictionary } = useLanguage();
                 remixImageBase64: null,
                 hasDrawingEdits: !!sf.editedImageRef,
                 editedImageUrl: sf.editedImageRef || null,
+                inpaintedImageUrl: sf.inpaintImageRef || null,
               }));
             }
           }
@@ -922,6 +908,7 @@ const { language, dictionary } = useLanguage();
               prompt: frame.prompt,
               backgroundId: frame.backgroundId,
               refFrame: frame.refFrame,
+              attentionLabel: frame.attentionLabel,
               imageRef: imageUrl,
               imageUpdatedAt,
               status: "completed",
@@ -1141,6 +1128,7 @@ const { language, dictionary } = useLanguage();
           prompt: f.prompt,
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
+          ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           imageRef: f.imageUrl || "",
           imageUpdatedAt: f.imageUpdatedAt,
           status: f.status,
@@ -1222,6 +1210,7 @@ const { language, dictionary } = useLanguage();
       remixImageBase64: null,
       hasDrawingEdits: false,
       editedImageUrl: null,
+      inpaintedImageUrl: null,
     }));
 
     // Replace only this part's frames, keeping other parts intact
@@ -1255,6 +1244,7 @@ const { language, dictionary } = useLanguage();
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1465,6 +1455,7 @@ const { language, dictionary } = useLanguage();
         remixImageBase64: null,
         hasDrawingEdits: false,
         editedImageUrl: null,
+        inpaintedImageUrl: null,
       };
 
       // If both start and end prompts exist, create A/B frames
@@ -2331,6 +2322,8 @@ const { language, dictionary } = useLanguage();
                       onRemix={() => {}}
                       onUseRemix={handleUseRemix}
                       onEdit={() => {}}
+                      onInpaint={() => {}}
+                      onUseInpaint={() => {}}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}
                       isBatchRunning={isBatchRunning}

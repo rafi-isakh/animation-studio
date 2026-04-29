@@ -284,7 +284,7 @@ class JobQueueService:
             project_id=request.project_id,
             scene_index=0,  # Not used for props
             clip_index=0,  # Not used for props
-            provider_id="gemini",  # Currently only Gemini for prop design sheets
+            provider_id=request.provider,
             prompt=request.prompt,
             aspect_ratio=request.aspect_ratio,
             api_key_hash=hash_api_key(request.api_key),

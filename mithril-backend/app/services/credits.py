@@ -57,6 +57,8 @@ IMAGE_COST_TABLE: dict[tuple[str, str], float] = {
     ("panel_colorizer", "z_image_turbo"): 0.0,
     ("panel", "flux2_dev"): 0.0,
     ("panel_colorizer", "flux2_dev"): 0.0,
+    # WaveSpeed GPT-Image-2-Edit (medium quality, 2k resolution)
+    ("prop_design_sheet", "wavespeed_gpt_image_2"): 0.06,
     # PixAI style converter
     ("style_converter", "pixai"): 0.09,
     # ModelsLab flux-klein style converter — subscription plan, no per-call cost

@@ -148,12 +148,16 @@ async def process_prop_design_sheet_generation(
 
 
 def _get_api_key(job: JobDocument, custom_api_key: str | None = None) -> str:
-    """Get API key for image generation.
+    """Get Gemini API key for image generation (only used when provider is 'gemini').
 
     Priority:
     1. Custom API key passed through task queue
     2. Fallback to environment variable settings
     """
+    provider_id = job.provider_id or "wavespeed_gpt_image_2"
+    if provider_id != "gemini":
+        return ""  # WaveSpeed reads its own key from settings
+
     if custom_api_key:
         return custom_api_key
 
@@ -202,53 +206,79 @@ async def _stage_generate(
     api_key: str,
     state_machine: JobStateMachine,
 ) -> bytes:
-    """Stage 2: Generate image using Gemini."""
+    """Stage 2: Generate image using the job's provider (WaveSpeed or Gemini)."""
     job_queue_service = get_job_queue_service()
 
-    logger.info(f"[PROP-GEN] {job.id} - Stage 2: GENERATING design sheet with Gemini")
+    provider_id = job.provider_id or "wavespeed_gpt_image_2"
+    logger.info(f"[PROP-GEN] {job.id} - Stage 2: GENERATING design sheet with {provider_id}")
 
     state_machine.transition_to(JobStatus.GENERATING)
     await job_queue_service.update_job_status(job.id, JobStatus.GENERATING, progress=0.3)
-    logger.debug(f"[PROP-GEN] {job.id} - Status updated to GENERATING in Firestore")
 
-    # Build request - no style prompt for design sheets, use full prompt
-    request = ImageGenerateRequest(
-        prompt=job.prompt,
-        style_prompt=None,  # Design sheet prompts include style
-        reference_images=reference_images,
-        aspect_ratio=job.aspect_ratio,
-    )
-    logger.info(f"[PROP-GEN] {job.id} - Request built: prompt_len={len(job.prompt)}, refs={len(reference_images)}, ratio={job.aspect_ratio}")
-
-    # Validate
-    validation_error = gemini_image_provider.validate_request(request)
-    if validation_error:
-        logger.error(f"[PROP-GEN] {job.id} - Validation failed: {validation_error}")
-        raise VideoJobError.invalid_request(validation_error)
-    logger.debug(f"[PROP-GEN] {job.id} - Request validation passed")
-
-    # Generate image
-    logger.info(f"[PROP-GEN] {job.id} - Calling Gemini API...")
-    try:
-        image_bytes = await gemini_image_provider.generate_image(request, api_key)
-        logger.info(f"[PROP-GEN] {job.id} - ✓ Design sheet generated successfully: {len(image_bytes)} bytes")
-    except Exception as e:
-        logger.error(f"[PROP-GEN] {job.id} - ✗ Gemini API error: {type(e).__name__}: {str(e)}")
-        raise classify_exception(e)
+    if provider_id == "wavespeed_gpt_image_2":
+        image_bytes = await _generate_with_wavespeed(job)
+    else:
+        image_bytes = await _generate_with_gemini(job, reference_images, api_key)
 
     try:
         from app.services.credits import get_credit_cost, get_credits_service
-        _cost = get_credit_cost(job.type.value, "gemini")
+        _cost = get_credit_cost(job.type.value, provider_id)
         await get_credits_service().record_credit(
             user_id=job.user_id, project_id=job.project_id,
             job_id=job.id, job_type=job.type.value,
-            provider_id="gemini", cost_usd=_cost,
+            provider_id=provider_id, cost_usd=_cost,
         )
     except Exception:
         logger.warning(f"Failed to record credit for job {job.id}", exc_info=True)
 
     await job_queue_service.update_job(job.id, progress=0.7)
     return image_bytes
+
+
+async def _generate_with_wavespeed(job: JobDocument) -> bytes:
+    """Generate image using WaveSpeed GPT-Image-2-Edit."""
+    from app.providers.wavespeed_gpt_image2 import generate_image as wavespeed_generate
+
+    wavespeed_key = settings.wavespeed_api_key
+    if not wavespeed_key:
+        raise VideoJobError.invalid_request("WAVESPEED_API_KEY is not configured")
+
+    reference_urls = job.reference_urls or []
+    logger.info(f"[PROP-GEN] {job.id} - Calling WaveSpeed API (refs={len(reference_urls)})...")
+    try:
+        image_bytes = await wavespeed_generate(
+            prompt=job.prompt,
+            reference_urls=reference_urls,
+            aspect_ratio=job.aspect_ratio,
+            api_key=wavespeed_key,
+        )
+        logger.info(f"[PROP-GEN] {job.id} - ✓ WaveSpeed generated: {len(image_bytes)} bytes")
+        return image_bytes
+    except Exception as e:
+        logger.error(f"[PROP-GEN] {job.id} - ✗ WaveSpeed error: {type(e).__name__}: {str(e)}")
+        raise classify_exception(e)
+
+
+async def _generate_with_gemini(job: JobDocument, reference_images: list[bytes], api_key: str) -> bytes:
+    """Generate image using Gemini."""
+    request = ImageGenerateRequest(
+        prompt=job.prompt,
+        style_prompt=None,
+        reference_images=reference_images,
+        aspect_ratio=job.aspect_ratio,
+    )
+    validation_error = gemini_image_provider.validate_request(request)
+    if validation_error:
+        raise VideoJobError.invalid_request(validation_error)
+
+    logger.info(f"[PROP-GEN] {job.id} - Calling Gemini API...")
+    try:
+        image_bytes = await gemini_image_provider.generate_image(request, api_key)
+        logger.info(f"[PROP-GEN] {job.id} - ✓ Gemini generated: {len(image_bytes)} bytes")
+        return image_bytes
+    except Exception as e:
+        logger.error(f"[PROP-GEN] {job.id} - ✗ Gemini error: {type(e).__name__}: {str(e)}")
+        raise classify_exception(e)
 
 
 async def _stage_upload(

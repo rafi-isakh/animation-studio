@@ -57,7 +57,7 @@ const PROVIDER_META: Record<string, { label: string; abbr: string; color: string
   grok:              { label: "Grok",     abbr: "Gr", color: "#F59E0B" },
   grok_i2v:          { label: "Grok I2V", abbr: "Gk", color: "#F97316" },
   grok_imagine_i2v:  { label: "Grok Img", abbr: "Gi", color: "#EF4444" },
-  wan_i2v:           { label: "Wan I2V",  abbr: "Wn", color: "#10B981" },
+  wavespeed_gpt_image_2: { label: "GPT Image 2",  abbr: "Gp", color: "#10B981" },
   wan22_i2v:         { label: "Wan 2.2",  abbr: "W2", color: "#14B8A6" },
   pixai:             { label: "PixAI",    abbr: "Px", color: "#EC4899" },
   z_image_turbo:     { label: "Z-Turbo",  abbr: "ZT", color: "#A78BFA" },

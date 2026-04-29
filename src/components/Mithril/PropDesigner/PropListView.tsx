@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { Prop, getEasyModeCharacterPrompt } from "./types";
+import { Prop, getEasyModeCharacterPrompt, getObjectDesignSheetPrompt } from "./types";
 import { usePropImageOrchestrator, PropJobStatus, PropUpdate } from "./usePropImageOrchestrator";
 import { updatePropDesignSheetImage } from "../services/firestore";
 import MannequinTemplatesPanel from "./MannequinTemplatesPanel";
@@ -350,11 +350,7 @@ export default function PropListView({
           if (prop.category === "character") {
             newPrompts[prop.id] = getEasyModeCharacterPrompt(prop, genre);
           } else {
-            // For objects, keep the original prompt
-            const desc = prop.description ? ` ${prop.description}` : "";
-            newPrompts[prop.id] = prop.designSheetPrompt.includes(prop.description)
-              ? prop.designSheetPrompt
-              : `${prop.designSheetPrompt}${desc}`;
+            newPrompts[prop.id] = getObjectDesignSheetPrompt(prop, genre, styleKeyword);
           }
         });
         setEditablePrompts(newPrompts);
@@ -386,7 +382,7 @@ export default function PropListView({
         setEditablePrompts(defaultPrompts);
       }
     },
-    [sortedProps, genre, onToggleEasyMode]
+    [sortedProps, genre, styleKeyword, onToggleEasyMode]
   );
 
   // Handle prompt change

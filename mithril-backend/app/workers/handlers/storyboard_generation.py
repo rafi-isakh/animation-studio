@@ -1041,10 +1041,6 @@ def _postprocess_storyboard_result(result: dict) -> None:
 
             clip["imagePrompt"] = _append_suffix(clip.get("imagePrompt", ""))
 
-            bg_id = clip.get("backgroundId", "")
-            if bg_id and bg_id.strip():
-                clip["imagePrompt"] = f"{clip['imagePrompt']}\n\nBackground ID: {bg_id}"
-
             vp = clip.get("videoPrompt", "").strip()
             if vp:
                 connector = " " if (vp.endswith('.') or vp.endswith(',')) else ", "
@@ -1059,9 +1055,6 @@ def _postprocess_storyboard_result(result: dict) -> None:
                 val = clip.get(f"imagePrompt{letter}", "")
                 if val:
                     val = _append_suffix(val)
-                    bg_id_variant = clip.get(f"backgroundId{letter}", "").strip()
-                    if bg_id_variant:
-                        val = f"{val}\n\nBackground ID: {bg_id_variant}"
                     clip[f"imagePrompt{letter}"] = val
 
             filled = sum(1 for f in ("attentionDevice", "attentionAction", "attentionExpression", "attentionMood") if clip.get(f))

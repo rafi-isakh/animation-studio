@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertSafePathSegment } from "@/utils/urlSafety";
 
 const WORLDLABS_BASE = "https://api.worldlabs.ai/marble/v1";
 
@@ -21,9 +22,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const res = await fetch(`${WORLDLABS_BASE}/operations/${operationId}`, {
+    const safeOperationId = assertSafePathSegment(operationId);
+    const res = await fetch(
+      `${WORLDLABS_BASE}/operations/${encodeURIComponent(safeOperationId)}`,
+      {
       headers: { "WLT-Api-Key": apiKey },
-    });
+      }
+    );
 
     if (!res.ok) {
       const err = await res.text();

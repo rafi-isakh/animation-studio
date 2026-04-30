@@ -3,29 +3,24 @@
  * Includes SSRF protection via an allow-list of permitted hostnames.
  */
 
-const ALLOWED_HOSTNAME_SUFFIXES = [
-  ".amazonaws.com",
-  ".cloudfront.net",
-  ".s3.amazonaws.com",
-];
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 /**
  * Validates that a URL is safe to fetch (HTTPS, trusted S3/CDN host).
  * Throws if the URL fails any check.
  */
-export function validateImageUrl(url: string): URL {
-  const parsed = new URL(url);
-  if (parsed.protocol !== "https:") {
-    throw new Error(`Disallowed URL protocol: ${parsed.protocol}`);
-  }
-  const hostname = parsed.hostname.toLowerCase();
-  const allowed = ALLOWED_HOSTNAME_SUFFIXES.some((suffix) =>
-    hostname.endsWith(suffix)
-  );
-  if (!allowed) {
-    throw new Error(`Disallowed image hostname: ${hostname}`);
-  }
-  return parsed;
+export async function validateImageUrl(url: string): Promise<URL> {
+  return assertAllowedUrl(url, {
+    allowedHostSuffixes: [
+      ".s3.amazonaws.com",
+      ".cloudfront.net",
+      ".firebasestorage.googleapis.com",
+    ],
+    allowedHostnames: new Set([
+      "s3.amazonaws.com",
+      "firestore.googleapis.com",
+    ]),
+  });
 }
 
 /**
@@ -35,8 +30,8 @@ export function validateImageUrl(url: string): URL {
 export async function fetchImageAsBase64(
   url: string
 ): Promise<{ base64: string; mimeType: string }> {
-  const validated = validateImageUrl(url);
-  const res = await fetch(validated.toString());
+  const validated = await validateImageUrl(url);
+  const res = await fetch(validated.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
   if (!res.ok) {
     throw new Error(`Failed to fetch image: ${res.status}`);
   }

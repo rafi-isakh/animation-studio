@@ -1,6 +1,21 @@
+function getHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
 // Check if URL is an S3 URL that needs proxying
 function isS3Url(url: string): boolean {
-  return url.includes('s3.amazonaws.com') || url.includes('s3.ap-northeast-2.amazonaws.com');
+  const hostname = getHostname(url);
+  if (!hostname) return false;
+  return (
+    hostname === 's3.amazonaws.com' ||
+    hostname.endsWith('.s3.amazonaws.com') ||
+    hostname === 's3.ap-northeast-2.amazonaws.com' ||
+    hostname.endsWith('.s3.ap-northeast-2.amazonaws.com')
+  );
 }
 
 // Fetch an image from URL (S3 or any URL) and convert to base64

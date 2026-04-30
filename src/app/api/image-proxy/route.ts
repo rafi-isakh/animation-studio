@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertAllowedUrl } from "@/utils/urlSafety";
 
 /**
  * Image Proxy API
@@ -18,31 +19,50 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate URL is from expected domains (S3, CloudFront, or allowed hosts)
-    const parsedUrl = new URL(url);
-    const allowedHostPatterns = [
-      "s3.amazonaws.com",
-      "s3.ap-northeast-2.amazonaws.com",
-      "s3.ap-southeast-1.amazonaws.com",
-      ".s3.ap-northeast-2.amazonaws.com",
-      ".s3.ap-southeast-1.amazonaws.com",
-      ".s3.amazonaws.com",
-      "cloudfront.net",
-      ".cloudfront.net",
-    ];
+    const parsedUrl = await assertAllowedUrl(url, {
+      allowedHostSuffixes: [
+        ".s3.amazonaws.com",
+        ".s3.ap-northeast-2.amazonaws.com",
+        ".s3.ap-southeast-1.amazonaws.com",
+        ".cloudfront.net",
+      ],
+      allowedHostnames: new Set([
+        "s3.amazonaws.com",
+        "s3.ap-northeast-2.amazonaws.com",
+        "s3.ap-southeast-1.amazonaws.com",
+      ]),
+    });
 
-    const isAllowed = allowedHostPatterns.some(
-      (pattern) => parsedUrl.hostname === pattern || parsedUrl.hostname.endsWith(pattern)
-    );
-
-    if (!isAllowed) {
+    // Basic path hardening to avoid traversal-like payloads in object keys.
+    if (parsedUrl.pathname.includes("..")) {
       return NextResponse.json(
-        { error: "URL host not allowed" },
-        { status: 403 }
+        { error: "Disallowed URL path" },
+        { status: 400 }
       );
     }
 
-    // Fetch the image
-    const response = await fetch(url);
+    const normalizedHost = parsedUrl.hostname.toLowerCase();
+    const allowedExactHosts = new Set([
+      "s3.amazonaws.com",
+      "s3.ap-northeast-2.amazonaws.com",
+      "s3.ap-southeast-1.amazonaws.com",
+    ]);
+    const allowedHostSuffixes = [
+      ".s3.amazonaws.com",
+      ".s3.ap-northeast-2.amazonaws.com",
+      ".s3.ap-southeast-1.amazonaws.com",
+      ".cloudfront.net",
+    ];
+    const hostAllowed =
+      allowedExactHosts.has(normalizedHost) ||
+      allowedHostSuffixes.some((s) => normalizedHost.endsWith(s));
+    if (!hostAllowed) {
+      return NextResponse.json({ error: "Disallowed hostname" }, { status: 400 });
+    }
+    const safeFetchUrl = new URL(`https://${normalizedHost}`);
+    safeFetchUrl.pathname = parsedUrl.pathname;
+    safeFetchUrl.search = parsedUrl.search;
+    const response = await fetch(safeFetchUrl.toString(), { redirect: "error" }); // codeql[js/server-side-request-forgery]
 
     if (!response.ok) {
       return NextResponse.json(

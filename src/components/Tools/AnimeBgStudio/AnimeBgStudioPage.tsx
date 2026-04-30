@@ -75,17 +75,17 @@ function getStorageKey(provider: ImageProvider): string {
     : GEMINI_API_KEY_STORAGE_KEY;
 }
 
+const apiKeyCache = new Map<ImageProvider, string>();
+
 function getStoredApiKey(provider: ImageProvider): string {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem(getStorageKey(provider)) || "";
+  return apiKeyCache.get(provider) || "";
 }
 
 function setStoredApiKey(provider: ImageProvider, key: string) {
-  if (typeof window === "undefined") return;
   if (key) {
-    localStorage.setItem(getStorageKey(provider), key);
+    apiKeyCache.set(provider, key);
   } else {
-    localStorage.removeItem(getStorageKey(provider));
+    apiKeyCache.delete(provider);
   }
 }
 

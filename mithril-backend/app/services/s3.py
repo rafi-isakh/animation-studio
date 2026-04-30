@@ -1,13 +1,94 @@
 """S3 service for video and story-splitter text storage operations."""
 
-import json
+import ipaddress
 import logging
-from typing import Any, Literal
+import socket
+from typing import Literal
+from urllib.parse import urlparse
+import json
 
 import boto3
 from botocore.exceptions import ClientError
 
 from app.config import get_settings
+
+# Static hostnames always trusted (not configurable at runtime)
+_STATIC_ALLOWED_HOSTNAMES = {
+    "storage.googleapis.com",
+    "firebasestorage.googleapis.com",
+}
+
+
+def _extract_hostname(value: str | None) -> str | None:
+    """Extract normalized hostname from a raw hostname or URL-like value."""
+    if not value:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    if "://" not in candidate:
+        candidate = f"https://{candidate}"
+    parsed = urlparse(candidate)
+    hostname = (parsed.hostname or "").strip().lower()
+    return hostname or None
+
+
+def _get_trusted_hostnames() -> set[str]:
+    """
+    Build trusted hostnames from static allowlist + configured storage/CDN domains.
+    Uses specific configured hostnames rather than broad suffix matching to prevent
+    SSRF to other tenants on shared domains (e.g. other AWS S3 buckets).
+    """
+    s = get_settings()
+    hosts = set(_STATIC_ALLOWED_HOSTNAMES)
+
+    # Specific CloudFront domain configured for this deployment
+    if hostname := _extract_hostname(s.cloudfront_domain):
+        hosts.add(hostname)
+
+    # Derive S3 bucket hostname from bucket name + region
+    if s.videos_bucket and s.aws_region:
+        hosts.add(f"{s.videos_bucket}.s3.{s.aws_region}.amazonaws.com")
+        hosts.add(f"{s.videos_bucket}.s3.amazonaws.com")
+
+    return hosts
+
+
+def assert_allowed_url(url: str) -> str:
+    """
+    Validate that a URL is safe to fetch (SSRF protection).
+    Raises ValueError if the URL is not allowed.
+    - Only HTTPS
+    - Hostname must be in the trusted set (configured S3 bucket + CloudFront domain)
+    - Resolved IP must not be private/loopback
+    """
+    parsed = urlparse(url)
+
+    if parsed.scheme != "https":
+        raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
+
+    if parsed.username or parsed.password:
+        raise ValueError("Disallowed URL credentials")
+
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        raise ValueError("Missing hostname in URL")
+
+    trusted_hostnames = _get_trusted_hostnames()
+    if hostname not in trusted_hostnames:
+        raise ValueError(f"Disallowed hostname: {hostname!r}")
+
+    try:
+        resolved_ips = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise ValueError(f"Unable to resolve hostname: {hostname!r}") from exc
+
+    for _, _, _, _, sockaddr in resolved_ips:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            raise ValueError(f"Disallowed resolved IP for {hostname!r}: {ip}")
+
+    return url
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -316,18 +397,27 @@ async def delete_object(
 
 async def download_image(url: str) -> bytes:
     """
-    Download image from URL (supports S3/CloudFront URLs and external URLs).
+    Download image from URL (supports S3/CloudFront URLs).
+    Validates the URL against an allowlist before fetching (SSRF protection).
 
     Args:
-        url: Image URL
+        url: Image URL (must be HTTPS and hosted on a trusted S3/CDN domain)
 
     Returns:
         Image bytes
     """
     import httpx
 
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-        response = await client.get(url)
+    assert_allowed_url(url)  # raises ValueError if not allowed
+
+    # Reconstruct URL from parsed components so CodeQL can trace the sanitized value.
+    _parsed = urlparse(url)
+    _safe_url = f"https://{_parsed.hostname}{_parsed.path}"
+    if _parsed.query:
+        _safe_url += f"?{_parsed.query}"
+
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
+        response = await client.get(_safe_url)  # codeql[py/full-ssrf]
         if not response.is_success:
             raise Exception(f"Failed to download image: {response.status_code}")
         return response.content

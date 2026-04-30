@@ -6,6 +6,7 @@ import { s3Client } from "@/utils/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getVideoUrl } from "@/utils/urls";
 import { fetchImageAsBase64 as fetchImageAsBase64WithMime } from "@/utils/fetchImage";
+import { assertSafePathSegment } from "@/utils/urlSafety";
 
 const VIDEOS_BUCKET_NAME = process.env.VIDEOS_BUCKET_NAME;
 
@@ -176,19 +177,23 @@ export async function checkSoraStatus(
   jobId: string,
   customApiKey?: string
 ): Promise<SoraStatusResult> {
+  const safeJobId = assertSafePathSegment(jobId);
   const apiKey = customApiKey || process.env.SORA_API_KEY;
   if (!apiKey) {
     throw new Error("SORA_API_KEY is not configured");
   }
 
   // Check the status of the video generation job
-  const response = await fetch(`https://api.openai.com/v1/videos/${jobId}`, {
+  const response = await fetch(
+    `https://api.openai.com/v1/videos/${encodeURIComponent(safeJobId)}`,
+    {
     method: "GET",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-  });
+  }
+  );
 
   const data = await response.json();
 
@@ -237,7 +242,9 @@ export async function checkSoraStatus(
     try {
       // Download video from OpenAI
       const videoResponse = await fetch(
-        `https://api.openai.com/v1/videos/${jobId}/content`,
+        `https://api.openai.com/v1/videos/${encodeURIComponent(
+          safeJobId
+        )}/content`,
         {
           method: "GET",
           headers: {

@@ -119,10 +119,18 @@ export function isUrl(str: string): boolean {
  * Check if URL is an S3/CloudFront URL that needs proxying
  */
 function isS3Url(url: string): boolean {
+  let hostname: string | null = null;
+  try {
+    hostname = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
   return (
-    url.includes('s3.amazonaws.com') ||
-    url.includes('s3.ap-northeast-2.amazonaws.com') ||
-    url.includes('cloudfront.net')
+    hostname === 's3.amazonaws.com' ||
+    hostname.endsWith('.s3.amazonaws.com') ||
+    hostname === 's3.ap-northeast-2.amazonaws.com' ||
+    hostname.endsWith('.s3.ap-northeast-2.amazonaws.com') ||
+    hostname.endsWith('.cloudfront.net')
   );
 }
 

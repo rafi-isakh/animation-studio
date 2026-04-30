@@ -863,7 +863,16 @@ async def _generate_storyboard_with_gemini(
 
     14. **accumulatedTime**: "MM:SS" 형식 누적 시간
 
-    15. **backgroundPrompt**: 영어 배경 묘사
+    15. **backgroundPrompt**: 영어로 AI 이미지 생성용 배경 환경 묘사 프롬프트를 작성합니다.
+    - **반드시 다음 형식으로 시작**: `"2d anime background no characters. Wide shot. [장르 + setting — 예: Modern Contemporary setting, Western Fantasy setting, Sci-Fi Thriller setting]"`
+    - **고유명사·캐릭터 ID·작품 내 고유 명칭 절대 금지**: `SPARTAN_HOSPITAL`, `LEON_APARTMENT`, `KAIDEN_OFFICE` 등 특정 ID나 고유명사를 사용하지 말고, 보편적인 장소 묘사로 대체하십시오. (예: `"a sterile hospital intern locker room"`, `"a cozy studio apartment"`, `"a corporate office lobby"`)
+    - 접두사 이후, 다음 요소를 포함하여 **최소 2문장 이상** 구체적으로 작성하십시오:
+      • 장소 유형 및 건축·인테리어 특성 (예: `"Metal lockers line the walls, and a large mirror hangs on one side"`)
+      • 조명 조건 — 시간대(낮/밤/새벽), 광원 종류(자연광/형광등/촛불), 빛의 성질(따뜻함/차가움/역광 등) (예: `"Morning light streams through a window"`)
+      • 분위기와 감정 톤 (예: `"melancholic and oppressive atmosphere"`, `"warm and intimate ambiance"`)
+      • 주요 색감 또는 색 팔레트 (예: `"muted blues and grays"`, `"warm amber and ochre tones"`)
+      • 핵심 환경 소품 및 세부사항
+      • 날씨·계절 (야외 장면에 한함, 예: `"overcast winter sky, light snow dusting the ground"`)
 
     16. **voicePrompts**: 주요 캐릭터의 보이스 프롬프트 (promptKo, promptEn)
 
@@ -1115,6 +1124,32 @@ async def _generate_trailer_storyboard_with_gemini(
     다음 원본 텍스트를 기반으로 **트레일러 콘티**를 제작해 주세요.
     이 콘티는 원본 스토리의 시간 순서를 따르지 않습니다. 아래 트레일러 스크립트의 극적 구조를 따릅니다.
 
+    **[CRITICAL: 떡밥 식별 및 활용 원칙]**
+    원본 텍스트를 분석하여 작품 내 '의도적으로 해소되지 않은 떡밥(미스터리, 숨겨진 정보, 불완전한 단서)'을 우선적으로 식별하십시오.
+    다음 유형을 반드시 탐지하고 활용하십시오:
+    - 정체가 다른 인물 / 동일 인물처럼 보이나 결정적 차이가 있는 존재 (예: 도플갱어 구조)
+    - 회수되지 않은 복선 (행동, 대사, 시선, 오브젝트 등)
+    - 사건의 원인/범인이 명확히 밝혀지지 않은 상태
+    - 인물 간 관계의 진실이 감춰진 상태 (예: 배신, 이중 정체)
+    - 초반에 의도적으로 감춰진 정보 (독자만 모르는 사실 포함)
+
+    위 떡밥들은 절대 명확하게 해소하지 마십시오.
+    대신, 트레일러에서는 다음 방식으로 활용하십시오:
+    - 단서 단위로 분해하여 서로 다른 씬에 분산 배치
+    - 원인 → 결과 순서를 의도적으로 파괴
+    - 관객이 "이게 뭐지?"라고 느끼는 상태를 유지
+    - 동일 대상이라도 서로 다른 맥락/톤으로 반복 노출하여 혼란 유도
+
+    씬 구성은 반드시 다음 성질을 가져야 합니다:
+    - 비선형 (Non-linear)
+    - 정보 단편화 (Fragmented information)
+    - 의미적 충돌 (Contradictory implication)
+    - 해석 유도형 구조 (Interpretive gap)
+
+    **[액션/연출 원칙]**
+    - 정적인 설명 장면보다 **시각적으로 강한 순간 (폭력, 충돌, 감정 폭발, 급박한 움직임)**을 우선 선택
+    - 떡밥 장면 + 액션 장면을 교차 편집하여 바이럴 영상처럼 구성
+
     **[CRITICAL: 트레일러 씬 구성 원칙 — 절대 준수]**
     - 트레일러 스크립트 라인 수: **{num_trailer_lines}개**
     - 각 라인은 하나의 씬(Scene)을 정의합니다. **씬의 순서는 트레일러 스크립트의 순서를 따릅니다.**
@@ -1210,7 +1245,16 @@ async def _generate_trailer_storyboard_with_gemini(
 
     13. **length**: "1초", "2초", "4초" 형식
     14. **accumulatedTime**: "MM:SS" 형식 누적 시간
-    15. **backgroundPrompt**: 영어 배경 묘사
+    15. **backgroundPrompt**: 영어로 AI 이미지 생성용 배경 환경 묘사 프롬프트를 작성합니다.
+    - **반드시 다음 형식으로 시작**: `"2d anime background no characters. Wide shot. [장르 + setting — 예: Modern Contemporary setting, Western Fantasy setting, Sci-Fi Thriller setting]"`
+    - **고유명사·캐릭터 ID·작품 내 고유 명칭 절대 금지**: `SPARTAN_HOSPITAL`, `LEON_APARTMENT` 등 특정 ID나 고유명사를 사용하지 말고, 보편적인 장소 묘사로 대체하십시오. (예: `"a sterile hospital intern locker room"`, `"a cozy studio apartment"`)
+    - 접두사 이후, 다음 요소를 포함하여 **최소 2문장 이상** 구체적으로 작성하십시오:
+      • 장소 유형 및 건축·인테리어 특성
+      • 조명 조건 — 시간대, 광원 종류, 빛의 성질
+      • 분위기와 감정 톤
+      • 주요 색감 또는 색 팔레트
+      • 핵심 환경 소품 및 세부사항
+      • 날씨·계절 (야외 장면에 한함)
 
     16. **voicePrompts**: 주요 캐릭터의 보이스 프롬프트 (promptKo, promptEn)
 

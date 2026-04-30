@@ -36,6 +36,7 @@ import {
   saveImageGenMeta,
   saveImageGenFrames,
   saveImageGenFrame,
+  updateImageGenFrame,
   clearImageGen,
   deleteImageGenFramesByPart,
 } from "../services/firestore/imageGen";
@@ -56,7 +57,21 @@ import { useImageOrchestrator, FrameUpdate } from "./useImageOrchestrator";
 import {
   getActiveProjectImageJobs,
   mapImageJobToFrameUpdate,
+  subscribeToSessionPanelJobs,
+  type JobQueueDocument,
 } from "../services/firestore/jobQueue";
+import { InpaintModal } from "../ImageToVideo/PanelEditor/InpaintModal";
+
+const ID_CANDIDATE_REGEX = /(?:^|[^A-Z0-9_-])([A-Z][A-Z0-9_-]{2,})(?=$|[^A-Z0-9_-])/g;
+function extractIdCandidates(prompt: string): string[] {
+  const upper = prompt.toUpperCase();
+  const matches: string[] = [];
+  for (const m of upper.matchAll(ID_CANDIDATE_REGEX)) {
+    const candidate = m[1];
+    if (candidate) matches.push(candidate);
+  }
+  return matches;
+}
 
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
@@ -140,6 +155,12 @@ const { language, dictionary } = useLanguage();
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingAssetName, setEditingAssetName] = useState<string>("");
 
+  // Inpaint state
+  const [inpaintFrameId, setInpaintFrameId] = useState<string | null>(null);
+  const [inpaintIsLoading, setInpaintIsLoading] = useState(false);
+  const [inpaintError, setInpaintError] = useState<string | null>(null);
+  const [inpaintingFrameIds, setInpaintingFrameIds] = useState<Set<string>>(new Set());
+
   // Refs for stable references in async operations
   const framesRef = useRef<ImageGenFrame[]>([]);
   const isBatchRunningRef = useRef(false);
@@ -149,6 +170,8 @@ const { language, dictionary } = useLanguage();
   const frameToJobMap = useRef<Map<string, string>>(new Map()); // frameId -> jobId mapping
   const shouldStopRef = useRef(false);
   const currentProjectIdRef = useRef(currentProjectId);
+  const inpaintSessionIdRef = useRef(uuidv4());
+  const activeInpaintJobsRef = useRef<Map<string, string>>(new Map()); // frameId -> jobId
 
 
   // Keep refs in sync
@@ -174,6 +197,7 @@ const { language, dictionary } = useLanguage();
       isBatchRunningRef.current = false;
       activeJobsRef.current.clear();
       frameToJobMap.current.clear();
+      activeInpaintJobsRef.current.clear();
     };
   }, []);
 
@@ -206,6 +230,7 @@ const { language, dictionary } = useLanguage();
           prompt: frame.prompt,
           backgroundId: frame.backgroundId,
           refFrame: frame.refFrame,
+          attentionLabel: frame.attentionLabel,
           imageRef: imageUrl,
           imageUpdatedAt: Date.now(),
           status: "completed",
@@ -319,6 +344,58 @@ const { language, dictionary } = useLanguage();
     ),
   });
 
+  // Handle inpaint job update from Firestore (panel job)
+  const handleInpaintJobUpdate = useCallback((job: JobQueueDocument) => {
+    if (!isMountedRef.current) return;
+    const frameId = job.panel_id;
+    if (!frameId) return;
+    if (!activeInpaintJobsRef.current.has(frameId)) return;
+
+    const isTerminal = job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled';
+
+    if (job.status === 'completed' && job.image_url) {
+      const imageUrl = job.image_url;
+      setFrames((prev) =>
+        prev.map((f) => f.id === frameId ? { ...f, inpaintedImageUrl: imageUrl } : f)
+      );
+      setInpaintingFrameIds((prev) => {
+        const next = new Set(prev);
+        next.delete(frameId);
+        return next;
+      });
+      activeInpaintJobsRef.current.delete(frameId);
+
+      const projectId = currentProjectIdRef.current;
+      if (projectId) {
+        updateImageGenFrame(projectId, frameId, { inpaintImageRef: imageUrl }).catch((err) => {
+          console.error('[ImageGenOrchestrator] Failed to persist inpaintImageRef:', err);
+        });
+      }
+
+      toast({ title: 'Inpaint Complete', description: 'Inpaint result is ready.' });
+    } else if (isTerminal) {
+      setInpaintingFrameIds((prev) => {
+        const next = new Set(prev);
+        next.delete(frameId);
+        return next;
+      });
+      activeInpaintJobsRef.current.delete(frameId);
+
+      if (job.status === 'failed') {
+        toast({ title: 'Inpaint Failed', description: job.error_message || 'Inpaint job failed.', variant: 'destructive' });
+      }
+    }
+  }, [toast]);
+
+  // Subscribe to inpaint panel jobs scoped to this component's session
+  useEffect(() => {
+    if (currentStage !== 7) return;
+    const unsub = subscribeToSessionPanelJobs(inpaintSessionIdRef.current, (jobs) => {
+      jobs.forEach((job) => handleInpaintJobUpdate(job));
+    });
+    return () => unsub();
+  }, [currentStage, handleInpaintJobUpdate]);
+
   // Load character and background assets from previous stages
   const loadAssets = useCallback(() => {
     // Load characters AND objects from PropDesigner (Stage 5)
@@ -384,44 +461,26 @@ const { language, dictionary } = useLanguage();
       scene.clips.forEach((clip: Continuity, clipIndex) => {
         const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
-        // Create frame A from imagePrompt
-        if (clip.imagePrompt) {
-          newFrames.push({
-            id: uuidv4(),
-            sceneIndex,
-            clipIndex,
-            partIndex: partIndex ?? 0,
-            frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-            frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-            shotGroup,
-            prompt: clip.imagePrompt,
-            backgroundId: clip.backgroundId || "",
-            refFrame: "",
-            imageUrl: clip.imageRef || null,
-            imageBase64: null,
-            status: clip.imageRef ? "completed" : "pending",
-            isLoading: false,
-            remixPrompt: "",
-            remixImageUrl: null,
-            remixImageBase64: null,
-            hasDrawingEdits: false,
-            editedImageUrl: null,
-          });
-        }
+        const variants = [
+          { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+          { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+          { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+          { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+        ].filter((v) => v.prompt?.trim());
 
-        // Create frame B from imagePromptEnd if exists
-        if (clip.imagePromptEnd) {
+        variants.forEach((v) => {
           newFrames.push({
             id: uuidv4(),
             sceneIndex,
             clipIndex,
             partIndex: partIndex ?? 0,
-            frameLabel: `${shotGroup}B`,
-            frameNumber: `${frameNumber}B`,
+            frameLabel: `${shotGroup}${v.suffix}`,
+            frameNumber: `${frameNumber}${v.suffix}`,
             shotGroup,
-            prompt: clip.imagePromptEnd,
-            backgroundId: clip.backgroundId || "",
+            prompt: v.prompt!,
+            backgroundId: v.bgId || clip.backgroundId || "",
             refFrame: "",
+            attentionLabel: v.attention,
             imageUrl: null,
             imageBase64: null,
             status: "pending",
@@ -431,8 +490,9 @@ const { language, dictionary } = useLanguage();
             remixImageBase64: null,
             hasDrawingEdits: false,
             editedImageUrl: null,
+            inpaintedImageUrl: null,
           });
-        }
+        });
 
         shotGroup++;
       });
@@ -523,6 +583,7 @@ const { language, dictionary } = useLanguage();
               prompt: sf.prompt,
               backgroundId: sf.backgroundId,
               refFrame: sf.refFrame,
+              attentionLabel: sf.attentionLabel,
               imageUrl: sf.imageRef || null,
               imageBase64: null,
               imageUpdatedAt: sf.imageUpdatedAt || undefined,
@@ -533,6 +594,7 @@ const { language, dictionary } = useLanguage();
               remixImageBase64: null,
               hasDrawingEdits: !!sf.editedImageRef,
               editedImageUrl: sf.editedImageRef || null,
+              inpaintedImageUrl: sf.inpaintImageRef || null,
             }));
           } else {
             // Load storyboard frames for ALL parts so multi-part projects reload correctly.
@@ -558,6 +620,7 @@ const { language, dictionary } = useLanguage();
                     prompt: savedFrame.prompt || sbFrame.prompt,
                     backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                     refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                    attentionLabel: savedFrame.attentionLabel ?? sbFrame.attentionLabel,
                     imageUrl: savedFrame.imageRef || null,
                     imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                     status: savedFrame.status ?? sbFrame.status,
@@ -565,6 +628,7 @@ const { language, dictionary } = useLanguage();
                     remixImageUrl: savedFrame.remixImageRef || null,
                     hasDrawingEdits: !!savedFrame.editedImageRef,
                     editedImageUrl: savedFrame.editedImageRef || null,
+                    inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                   };
                 }
                 return sbFrame;
@@ -580,11 +644,22 @@ const { language, dictionary } = useLanguage();
                     clips: clips.map((clip) => ({
                       story: clip.story,
                       imagePrompt: clip.imagePrompt,
-                      imagePromptEnd: clip.imagePromptEnd,
+                      imagePromptA: clip.imagePromptA,
+                      imagePromptB: clip.imagePromptB,
+                      imagePromptC: clip.imagePromptC,
+                      imagePromptD: clip.imagePromptD,
+                      backgroundId: clip.backgroundId,
+                      backgroundIdA: clip.backgroundIdA,
+                      backgroundIdB: clip.backgroundIdB,
+                      backgroundIdC: clip.backgroundIdC,
+                      backgroundIdD: clip.backgroundIdD,
+                      attentionDevice: clip.attentionDevice,
+                      attentionAction: clip.attentionAction,
+                      attentionExpression: clip.attentionExpression,
+                      attentionMood: clip.attentionMood,
                       videoPrompt: clip.videoPrompt,
                       soraVideoPrompt: clip.soraVideoPrompt,
                       backgroundPrompt: clip.backgroundPrompt,
-                      backgroundId: clip.backgroundId,
                       characterInfo: clip.characterInfo,
                       dialogue: clip.dialogue,
                       dialogueEn: clip.dialogueEn,
@@ -608,35 +683,28 @@ const { language, dictionary } = useLanguage();
                 scenesWithClips.forEach((scene, sceneIndex) => {
                   scene.clips.forEach((clip, clipIndex) => {
                     const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
-                    if (clip.imagePrompt) {
+                    const variants = [
+                      { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+                      { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+                      { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+                      { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+                    ].filter((v) => v.prompt?.trim());
+                    variants.forEach((v) => {
                       fbFrames.push({
                         id: uuidv4(),
                         sceneIndex, clipIndex,
-                        frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-                        frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-                        shotGroup, prompt: clip.imagePrompt,
-                        backgroundId: clip.backgroundId || "", refFrame: "",
-                        imageUrl: clip.imageRef || null, imageBase64: null,
-                        status: clip.imageRef ? "completed" : "pending",
-                        isLoading: false, remixPrompt: "",
-                        remixImageUrl: null, remixImageBase64: null,
-                        hasDrawingEdits: false, editedImageUrl: null,
-                      });
-                    }
-                    if (clip.imagePromptEnd) {
-                      fbFrames.push({
-                        id: uuidv4(),
-                        sceneIndex, clipIndex,
-                        frameLabel: `${shotGroup}B`,
-                        frameNumber: `${frameNumber}B`,
-                        shotGroup, prompt: clip.imagePromptEnd,
-                        backgroundId: clip.backgroundId || "", refFrame: "",
+                        frameLabel: `${shotGroup}${v.suffix}`,
+                        frameNumber: `${frameNumber}${v.suffix}`,
+                        shotGroup, prompt: v.prompt!,
+                        backgroundId: v.bgId || clip.backgroundId || "", refFrame: "",
+                        attentionLabel: v.attention,
                         imageUrl: null, imageBase64: null,
                         status: "pending", isLoading: false, remixPrompt: "",
                         remixImageUrl: null, remixImageBase64: null,
                         hasDrawingEdits: false, editedImageUrl: null,
+                        inpaintedImageUrl: null,
                       });
-                    }
+                    });
                     shotGroup++;
                   });
                 });
@@ -653,6 +721,7 @@ const { language, dictionary } = useLanguage();
                       prompt: savedFrame.prompt || fbFrame.prompt,
                       backgroundId: savedFrame.backgroundId || fbFrame.backgroundId,
                       refFrame: savedFrame.refFrame || fbFrame.refFrame,
+                      attentionLabel: savedFrame.attentionLabel ?? fbFrame.attentionLabel,
                       imageUrl: savedFrame.imageRef || null,
                       imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                       status: savedFrame.status ?? fbFrame.status,
@@ -660,6 +729,7 @@ const { language, dictionary } = useLanguage();
                       remixImageUrl: savedFrame.remixImageRef || null,
                       hasDrawingEdits: !!savedFrame.editedImageRef,
                       editedImageUrl: savedFrame.editedImageRef || null,
+                      inpaintedImageUrl: savedFrame.inpaintImageRef || null,
                     };
                   }
                   return fbFrame;
@@ -671,12 +741,14 @@ const { language, dictionary } = useLanguage();
                   id: sf.id, sceneIndex: sf.sceneIndex, clipIndex: sf.clipIndex,
                   frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
                   prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
+                  attentionLabel: sf.attentionLabel,
                   imageUrl: sf.imageRef || null, imageBase64: null,
                   imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
                   status: sf.status || ("pending" as const), isLoading: false,
                   remixPrompt: sf.remixPrompt || "", remixImageUrl: sf.remixImageRef || null,
                   remixImageBase64: null, hasDrawingEdits: !!sf.editedImageRef,
                   editedImageUrl: sf.editedImageRef || null,
+                  inpaintedImageUrl: sf.inpaintImageRef || null,
                 }));
               }
             }
@@ -1135,6 +1207,7 @@ const { language, dictionary } = useLanguage();
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
           status: f.status,
+          ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           ...(f.imageUrl && { imageRef: f.imageUrl }),
           ...(f.remixPrompt && { remixPrompt: f.remixPrompt }),
           ...(f.remixImageUrl !== null && { remixImageRef: f.remixImageUrl }),
@@ -1241,6 +1314,7 @@ const { language, dictionary } = useLanguage();
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1380,6 +1454,101 @@ const { language, dictionary } = useLanguage();
       toast({ variant: "destructive", title: "Save Failed", description: "Could not persist the change." });
     }
   }, [frames, currentProjectId, toast]);
+
+  const handleOpenInpaint = useCallback((frameId: string) => {
+    setInpaintFrameId(frameId);
+    setInpaintError(null);
+  }, []);
+
+  const handleInpaintSubmit = useCallback(async (
+    maskDataUrl: string,
+    prompt: string,
+    strength: number,
+    width: number,
+    height: number
+  ) => {
+    if (!currentProjectId || !inpaintFrameId) return;
+    const frame = framesRef.current.find((f) => f.id === inpaintFrameId);
+    if (!frame?.imageUrl) return;
+
+    const maskBase64 = maskDataUrl.replace(/^data:image\/[^;]+;base64,/, '');
+
+    setInpaintIsLoading(true);
+    setInpaintError(null);
+
+    try {
+      const response = await fetch('/api/image/inpaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          inpaintSessionId: inpaintSessionIdRef.current,
+          frameId: frame.id,
+          imageUrl: frame.imageUrl,
+          maskBase64,
+          prompt,
+          strength,
+          width,
+          height,
+          aspectRatio: settings.aspectRatio,
+          apiKey: customApiKey || undefined,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit inpaint job');
+      }
+
+      activeInpaintJobsRef.current.set(frame.id, data.jobId);
+      setInpaintingFrameIds((prev) => new Set([...prev, frame.id]));
+      setInpaintFrameId(null);
+    } catch (err: any) {
+      setInpaintError(err.message || 'Failed to submit inpaint job');
+    } finally {
+      setInpaintIsLoading(false);
+    }
+  }, [currentProjectId, inpaintFrameId, settings.aspectRatio, customApiKey]);
+
+  const handleUseInpaint = useCallback(async (frameId: string) => {
+    if (!currentProjectId) return;
+    const frame = framesRef.current.find((f) => f.id === frameId);
+    if (!frame?.inpaintedImageUrl) return;
+
+    const newImageUrl = frame.inpaintedImageUrl;
+    const now = Date.now();
+
+    setFrames((prev) =>
+      prev.map((f) =>
+        f.id === frameId
+          ? { ...f, imageUrl: newImageUrl, inpaintedImageUrl: null, imageUpdatedAt: now }
+          : f
+      )
+    );
+
+    try {
+      await saveImageGenFrame(currentProjectId, frameId, {
+        sceneIndex: frame.sceneIndex,
+        clipIndex: frame.clipIndex,
+        frameLabel: frame.frameLabel,
+        frameNumber: frame.frameNumber,
+        shotGroup: frame.shotGroup,
+        prompt: frame.prompt,
+        backgroundId: frame.backgroundId,
+        refFrame: frame.refFrame,
+        imageRef: newImageUrl,
+        imageUpdatedAt: now,
+        status: "completed",
+        remixPrompt: frame.remixPrompt || "",
+        remixImageRef: frame.remixImageUrl || null,
+        editedImageRef: frame.editedImageUrl || null,
+        inpaintImageRef: null,
+      });
+    } catch (err) {
+      console.error('[ImageGenOrchestrator] Error saving frame after use inpaint:', err);
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not persist the change." });
+    }
+  }, [currentProjectId, toast]);
 
   const handleBgChange = useCallback((id: string, value: string) => {
     setFrames((prev) => prev.map((f) => (f.id === id ? { ...f, backgroundId: value } : f)));
@@ -1559,6 +1728,7 @@ const { language, dictionary } = useLanguage();
         remixImageBase64: null,
         hasDrawingEdits: false,
         editedImageUrl: null,
+        inpaintedImageUrl: null,
       };
 
       if (startPrompt && endPrompt) {
@@ -1627,6 +1797,7 @@ const { language, dictionary } = useLanguage();
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1943,6 +2114,45 @@ const { language, dictionary } = useLanguage();
     () => characterAssets.filter((c) => !isAssetRemoved(c.id)),
     [characterAssets, isAssetRemoved]
   );
+
+  const propDesignerIdsSet = useMemo(() => {
+    const ids = new Set<string>();
+    const propResult = propDesignerGenerator.result as { detectedIds?: { id: string }[] } | null;
+    for (const d of propResult?.detectedIds ?? []) {
+      if (d.id?.trim()) ids.add(d.id.trim().toUpperCase());
+    }
+    return ids;
+  }, [propDesignerGenerator.result]);
+
+  const detectedIds = useMemo(() => {
+    if (propDesignerIdsSet.size === 0) {
+      return [];
+    }
+
+    const ids = new Set<string>();
+
+    // Strict: only show IDs that are present in PropDesigner detectedIds.
+    for (const f of frames) {
+      if (!f.prompt?.trim()) continue;
+      const candidates = extractIdCandidates(f.prompt);
+      for (const candidate of candidates) {
+        const matched = propDesignerIdsSet.has(candidate);
+        if (matched) ids.add(candidate);
+        else console.log(`[ImageGen] candidate "${candidate}" not in propDesignerIdsSet`);
+      }
+    }
+
+    return [...ids].sort();
+  }, [frames, propDesignerIdsSet]);
+
+  const characterAssetIdSet = useMemo(() => {
+    const set = new Set([
+      ...visibleCharacterAssets.map((c) => c.name.toUpperCase()),
+      ...localCharacterAssets.map((a) => a.name.toUpperCase()),
+    ]);
+
+    return set;
+  }, [visibleCharacterAssets, localCharacterAssets]);
 
   // Loading state
   if (isLoadingData) {
@@ -2435,6 +2645,42 @@ const { language, dictionary } = useLanguage();
           )}
         </div>
 
+        {/* Detected Characters / IDs */}
+        {detectedIds.length > 0 && (
+          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-600/30">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-[10px] font-black text-slate-300 uppercase">
+                Detected Characters / IDs
+              </h3>
+              <span className="text-[9px] font-bold text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">
+                {detectedIds.length} IDs
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {detectedIds.map((id) => {
+                const hasSheet = characterAssetIdSet.has(id.toUpperCase());
+                return (
+                  <span
+                    key={id}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${
+                      hasSheet
+                        ? "bg-emerald-900/40 border-emerald-500/60 text-emerald-300"
+                        : "bg-slate-700/60 border-slate-600/50 text-slate-400"
+                    }`}
+                    title={hasSheet ? "Character sheet found in Asset Manager" : "No character sheet"}
+                  >
+                    {id}
+                    {hasSheet && <span className="text-emerald-400">✓</span>}
+                  </span>
+                );
+              })}
+            </div>
+            <p className="text-[8px] text-slate-600 italic mt-2">
+              * Extracted from frame prompts, but limited to IDs from PropDesigner.
+            </p>
+          </div>
+        )}
+
         {/* Batch Controls */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/30 space-y-3">
           <label className="text-[10px] font-bold text-cyan-400 uppercase block">
@@ -2607,9 +2853,12 @@ const { language, dictionary } = useLanguage();
                       onRemix={handleRemixFrame}
                       onUseRemix={handleUseRemix}
                       onEdit={() => {}}
+                      onInpaint={handleOpenInpaint}
+                      onUseInpaint={handleUseInpaint}
                       onDownload={handleDownload}
                       onOpenModal={setSelectedImageUrl}
                       isBatchRunning={isBatchRunning}
+                      isInpainting={inpaintingFrameIds.has(frame.id)}
                       globalIdx={frames.indexOf(frame)}
                       characterAssets={characterAssets}
                     />
@@ -2629,6 +2878,19 @@ const { language, dictionary } = useLanguage();
           onClose={() => setSelectedImageUrl(null)}
         />
       )}
+
+      {inpaintFrameId && (() => {
+        const f = framesRef.current.find((fr) => fr.id === inpaintFrameId);
+        return f?.imageUrl ? (
+          <InpaintModal
+            imageUrl={f.imageUrl}
+            onClose={() => { setInpaintFrameId(null); setInpaintError(null); }}
+            onSubmit={handleInpaintSubmit}
+            isLoading={inpaintIsLoading}
+            externalError={inpaintError ?? undefined}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

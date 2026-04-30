@@ -43,7 +43,7 @@ export function requiresBgmStripping(providerId: string): boolean {
 
 export function stripBgmFromPrompt(prompt: string): string {
   return prompt
-    .replace(/\bBGM:\s*[^\n]*/gi, '')
+    .replace(/\bBGM(\([^)]*\))?:\s*[^\n]*/gi, '')
     .replace(/\n{2,}/g, '\n')
     .trim();
 }

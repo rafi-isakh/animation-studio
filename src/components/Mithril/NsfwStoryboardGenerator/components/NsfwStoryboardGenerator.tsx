@@ -24,6 +24,7 @@ import {
   BookOpen,
   CheckCircle,
   Image,
+  Link2,
 } from "lucide-react";
 import StoryboardTable from "../../StoryboardGenerator/components/StoryboardTable";
 import DriveSettings from "../../StoryboardGenerator/components/DriveSettings";
@@ -768,9 +769,19 @@ export default function NsfwStoryboardGenerator() {
 
           <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {phrase(dictionary, "storysplitter_part", language)} {selectedPartIndex + 1} {phrase(dictionary, "storyboard_part_preview", language)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {isStageSkipped(2)
+                    ? phrase(dictionary, "storyboard_part_preview", language)
+                    : `${phrase(dictionary, "storysplitter_part", language)} ${selectedPartIndex + 1} ${phrase(dictionary, "storyboard_part_preview", language)}`}
+                </span>
+                {isStageSkipped(2) && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-full px-2 py-0.5">
+                    <Link2 size={10} />
+                    IdConverter
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {(splitParts[selectedPartIndex]?.length ?? 0).toLocaleString()}{" "}
                 {phrase(dictionary, "chars", language)}

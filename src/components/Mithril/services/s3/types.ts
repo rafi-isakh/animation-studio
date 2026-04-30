@@ -25,7 +25,7 @@
 
 export type CharacterImageSubtype = 'profile' | 'mastersheet' | 'legacy' | 'mode';
 
-export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited';
+export type ImageGenImageSubtype = 'frame' | 'remix' | 'edited' | 'inpaint';
 
 export type I2VImageSubtype = 'page' | 'panel' | 'panel-editor' | 'storyboard-frame' | 'storyboard-frame-end' | 'storyboard-asset' | 'storyboard-reference';
 
@@ -277,6 +277,13 @@ export function getImageGenRemixKey(projectId: string, frameId: string): string 
  */
 export function getImageGenEditedKey(projectId: string, frameId: string): string {
   return `${S3_BASE_PATH}/${projectId}/imagegen/${frameId}_edited.webp`;
+}
+
+/**
+ * Get S3 key for imagegen inpaint image
+ */
+export function getImageGenInpaintKey(projectId: string, frameId: string): string {
+  return `${S3_BASE_PATH}/${projectId}/imagegen/${frameId}_inpaint.webp`;
 }
 
 /**

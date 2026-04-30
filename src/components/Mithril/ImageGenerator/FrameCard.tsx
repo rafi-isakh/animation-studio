@@ -33,9 +33,12 @@ export default function FrameCard({
   onRemix,
   onUseRemix,
   onEdit,
+  onInpaint,
+  onUseInpaint,
   onDownload,
   onOpenModal,
   isBatchRunning,
+  isInpainting,
   globalIdx,
   characterAssets,
 }: FrameCardProps) {
@@ -45,7 +48,7 @@ export default function FrameCard({
   return (
     <div
       className={`bg-slate-800/80 rounded-lg p-3 flex flex-col gap-2 shadow-lg border border-slate-700/50 ${
-        frame.isLoading ? "ring-2 ring-cyan-500 animate-pulse" : ""
+        frame.isLoading ? "ring-2 ring-cyan-500 animate-pulse" : isInpainting ? "ring-2 ring-pink-500 animate-pulse" : ""
       }`}
     >
       {/* Image Preview */}
@@ -209,6 +212,51 @@ export default function FrameCard({
           </div>
         )}
 
+        {/* Inpaint Result Section */}
+        {frame.inpaintedImageUrl && (
+          <div className="pt-1">
+            <div className="p-2 bg-pink-900/20 border border-pink-500/30 rounded space-y-2">
+              <div
+                className="relative group aspect-video bg-black rounded overflow-hidden cursor-pointer border border-pink-500/50"
+                onClick={() => onOpenModal(frame.inpaintedImageUrl!)}
+              >
+                {isInpainting ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
+                    <div className="w-6 h-6 border-2 border-pink-400 border-t-transparent animate-spin rounded-full"></div>
+                  </div>
+                ) : (
+                  <div className="absolute top-1 right-1 z-10 flex gap-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDownload(frame.id, false); }}
+                      className="w-6 h-6 bg-slate-800/80 rounded flex items-center justify-center text-[10px] hover:bg-slate-700"
+                      title="Download Inpaint"
+                    >
+                      ⬇️
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onUseInpaint(frame.id); }}
+                      className="px-1.5 h-6 bg-pink-700/90 rounded flex items-center justify-center text-[9px] font-bold text-white hover:bg-pink-600"
+                      title="Use as main frame image"
+                    >
+                      Use
+                    </button>
+                  </div>
+                )}
+                <img
+                  src={frame.inpaintedImageUrl}
+                  alt={`Inpaint ${frame.frameLabel}`}
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-pink-600/80 py-0.5 text-center">
+                  <span className="text-[8px] font-black text-white uppercase tracking-widest">
+                    Inpaint Result
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Controls Row */}
         <div className="grid grid-cols-2 gap-1">
           <input
@@ -228,13 +276,23 @@ export default function FrameCard({
               placeholder={phrase(dictionary, "imagegen_ref", language) || "Ref#"}
               title={phrase(dictionary, "imagegen_ref_tooltip", language) || "Reference frame label (e.g., 1A). Use this frame's image as reference."}
             />
-            <button
+            {/* <button
               onClick={() => onEdit(frame.id)}
               className="flex-1 py-1 bg-slate-700 text-[10px] text-slate-300 rounded hover:bg-slate-600 transition-colors"
               title={phrase(dictionary, "imagegen_edit", language) || "Edit with Drawing Tools"}
             >
               ✏️
-            </button>
+            </button> */}
+            {frame.imageUrl && (
+              <button
+                onClick={() => onInpaint(frame.id)}
+                disabled={frame.isLoading || isInpainting || isBatchRunning}
+                className="flex-1 py-1 bg-slate-700 text-[10px] text-slate-300 rounded hover:bg-slate-600 transition-colors disabled:opacity-50"
+                title="Inpaint: AI region edit"
+              >
+                ✏️
+              </button>
+            )}
           </div>
         </div>
       </div>

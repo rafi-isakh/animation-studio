@@ -56,6 +56,17 @@ import {
   mapImageJobToFrameUpdate,
 } from "../services/firestore/jobQueue";
 
+const ID_CANDIDATE_REGEX = /(?:^|[^A-Z0-9_-])([A-Z][A-Z0-9_-]{2,})(?=$|[^A-Z0-9_-])/g;
+function extractIdCandidates(prompt: string): string[] {
+  const upper = prompt.toUpperCase();
+  const matches: string[] = [];
+  for (const m of upper.matchAll(ID_CANDIDATE_REGEX)) {
+    const candidate = m[1];
+    if (candidate) matches.push(candidate);
+  }
+  return matches;
+}
+
 // Shot group color utility for alternating group colors
 const getShotColor = (index: number) => {
   const colors = [
@@ -190,6 +201,7 @@ export default function ImageGeneratorOrchestrator() {
           prompt: frame.prompt,
           backgroundId: frame.backgroundId,
           refFrame: frame.refFrame,
+          attentionLabel: frame.attentionLabel,
           imageRef: imageUrl,
           imageUpdatedAt: Date.now(),
           status: "completed",
@@ -365,44 +377,26 @@ export default function ImageGeneratorOrchestrator() {
         scene.clips.forEach((clip: Continuity, clipIndex) => {
           const frameNumber = `${String(sceneIndex + 1).padStart(2, "0")}${String(clipIndex + 1).padStart(2, "0")}`;
 
-          // Create frame A from imagePrompt
-          if (clip.imagePrompt) {
-            newFrames.push({
-              id: uuidv4(),
-              sceneIndex,
-              clipIndex,
-              partIndex: partIdx,
-              frameLabel: clip.imagePromptEnd ? `${shotGroup}A` : `${shotGroup}`,
-              frameNumber: clip.imagePromptEnd ? `${frameNumber}A` : frameNumber,
-              shotGroup,
-              prompt: clip.imagePrompt,
-              backgroundId: clip.backgroundId || "",
-              refFrame: "",
-              imageUrl: clip.imageRef || null,
-              imageBase64: null,
-              status: clip.imageRef ? "completed" : "pending",
-              isLoading: false,
-              remixPrompt: "",
-              remixImageUrl: null,
-              remixImageBase64: null,
-              hasDrawingEdits: false,
-              editedImageUrl: null,
-            });
-          }
+          const variants = [
+            { prompt: clip.imagePromptA, bgId: clip.backgroundIdA, suffix: "A", attention: "Device" },
+            { prompt: clip.imagePromptB, bgId: clip.backgroundIdB, suffix: "B", attention: "Action" },
+            { prompt: clip.imagePromptC, bgId: clip.backgroundIdC, suffix: "C", attention: "Expression" },
+            { prompt: clip.imagePromptD, bgId: clip.backgroundIdD, suffix: "D", attention: "Mood" },
+          ].filter((v) => v.prompt?.trim());
 
-          // Create frame B from imagePromptEnd if exists
-          if (clip.imagePromptEnd) {
+          variants.forEach((v) => {
             newFrames.push({
               id: uuidv4(),
               sceneIndex,
               clipIndex,
               partIndex: partIdx,
-              frameLabel: `${shotGroup}B`,
-              frameNumber: `${frameNumber}B`,
+              frameLabel: `${shotGroup}${v.suffix}`,
+              frameNumber: `${frameNumber}${v.suffix}`,
               shotGroup,
-              prompt: clip.imagePromptEnd,
-              backgroundId: clip.backgroundId || "",
+              prompt: v.prompt!,
+              backgroundId: v.bgId || clip.backgroundId || "",
               refFrame: "",
+              attentionLabel: v.attention,
               imageUrl: null,
               imageBase64: null,
               status: "pending",
@@ -413,7 +407,7 @@ export default function ImageGeneratorOrchestrator() {
               hasDrawingEdits: false,
               editedImageUrl: null,
             });
-          }
+          });
 
           shotGroup++;
         });
@@ -497,6 +491,7 @@ export default function ImageGeneratorOrchestrator() {
               prompt: sf.prompt,
               backgroundId: sf.backgroundId,
               refFrame: sf.refFrame,
+              attentionLabel: sf.attentionLabel,
               imageUrl: sf.imageRef || null,
               imageBase64: null,
               imageUpdatedAt: sf.imageUpdatedAt || undefined,
@@ -526,6 +521,7 @@ export default function ImageGeneratorOrchestrator() {
                     prompt: savedFrame.prompt || sbFrame.prompt,
                     backgroundId: savedFrame.backgroundId || sbFrame.backgroundId,
                     refFrame: savedFrame.refFrame || sbFrame.refFrame,
+                    attentionLabel: savedFrame.attentionLabel ?? sbFrame.attentionLabel,
                     imageUrl: savedFrame.imageRef || null,
                     imageUpdatedAt: savedFrame.imageUpdatedAt || (savedFrame.imageRef ? Date.now() : undefined),
                     status: savedFrame.status ?? sbFrame.status,
@@ -543,6 +539,7 @@ export default function ImageGeneratorOrchestrator() {
                 partIndex: sf.partIndex ?? 0,
                 frameLabel: sf.frameLabel, frameNumber: sf.frameNumber, shotGroup: sf.shotGroup,
                 prompt: sf.prompt, backgroundId: sf.backgroundId, refFrame: sf.refFrame,
+                attentionLabel: sf.attentionLabel,
                 imageUrl: sf.imageRef || null, imageBase64: null,
                 imageUpdatedAt: sf.imageUpdatedAt || (sf.imageRef ? Date.now() : undefined),
                 status: sf.status || ("pending" as const), isLoading: false,
@@ -970,6 +967,7 @@ export default function ImageGeneratorOrchestrator() {
           backgroundId: f.backgroundId,
           refFrame: f.refFrame,
           status: f.status,
+          ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           ...(f.imageUrl && { imageRef: f.imageUrl }),
           ...(f.remixPrompt && { remixPrompt: f.remixPrompt }),
           ...(f.remixImageUrl !== null && { remixImageRef: f.remixImageUrl }),
@@ -1072,6 +1070,7 @@ export default function ImageGeneratorOrchestrator() {
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1359,6 +1358,7 @@ export default function ImageGeneratorOrchestrator() {
             remixPrompt: "",
             remixImageRef: null,
             editedImageRef: null,
+            ...(f.attentionLabel !== undefined && { attentionLabel: f.attentionLabel }),
           },
         }));
         await saveImageGenFrames(currentProjectId, frameInputs);
@@ -1655,6 +1655,41 @@ export default function ImageGeneratorOrchestrator() {
       return localAssets.filter((a) => a.category === "background" && !bgSheetIds.has(a.id));
     },
     [localAssets, backgroundAssets]
+  );
+
+  const visibleCharacterAssets = useMemo(
+    () => characterAssets.filter((c) => !isAssetRemoved(c.id)),
+    [characterAssets, isAssetRemoved]
+  );
+
+  const propDesignerIdsSet = useMemo(() => {
+    const ids = new Set<string>();
+    const propResult = propDesignerGenerator.result as { detectedIds?: { id: string }[] } | null;
+    for (const d of propResult?.detectedIds ?? []) {
+      if (d.id?.trim()) ids.add(d.id.trim().toUpperCase());
+    }
+    return ids;
+  }, [propDesignerGenerator.result]);
+
+  const detectedIds = useMemo(() => {
+    if (propDesignerIdsSet.size === 0) return [];
+    const ids = new Set<string>();
+    for (const f of frames) {
+      if (!f.prompt?.trim()) continue;
+      for (const candidate of extractIdCandidates(f.prompt)) {
+        if (propDesignerIdsSet.has(candidate)) ids.add(candidate);
+      }
+    }
+    return [...ids].sort();
+  }, [frames, propDesignerIdsSet]);
+
+  const characterAssetIdSet = useMemo(
+    () =>
+      new Set([
+        ...visibleCharacterAssets.map((c) => c.name.toUpperCase()),
+        ...localCharacterAssets.map((a) => a.name.toUpperCase()),
+      ]),
+    [visibleCharacterAssets, localCharacterAssets]
   );
 
   // Loading state
@@ -2142,6 +2177,42 @@ export default function ImageGeneratorOrchestrator() {
             </div>
           )}
         </div>
+
+        {/* Detected Characters / IDs */}
+        {detectedIds.length > 0 && (
+          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-600/30">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-[10px] font-black text-slate-300 uppercase">
+                Detected Characters / IDs
+              </h3>
+              <span className="text-[9px] font-bold text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">
+                {detectedIds.length} IDs
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {detectedIds.map((id) => {
+                const hasSheet = characterAssetIdSet.has(id.toUpperCase());
+                return (
+                  <span
+                    key={id}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${
+                      hasSheet
+                        ? "bg-emerald-900/40 border-emerald-500/60 text-emerald-300"
+                        : "bg-slate-700/60 border-slate-600/50 text-slate-400"
+                    }`}
+                    title={hasSheet ? "Character sheet found in Asset Manager" : "No character sheet"}
+                  >
+                    {id}
+                    {hasSheet && <span className="text-emerald-400">✓</span>}
+                  </span>
+                );
+              })}
+            </div>
+            <p className="text-[8px] text-slate-600 italic mt-2">
+              * Extracted from ALL CAPS words in frame prompts. Green = matching character asset found.
+            </p>
+          </div>
+        )}
 
         {/* Batch Controls */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/30 space-y-3">

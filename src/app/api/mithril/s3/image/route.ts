@@ -18,6 +18,7 @@ import {
   getImageGenFrameKey,
   getImageGenRemixKey,
   getImageGenEditedKey,
+  getImageGenInpaintKey,
   getImageGenFolderPrefix,
   getPropDesignSheetKey,
   getPropReferenceImageKey,
@@ -162,6 +163,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadIma
             break;
           case "edited":
             s3Key = getImageGenEditedKey(projectId, frameId);
+            break;
+          case "inpaint":
+            s3Key = getImageGenInpaintKey(projectId, frameId);
             break;
           case "frame":
           default:
@@ -469,6 +473,9 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteI
               break;
             case "edited":
               keysToDelete = [getImageGenEditedKey(projectId, frameId)];
+              break;
+            case "inpaint":
+              keysToDelete = [getImageGenInpaintKey(projectId, frameId)];
               break;
             case "frame":
             default:

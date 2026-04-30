@@ -479,10 +479,13 @@ export async function savePartMeta(
   const partRef = doc(getPartsCollection(projectId), `part_${partIndex}`);
   await setDoc(partRef, { partIndex }, { merge: true });
 
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
   await setDoc(getPartMetaRef(projectId, partIndex), {
     partIndex,
     generatedAt: Timestamp.now(),
-    ...data,
+    ...cleanData,
   }, { merge: true });
 }
 

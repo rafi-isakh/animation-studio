@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     worldlabs_api_key: str = ""  # WorldLabs API key (3D world generation)
     pixai_api_key: str = ""      # PixAI API key (style converter)
     krea_api_key: str = ""       # Krea AI API key (krea style converter)
+    wavespeed_api_key: str = ""  # WaveSpeed API key (GPT-Image-2-Edit)
 
     # Application
     debug: bool = False

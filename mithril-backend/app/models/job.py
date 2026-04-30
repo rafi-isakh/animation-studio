@@ -396,7 +396,8 @@ class PropDesignSheetJobSubmitRequest(BaseModel):
     prompt: str
     reference_urls: list[str] = []  # Pre-uploaded S3 URLs for reference images
     aspect_ratio: Literal["16:9", "9:16", "1:1"] = "1:1"
-    api_key: str | None = None  # Custom API key (optional)
+    api_key: str | None = None  # Custom API key for Gemini fallback (optional)
+    provider: Literal["gemini", "wavespeed_gpt_image_2"] = "wavespeed_gpt_image_2"
 
 
 class PropDesignSheetJobStatusResponse(BaseModel):

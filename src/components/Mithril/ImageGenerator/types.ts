@@ -31,6 +31,7 @@ export interface ImageGenFrame {
   prompt: string; // Main image prompt
   backgroundId: string; // Reference to BgSheet background
   refFrame: string; // Reference to another frame's label
+  attentionLabel?: string; // "Device" | "Action" | "Expression" | "Mood"
 
   // Generated image
   imageUrl: string | null; // S3 URL of generated image
@@ -48,6 +49,9 @@ export interface ImageGenFrame {
   // Drawing edits
   hasDrawingEdits: boolean;
   editedImageUrl: string | null;
+
+  // Inpaint
+  inpaintedImageUrl: string | null;
 }
 
 /**
@@ -121,11 +125,13 @@ export interface ImageGenFrameMetadata {
   prompt: string;
   backgroundId: string;
   refFrame: string;
+  attentionLabel?: string;
   imageRef: string; // S3 URL
   status: ImageGenFrameStatus;
   remixPrompt: string;
   remixImageRef: string | null;
   editedImageRef: string | null;
+  inpaintImageRef: string | null;
 }
 
 /**
@@ -141,9 +147,12 @@ export interface FrameCardProps {
   onRemix: (id: string) => void;
   onUseRemix: (id: string) => void;
   onEdit: (id: string) => void;
+  onInpaint: (id: string) => void;
+  onUseInpaint: (id: string) => void;
   onDownload: (id: string, isRemix?: boolean) => void;
   onOpenModal: (url: string) => void;
   isBatchRunning: boolean;
+  isInpainting?: boolean;
   globalIdx: number;
   characterAssets: CharacterAssetRef[];
 }
